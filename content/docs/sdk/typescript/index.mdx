@@ -1,0 +1,101 @@
+---
+title: TypeScript SDK
+description: Install, configure, and navigate the typed server client for Blazing Agents.
+---
+
+# TypeScript SDK
+
+`@blazing-agents/sdk` is the typed Node.js client for the Blazing Agents `/v1`
+API. Use its resource methods to manage configuration and data, and its
+generation helpers to stream Agent output.
+
+<Callout type="warn" title="Server-side only">
+  A Tenant API key can access every resource in its Tenant. Never expose it to
+  browser, mobile, or End-user code. Call the SDK from your authenticated backend.
+</Callout>
+
+## Install [#install]
+
+The SDK requires Node.js 24 or newer and `ai` 7.0.32 as a peer dependency.
+
+```bash
+npm install @blazing-agents/sdk ai@7.0.32
+```
+
+## Initialize the client [#initialize-the-client]
+
+```typescript
+import { BlazingAgents } from "@blazing-agents/sdk";
+
+export const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
+```
+
+The client uses `http://localhost:8787` by default. Set `baseUrl` for another
+deployment or provide a custom `fetch` implementation. See [Client
+configuration](/sdk/typescript/client).
+
+## Client objects [#client-objects]
+
+| Object | What it provides |
+| --- | --- |
+| [`BlazingAgents`](/sdk/typescript/client) | Client configuration plus root `chat()`, `completion()`, and `object()` methods |
+| [`agents`](/sdk/typescript/agents) | Agent configuration, Versions, lifecycle, avatars, and MCP Attachments |
+| [`artifacts`](/sdk/typescript/artifacts) | Published Artifact metadata and downloads |
+| [`providers`](/sdk/typescript/providers) | Provider credentials and model discovery |
+| [`mcpConnections`](/sdk/typescript/mcp-connections) | External MCP server configuration and authorization |
+| [`memories`](/sdk/typescript/memories) | Durable Agent Memory |
+| [`prompts`](/sdk/typescript/prompts) | Reusable Prompt templates |
+| [`sessions`](/sdk/typescript/sessions) | Session transcripts and Tool approvals |
+| [`agent(agentId).skills`](/sdk/typescript/skills) | Agent-owned Skill archives and files |
+| [`tasks`](/sdk/typescript/tasks) | Durable Tasks and Task Runs |
+| [`workspaces`](/sdk/typescript/workspaces) | Secure execution Workspaces |
+| [`tenant`](/sdk/typescript/tenant) | Tenant identity and settings |
+| [`usage`](/sdk/typescript/usage) | Tenant and Agent usage rollups |
+
+## Common workflow [#common-workflow]
+
+Create an Agent, start a Session with `chat()`, retain its ID, and consume the
+decoded UI message stream:
+
+```typescript
+import { BlazingAgents, type UIMessage } from "@blazing-agents/sdk";
+
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
+
+const agent = await client.agents.create({ name: "Support Agent" });
+const message = {
+  id: crypto.randomUUID(),
+  role: "user",
+  parts: [{ type: "text", text: "How can I reset my password?" }],
+} satisfies UIMessage;
+
+const result = await client.chat({ agentId: agent.id, message });
+const sessionId = await result.sessionId;
+
+await result.toResponse().text();
+
+console.log(`\nSession: ${sessionId}`);
+```
+
+Pass `sessionId` to a later `chat()` call to continue the same Session. Use
+`completion()` for stateless text or `object()` for stateless structured output.
+See the root [generation methods](/sdk/typescript/client#generation-methods) for all three result
+interfaces and streaming patterns.
+
+## Errors and response validation [#errors-and-response-validation]
+
+Request, transport, and stream failures throw `BlazingAgentsError`. Branch on
+its stable `code`; optional fields include `status`, `requestId`, `details`, and
+the underlying `cause`. Successful JSON resource responses are validated against
+the shared Zod contracts. See [Client errors](/sdk/typescript/client#errors)
+and [protocol errors](/api-reference/protocols/errors).
+
+## Next steps [#next-steps]
+
+- Follow the [Quickstart](/getting-started/quickstart) to run a complete first Turn.
+- Build a protected endpoint with [Build a chat endpoint](/platform/sessions-and-turns).
+- Use the [REST API](/api-reference/rest-api) when you do not need the TypeScript client.

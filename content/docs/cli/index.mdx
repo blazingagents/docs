@@ -1,0 +1,88 @@
+---
+title: CLI
+description: Install the ba command and choose an interactive, administrative, or automated workflow.
+---
+
+# CLI
+
+`ba` is the npm-installed Blazing Agents CLI for interactive Agent chat, platform administration, and one-Turn automation. It is a client of the hosted platform: Agents, Sessions, Tools, execution, and usage remain on Blazing Agents.
+
+## Install the CLI [#install-the-cli]
+
+The CLI requires Node.js 24 or newer. It supports macOS x64/arm64 with Keychain, Windows x64/arm64 with Credential Manager, and glibc Linux x64/arm64 with libsecret and a working desktop D-Bus Secret Service. Musl Linux, Alpine, and headless native credential stores are unsupported; use environment authentication for headless automation.
+
+```bash
+npm install --global @blazing-agents/cli
+ba --version
+ba --help
+```
+
+You should see the installed version, followed by help that lists `assist`, `chat`, and `run`.
+
+## Choose a command [#choose-a-command]
+
+<Cards>
+  <Card
+    title="CLI setup and authentication"
+    href="/cli/setup-and-authentication"
+    description="Authenticate a workstation or a headless environment without putting credentials in configuration."
+  />
+  <Card
+    title="ba chat"
+    href="/cli/chat"
+    description="Hold an interactive terminal conversation with an ordinary Agent."
+  />
+  <Card
+    title="ba run"
+    href="/cli/run"
+    description="Execute exactly one Turn for a script, pipe, or CI job."
+  />
+  <Card
+    title="ba assist and Admin Agent"
+    href="/cli/assist"
+    description="Administer Tenant resources conversationally with durable Tool approval."
+  />
+  <Card
+    title="Scripting and CI"
+    href="/cli/scripting-and-ci"
+    description="Build a secret-safe, machine-readable automation job."
+  />
+</Cards>
+
+| Command | Input and interaction | Session behavior | Intended use |
+| --- | --- | --- | --- |
+| `ba chat <agent>` | Interactive TTY | Creates after first-Turn admission or resumes `--session` | Ordinary Agent conversations |
+| `ba run <agent>` | Literal input, non-TTY stdin, or a stored Prompt; no TUI | Stateless by default; resumes only an explicit `--session` | Scripts and CI |
+| `ba assist` | Interactive TTY | Creates or resumes an Admin Agent Session | Tenant administration |
+
+## Configure the API origin [#configure-the-api-origin]
+
+The default API origin is `https://api.blazingagents.com`. An optional strict YAML file may contain only a `baseUrl` property, for example `baseUrl: https://api.blazingagents.com`.
+
+On macOS and Linux, the file is `${XDG_CONFIG_HOME:-~/.config}/blazing-agents/config.yaml`. On Windows, it is `%APPDATA%\blazing-agents\config.yaml` (falling back to the user's AppData Roaming directory).
+
+Origin precedence is `--base-url`, then `BLAZING_AGENTS_BASE_URL`, then YAML, then the default. The CLI reads but never creates or rewrites this file, and configuration never contains credentials.
+
+## Get help [#get-help]
+
+Run `ba --help`, `ba chat --help`, `ba run --help`, or `ba assist --help`. Shipped help is authoritative for command flags; help and version output do not load configuration, credentials, the TUI, or the network.
+
+## Operational boundaries [#operational-boundaries]
+
+Agent selection accepts an exact Agent ID or full name. An ID-shaped value is ID-only; otherwise an exact-case full name wins, followed by one case-insensitive full-name match. Ambiguous names fail and list their exact candidates.
+
+The CLI sends requests to hosted Agents and never executes their Tools locally. Cancellation aborts the active client request, but cannot undo a Tool side effect that already completed. Use the TypeScript SDK or REST API when application code needs resource methods, custom UI, or control beyond one CLI process.
+
+## Related capabilities [#related-capabilities]
+
+- [Agents](/agents/agents)
+- [Sessions and Turns](/platform/sessions-and-turns)
+- [Generation and streaming](/agents/output/generation-and-streaming)
+- [Tool approvals](/agents/tools/tool-approvals)
+- [Security and credentials](/platform/security-and-credentials)
+
+## Reference [#reference]
+
+- [TypeScript SDK](/sdk/typescript)
+- [Python SDK](/sdk/python)
+- [REST API](/api-reference/rest-api)

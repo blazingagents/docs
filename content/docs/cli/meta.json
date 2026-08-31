@@ -1,0 +1,11 @@
+{
+  "title": "CLI",
+  "pages": [
+    "index",
+    "setup-and-authentication",
+    "chat",
+    "run",
+    "assist",
+    "scripting-and-ci"
+  ]
+}

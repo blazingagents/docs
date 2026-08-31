@@ -1,0 +1,197 @@
+---
+title: Built-in Tools
+description: Enable BA-provided planning, Memory, and Workspace actions and verify their effects.
+---
+
+# Built-in Tools
+
+Built-in Tools are platform-supplied actions available during a Turn. Select
+only the Tool groups an Agent needs; all groups are disabled by default.
+
+## Tool groups [#tool-groups]
+
+The Agent-level `tools` array contains group IDs. At Turn resolution, each group
+expands to its declared Tool names.
+
+| Group | Expanded Tools | Boundary |
+| --- | --- | --- |
+| `workspace` | `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts` | Operates on the Agent's current durable Workspace; publication is deliberate. |
+| `write_todos` | `write_todos` | Maintains structured planning state for the current Turn. |
+| `memory` | `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory` | Reads and changes the Agent-owned Memory store. |
+
+Selecting a group does not provision a backing resource. Every Agent already
+has a [Workspace](/agents/workspaces), while the Memory group uses the Agent's
+[Memory](/agents/memory). [MCP Tools](/agents/tools/mcp-tools) arrive through
+attached connections rather than this array.
+
+An Agent with [Skills](/agents/skills) receives `activate_skill` and Skill-aware
+`read` without enabling `workspace`. That restricted `read` accepts only the
+virtual Skill resources advertised to the current Agent; it does not grant
+ordinary Workspace access. To execute a Skill script, the Agent must read it,
+write a copy into its Workspace, and run that copy with `bash`.
+
+## Enable a group [#enable-a-group]
+
+Agent updates replace the complete `tools` array. Read the current Agent and
+merge the group to preserve unrelated selections.
+
+```typescript
+const agent = await client.agents.get(agentId);
+await client.agents.update(agentId, {
+  tools: agent.tools.includes("workspace")
+    ? agent.tools
+    : [...agent.tools, "workspace" as const],
+});
+```
+
+See the `agents` object in the [TypeScript SDK](/sdk/typescript/agents) or
+[Python SDK](/sdk/python/agents) for the exact create and update contracts.
+
+## Workspace operations [#workspace-operations]
+
+Workspace Tools support coding, document generation, data processing, and
+other work that needs durable mutable files.
+
+| Tool | Purpose |
+| --- | --- |
+| `read` | Read a Workspace file or an authorized Skill resource. |
+| `write` | Write text and create parent directories when needed. |
+| `edit` | Replace exact text in an existing file. |
+| `grep` | Search text recursively and return bounded matches. |
+| `glob` | List paths matching a shell-style pattern. |
+| `bash` | Run a command from `/workspace` and return its exit code and output. |
+| `publish_artifacts` | Publish one to ten readable files as append-only Artifacts. |
+
+Relative paths resolve beneath `/workspace`; absolute paths must already be
+inside that root. Normalized paths that escape the Workspace are rejected.
+`bash` starts in `/workspace`. The sandbox receives neither Provider
+credentials nor application environment variables, and guest network access is
+denied.
+
+The first Workspace operation freezes the Agent's current Workspace ID for the
+Turn. Each operation refreshes the Workspace backup and network policy before
+execution. The model loop remains in the trusted dispatcher rather than inside
+the Workspace.
+
+## Verify durable file operations [#verify-durable-file-operations]
+
+This procedure writes an exact sentinel in one Session and reads it from a
+different Session. Persistence follows the Workspace attachment, not the
+Session.
+
+<Steps>
+  <Step>
+    ## Enable Workspace Tools
+
+    Apply the merge shown above so existing Tool groups remain selected.
+
+  </Step>
+  <Step>
+    ## Write the sentinel
+
+    ```typescript
+    const sentinel = "BA_DURABLE_42";
+    const writeTurn = await client.chat({
+      agentId,
+      message: {
+        id: crypto.randomUUID(),
+        role: "user",
+        parts: [{
+          type: "text",
+          text: `Use write to create durable.txt containing exactly ${sentinel}. Do not publish it.`,
+        }],
+      },
+    });
+    await writeTurn.toResponse().text();
+    ```
+
+    Draining the stream lets the Turn finish its Tool work.
+
+  </Step>
+  <Step>
+    ## Read it in another Session
+
+    ```typescript
+    const readTurn = await client.chat({
+      agentId,
+      message: {
+        id: crypto.randomUUID(),
+        role: "user",
+        parts: [{ type: "text", text: "Use read to read durable.txt, then summarize." }],
+      },
+    });
+    const sessionId = await readTurn.sessionId;
+    await readTurn.toResponse().text();
+
+    const { data } = await client.sessions.messages(agentId, sessionId);
+    const result = data.flatMap((message) => message.parts).find(
+      (part) => part.type === "tool-read" && part.state === "output-available"
+    )?.output;
+    if (
+      typeof result !== "object" || result === null ||
+      !("path" in result) || !("content" in result) ||
+      result.path !== "/workspace/durable.txt" || result.content !== sentinel
+    ) {
+      throw new Error("Persistence check failed");
+    }
+    ```
+
+    The successful persisted Tool result verifies the bytes; do not use the
+    model-authored summary as the assertion.
+
+  </Step>
+</Steps>
+
+## Build a bounded coding Agent [#build-a-bounded-coding-agent]
+
+For coding work, name the exact files, changes, searches, commands, and expected
+results. The following prompt exercises every private Workspace operation
+without publishing an Artifact:
+
+```typescript
+const turn = await client.chat({
+  agentId,
+  message: {
+    id: crypto.randomUUID(),
+    role: "user",
+    parts: [{
+      type: "text",
+      text: "Use write to create status.txt containing PENDING plus a newline. "
+        + "Use edit to replace PENDING with READY. Verify it with read, grep for READY, "
+        + "and glob for status.txt. Run `wc -c < status.txt` with bash. Then summarize.",
+    }],
+  },
+});
+await turn.toResponse().text();
+```
+
+Inspect the Session message parts to verify each Tool result. Treat generated
+commands, files, and summaries as untrusted until your application validates
+them.
+
+## Publishing and failures [#publishing-and-failures]
+
+Writing a file does not make it an application output. `publish_artifacts`
+explicitly turns selected Workspace files into [Artifacts](/agents/artifacts)
+owned by a stateful Session. Stateless generation can use the other Workspace
+Tools but cannot publish because no Session can own the output.
+
+Filesystem changes are not transactional. Completed writes and edits remain
+after cancellation or a later Tool failure, even though a failed Turn does not
+commit new Session transcript events. Concurrent Turns sharing a Workspace may
+also overlap, so coordinate writes where needed.
+
+## Production checklist [#production-checklist]
+
+- Enable only the groups the Agent needs; selection is capability exposure, not authorization.
+- Keep secrets out of prompts, commands, Workspace files, Tool arguments, and logs.
+- Expect bounded inputs and outputs plus filesystem, process, memory, and compute limits.
+- Validate files before consuming or publishing them in another system.
+- Use [Tool approvals](/agents/tools/tool-approvals) for calls that require a human decision.
+- Review [security and credentials](/platform/security-and-credentials) and [limits and reliability](/platform/limits-and-reliability).
+
+## Related reference [#related-reference]
+
+- TypeScript: [Agents](/sdk/typescript/agents), [Sessions](/sdk/typescript/sessions), and [client generation methods](/sdk/typescript/client#chat)
+- Python: [Agents](/sdk/python/agents), [Workspaces](/sdk/python/workspaces), [Sessions](/sdk/python/sessions), and [client generation methods](/sdk/python/client#chat)
+- HTTP contracts: [API reference](/api-reference)

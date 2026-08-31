@@ -1,0 +1,53 @@
+{
+  "name": "@blazing-agents/docs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm run generate && vite build --config vite.docs.config.mts && rm -rf .output/server .output/nitro.json && npm run verify-output",
+    "check": "npm run typecheck && npm run test",
+    "dev": "npm run generate && vite --config vite.docs.config.mts",
+    "generate": "fumadocs-mdx source.config.ts .source && node scripts/generate-docs-manifest.mjs",
+    "test": "npm run generate && vitest run --config vitest.docs.config.mts && node scripts/verify-docs-coverage.mjs",
+    "typecheck": "npm run generate && tsc --noEmit -p tsconfig.docs.json",
+    "verify-output": "node scripts/verify-docs-output.mjs"
+  },
+  "dependencies": {
+    "@blazing-agents/core": "0.1.0",
+    "@blazing-agents/sdk": "0.1.0",
+    "@orama/orama": "^3.1.18",
+    "@tanstack/react-router": "^1.170.32",
+    "@tanstack/react-start": "^1.168.49",
+    "fumadocs-core": "^16.15.4",
+    "fumadocs-ui": "^16.15.4",
+    "lucide-react": "^1.37.0",
+    "radix-ui": "^1.6.7",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@babel/parser": "^8.0.4",
+    "@mdx-js/mdx": "^3.1.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/react": "^16.3.3",
+    "@types/mdx": "^2.0.14",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/coverage-v8": "^4.1.11",
+    "ai": "7.0.84",
+    "fumadocs-mdx": "^15.4.0",
+    "hono": "^4.13.5",
+    "jsdom": "^30.0.1",
+    "nitro": "^3.0.260610-beta",
+    "shiki": "^4.4.3",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

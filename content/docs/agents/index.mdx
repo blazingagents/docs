@@ -1,0 +1,44 @@
+---
+title: Agents
+description: Understand the resources, output modes, and Tools that define what a Blazing Agents Agent can do.
+---
+
+# Agents
+
+An Agent combines model configuration, instructions, durable context, and
+approved capabilities into a reusable execution unit. Configure an Agent once,
+then invoke it through a [Session](/platform/sessions-and-turns), stateless
+generation, or [Automation](/automation).
+
+The Agent section explains the product model: what each resource does, how the
+resources relate, and which lifecycle or security boundaries matter. For exact
+language methods and types, follow the links to the [TypeScript SDK](/sdk/typescript)
+or [Python SDK](/sdk/python).
+
+| Concept | What you will learn |
+| --- | --- |
+| [Agents](/agents/agents) | Create the execution unit and understand its ownership and current configuration. |
+| [Providers and Models](/agents/providers-and-models) | Connect model credentials and select the model an Agent resolves at runtime. |
+| [Prompts](/agents/prompts) | Manage reusable instructions independently from Agent configuration. |
+| [Versions and lifecycle](/agents/versions-and-lifecycle) | Publish, pin, restore, and reason about immutable Agent configuration snapshots. |
+| [Skills](/agents/skills) | Give an Agent progressively loaded instructions and supporting resources. |
+| [Memory](/agents/memory) | Persist Agent-owned facts for retrieval across Turns. |
+| [Workspaces](/agents/workspaces) | Give an Agent durable, mutable private files and command execution. |
+| [Artifacts](/agents/artifacts) | Publish deliberate files from a Session as application outputs. |
+| [Output](/agents/output) | Generate streamed text or schema-constrained objects. |
+| [Tools](/agents/tools) | Enable built-in actions, connect MCP Tools, and govern sensitive calls with approvals. |
+
+## How the pieces fit [#how-the-pieces-fit]
+
+Every Agent has a current configuration and Workspace. A Turn resolves that
+configuration, invokes the selected Provider and model, and may load Skills,
+read or change Memory, use built-in or MCP Tools, and produce streamed or
+structured output. Stateful Turns belong to Sessions; scheduled and background
+execution belongs to Automation.
+
+## Choose an interface [#choose-an-interface]
+
+- Use the [CLI](/cli) to learn BA interactively, run Agents, and automate shell workflows.
+- Use the [TypeScript SDK](/sdk/typescript) or [Python SDK](/sdk/python) from application code.
+- Use the [TypeScript Agents object](/sdk/typescript/agents) or [Python Agents object](/sdk/python/agents) for exact Agent operations.
+- Use the [API reference](/api-reference) for HTTP operations and wire contracts.

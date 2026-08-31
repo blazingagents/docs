@@ -1,0 +1,34 @@
+---
+title: Platform
+description: Operate conversations, tenancy, security, usage, and reliability across Blazing Agents.
+---
+
+# Platform
+
+Platform concepts govern execution and every resource in Blazing Agents. Start here to manage conversational state, enforce your application boundary, understand metering, and design reliable production integrations.
+
+## Explore Platform [#explore-platform]
+
+<Cards>
+  <Card title="Sessions and Turns" href="/platform/sessions-and-turns" description="Store conversation history and understand the lifecycle of one Agent execution." />
+  <Card title="Tenancy and attribution" href="/platform/tenancy-and-attribution" description="Keep Tenant isolation separate from end-user labels used for filtering and reporting." />
+  <Card title="Security and credentials" href="/platform/security-and-credentials" description="Keep API, Provider, MCP, and service credentials inside their trust boundaries." />
+  <Card title="Usage and quotas" href="/platform/usage-and-quotas" description="Measure settled Turns and configure Tenant safety ceilings." />
+  <Card title="Limits and reliability" href="/platform/limits-and-reliability" description="Handle limits, typed failures, retries, cancellation, and recovery." />
+</Cards>
+
+## How the controls fit together [#how-the-controls-fit-together]
+
+1. A backend credential establishes the Tenant for a request.
+2. Optional end-user attribution labels supported resources and usage without granting access.
+3. A Turn executes, optionally inside a Session, and settles usage.
+4. Quotas, service limits, and lifecycle rules determine whether work starts, retries safely, or reaches a terminal outcome.
+
+The public API is backend-only. Your application authenticates its users and authorizes access before it calls Blazing Agents.
+
+## Related sections [#related-sections]
+
+- [Agents](/agents) covers what an Agent can use and produce.
+- [Automation](/automation) covers durable background and scheduled work.
+- [TypeScript SDK](/sdk/typescript) and [Python SDK](/sdk/python) provide exact client methods.
+- [API Reference](/api-reference) defines REST and protocol contracts.

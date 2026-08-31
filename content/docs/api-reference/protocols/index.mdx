@@ -1,0 +1,111 @@
+---
+title: Protocols and contracts
+description: Find the reusable wire, schema, error, identifier, pagination, and limit contracts shared by the SDK and REST API.
+---
+
+# Protocols and contracts
+
+These pages define rules shared by multiple SDK methods and REST endpoints.
+Use them when you need the exact wire behavior or data contract rather than one
+operation's signature.
+
+## Contract [#contract]
+
+SDK and REST pages own individual operations. This section owns the contracts
+those operations reuse.
+
+<Cards>
+  <Card
+    title="Streaming protocol"
+    href="/api-reference/protocols/streaming"
+    description="Choose the correct stream, headers, consumption model, and failure handling."
+  />
+  <Card
+    title="Objects and schemas"
+    href="/api-reference/protocols/objects-and-schemas"
+    description="Look up public resource shapes, mutability, nullability, and status values."
+  />
+  <Card
+    title="Errors"
+    href="/api-reference/protocols/errors"
+    description="Handle REST envelopes, SDK errors, and failures after streaming begins."
+  />
+  <Card
+    title="Resource IDs"
+    href="/api-reference/protocols/resource-ids"
+    description="Recognize public ID formats while treating identifiers as opaque values."
+  />
+  <Card
+    title="Pagination and filtering"
+    href="/api-reference/protocols/pagination-and-filtering"
+    description="Traverse keyset pages, poll transcripts, and apply resource-specific filters."
+  />
+  <Card
+    title="Service limits"
+    href="/api-reference/protocols/service-limits"
+    description="Design around enforced resource, payload, query, and execution bounds."
+  />
+</Cards>
+
+## Examples [#examples]
+
+An SDK stream uses the [streaming contract](/api-reference/protocols/streaming)
+and the shared [error contract](/api-reference/protocols/errors):
+
+```typescript
+const result = await client.completion({ agentId, prompt: "Summarize this." });
+
+for await (const delta of result.textStream) {
+  process.stdout.write(delta);
+}
+```
+
+A REST list operation combines IDs, pagination, returned objects, errors, and
+limits:
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/sessions?limit=50" \
+  -H "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+## Used by [#used-by]
+
+- [TypeScript SDK](/sdk/typescript)
+- [REST API](/api-reference/rest-api)
+- [Generation and streaming](/agents/output/generation-and-streaming)
+- [Build a chat endpoint](/platform/sessions-and-turns)
+
+## Source of truth [#source-of-truth]
+
+- `packages/sdk/src/index.ts`
+- `packages/sdk/src/client.ts`
+- `packages/sdk/src/types.ts`
+- `servers/api/src/routes/index.ts`
+- `packages/core/src/api.ts`
+- `packages/core/src/entities/agents.ts`
+- `packages/core/src/entities/artifacts.ts`
+- `packages/core/src/entities/attribution.ts`
+- `packages/core/src/entities/chat.ts`
+- `packages/core/src/entities/mcp-connections.ts`
+- `packages/core/src/entities/memories.ts`
+- `packages/core/src/entities/prompts.ts`
+- `packages/core/src/entities/providers.ts`
+- `packages/core/src/entities/workspaces.ts`
+- `packages/core/src/entities/sessions.ts`
+- `packages/core/src/entities/skills.ts`
+- `packages/core/src/entities/tasks.ts`
+- `packages/core/src/entities/tenants.ts`
+- `packages/core/src/entities/usage.ts`
+- `packages/sdk/src/index.test.ts`
+- `servers/api/src/app.test.ts`
+
+## Related guides [#related-guides]
+
+See the capability and guide links under [Used by](#used-by).
+
+## Reference [#reference]
+
+See the implementation inventory under [Source of truth](#source-of-truth).
+
+For language-native interfaces, use the [TypeScript
+SDK](/sdk/typescript) or [Python SDK](/sdk/python).

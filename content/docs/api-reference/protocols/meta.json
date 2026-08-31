@@ -1,0 +1,12 @@
+{
+  "title": "Protocols and contracts",
+  "pages": [
+    "index",
+    "streaming",
+    "objects-and-schemas",
+    "errors",
+    "resource-ids",
+    "pagination-and-filtering",
+    "service-limits"
+  ]
+}

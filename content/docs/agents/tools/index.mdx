@@ -1,0 +1,42 @@
+---
+title: Tools
+description: Give Agents narrowly scoped actions through built-in Tools, remote MCP Tools, and durable human approval.
+---
+
+# Tools
+
+Tools let an Agent act instead of only generating output. Blazing Agents can
+expose platform-provided Tool groups, discover Tools from attached MCP servers,
+and pause sensitive calls until a human makes a durable decision.
+
+<Cards>
+  <Card
+    title="Built-in Tools"
+    href="/agents/tools/built-in-tools"
+    description="Enable planning, Memory, and durable Workspace operations supplied by BA."
+  />
+  <Card
+    title="MCP Tools"
+    href="/agents/tools/mcp-tools"
+    description="Connect a remote MCP server and attach its discovered Tools to an Agent."
+  />
+  <Card
+    title="Tool approvals"
+    href="/agents/tools/tool-approvals"
+    description="Place a durable human decision before an exact sensitive Tool call."
+  />
+</Cards>
+
+## Tools are not Skills [#tools-are-not-skills]
+
+A Tool is a callable operation. A [Skill](/agents/skills) is progressively
+loaded instruction and resource content that teaches an Agent how to perform a
+kind of work. A Skill can direct an Agent to use Tools, but it does not itself
+grant a Tool capability.
+
+## Tool activity [#tool-activity]
+
+Successful Session Turns retain Tool calls and results as message parts. A
+proposed sensitive call may instead create a pending approval and resume in a
+new continuation Turn after the decision. See [Sessions and Turns](/platform/sessions-and-turns)
+for transcript and execution behavior.

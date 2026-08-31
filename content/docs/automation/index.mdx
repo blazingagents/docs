@@ -1,0 +1,34 @@
+---
+title: Automation
+description: Define durable Agent work, inspect each execution, and run it on demand or on a schedule.
+---
+
+# Automation
+
+Automation runs an Agent outside an interactive request. A Task stores what should run, a Task run records one execution, and a schedule determines when the platform should create runs.
+
+## Explore Automation [#explore-automation]
+
+<Cards>
+  <Card title="Tasks" href="/automation/tasks" description="Create and maintain reusable background-work definitions." />
+  <Card title="Task runs" href="/automation/task-runs" description="Submit, observe, cancel, and diagnose individual executions." />
+  <Card title="Schedules" href="/automation/schedules" description="Run Tasks once, at fixed intervals, or from cron expressions." />
+</Cards>
+
+## Choose an execution path [#choose-an-execution-path]
+
+| Need | Use |
+| --- | --- |
+| Submit durable work from application code | An on-demand [Task](/automation/tasks) and an idempotent [Task run](/automation/task-runs) |
+| Run at a known instant | A [one-time schedule](/automation/schedules#choose-a-schedule) |
+| Repeat by elapsed time | An [interval schedule](/automation/schedules#choose-a-schedule) |
+| Follow calendar boundaries | A [cron schedule](/automation/schedules#choose-a-schedule) |
+
+Each executing run receives a fresh [Session](/platform/sessions-and-turns), so you can inspect its transcript and published Artifacts after execution.
+
+## Reference [#reference]
+
+- [TypeScript Tasks SDK](/sdk/typescript/tasks)
+- [Python Tasks SDK](/sdk/python/tasks)
+- [Tasks REST API](/api-reference/rest-api/tasks)
+- [Task runs REST API](/api-reference/rest-api/task-runs)

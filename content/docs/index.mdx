@@ -1,0 +1,92 @@
+---
+title: Blazing Agents
+description: Understand how Blazing Agents runs production Agents and choose the right path through the documentation.
+---
+
+# Blazing Agents
+
+Blazing Agents is infrastructure for running production Agents. It is for developers building agent-powered applications who want to focus on Agent behavior while the platform manages execution and durable state.
+
+## What works out of the box [#what-works-out-of-the-box]
+
+You define your Agent's behavior. Blazing Agents provides the production infrastructure around it:
+
+- **Agents:** [configuration](/agents/agents), [Providers and Models](/agents/providers-and-models), [Output](/agents/output), [Tools](/agents/tools), Skills, Memory, Workspaces, and Artifacts.
+- **Platform:** [Sessions and Turns](/platform/sessions-and-turns), Tenant and Attribution boundaries, credentials, usage, quotas, limits, and reliability.
+- **Automation:** [Tasks](/automation/tasks), [Task runs](/automation/task-runs), and [schedules](/automation/schedules).
+
+Your application remains responsible for end-user authentication and authorization, product UI, business rules, and mapping users to Blazing Agents resources. An optional `userId` attributes resources and usage to an end user for filtering and reporting; it is not an authorization boundary.
+
+## Run your first Agent [#run-your-first-agent]
+
+This compact example shows the product shape: create the smallest valid Agent, start a chat Turn, and relay the stream. Keep the API key on your backend. If a browser holds the opaque server-minted Session ID, validate it against your authenticated application's ownership mapping before every resume. See [Setup](/getting-started/setup) for installation and credential configuration.
+
+```typescript
+import { BlazingAgents, type UIMessage } from "@blazing-agents/sdk";
+
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
+
+export async function runAgent(): Promise<Response> {
+  const agent = await client.agents.create({ name: "Support Agent" });
+  const message = {
+    id: crypto.randomUUID(),
+    role: "user",
+    parts: [{ type: "text", text: "How can you help?" }],
+  } satisfies UIMessage;
+
+  const result = await client.chat({ agentId: agent.id, message });
+  return result.toResponse();
+}
+```
+
+The returned `Response` relays the Turn as server-sent events (SSE).
+
+## What you can build [#what-you-can-build]
+
+<Cards>
+  <Card
+    title="Agents"
+    href="/agents"
+    description="Configure behavior, produce output, add Tools, and work with durable Agent resources."
+  />
+  <Card
+    title="Platform"
+    href="/platform"
+    description="Run Sessions and Turns within the platform's tenancy, security, usage, and reliability boundaries."
+  />
+  <Card
+    title="Automation"
+    href="/automation"
+    description="Define Tasks, inspect Task runs, and schedule recurring Agent work."
+  />
+</Cards>
+
+## Choose an interface [#choose-an-interface]
+
+| Interface | Best for |
+| --- | --- |
+| [TypeScript SDK](/sdk/typescript) | TypeScript backends that want typed resources and AI SDK-native streaming results. |
+| [Python SDK](/sdk/python) | Python backends that want native synchronous or asynchronous clients and Pydantic responses. |
+| [REST API](/api-reference/rest-api) | Other backend environments or integrations that need direct HTTP control. |
+| [CLI](/cli) | Developers working interactively or scripting platform operations. |
+
+## Explore the documentation [#explore-the-documentation]
+
+- Start with [Getting Started](/getting-started), then learn the product through [Agents](/agents), [Platform](/platform), and [Automation](/automation).
+- Browse the [TypeScript SDK](/sdk/typescript) or [Python SDK](/sdk/python) for language-specific client objects and methods.
+- Use the [CLI](/cli) for terminal workflows.
+- Open [API Reference](/api-reference) for REST endpoints and shared protocol contracts.
+
+## Common paths [#common-paths]
+
+- [Build a chat endpoint](/platform/sessions-and-turns#chat-endpoint-pattern)
+- [Create an Agent Skill](/agents/skills)
+- [Run a background Task](/automation/task-runs)
+
+## Reference [#reference]
+
+- [TypeScript SDK](/sdk/typescript)
+- [Python SDK](/sdk/python)
+- [REST API](/api-reference/rest-api)

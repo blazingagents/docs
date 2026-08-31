@@ -1,0 +1,103 @@
+---
+title: Run your first Agent
+description: Create the smallest valid Agent and complete one streamed Turn.
+---
+
+# Run your first Agent
+
+Run one TypeScript file that prints a streamed answer and the server-minted Session ID. The program saves a Provider, creates a configured Agent, then starts its first Turn.
+
+## Before you begin [#before-you-begin]
+
+Complete [Set up Blazing Agents](/getting-started/setup), make the configured `client` available to this file, and set `OPENAI_API_KEY` in the backend environment. You do not need to configure a Skill, Workspace, MCP connection, Memory, or Task.
+
+<Steps>
+  <Step>
+    ## Create an Agent [#create-an-agent]
+
+    Save a Provider and select one of its current models. Agents may be created without these fields, but unconfigured Versions reject generation with `provider_required`.
+
+  </Step>
+  <Step>
+    ## Run the first Turn [#run-the-first-turn]
+
+    Save this complete file as `quickstart.ts`:
+
+    ```typescript title="quickstart.ts"
+    import { type UIMessage } from "@blazing-agents/sdk";
+    import { client } from "./client.ts";
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) throw new Error("OPENAI_API_KEY is required");
+
+    const provider = await client.providers.create({
+      name: `Quickstart OpenAI ${crypto.randomUUID()}`,
+      providerType: "openai",
+      baseUrl: null,
+      apiKey,
+    });
+    const { models } = await client.providers.listModels(provider.id);
+    const model = models.find(({ id }) => id === "gpt-4.1");
+    if (!model) throw new Error("gpt-4.1 is unavailable");
+
+    const agent = await client.agents.create({
+      name: `Quickstart Agent ${crypto.randomUUID()}`,
+      providerId: provider.id,
+      model: model.id,
+    });
+
+    const message = {
+      id: crypto.randomUUID(),
+      role: "user",
+      parts: [{ type: "text", text: "Reply with: First Turn complete." }],
+    } satisfies UIMessage;
+
+    const result = await client.chat({ agentId: agent.id, message });
+    const sessionId = await result.sessionId;
+
+    console.log(`Agent: ${agent.id}`);
+    console.log(`Session: ${sessionId}`);
+
+    await result.toResponse().text();
+    process.stdout.write("\n");
+    ```
+
+    `client.chat()` accepts one valid user `UIMessage`. Because the call omits `sessionId`, it starts a new Session and returns a decoded stream that the loop consumes once.
+
+  </Step>
+  <Step>
+    ## Verify the result [#verify-the-result]
+
+    Run the file with your TypeScript runner. Standard output shows an `ag_...` Agent ID, an `ss_...` Session ID, and the streamed answer, including `First Turn complete.` when the model follows the instruction.
+
+  </Step>
+</Steps>
+
+## Understand what was created [#understand-what-was-created]
+
+Omitting `sessionId` selects the create path. Blazing Agents mints the `ss_...` ID and returns it in the response `Location` header; the SDK exposes it as `result.sessionId` before the body finishes streaming.
+
+The ID identifies a Session materialized after admission and before model execution. Success commits the full exchange, failure retains the user message, and cancellation can leave the Session empty. See [Sessions and Turns](/platform/sessions-and-turns) for the full lifecycle.
+
+## Production notes [#production-notes]
+
+- Store the Session ID as soon as `result.sessionId` resolves.
+- Pass the caller's `AbortSignal` as `signal` when cancellation should stop the Turn.
+- Keep the API key on your backend and out of browser or mobile code.
+
+## Continue learning [#continue-learning]
+
+- [Connect Blazing Agents to your app](/getting-started/connect-your-app)
+- [Build a chat endpoint](/platform/sessions-and-turns#chat-endpoint-pattern)
+
+## Reference [#reference]
+
+- [Agents](/agents/agents)
+- [Sessions and Turns](/platform/sessions-and-turns)
+- [Generation and streaming](/agents/output/generation-and-streaming)
+- [`client.agents.create()`](/sdk/typescript/agents#create)
+- [Python `client.agents.create()`](/sdk/python/agents#create)
+- [`client.chat()`](/sdk/typescript/client#chat)
+- [Python `client.chat()`](/sdk/python/client#chat)
+- [`POST /v1/agents`](/api-reference/rest-api/agents#create-agent)
+- [Create a Session Turn](/api-reference/rest-api/sessions#create-session-turn)

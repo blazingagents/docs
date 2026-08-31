@@ -1,0 +1,88 @@
+---
+title: Python SDK
+description: Install and use the Pythonic synchronous and asynchronous clients for the complete Blazing Agents API.
+---
+
+# Python SDK
+
+The `blazing_agents` package is the first-party backend SDK for Python. It
+supports CPython 3.11 and newer and provides typed Pydantic responses, native
+synchronous and asynchronous clients, lazy pagination, binary transfers, and
+one-owner generation streams.
+
+<Callout type="warn" title="Server-side only">
+  A Tenant API key can access the Tenant's complete product surface. Keep it in
+  backend code and never expose it to End-user applications or browsers.
+</Callout>
+
+## Install [#install]
+
+```bash
+pip install blazing_agents
+```
+
+## Create a client [#create-a-client]
+
+Pass a Tenant API key explicitly or set `BLAZING_AGENTS_API_KEY`. An explicit
+`api_key` takes precedence. The production origin is
+`https://api.blazingagents.com`; set `base_url` only for an intentional local
+or self-hosted deployment.
+
+```python
+from blazing_agents import BlazingAgents
+
+with BlazingAgents(api_key="ba_...") as client:
+    tenant = client.tenant.get()
+    print(tenant.name)
+```
+
+`BlazingAgents` and `AsyncBlazingAgents` expose the same operation names.
+Async code awaits the same name—`await client.chat(...)`, not
+`client.achat(...)`. Lifecycle and consumption syntax are the exceptions:
+use `aclose()`, `async with`, and `async for`.
+
+```python
+from blazing_agents import AsyncBlazingAgents
+
+async def show_tenant() -> None:
+    async with AsyncBlazingAgents(api_key="ba_...") as client:
+        tenant = await client.tenant.get()
+        print(tenant.name)
+```
+
+## Client objects [#client-objects]
+
+| Object | What it provides |
+| --- | --- |
+| [`BlazingAgents`](/sdk/python/client) | Client configuration plus root `chat()`, `completion()`, and `object()` methods |
+| [`agents`](/sdk/python/agents) | Agent configuration, Versions, lifecycle, avatars, and MCP Attachments |
+| [`artifacts`](/sdk/python/artifacts) | Published Artifact metadata and downloads |
+| [`providers`](/sdk/python/providers) | Provider credentials and model discovery |
+| [`mcp_connections`](/sdk/python/mcp-connections) | External MCP server configuration and authorization |
+| [`memories`](/sdk/python/memories) | Durable Agent Memory |
+| [`prompts`](/sdk/python/prompts) | Reusable Prompt templates |
+| [`sessions`](/sdk/python/sessions) | Session transcripts and Tool approvals |
+| [`agent(agent_id).skills`](/sdk/python/skills) | Agent-owned Skill archives and files |
+| [`tasks`](/sdk/python/tasks) | Durable Tasks and Task Runs |
+| [`workspaces`](/sdk/python/workspaces) | Secure execution Workspaces |
+| [`tenant`](/sdk/python/tenant) | Tenant identity and settings |
+| [`usage`](/sdk/python/usage) | Tenant and Agent usage rollups |
+
+Requests use keyword-only snake-case names. SDK-owned fields become camel case
+on the wire; omitted values are not sent, while explicit `None` is JSON null.
+Responses validate documented fields with Pydantic v2, retain unknown fields
+in `model_extra`, and expose a non-serialized `_request_id`.
+
+## Next steps [#next-steps]
+
+- Configure the [client and transport](/sdk/python/client).
+- Choose a root [generation method](/sdk/python/client#generation-methods).
+- Configure [Providers](/sdk/python/providers) and
+  [MCP Connections](/sdk/python/mcp-connections).
+- Manage durable [Workspaces](/sdk/python/workspaces) and select
+  `client.agent(agent_id).skills` for Agent-owned [Skills](/sdk/python/skills).
+- Reuse [Prompts](/sdk/python/prompts), persist
+  [Memories](/sdk/python/memories), and deliver
+  [Artifacts](/sdk/python/artifacts).
+- Compare the exact [REST API](/api-reference/rest-api) and shared
+  [protocol contracts](/api-reference/protocols).

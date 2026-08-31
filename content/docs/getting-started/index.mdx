@@ -1,0 +1,84 @@
+---
+title: Getting Started
+description: Set up the backend SDK, run a streamed Turn, and connect Blazing Agents to your application.
+---
+
+# Getting Started
+
+Install the backend SDK, create an Agent, complete one streamed Turn, and connect it safely to an application. This path keeps your Blazing Agents credential behind your authenticated backend from the start.
+
+## The shortest path to a working Agent [#the-shortest-path-to-a-working-agent]
+
+<Steps>
+  <Step>
+    ### [Set up Blazing Agents](/getting-started/setup)
+
+    Finish with an authenticated SDK client that can list your tenant's Agents.
+
+  </Step>
+  <Step>
+    ### [Run your first Agent](/getting-started/quickstart)
+
+    Finish with an `ag_...` Agent ID, an `ss_...` Session ID, and a streamed answer.
+
+  </Step>
+  <Step>
+    ### [Connect Blazing Agents to your app](/getting-started/connect-your-app)
+
+    Finish with an authenticated backend endpoint that relays the stream and safely resumes a Session.
+
+  </Step>
+  <Step>
+    ### [Choose what to build next](/getting-started/next-steps)
+
+    Finish by selecting the Agent, Platform, Automation, CLI, or SDK section that matches your product outcome.
+
+  </Step>
+</Steps>
+
+## What you will build [#what-you-will-build]
+
+**Browser or mobile app → authenticated tenant backend → Blazing Agents**
+
+The API key remains on the backend. Your backend authenticates each end-user, authorizes access to your application's resources, selects the Agent, and calls Blazing Agents.
+
+## Choose your next step [#choose-your-next-step]
+
+<Cards>
+  <Card
+    title="Setup"
+    href="/getting-started/setup"
+    description="Install the SDK and verify one authenticated backend read."
+  />
+  <Card
+    title="Quickstart"
+    href="/getting-started/quickstart"
+    description="Create the smallest valid Agent and stream its first Turn."
+  />
+  <Card
+    title="Connect your app"
+    href="/getting-started/connect-your-app"
+    description="Put an authenticated backend between your users and Blazing Agents."
+  />
+  <Card
+    title="Next steps"
+    href="/getting-started/next-steps"
+    description="Choose a product or developer section by the outcome you need."
+  />
+</Cards>
+
+## Explore the product [#explore-the-product]
+
+- [Agents](/agents)
+- [Platform](/platform)
+- [Automation](/automation)
+
+## Reference [#reference]
+
+- [TypeScript SDK](/sdk/typescript)
+- [Python SDK](/sdk/python)
+- [SDK client](/sdk/typescript/client)
+- [Python SDK client](/sdk/python/client)
+- [`client.chat()`](/sdk/typescript/client#chat)
+- [Python `client.chat()`](/sdk/python/client#chat)
+- [Documentation overview](/)

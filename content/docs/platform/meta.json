@@ -1,0 +1,11 @@
+{
+  "title": "Platform",
+  "pages": [
+    "index",
+    "sessions-and-turns",
+    "tenancy-and-attribution",
+    "security-and-credentials",
+    "usage-and-quotas",
+    "limits-and-reliability"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src-docs/**/*.ts",
+    "src-docs/**/*.tsx",
+    "src-docs/**/*.d.ts",
+    ".source/**/*.ts",
+    ".source/**/*.d.ts",
+    "source.config.ts",
+    "vite.docs.config.mts"
+  ],
+  "exclude": ["src/**"]
+}

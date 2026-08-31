@@ -1,0 +1,90 @@
+---
+title: Set up Blazing Agents
+description: Install the TypeScript SDK and verify an authenticated backend client.
+---
+
+# Set up Blazing Agents
+
+Set up one reusable TypeScript SDK client and prove that it can authenticate to Blazing Agents. This guide targets a backend runtime running Node.js 24 or later.
+
+## Before you begin [#before-you-begin]
+
+You need access to a Blazing Agents tenant, a backend project, Node.js 24 or later, and a backend secret store or environment variables. The SDK is not a browser or mobile client.
+
+<Steps>
+  <Step>
+    ## Create an API key [#create-an-api-key]
+
+    Create an API key from your tenant's authenticated Blazing Agents administration surface. Copy the complete `ba_...` token when it is returned: the full token is visible only at creation, and later listings contain only a short display fragment.
+
+    An API key is a tenant-scoped bearer credential with access to all of that tenant's Agents. The SDK sends it as `Authorization: Bearer <api-key>`; it does not represent or authorize an end-user.
+
+  </Step>
+  <Step>
+    ## Install the TypeScript SDK [#install-the-typescript-sdk]
+
+    Install the SDK and its required AI SDK peer dependency:
+
+    ```bash
+    npm install @blazing-agents/sdk ai
+    ```
+
+  </Step>
+  <Step>
+    ## Create the client [#create-the-client]
+
+    Store the key and API URL in your backend environment, then save this reusable client as `client.ts`:
+
+    ```typescript
+    import { BlazingAgents } from "@blazing-agents/sdk";
+
+    export const client = new BlazingAgents({
+      apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+      baseUrl: process.env.BLAZING_AGENTS_BASE_URL!,
+    });
+
+    const { agents } = await client.agents.list();
+    console.log(`Authenticated; found ${agents.length} Agents.`);
+    ```
+
+    Set `baseUrl` to the API URL for your Blazing Agents environment. You may omit it only when the local API is available at the SDK default, `http://localhost:8787`.
+
+    The client uses the runtime's global `fetch`. Pass the optional `fetch` constructor setting only when your runtime or tests need a compatible replacement.
+
+  </Step>
+  <Step>
+    ## Verify your setup [#verify-your-setup]
+
+    Run the TypeScript program from your backend. `client.agents.list()` is non-destructive and returns an object with an `agents` array; the log should print its current length without an authentication error.
+
+    If the read fails, use the [Errors reference](/api-reference/protocols/errors) to identify the returned error code before changing the client configuration.
+
+  </Step>
+</Steps>
+
+## Keep credentials on the backend [#keep-credentials-on-the-backend]
+
+<Callout type="warn" title="Keep credentials on the backend">
+  Never place an API key in a browser bundle, mobile application, log, URL, or client-visible error. Keep it in backend-only configuration.
+</Callout>
+
+A user-session JWT proves identity to your application according to your own authentication rules. A Blazing Agents API key authenticates your backend to the whole tenant; it does not replace that user authentication or your authorization checks.
+
+## Continue learning [#continue-learning]
+
+- Continue to [Run your first Agent](/getting-started/quickstart).
+- Review [Security and credentials](/platform/security-and-credentials) before deploying the integration.
+
+## Reference [#reference]
+
+- [Getting Started](/getting-started)
+- [TypeScript SDK](/sdk/typescript)
+- [Python SDK](/sdk/python)
+- [SDK client options](/sdk/typescript/client)
+- [Python SDK client options](/sdk/python/client)
+- [`client.agents.list()`](/sdk/typescript/agents#list)
+- [Python `client.agents.list()`](/sdk/python/agents#list)
+- [REST API](/api-reference/rest-api)
+- [REST authentication](/api-reference/rest-api/authentication)
+- [`GET /v1/agents`](/api-reference/rest-api/agents#list-agents)
+- [Errors](/api-reference/protocols/errors)

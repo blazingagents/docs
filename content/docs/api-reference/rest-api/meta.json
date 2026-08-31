@@ -1,0 +1,22 @@
+{
+  "title": "REST API",
+  "pages": [
+    "index",
+    "authentication",
+    "agents",
+    "workspaces",
+    "skills",
+    "tenant",
+    "providers",
+    "mcp-connections",
+    "mcp-oauth",
+    "generation",
+    "sessions",
+    "artifacts",
+    "memories",
+    "prompts",
+    "usage",
+    "tasks",
+    "task-runs"
+  ]
+}

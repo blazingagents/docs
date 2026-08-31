@@ -1,0 +1,19 @@
+{
+  "title": "Python SDK",
+  "pages": [
+    "index",
+    "client",
+    "agents",
+    "workspaces",
+    "skills",
+    "sessions",
+    "providers",
+    "mcp-connections",
+    "memories",
+    "artifacts",
+    "tasks",
+    "prompts",
+    "usage",
+    "tenant"
+  ]
+}

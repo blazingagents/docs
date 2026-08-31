@@ -1,0 +1,87 @@
+---
+title: CLI setup and authentication
+description: Authenticate the CLI safely from a workstation or a headless CI environment.
+---
+
+# CLI setup and authentication
+
+Use the native credential store for an interactive workstation and an environment API key for CI or another headless environment. Both authenticate the CLI to one resolved API origin.
+
+## Before you begin [#before-you-begin]
+
+Install the [CLI](/cli) and review [API key security](/platform/security-and-credentials#dashboard-api-key-management). Native login supports macOS Keychain, Windows Credential Manager, and glibc Linux with libsecret plus an unlocked desktop D-Bus Secret Service. Musl Linux and headless native stores are unsupported.
+
+<Steps>
+  <Step>
+    ## Sign in on a workstation [#sign-in-on-a-workstation]
+
+    Run `ba --login` in an interactive terminal. It prints the canonical dashboard API-key URL before the hidden prompt: production uses `https://www.blazingagents.com/app/keys`, while a local `http://localhost:8787` API origin uses `http://localhost:5173/app/keys`. The CLI suggests a name such as `Blazing Agents CLI (<hostname>)`. Create that CLI API key in the dashboard, then paste its show-once value at the invisible prompt. The CLI validates it with an ordinary Tenant read and stores only the API origin and key value.
+
+    Logging in again is a no-op when a native credential already exists for the resolved origin; it does not print the dashboard URL, prompt, call the API, or replace local state.
+
+  </Step>
+  <Step>
+    ## Verify authentication [#verify-authentication]
+
+    `ba --status` reports the API origin, configuration source (`flag`, `environment`, `yaml`, or `default`), credential source (`environment`, `native credential store`, or `none`), and remote validity (`valid`, `invalid`, or `not checked`). It validates the selected credential remotely and never prints its token or dashboard key metadata.
+
+  </Step>
+  <Step>
+    ## Sign out [#sign-out]
+
+    `ba --logout` removes only the origin-scoped native credential, even when an environment override is active. The remote CLI API key remains active; the command gives you the dashboard key-page URL for optional revocation. A local deletion failure leaves the remote key active and reports the failure. It also warns when `BLAZING_AGENTS_API_KEY` remains active.
+
+  </Step>
+</Steps>
+
+```bash
+ba --login
+ba --status
+ba --logout
+```
+
+Status should show the origin, sources, and validity without showing the API key token or dashboard key metadata.
+
+## Authenticate in CI [#authenticate-in-ci]
+
+Set `BLAZING_AGENTS_API_KEY` from the CI system's secret manager. It takes precedence over the native store, is not persisted, and must not appear in command lines, logs, YAML, or repository files. When `CI` is set and the variable is missing or empty, the CLI fails before loading the native store or prompting.
+
+See [Scripting and CI](/cli/scripting-and-ci) for a complete job.
+
+## Troubleshoot the credential store [#troubleshoot-the-credential-store]
+
+<Callout type="warn" title="No plaintext credential fallback">
+  If the native store is unavailable or an entry is invalid, the CLI fails. It never writes a credential to plaintext configuration or falls back to another store.
+</Callout>
+
+Unlock the desktop session and verify the platform service before retrying:
+
+```bash tab="macOS" tab-group="credential-store-os"
+security show-keychain-info "$HOME/Library/Keychains/login.keychain-db"
+security unlock-keychain "$HOME/Library/Keychains/login.keychain-db"
+```
+
+```powershell tab="Windows"
+Get-Service -Name VaultSvc
+Start-Service -Name VaultSvc
+```
+
+```bash tab="Linux"
+test -n "$DBUS_SESSION_BUS_ADDRESS"
+secret-tool search service com.blazing-agents.cli
+```
+
+On Linux, install libsecret and use an unlocked Secret Service collection in a desktop D-Bus session. For a corrupt or partially removed entry on any OS, revoke the CLI API key from the dashboard key page, remove the native entry using the service/account identifiers printed by the CLI, then sign in again.
+
+## Related capabilities [#related-capabilities]
+
+- [Security and credentials](/platform/security-and-credentials)
+- [Tenancy and end-user Attribution](/platform/tenancy-and-attribution)
+- [Dashboard API-key management](/platform/security-and-credentials#dashboard-api-key-management)
+
+## Reference [#reference]
+
+- [API-key security](/platform/security-and-credentials#dashboard-api-key-management)
+- [REST authentication](/api-reference/rest-api/authentication)
+- [TypeScript SDK](/sdk/typescript)
+- [Python SDK](/sdk/python)

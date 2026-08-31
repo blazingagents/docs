@@ -1,0 +1,29 @@
+---
+title: Output
+description: Choose free-form streaming text or schema-constrained JSON for an Agent response.
+---
+
+# Output
+
+An Agent can produce conversational or standalone text, or a stateless object constrained by JSON Schema. Both output modes run a metered Turn with the Agent's resolved configuration.
+
+## Choose an output mode [#choose-an-output-mode]
+
+<Cards>
+  <Card
+    title="Generation and streaming"
+    href="/agents/output/generation-and-streaming"
+    description="Run stateful chat or stateless text and safely consume or relay its stream."
+  />
+  <Card
+    title="Structured output"
+    href="/agents/output/structured-output"
+    description="Generate schema-constrained JSON and validate the final value."
+  />
+</Cards>
+
+## What output shares [#what-output-shares]
+
+Every output request resolves an [Agent](/agents), creates a Turn, applies quotas, and records usage after success, failure, or cancellation. The output mode determines whether a [Session](/platform/sessions-and-turns) and transcript are involved.
+
+Use [generation and streaming](/agents/output/generation-and-streaming) for conversational UI or free-form text. Use [structured output](/agents/output/structured-output) when application code needs a known data shape.

@@ -1,0 +1,102 @@
+---
+title: Connect Blazing Agents to your app
+description: Relay a chat stream through your authenticated backend and safely resume its Session.
+---
+
+# Connect Blazing Agents to your app
+
+Add one backend endpoint that authorizes a product chat, calls Blazing Agents, and relays the response stream. Use this pattern when a browser or mobile application needs stateful chat without receiving a tenant API key or Session ID.
+
+## Before you begin [#before-you-begin]
+
+Complete the [Quickstart](/getting-started/quickstart), then set `BLAZING_AGENTS_AGENT_ID` in your backend environment to the printed `ag_...` Agent ID. You also need an authenticated backend endpoint and application storage that maps each authorized product user and chat to its Blazing Agents Session ID.
+
+<Callout type="warn" title="Keep credentials on the backend">
+  The browser or mobile app must never receive the Blazing Agents API key. Authenticate and authorize the application chat before loading or accepting any Session mapping.
+</Callout>
+
+<Steps>
+  <Step>
+    ## Put your backend between users and Blazing Agents [#put-your-backend-between-users-and-blazing-agents]
+
+    **Browser or mobile app → your authenticated backend → Blazing Agents**
+
+    Your backend authenticates the user, authorizes access to its own chat, selects the Agent, and calls Blazing Agents. Add the opaque tenant-chosen `userId` when you need end-user Attribution and metering; `userId` does not authorize access to a resource.
+
+  </Step>
+  <Step>
+    ## Add a chat endpoint [#add-a-chat-endpoint]
+
+    This framework-neutral handler keeps application-specific support in `app.ts`. Its `authorize` function authenticates the request and authorizes the chat; its Session lookup and save are scoped by both application user and chat; and `requireEnv` throws for a missing or empty value. The [chat endpoint pattern](/platform/sessions-and-turns#chat-endpoint-pattern) covers the support wiring in depth.
+
+    ```typescript
+    import { client } from "./client.ts";
+    import * as app from "./app.ts";
+    const agentId = app.requireEnv("BLAZING_AGENTS_AGENT_ID");
+    export async function handleChat(request: Request): Promise<Response> {
+      const { chatId, userId, message } = await app.authorize(request);
+      const existingSessionId = await app.loadSessionId(userId, chatId);
+      const result = await client.chat({
+        agentId, ...(existingSessionId ? { sessionId: existingSessionId } : {}),
+        message, signal: request.signal, userId,
+      });
+      if (existingSessionId) return result.toResponse();
+      const sessionId = await result.sessionId;
+      await app.saveSessionId(userId, chatId, sessionId);
+      return result.toResponse();
+    }
+    ```
+
+  </Step>
+  <Step>
+    ## Relay the stream [#relay-the-stream]
+
+    `result.toResponse()` provides an AI SDK UI-message SSE response. The handler preserves its bytes and headers, including `Content-Type: text/event-stream`, `Cache-Control: no-cache`, and `X-Accel-Buffering: no`; configure intervening proxies not to buffer or rewrite the response. See the [streaming protocol](/api-reference/protocols/streaming) for wire details.
+
+  </Step>
+  <Step>
+    ## Persist and resume the Session [#persist-and-resume-the-session]
+
+    The first call omits `sessionId`. The SDK reads the minted ID from response headers after admission, and the handler commits its `(userId, chatId) → sessionId` mapping before relaying the stream.
+
+    The Session is already materialized: success commits the exchange, failure retains the user message, and cancellation can leave it empty. Mapping-write failures error the relay and reach the application's error reporter instead of being discarded. Later calls load the server-owned mapping and pass its `sessionId` to `client.chat()`.
+
+  </Step>
+  <Step>
+    ## Verify the integration [#verify-the-integration]
+
+    Send a first request that asks the Agent to remember a distinctive value. Confirm that the response streams incrementally and that your backend then stores an `ss_...` ID for the authorized user and chat.
+
+    Send a second request for the same application chat asking for that value. Confirm that the handler uses the mapped ID and the answer reflects the first Turn's stored context.
+
+  </Step>
+</Steps>
+
+## Production notes [#production-notes]
+
+- Never trust a browser-supplied chat ID until your backend has authorized it for the authenticated user.
+- Forward the request `AbortSignal` so a disconnected caller can cancel the Turn.
+- Keep the API key and Session mapping in backend-only storage.
+- Alert on Session-mapping failures or enqueue them for durable retry.
+- Disable response buffering and preserve SSE headers across every proxy in the path.
+
+## Continue learning [#continue-learning]
+
+- [Build a chat endpoint](/platform/sessions-and-turns#chat-endpoint-pattern)
+- [Stream responses into a frontend](/agents/output/generation-and-streaming)
+- [Choose what to build next](/getting-started/next-steps)
+
+## Reference [#reference]
+
+- [Sessions and Turns](/platform/sessions-and-turns)
+- [Generation and streaming](/agents/output/generation-and-streaming)
+- [Tenancy and end-user Attribution](/platform/tenancy-and-attribution)
+- [Security and credentials](/platform/security-and-credentials)
+- [`client.chat()`](/sdk/typescript/client#chat)
+- [Python `client.chat()`](/sdk/python/client#chat)
+- [`client.sessions.messages()`](/sdk/typescript/sessions#messages)
+- [Python `client.sessions.messages()`](/sdk/python/sessions#messages)
+- [Create a Session Turn](/api-reference/rest-api/sessions#create-session-turn)
+- [Resume a Session Turn](/api-reference/rest-api/sessions#resume-session-turn)
+- [List Session messages](/api-reference/rest-api/sessions#list-session-messages)
+- [Streaming protocol](/api-reference/protocols/streaming)

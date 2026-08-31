@@ -1,0 +1,184 @@
+---
+title: Generation and streaming
+description: Choose stateful chat or stateless text and consume or relay its streamed result safely.
+---
+
+# Generation and streaming
+
+Generation runs an Agent as a Turn and streams progress before terminal settlement completes. Use chat for stored history and completion for one stateless text result; use [structured output](/agents/output/structured-output) when the result must follow a JSON Schema.
+
+## Choose stateful chat or stateless text [#choose-stateful-chat-or-stateless-text]
+
+|                     | `client.chat`                                                                       | `client.completion`                                                 |
+| ------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Input               | One AI SDK user `UIMessage`, or a stored Prompt                                     | Literal text, or a stored Prompt                                    |
+| Session and history | Starts or resumes a Session and loads its history                                   | Creates no Session or transcript                                    |
+| Result              | UI-message SSE through `toResponse()`; awaited `sessionId`                         | Text deltas through `textStream`, awaited `text`, or `toResponse()` |
+| Common use          | Stateful conversational interfaces                                                  | Summaries, rewrites, and other independent text work                |
+
+Both modes can carry End-user Attribution and use the resolved Agent configuration, Tools, Skills, MCP connections, Memory, and current Workspace.
+
+## Stream a text response [#stream-a-text-response]
+
+Completion exposes independent branches for `textStream`, `text`, and `toResponse()`. Consume the branch your backend needs. The SDK derives the final text while streaming and does not promise recovery of an already consumed branch.
+
+```typescript
+const result = await client.completion({
+  agentId,
+  prompt: "Write a two-sentence release note for passkey login.",
+});
+
+let streamed = "";
+for await (const delta of result.textStream) {
+  process.stdout.write(delta);
+  streamed += delta;
+}
+
+const finalText = await result.text;
+if (streamed !== finalText) {
+  throw new Error("Stream and final text differ");
+}
+```
+
+For chat, await `result.sessionId` to retain the server-minted Session ID, then fully drain the selected UI-message stream or return its relay response. If the caller abandons that body before it finishes, cancel the selected stream or abort the supplied `signal`; cancellation propagates so the Turn can settle.
+
+<Callout type="warn" title="Consume a stream once">
+  A chat response body can be claimed once through `toResponse()`. Calling it
+  twice throws a `stream_error`; `sessionId` remains independently awaitable.
+</Callout>
+
+For completion, `result.text` eagerly drains an internal stream branch. `textStream` and `toResponse()` are separate branches for observation or relay; their consumption does not drive terminal settlement.
+
+## Relay chat to a frontend [#relay-chat-to-a-frontend]
+
+Keep the Blazing Agents API key and authorization in your backend. Return `chat.toResponse()` unchanged so an AI SDK client can consume the native UI-message stream without a custom SSE parser.
+
+```typescript
+declare const chatSessions: {
+  assertOwnedBy(input: { sessionId: string; userId: string }): Promise<void>;
+  recordOwner(input: { sessionId: string; userId: string }): Promise<void>;
+};
+
+export async function handleChat(request: Request) {
+  const { message, messageId, sessionId, trigger } = await request.json();
+  if (sessionId) {
+    await chatSessions.assertOwnedBy({ sessionId, userId: authenticatedUserId });
+  }
+  const chat = await client.chat({
+    agentId,
+    message,
+    ...(messageId ? { messageId } : {}),
+    ...(sessionId ? { sessionId } : {}),
+    ...(trigger ? { trigger } : {}),
+    signal: request.signal,
+    userId: authenticatedUserId,
+  });
+
+  await chatSessions.recordOwner({
+    sessionId: await chat.sessionId,
+    userId: authenticatedUserId,
+  });
+
+  return chat.toResponse();
+}
+```
+
+In React, point `BlazingAgentsChatTransport` at that application endpoint. It sends only the latest user message and automatically reuses the Session ID returned by the first response:
+
+```tsx title="Chat.tsx"
+import { useChat } from "@ai-sdk/react";
+import { BlazingAgentsChatTransport } from "@blazing-agents/sdk";
+import { useState } from "react";
+
+export function Chat({
+  initialSessionId,
+  rememberSessionId,
+}: {
+  initialSessionId?: string;
+  rememberSessionId: (sessionId: string) => void;
+}) {
+  const [input, setInput] = useState("");
+  const [transport] = useState(
+    () => new BlazingAgentsChatTransport({
+      api: "/api/chat",
+      onSessionId: rememberSessionId,
+      sessionId: initialSessionId,
+    }),
+  );
+  const { error, messages, sendMessage, status, stop } = useChat({
+    transport,
+  });
+
+  return <form onSubmit={(event) => {
+    event.preventDefault();
+    if (input.trim()) void sendMessage({ text: input });
+  }}>
+    {messages.map((message) => <div key={message.id}>
+      {message.parts.map((part, index) =>
+        part.type === "text" ? <span key={index}>{part.text}</span> : null)}
+    </div>)}
+    <input value={input} onChange={(event) => setInput(event.target.value)} />
+    <button disabled={status === "submitted" || status === "streaming"}>Send</button>
+    {status === "streaming" && <button type="button" onClick={stop}>Stop</button>}
+    {error && <p role="alert">The response could not be completed.</p>}
+  </form>;
+}
+```
+
+Persist the ID received by `onSessionId`, and restore it with `sessionId` after
+the backend has authorized that Session for the current application user. This
+keeps the same platform Session across remounts and page reloads.
+
+Authenticate the application endpoint with the browser's normal session. `chatSessions` is a server-owned durable mapping; never treat the browser's opaque `sessionId` or `userId` attribution as authorization. Display safe application errors, disable duplicate submissions while a request is active, and deliberately render non-text Tool parts when the Agent can call Tools.
+
+## Send image input [#send-image-input]
+
+Chat accepts a user message containing text parts and image `file` parts. Each image needs a non-empty URL and an `image/*` media type; `filename` is optional. An image part is message input, not a Workspace upload or published Artifact.
+
+```typescript
+const message = {
+  id: "message-image-1",
+  role: "user" as const,
+  parts: [
+    { type: "text" as const, text: "Describe this diagram." },
+    { type: "file" as const, mediaType: "image/png", url: imageUrl },
+  ],
+};
+```
+
+Validate the media type, URL source, and application upload limit before constructing the message.
+
+## Regenerate a stored response [#regenerate-a-stored-response]
+
+Regeneration is valid only when resuming a Session. Pass `trigger: "regenerate-message"` and optionally the stored message boundary to replace. Verify that the Agent, Session, and message belong to the authenticated application user before calling BA.
+
+```typescript
+const regenerated = await client.chat({
+  agentId,
+  sessionId,
+  message,
+  trigger: "regenerate-message",
+  messageId: storedAssistantMessageId,
+});
+```
+
+The platform resolves and applies the selected truncation under the Turn claim. Success appends the replacement; failure leaves the retained user message without the selected prior response; cancellation leaves the transcript unchanged. Omitting `messageId` targets the latest assistant response; targeting a user message removes that user event before the supplied message is appended again.
+
+## Abort, errors, and settlement [#abort-errors-and-settlement]
+
+Pass an `AbortSignal` as `signal`; the SDK forwards it to the request and cancellation propagates into the Turn. Agent resolution, validation, quota, and similar failures before streaming starts reject the SDK call as typed HTTP errors without Session, transcript, usage, provider, model, or Workspace side effects.
+
+After chat SSE starts, a native server-generated `{ type: "error", errorText }` chunk represents Turn failure. It remains a valid AI SDK chunk, not transcript content. `toResponse()` relays the raw SSE body without decoding it; transport failures surface while its body is consumed.
+
+For completion, `textStream` propagates the underlying transport error. Only awaited `text` normalizes that failure to `BlazingAgentsError` with code `stream_error`. Every admitted Turn settles usage, including model failure and cancellation.
+
+Successful chat commits its accepted exchange to the Session. Failed chat commits only the submitted user message, while cancelled chat leaves the transcript unchanged. Completion remains a metered Turn, resolves an Agent Version, and records Attribution and usage, but creates no Session or transcript.
+
+## Reference [#reference]
+
+- [TypeScript `chat()`](/sdk/typescript/client#chat) and [`completion()`](/sdk/typescript/client#completion)
+- [Python `chat()`](/sdk/python/client#chat) and [`completion()`](/sdk/python/client#completion)
+- [Sessions and Turns](/platform/sessions-and-turns)
+- [REST generation](/api-reference/rest-api/generation#generate)
+- [REST Session Turns](/api-reference/rest-api/sessions#create-session-turn)
+- [Streaming protocol](/api-reference/protocols/streaming)

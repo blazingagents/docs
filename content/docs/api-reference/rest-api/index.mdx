@@ -1,0 +1,89 @@
+---
+title: REST API
+description: Call Blazing Agents from a trusted backend over HTTP.
+---
+
+# REST API
+
+## Overview [#overview]
+
+The REST API exposes Tenant configuration, Agent execution, durable resources,
+and usage under `/v1`. The hosted production API origin is
+`https://api.blazingagents.com`; set `BLAZING_AGENTS_BASE_URL` when targeting a
+different deployment.
+Use it from a trusted backend when the TypeScript SDK is not the right integration surface.
+
+<Callout type="warn" title="Keep bearer credentials on the backend">
+  A Blazing Agents API key grants access to the whole Tenant. Never put it in
+  browser or mobile code; route end-user requests through your backend.
+</Callout>
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/me" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_DASHBOARD_JWT"
+```
+
+## Conventions [#conventions]
+
+JSON endpoints use `application/json`; avatar uploads use multipart form data.
+Generation and Session Turns can return AI SDK-native streams. Artifact
+metadata operations return JSON, including creation of a five-minute presigned
+R2 download URL. Every authenticated operation is scoped to the credential's
+Tenant. Most product operations accept either a `ba_` API key or a dashboard
+JWT; [`GET /v1/me`](/api-reference/rest-api/tenant#get-current-identity)
+requires the JWT. Tenant credential lifecycle is a dashboard-only exception
+and is intentionally omitted from this tenant-facing REST operation catalogue.
+
+Every response includes a Blazing Agents-owned `X-Request-Id` in `req_…`
+format. Retain it with application logs and include it when contacting
+support. It identifies one HTTP attempt, so retries receive new values and an
+incoming `X-Request-Id` cannot override it.
+
+For caller-owned correlation, optionally send `X-Client-Request-Id` with 1–128
+characters from letters, digits, `.`, `_`, `:`, or `-`. It is logged
+separately and is not an idempotency key, resource ID, or the returned
+`X-Request-Id`. Errors use the canonical
+[error envelope](/api-reference/protocols/errors), while streams can report later
+failures in protocol-native error chunks.
+
+## Resources [#resources]
+
+| Resource                                               | Operations                                                       |
+| ------------------------------------------------------ | ---------------------------------------------------------------- |
+| [Agents](/api-reference/rest-api/agents)                   | Configuration, Versions, lifecycle, avatars, and MCP Attachments |
+| [Workspaces](/api-reference/rest-api/workspaces)           | Tenant-scoped workspace lifecycle and file boundaries            |
+| [Skills](/api-reference/rest-api/skills)                   | Agent-owned Skill creation, archives, files, and copies          |
+| [Tenant](/api-reference/rest-api/tenant)                   | Current identity and mutable settings                            |
+| [Providers](/api-reference/rest-api/providers)             | BYOK configuration and model discovery                           |
+| [MCP connections](/api-reference/rest-api/mcp-connections) | Connection lifecycle, testing, and OAuth                         |
+| [MCP OAuth](/api-reference/rest-api/mcp-oauth)             | Dashboard approval continuation                                  |
+| [Generation](/api-reference/rest-api/generation)           | Stateless text and structured output                             |
+| [Sessions](/api-reference/rest-api/sessions)               | Stateful Turns, transcripts, and Tool approvals                  |
+| [Artifacts](/api-reference/rest-api/artifacts)             | Listing, byte download, and deletion                             |
+| [Memories](/api-reference/rest-api/memories)               | Agent-owned durable notes                                        |
+| [Prompts](/api-reference/rest-api/prompts)                 | Reusable message templates                                       |
+| [Usage](/api-reference/rest-api/usage)                     | Tenant and Agent usage queries                                   |
+| [Tasks](/api-reference/rest-api/tasks)                     | Asynchronous definitions and schedules                           |
+| [Task runs](/api-reference/rest-api/task-runs)             | Execution, polling, and cancellation                             |
+
+## Shared contracts [#shared-contracts]
+
+- [Authentication](/api-reference/rest-api/authentication)
+- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
+- [Streaming](/api-reference/protocols/streaming)
+- [Errors](/api-reference/protocols/errors)
+- [Resource IDs](/api-reference/protocols/resource-ids)
+- [Pagination and filtering](/api-reference/protocols/pagination-and-filtering)
+
+## SDK relationship [#sdk-relationship]
+
+The [TypeScript SDK](/sdk/typescript) and [Python
+SDK](/sdk/python) wrap this same `/v1` surface. Use raw REST from
+another backend language or when you need direct control of headers and
+streams. SDK-only compositions, such as restoring an Agent Version, can make
+more than one REST request and are labeled as such.
+
+## Related [#related]
+
+- [Quickstart](/getting-started/quickstart)
+- [Connect your app](/getting-started/connect-your-app)

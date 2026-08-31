@@ -1,0 +1,75 @@
+---
+title: Structured output
+description: Generate schema-constrained JSON, observe partial progress, and validate the final object.
+---
+
+# Structured output
+
+Structured output is stateless object generation through the shared Agent generation endpoint. Use it when downstream code needs JSON constrained during model execution, rather than free-form text that the application attempts to parse afterwards.
+
+## When to use structured output [#when-to-use-structured-output]
+
+`client.object` fits extraction, classification, and other bounded results with a known shape. It creates no Session or transcript, but it is still a quota-gated, metered Turn and can use the Agent's configured capabilities.
+
+## Define a schema [#define-a-schema]
+
+Pass a JSON Schema object containing at least `type` or `properties`. At the HTTP boundary, BA rejects non-object, empty match-anything, invalid, unresolvable, or unsupported schemas. The server compiles accepted JSON Schema and supplies it to model-constrained generation.
+
+The converter defines the accepted feature set; do not assume every JSON Schema keyword or reference form is supported. Keep the schema narrow and see [objects and schemas](/api-reference/protocols/objects-and-schemas) for the exact contract.
+
+## Generate and validate an object [#generate-and-validate-an-object]
+
+`result.partialObjectStream` emits cumulative progress values parsed from the accumulated JSON text. A partial may omit required fields or contain an unfinished string, so use it only for progressive display or observation.
+
+The public TypeScript SDK type of `result.object` is `Promise<unknown>`. Await the terminal parsed object, then validate it at the application boundary to obtain a trusted application type.
+
+```typescript
+import { z } from "zod";
+
+const Triage = z.object({
+  category: z.enum(["billing", "technical", "other"]),
+  urgent: z.boolean(),
+  summary: z.string(),
+});
+
+const result = await client.object({
+  agentId,
+  prompt: "Triage: I was charged twice and need a refund today.",
+  schema: {
+    type: "object",
+    properties: {
+      category: { enum: ["billing", "technical", "other"] },
+      urgent: { type: "boolean" },
+      summary: { type: "string" },
+    },
+    required: ["category", "urgent", "summary"],
+    additionalProperties: false,
+  },
+});
+
+for await (const partial of result.partialObjectStream) {
+  console.log("partial", partial);
+}
+const triage = Triage.parse(await result.object);
+console.log(triage.category);
+```
+
+The partial values are progress only; `triage` is the validated terminal value.
+
+## Prompts and Version Pins [#prompts-and-version-pins]
+
+Use `promptId` plus its exact `variables` instead of `prompt` to reuse a stored [Prompt](/agents/prompts). Supply `version` to Pin this one stateless Turn; without it, execution resolves the Agent's latest Version.
+
+## Errors and settlement [#errors-and-settlement]
+
+An invalid schema is a pre-stream `validation_failed`. If the terminal text is not valid JSON, `result.object` rejects with `stream_error`; transport failure and abort also prevent a successful final object. Model-constrained validation completes before the server settles the Turn.
+
+Success, failure, and cancellation record usage. Structured generation creates no Session, saves no transcript, and cannot publish Session-owned Artifacts. Never treat the latest partial value as a fallback final result.
+
+## Reference [#reference]
+
+- [TypeScript `object()`](/sdk/typescript/client#object)
+- [Python `object()`](/sdk/python/client#object)
+- [REST generation](/api-reference/rest-api/generation#generate)
+- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
+- [Generation and streaming](/agents/output/generation-and-streaming)

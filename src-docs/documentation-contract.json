@@ -1,0 +1,4205 @@
+{
+  "presentations": [
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": ["/agents", "/platform", "/automation"],
+      "callout": null,
+      "componentCounts": {
+        "Cards": 1,
+        "Card": 3
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [
+        "/getting-started/setup",
+        "/getting-started/quickstart",
+        "/getting-started/connect-your-app",
+        "/getting-started/next-steps"
+      ],
+      "callout": null,
+      "componentCounts": {
+        "Steps": 1,
+        "Step": 4,
+        "Cards": 1,
+        "Card": 4
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "getting-started/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {
+        "Steps": 1,
+        "Step": 4,
+        "Callout": 1
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "getting-started/setup.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {
+        "Steps": 1,
+        "Step": 3
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {
+              "title": "quickstart.ts"
+            }
+          }
+        ]
+      },
+      "file": "getting-started/quickstart.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {
+        "Callout": 1,
+        "Steps": 1,
+        "Step": 5
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "getting-started/connect-your-app.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [
+        "/agents",
+        "/platform",
+        "/automation",
+        "/cli",
+        "/sdk",
+        "/api-reference"
+      ],
+      "callout": null,
+      "componentCounts": {
+        "Cards": 1,
+        "Card": 6
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "getting-started/next-steps.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "agents/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "agents/agents.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "agents/providers-and-models.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "agents/prompts.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "agents/versions-and-lifecycle.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "text",
+            "metadata": {}
+          },
+          {
+            "language": "markdown",
+            "metadata": {
+              "title": "SKILL.md"
+            }
+          },
+          {
+            "language": "text",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "agents/skills.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "agents/memory.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "agents/workspaces.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "agents/artifacts.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [
+        "/agents/output/generation-and-streaming",
+        "/agents/output/structured-output"
+      ],
+      "callout": null,
+      "componentCounts": {
+        "Cards": 1,
+        "Card": 2
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "agents/output/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {
+        "Callout": 1
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "tsx",
+            "metadata": {
+              "title": "Chat.tsx"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "agents/output/generation-and-streaming.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "agents/output/structured-output.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [
+        "/agents/tools/built-in-tools",
+        "/agents/tools/mcp-tools",
+        "/agents/tools/tool-approvals"
+      ],
+      "callout": null,
+      "componentCounts": {
+        "Cards": 1,
+        "Card": 3
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "agents/tools/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {
+        "Steps": 1,
+        "Step": 3
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "agents/tools/built-in-tools.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {
+        "Steps": 1,
+        "Step": 4,
+        "Callout": 1
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "agents/tools/mcp-tools.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "agents/tools/tool-approvals.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [
+        "/platform/sessions-and-turns",
+        "/platform/tenancy-and-attribution",
+        "/platform/security-and-credentials",
+        "/platform/usage-and-quotas",
+        "/platform/limits-and-reliability"
+      ],
+      "callout": null,
+      "componentCounts": {
+        "Cards": 1,
+        "Card": 5
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "platform/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "platform/sessions-and-turns.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "platform/tenancy-and-attribution.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {
+        "Callout": 1
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "platform/security-and-credentials.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "platform/usage-and-quotas.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "platform/limits-and-reliability.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [
+        "/automation/tasks",
+        "/automation/task-runs",
+        "/automation/schedules"
+      ],
+      "callout": null,
+      "componentCounts": {
+        "Cards": 1,
+        "Card": 3
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "automation/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "automation/tasks.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "automation/task-runs.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "automation/schedules.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": ["/sdk/typescript", "/sdk/python"],
+      "callout": null,
+      "componentCounts": {
+        "Cards": 1,
+        "Card": 2
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "sdk/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {
+        "Callout": 1
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "agent",
+          "with-options",
+          "chat",
+          "completion",
+          "object"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/client.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "update",
+          "delete",
+          "disable",
+          "enable",
+          "upload-avatar",
+          "remove-avatar",
+          "list-versions",
+          "get-version",
+          "restore-version",
+          "list-mcp-attachments",
+          "update-mcp-attachment"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/agents.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["create", "list", "get", "update", "delete"],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/workspaces.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "upload",
+          "list",
+          "get",
+          "get-file",
+          "put-file",
+          "delete-file",
+          "copy",
+          "delete"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/skills.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "list",
+          "messages",
+          "delete",
+          "tool-approvals",
+          "decide-tool-approval",
+          "join-tool-approval-continuation"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/sessions.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "list-models",
+          "update",
+          "delete"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/providers.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "update",
+          "delete",
+          "test",
+          "connect",
+          "reconnect"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/mcp-connections.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["create", "list", "get", "update", "delete"],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/memories.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["list", "get", "create-download-url", "delete"],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/artifacts.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "update",
+          "delete",
+          "create-run",
+          "list-runs",
+          "get-run",
+          "run-messages",
+          "cancel-run"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/tasks.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["create", "list", "get", "update", "delete"],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/prompts.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["get", "get-for-agent"],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/usage.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["get", "patch"],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/tenant.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {
+        "Callout": 1
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "agent",
+          "with-options",
+          "close",
+          "aclose",
+          "chat",
+          "completion",
+          "completion-stream",
+          "object",
+          "object-stream"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/client.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "update",
+          "delete",
+          "disable",
+          "enable",
+          "upload-avatar",
+          "remove-avatar",
+          "list-versions",
+          "iter-versions",
+          "get-version",
+          "restore-version",
+          "list-mcp-attachments",
+          "update-mcp-attachment"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/agents.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["create", "list", "iter", "get", "update", "delete"],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/workspaces.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "upload",
+          "list",
+          "iter",
+          "get",
+          "delete",
+          "read-file",
+          "replace-file",
+          "delete-file",
+          "copy"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/skills.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "list",
+          "iter",
+          "messages",
+          "tool-approvals",
+          "decide-tool-approval",
+          "join-tool-approval-continuation",
+          "delete"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/sessions.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "list-models",
+          "update",
+          "delete"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "sdk/python/providers.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "connect",
+          "create",
+          "list",
+          "get",
+          "update",
+          "delete",
+          "test",
+          "reconnect"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/mcp-connections.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["create", "list", "iter", "get", "update", "delete"],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/memories.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["list", "iter", "get", "create-download-url", "delete"],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/artifacts.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "list",
+          "iter",
+          "get",
+          "update",
+          "delete",
+          "submit",
+          "list-runs",
+          "iter-runs",
+          "get-run",
+          "run-messages",
+          "cancel-run"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/tasks.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["create", "list", "get", "update", "delete"],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/prompts.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["get", "get-for-agent"],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/usage.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["get", "update"],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/tenant.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [
+        "/cli/setup-and-authentication",
+        "/cli/chat",
+        "/cli/run",
+        "/cli/assist",
+        "/cli/scripting-and-ci"
+      ],
+      "callout": null,
+      "componentCounts": {
+        "Cards": 1,
+        "Card": 5
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "bash",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "cli/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {
+        "Steps": 1,
+        "Step": 3,
+        "Callout": 1
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "bash",
+            "metadata": {
+              "tab": "macOS",
+              "tab-group": "credential-store-os"
+            }
+          },
+          {
+            "language": "powershell",
+            "metadata": {
+              "tab": "Windows"
+            }
+          },
+          {
+            "language": "bash",
+            "metadata": {
+              "tab": "Linux"
+            }
+          }
+        ]
+      },
+      "file": "cli/setup-and-authentication.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "bash",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "cli/chat.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "bash",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "cli/run.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "text",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "cli/assist.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "yaml",
+            "metadata": {
+              "title": "GitHub Actions step"
+            }
+          }
+        ]
+      },
+      "file": "cli/scripting-and-ci.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": ["/api-reference/rest-api", "/api-reference/protocols"],
+      "callout": null,
+      "componentCounts": {
+        "Cards": 1,
+        "Card": 2
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "api-reference/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {
+        "Callout": 1
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "bash",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "api-reference/rest-api/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "bash",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "api-reference/rest-api/authentication.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create-agent",
+          "list-agents",
+          "get-agent",
+          "update-agent",
+          "delete-agent",
+          "disable-agent",
+          "enable-agent",
+          "upload-agent-avatar",
+          "delete-agent-avatar",
+          "list-agent-versions",
+          "get-agent-version",
+          "list-agent-mcp-attachments",
+          "update-agent-mcp-attachment"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/agents.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create-workspace",
+          "list-workspaces",
+          "get-workspace",
+          "update-workspace",
+          "delete-workspace"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/workspaces.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create-skill",
+          "upload-skill",
+          "list-skills",
+          "get-skill",
+          "delete-skill",
+          "get-skill-file",
+          "put-skill-file",
+          "delete-skill-file",
+          "copy-skill"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/skills.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "get-current-identity",
+          "get-tenant-settings",
+          "update-tenant-settings"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/tenant.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create-provider",
+          "list-providers",
+          "get-provider",
+          "list-provider-models",
+          "update-provider",
+          "delete-provider"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/providers.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create-mcp-connection",
+          "list-mcp-connections",
+          "get-mcp-connection",
+          "update-mcp-connection",
+          "delete-mcp-connection",
+          "test-mcp-connection",
+          "connect-mcp-connection",
+          "reconnect-mcp-connection"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/mcp-connections.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["approve-mcp-oauth-authorization"],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/mcp-oauth.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["generate"],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/generation.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create-session-turn",
+          "resume-session-turn",
+          "list-sessions",
+          "list-session-messages",
+          "delete-session",
+          "list-tool-approvals",
+          "decide-tool-approval",
+          "join-tool-approval-continuation"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/sessions.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "list-artifacts",
+          "get-artifact",
+          "create-artifact-download-url",
+          "delete-artifact"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/artifacts.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create-memory",
+          "list-memories",
+          "get-memory",
+          "update-memory",
+          "delete-memory"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/memories.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create-prompt",
+          "list-prompts",
+          "get-prompt",
+          "update-prompt",
+          "delete-prompt"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/prompts.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": ["get-usage", "get-agent-usage"],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/usage.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create-task",
+          "list-tasks",
+          "get-task",
+          "update-task",
+          "delete-task"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/tasks.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create-task-run",
+          "list-task-runs",
+          "get-task-run",
+          "list-task-run-messages",
+          "cancel-task-run"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/task-runs.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [
+        "/api-reference/protocols/streaming",
+        "/api-reference/protocols/objects-and-schemas",
+        "/api-reference/protocols/errors",
+        "/api-reference/protocols/resource-ids",
+        "/api-reference/protocols/pagination-and-filtering",
+        "/api-reference/protocols/service-limits"
+      ],
+      "callout": null,
+      "componentCounts": {
+        "Cards": 1,
+        "Card": 6
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "bash",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "api-reference/protocols/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "text",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "api-reference/protocols/streaming.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedHeadings": [
+          "Agent",
+          "Workspace",
+          "AgentVersion",
+          "SessionListItem",
+          "SessionMessage",
+          "UsageSummary",
+          "BlazingAgentsChatMessageMetadata",
+          "ToolApprovalState",
+          "ProviderResponse",
+          "McpConnectionResponse",
+          "McpAttachmentResponse",
+          "Memory",
+          "ArtifactListItem",
+          "ArtifactDownloadUrlResponse",
+          "Task",
+          "TaskListItem",
+          "TaskRun",
+          "Prompt",
+          "UsageResponse",
+          "Tenant",
+          "Quota",
+          "Attribution"
+        ],
+        "assignedIds": [
+          "agent",
+          "workspace",
+          "agentversion",
+          "sessionlistitem",
+          "sessionmessage",
+          "usagesummary",
+          "blazingagentschatmessagemetadata",
+          "toolapprovalstate",
+          "providerresponse",
+          "mcpconnectionresponse",
+          "mcpattachmentresponse",
+          "memory",
+          "artifactlistitem",
+          "artifactdownloadurlresponse",
+          "task",
+          "tasklistitem",
+          "taskrun",
+          "prompt",
+          "usageresponse",
+          "tenant",
+          "quota",
+          "attribution"
+        ],
+        "kind": "schemas",
+        "assignedSchemas": [
+          "agentSchema",
+          "workspaceSchema",
+          "agentVersionSchema",
+          "sessionListItemSchema",
+          "sessionMessageSchema",
+          "usageSummarySchema",
+          "blazingAgentsChatMessageMetadataSchema",
+          "toolApprovalStateSchema",
+          "providerResponseSchema",
+          "mcpConnectionResponseSchema",
+          "mcpAttachmentResponseSchema",
+          "memorySchema",
+          "artifactListItemSchema",
+          "artifactDownloadUrlResponseSchema",
+          "taskSchema",
+          "taskListItemSchema",
+          "taskRunSchema",
+          "promptSchema",
+          "usageResponseSchema",
+          "tenantSchema",
+          "quotaSchema",
+          "attributionCreateInputSchema"
+        ]
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "json",
+            "metadata": {}
+          },
+          {
+            "language": "json",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "api-reference/protocols/objects-and-schemas.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "json",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "api-reference/protocols/errors.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "text",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "api-reference/protocols/resource-ids.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "api-reference/protocols/pagination-and-filtering.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "api-reference/protocols/service-limits.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "getting-started/coding-agent.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    }
+  ],
+  "restEndpoints": [
+    {
+      "method": "POST",
+      "operation": "create-agent",
+      "path": "/v1/agents"
+    },
+    {
+      "method": "GET",
+      "operation": "list-agents",
+      "path": "/v1/agents"
+    },
+    {
+      "method": "GET",
+      "operation": "get-agent",
+      "path": "/v1/agents/:agentId"
+    },
+    {
+      "method": "PUT",
+      "operation": "update-agent",
+      "path": "/v1/agents/:agentId"
+    },
+    {
+      "method": "DELETE",
+      "operation": "delete-agent",
+      "path": "/v1/agents/:agentId"
+    },
+    {
+      "method": "POST",
+      "operation": "disable-agent",
+      "path": "/v1/agents/:agentId/disable"
+    },
+    {
+      "method": "POST",
+      "operation": "enable-agent",
+      "path": "/v1/agents/:agentId/enable"
+    },
+    {
+      "method": "POST",
+      "operation": "upload-agent-avatar",
+      "path": "/v1/agents/:agentId/avatar"
+    },
+    {
+      "method": "DELETE",
+      "operation": "delete-agent-avatar",
+      "path": "/v1/agents/:agentId/avatar"
+    },
+    {
+      "method": "GET",
+      "operation": "list-agent-versions",
+      "path": "/v1/agents/:agentId/versions"
+    },
+    {
+      "method": "GET",
+      "operation": "get-agent-version",
+      "path": "/v1/agents/:agentId/versions/:version"
+    },
+    {
+      "method": "GET",
+      "operation": "list-agent-mcp-attachments",
+      "path": "/v1/agents/:agentId/mcp-attachments"
+    },
+    {
+      "method": "PATCH",
+      "operation": "update-agent-mcp-attachment",
+      "path": "/v1/agents/:agentId/mcp-attachments/:mcpConnectionId"
+    },
+    {
+      "method": "POST",
+      "operation": "create-workspace",
+      "path": "/v1/workspaces"
+    },
+    {
+      "method": "GET",
+      "operation": "list-workspaces",
+      "path": "/v1/workspaces"
+    },
+    {
+      "method": "GET",
+      "operation": "get-workspace",
+      "path": "/v1/workspaces/:workspaceId"
+    },
+    {
+      "method": "PUT",
+      "operation": "update-workspace",
+      "path": "/v1/workspaces/:workspaceId"
+    },
+    {
+      "method": "DELETE",
+      "operation": "delete-workspace",
+      "path": "/v1/workspaces/:workspaceId"
+    },
+    {
+      "method": "POST",
+      "operation": "create-skill",
+      "path": "/v1/agents/:agentId/skills"
+    },
+    {
+      "method": "POST",
+      "operation": "upload-skill",
+      "path": "/v1/agents/:agentId/skills/upload"
+    },
+    {
+      "method": "GET",
+      "operation": "list-skills",
+      "path": "/v1/agents/:agentId/skills"
+    },
+    {
+      "method": "GET",
+      "operation": "get-skill",
+      "path": "/v1/agents/:agentId/skills/:skillId"
+    },
+    {
+      "method": "DELETE",
+      "operation": "delete-skill",
+      "path": "/v1/agents/:agentId/skills/:skillId"
+    },
+    {
+      "method": "GET",
+      "operation": "get-skill-file",
+      "path": "/v1/agents/:agentId/skills/:skillId/files/*"
+    },
+    {
+      "method": "PUT",
+      "operation": "put-skill-file",
+      "path": "/v1/agents/:agentId/skills/:skillId/files/*"
+    },
+    {
+      "method": "DELETE",
+      "operation": "delete-skill-file",
+      "path": "/v1/agents/:agentId/skills/:skillId/files/*"
+    },
+    {
+      "method": "POST",
+      "operation": "copy-skill",
+      "path": "/v1/agents/:agentId/skills/:skillId/copies"
+    },
+    {
+      "method": "GET",
+      "operation": "get-current-identity",
+      "path": "/v1/me"
+    },
+    {
+      "method": "GET",
+      "operation": "get-tenant-settings",
+      "path": "/v1/tenant"
+    },
+    {
+      "method": "PATCH",
+      "operation": "update-tenant-settings",
+      "path": "/v1/tenant"
+    },
+    {
+      "method": "POST",
+      "operation": "create-provider",
+      "path": "/v1/providers"
+    },
+    {
+      "method": "GET",
+      "operation": "list-providers",
+      "path": "/v1/providers"
+    },
+    {
+      "method": "GET",
+      "operation": "get-provider",
+      "path": "/v1/providers/:id"
+    },
+    {
+      "method": "GET",
+      "operation": "list-provider-models",
+      "path": "/v1/providers/:id/models"
+    },
+    {
+      "method": "PATCH",
+      "operation": "update-provider",
+      "path": "/v1/providers/:id"
+    },
+    {
+      "method": "DELETE",
+      "operation": "delete-provider",
+      "path": "/v1/providers/:id"
+    },
+    {
+      "method": "POST",
+      "operation": "create-mcp-connection",
+      "path": "/v1/mcp-connections"
+    },
+    {
+      "method": "GET",
+      "operation": "list-mcp-connections",
+      "path": "/v1/mcp-connections"
+    },
+    {
+      "method": "GET",
+      "operation": "get-mcp-connection",
+      "path": "/v1/mcp-connections/:id"
+    },
+    {
+      "method": "PATCH",
+      "operation": "update-mcp-connection",
+      "path": "/v1/mcp-connections/:id"
+    },
+    {
+      "method": "DELETE",
+      "operation": "delete-mcp-connection",
+      "path": "/v1/mcp-connections/:id"
+    },
+    {
+      "method": "POST",
+      "operation": "test-mcp-connection",
+      "path": "/v1/mcp-connections/:id/test"
+    },
+    {
+      "method": "POST",
+      "operation": "connect-mcp-connection",
+      "path": "/v1/mcp-connections/:id/connect"
+    },
+    {
+      "method": "POST",
+      "operation": "reconnect-mcp-connection",
+      "path": "/v1/mcp-connections/:id/reconnect"
+    },
+    {
+      "method": "POST",
+      "operation": "approve-mcp-oauth-authorization",
+      "path": "/v1/mcp/oauth/authorize"
+    },
+    {
+      "method": "POST",
+      "operation": "generate",
+      "path": "/v1/agents/:agentId/generation"
+    },
+    {
+      "method": "POST",
+      "operation": "create-session-turn",
+      "path": "/v1/agents/:agentId/sessions"
+    },
+    {
+      "method": "POST",
+      "operation": "resume-session-turn",
+      "path": "/v1/agents/:agentId/sessions/:sessionId"
+    },
+    {
+      "method": "GET",
+      "operation": "list-sessions",
+      "path": "/v1/agents/:agentId/sessions"
+    },
+    {
+      "method": "GET",
+      "operation": "list-session-messages",
+      "path": "/v1/agents/:agentId/sessions/:sessionId/messages"
+    },
+    {
+      "method": "DELETE",
+      "operation": "delete-session",
+      "path": "/v1/agents/:agentId/sessions/:sessionId"
+    },
+    {
+      "method": "GET",
+      "operation": "list-tool-approvals",
+      "path": "/v1/agents/:agentId/sessions/:sessionId/tool-approvals"
+    },
+    {
+      "method": "POST",
+      "operation": "decide-tool-approval",
+      "path": "/v1/agents/:agentId/sessions/:sessionId/tool-approvals/:approvalId"
+    },
+    {
+      "method": "GET",
+      "operation": "join-tool-approval-continuation",
+      "path": "/v1/agents/:agentId/sessions/:sessionId/tool-approval-continuations/:continuationId"
+    },
+    {
+      "method": "GET",
+      "operation": "list-artifacts",
+      "path": "/v1/artifacts"
+    },
+    {
+      "method": "GET",
+      "operation": "get-artifact",
+      "path": "/v1/artifacts/:artifactId"
+    },
+    {
+      "method": "POST",
+      "operation": "create-artifact-download-url",
+      "path": "/v1/artifacts/:artifactId/download-url"
+    },
+    {
+      "method": "DELETE",
+      "operation": "delete-artifact",
+      "path": "/v1/artifacts/:artifactId"
+    },
+    {
+      "method": "POST",
+      "operation": "create-memory",
+      "path": "/v1/agents/:agentId/memories"
+    },
+    {
+      "method": "GET",
+      "operation": "list-memories",
+      "path": "/v1/agents/:agentId/memories"
+    },
+    {
+      "method": "GET",
+      "operation": "get-memory",
+      "path": "/v1/agents/:agentId/memories/:memoryId"
+    },
+    {
+      "method": "PATCH",
+      "operation": "update-memory",
+      "path": "/v1/agents/:agentId/memories/:memoryId"
+    },
+    {
+      "method": "DELETE",
+      "operation": "delete-memory",
+      "path": "/v1/agents/:agentId/memories/:memoryId"
+    },
+    {
+      "method": "POST",
+      "operation": "create-prompt",
+      "path": "/v1/prompts"
+    },
+    {
+      "method": "GET",
+      "operation": "list-prompts",
+      "path": "/v1/prompts"
+    },
+    {
+      "method": "GET",
+      "operation": "get-prompt",
+      "path": "/v1/prompts/:promptId"
+    },
+    {
+      "method": "PATCH",
+      "operation": "update-prompt",
+      "path": "/v1/prompts/:promptId"
+    },
+    {
+      "method": "DELETE",
+      "operation": "delete-prompt",
+      "path": "/v1/prompts/:promptId"
+    },
+    {
+      "method": "GET",
+      "operation": "get-usage",
+      "path": "/v1/usage"
+    },
+    {
+      "method": "GET",
+      "operation": "get-agent-usage",
+      "path": "/v1/agents/:agentId/usage"
+    },
+    {
+      "method": "POST",
+      "operation": "create-task",
+      "path": "/v1/tasks"
+    },
+    {
+      "method": "GET",
+      "operation": "list-tasks",
+      "path": "/v1/tasks"
+    },
+    {
+      "method": "GET",
+      "operation": "get-task",
+      "path": "/v1/tasks/:taskId"
+    },
+    {
+      "method": "PATCH",
+      "operation": "update-task",
+      "path": "/v1/tasks/:taskId"
+    },
+    {
+      "method": "DELETE",
+      "operation": "delete-task",
+      "path": "/v1/tasks/:taskId"
+    },
+    {
+      "method": "POST",
+      "operation": "create-task-run",
+      "path": "/v1/tasks/:taskId/runs"
+    },
+    {
+      "method": "GET",
+      "operation": "list-task-runs",
+      "path": "/v1/tasks/:taskId/runs"
+    },
+    {
+      "method": "GET",
+      "operation": "get-task-run",
+      "path": "/v1/tasks/:taskId/runs/:runId"
+    },
+    {
+      "method": "GET",
+      "operation": "list-task-run-messages",
+      "path": "/v1/tasks/:taskId/runs/:runId/messages"
+    },
+    {
+      "method": "POST",
+      "operation": "cancel-task-run",
+      "path": "/v1/tasks/:taskId/runs/:runId/cancel"
+    }
+  ],
+  "targets": [
+    {
+      "file": "index.mdx",
+      "name": "Blazing Agents",
+      "publishable": true,
+      "title": "Blazing Agents",
+      "url": "/"
+    },
+    {
+      "file": "getting-started/index.mdx",
+      "name": "Getting Started",
+      "publishable": true,
+      "title": "Getting Started",
+      "url": "/getting-started"
+    },
+    {
+      "file": "getting-started/setup.mdx",
+      "name": "Set up Blazing Agents",
+      "publishable": true,
+      "title": "Set up Blazing Agents",
+      "url": "/getting-started/setup"
+    },
+    {
+      "file": "getting-started/quickstart.mdx",
+      "name": "Run your first Agent",
+      "publishable": true,
+      "title": "Run your first Agent",
+      "url": "/getting-started/quickstart"
+    },
+    {
+      "file": "getting-started/connect-your-app.mdx",
+      "name": "Connect Blazing Agents to your app",
+      "publishable": true,
+      "title": "Connect Blazing Agents to your app",
+      "url": "/getting-started/connect-your-app"
+    },
+    {
+      "file": "getting-started/next-steps.mdx",
+      "name": "Choose what to build next",
+      "publishable": true,
+      "title": "Choose what to build next",
+      "url": "/getting-started/next-steps"
+    },
+    {
+      "file": "agents/index.mdx",
+      "name": "Agents",
+      "publishable": true,
+      "title": "Agents",
+      "url": "/agents"
+    },
+    {
+      "file": "agents/agents.md",
+      "name": "Agents",
+      "publishable": true,
+      "title": "Agents",
+      "url": "/agents/agents"
+    },
+    {
+      "file": "agents/providers-and-models.md",
+      "name": "Providers and Models",
+      "publishable": true,
+      "title": "Providers and Models",
+      "url": "/agents/providers-and-models"
+    },
+    {
+      "file": "agents/prompts.md",
+      "name": "Prompts",
+      "publishable": true,
+      "title": "Prompts",
+      "url": "/agents/prompts"
+    },
+    {
+      "file": "agents/versions-and-lifecycle.md",
+      "name": "Versions and lifecycle",
+      "publishable": true,
+      "title": "Versions and lifecycle",
+      "url": "/agents/versions-and-lifecycle"
+    },
+    {
+      "file": "agents/skills.md",
+      "name": "Skills",
+      "publishable": true,
+      "title": "Skills",
+      "url": "/agents/skills"
+    },
+    {
+      "file": "agents/memory.md",
+      "name": "Memory",
+      "publishable": true,
+      "title": "Memory",
+      "url": "/agents/memory"
+    },
+    {
+      "file": "agents/workspaces.md",
+      "name": "Workspaces",
+      "publishable": true,
+      "title": "Workspaces",
+      "url": "/agents/workspaces"
+    },
+    {
+      "file": "agents/artifacts.md",
+      "name": "Artifacts",
+      "publishable": true,
+      "title": "Artifacts",
+      "url": "/agents/artifacts"
+    },
+    {
+      "file": "agents/output/index.mdx",
+      "name": "Output",
+      "publishable": true,
+      "title": "Output",
+      "url": "/agents/output"
+    },
+    {
+      "file": "agents/output/generation-and-streaming.mdx",
+      "name": "Generation and streaming",
+      "publishable": true,
+      "title": "Generation and streaming",
+      "url": "/agents/output/generation-and-streaming"
+    },
+    {
+      "file": "agents/output/structured-output.mdx",
+      "name": "Structured output",
+      "publishable": true,
+      "title": "Structured output",
+      "url": "/agents/output/structured-output"
+    },
+    {
+      "file": "agents/tools/index.mdx",
+      "name": "Tools",
+      "publishable": true,
+      "title": "Tools",
+      "url": "/agents/tools"
+    },
+    {
+      "file": "agents/tools/built-in-tools.mdx",
+      "name": "Built-in Tools",
+      "publishable": true,
+      "title": "Built-in Tools",
+      "url": "/agents/tools/built-in-tools"
+    },
+    {
+      "file": "agents/tools/mcp-tools.mdx",
+      "name": "MCP Tools",
+      "publishable": true,
+      "title": "MCP Tools",
+      "url": "/agents/tools/mcp-tools"
+    },
+    {
+      "file": "agents/tools/tool-approvals.md",
+      "name": "Tool approvals",
+      "publishable": true,
+      "title": "Tool approvals",
+      "url": "/agents/tools/tool-approvals"
+    },
+    {
+      "file": "platform/index.mdx",
+      "name": "Platform",
+      "publishable": true,
+      "title": "Platform",
+      "url": "/platform"
+    },
+    {
+      "file": "platform/sessions-and-turns.md",
+      "name": "Sessions and Turns",
+      "publishable": true,
+      "title": "Sessions and Turns",
+      "url": "/platform/sessions-and-turns"
+    },
+    {
+      "file": "platform/tenancy-and-attribution.md",
+      "name": "Tenancy and end-user attribution",
+      "publishable": true,
+      "title": "Tenancy and end-user attribution",
+      "url": "/platform/tenancy-and-attribution"
+    },
+    {
+      "file": "platform/security-and-credentials.mdx",
+      "name": "Security and credentials",
+      "publishable": true,
+      "title": "Security and credentials",
+      "url": "/platform/security-and-credentials"
+    },
+    {
+      "file": "platform/usage-and-quotas.md",
+      "name": "Usage and quotas",
+      "publishable": true,
+      "title": "Usage and quotas",
+      "url": "/platform/usage-and-quotas"
+    },
+    {
+      "file": "platform/limits-and-reliability.md",
+      "name": "Limits and reliability",
+      "publishable": true,
+      "title": "Limits and reliability",
+      "url": "/platform/limits-and-reliability"
+    },
+    {
+      "file": "automation/index.mdx",
+      "name": "Automation",
+      "publishable": true,
+      "title": "Automation",
+      "url": "/automation"
+    },
+    {
+      "file": "automation/tasks.md",
+      "name": "Tasks",
+      "publishable": true,
+      "title": "Tasks",
+      "url": "/automation/tasks"
+    },
+    {
+      "file": "automation/task-runs.md",
+      "name": "Task runs",
+      "publishable": true,
+      "title": "Task runs",
+      "url": "/automation/task-runs"
+    },
+    {
+      "file": "automation/schedules.md",
+      "name": "Schedules",
+      "publishable": true,
+      "title": "Schedules",
+      "url": "/automation/schedules"
+    },
+    {
+      "file": "sdk/index.mdx",
+      "name": "SDK",
+      "publishable": true,
+      "title": "SDK",
+      "url": "/sdk"
+    },
+    {
+      "file": "sdk/typescript/index.mdx",
+      "name": "TypeScript SDK",
+      "publishable": true,
+      "title": "TypeScript SDK",
+      "url": "/sdk/typescript"
+    },
+    {
+      "file": "sdk/typescript/client.md",
+      "name": "Client",
+      "publishable": true,
+      "title": "Client",
+      "url": "/sdk/typescript/client"
+    },
+    {
+      "file": "sdk/typescript/agents.md",
+      "name": "Agents",
+      "publishable": true,
+      "title": "Agents",
+      "url": "/sdk/typescript/agents"
+    },
+    {
+      "file": "sdk/typescript/workspaces.md",
+      "name": "Workspaces",
+      "publishable": true,
+      "title": "Workspaces",
+      "url": "/sdk/typescript/workspaces"
+    },
+    {
+      "file": "sdk/typescript/skills.md",
+      "name": "Skills",
+      "publishable": true,
+      "title": "Skills",
+      "url": "/sdk/typescript/skills"
+    },
+    {
+      "file": "sdk/typescript/sessions.md",
+      "name": "Sessions",
+      "publishable": true,
+      "title": "Sessions",
+      "url": "/sdk/typescript/sessions"
+    },
+    {
+      "file": "sdk/typescript/providers.md",
+      "name": "Providers",
+      "publishable": true,
+      "title": "Providers",
+      "url": "/sdk/typescript/providers"
+    },
+    {
+      "file": "sdk/typescript/mcp-connections.md",
+      "name": "MCP connections",
+      "publishable": true,
+      "title": "MCP connections",
+      "url": "/sdk/typescript/mcp-connections"
+    },
+    {
+      "file": "sdk/typescript/memories.md",
+      "name": "Memories",
+      "publishable": true,
+      "title": "Memories",
+      "url": "/sdk/typescript/memories"
+    },
+    {
+      "file": "sdk/typescript/artifacts.md",
+      "name": "Artifacts",
+      "publishable": true,
+      "title": "Artifacts",
+      "url": "/sdk/typescript/artifacts"
+    },
+    {
+      "file": "sdk/typescript/tasks.md",
+      "name": "Tasks",
+      "publishable": true,
+      "title": "Tasks",
+      "url": "/sdk/typescript/tasks"
+    },
+    {
+      "file": "sdk/typescript/prompts.md",
+      "name": "Prompts",
+      "publishable": true,
+      "title": "Prompts",
+      "url": "/sdk/typescript/prompts"
+    },
+    {
+      "file": "sdk/typescript/usage.md",
+      "name": "Usage",
+      "publishable": true,
+      "title": "Usage",
+      "url": "/sdk/typescript/usage"
+    },
+    {
+      "file": "sdk/typescript/tenant.md",
+      "name": "Tenant",
+      "publishable": true,
+      "title": "Tenant",
+      "url": "/sdk/typescript/tenant"
+    },
+    {
+      "file": "sdk/python/index.mdx",
+      "name": "Python SDK",
+      "publishable": true,
+      "title": "Python SDK",
+      "url": "/sdk/python"
+    },
+    {
+      "file": "sdk/python/client.md",
+      "name": "Client",
+      "publishable": true,
+      "title": "Client",
+      "url": "/sdk/python/client"
+    },
+    {
+      "file": "sdk/python/agents.md",
+      "name": "Agents",
+      "publishable": true,
+      "title": "Agents",
+      "url": "/sdk/python/agents"
+    },
+    {
+      "file": "sdk/python/workspaces.md",
+      "name": "Workspaces",
+      "publishable": true,
+      "title": "Workspaces",
+      "url": "/sdk/python/workspaces"
+    },
+    {
+      "file": "sdk/python/skills.md",
+      "name": "Skills",
+      "publishable": true,
+      "title": "Skills",
+      "url": "/sdk/python/skills"
+    },
+    {
+      "file": "sdk/python/sessions.md",
+      "name": "Sessions",
+      "publishable": true,
+      "title": "Sessions",
+      "url": "/sdk/python/sessions"
+    },
+    {
+      "file": "sdk/python/providers.md",
+      "name": "Providers",
+      "publishable": true,
+      "title": "Providers",
+      "url": "/sdk/python/providers"
+    },
+    {
+      "file": "sdk/python/mcp-connections.md",
+      "name": "MCP connections",
+      "publishable": true,
+      "title": "MCP connections",
+      "url": "/sdk/python/mcp-connections"
+    },
+    {
+      "file": "sdk/python/memories.md",
+      "name": "Memories",
+      "publishable": true,
+      "title": "Memories",
+      "url": "/sdk/python/memories"
+    },
+    {
+      "file": "sdk/python/artifacts.md",
+      "name": "Artifacts",
+      "publishable": true,
+      "title": "Artifacts",
+      "url": "/sdk/python/artifacts"
+    },
+    {
+      "file": "sdk/python/tasks.md",
+      "name": "Tasks",
+      "publishable": true,
+      "title": "Tasks",
+      "url": "/sdk/python/tasks"
+    },
+    {
+      "file": "sdk/python/prompts.md",
+      "name": "Prompts",
+      "publishable": true,
+      "title": "Prompts",
+      "url": "/sdk/python/prompts"
+    },
+    {
+      "file": "sdk/python/usage.md",
+      "name": "Usage",
+      "publishable": true,
+      "title": "Usage",
+      "url": "/sdk/python/usage"
+    },
+    {
+      "file": "sdk/python/tenant.md",
+      "name": "Tenant",
+      "publishable": true,
+      "title": "Tenant",
+      "url": "/sdk/python/tenant"
+    },
+    {
+      "file": "cli/index.mdx",
+      "name": "CLI",
+      "publishable": true,
+      "title": "CLI",
+      "url": "/cli"
+    },
+    {
+      "file": "cli/setup-and-authentication.mdx",
+      "name": "CLI setup and authentication",
+      "publishable": true,
+      "title": "CLI setup and authentication",
+      "url": "/cli/setup-and-authentication"
+    },
+    {
+      "file": "cli/chat.md",
+      "name": "ba chat",
+      "publishable": true,
+      "title": "ba chat",
+      "url": "/cli/chat"
+    },
+    {
+      "file": "cli/run.md",
+      "name": "ba run",
+      "publishable": true,
+      "title": "ba run",
+      "url": "/cli/run"
+    },
+    {
+      "file": "cli/assist.md",
+      "name": "ba assist and Admin Agent",
+      "publishable": true,
+      "title": "ba assist and Admin Agent",
+      "url": "/cli/assist"
+    },
+    {
+      "file": "cli/scripting-and-ci.md",
+      "name": "Scripting and CI",
+      "publishable": true,
+      "title": "Scripting and CI",
+      "url": "/cli/scripting-and-ci"
+    },
+    {
+      "file": "api-reference/index.mdx",
+      "name": "API Reference",
+      "publishable": true,
+      "title": "API Reference",
+      "url": "/api-reference"
+    },
+    {
+      "file": "api-reference/rest-api/index.mdx",
+      "name": "REST API",
+      "publishable": true,
+      "title": "REST API",
+      "url": "/api-reference/rest-api"
+    },
+    {
+      "file": "api-reference/rest-api/authentication.md",
+      "name": "Authentication",
+      "publishable": true,
+      "title": "Authentication",
+      "url": "/api-reference/rest-api/authentication"
+    },
+    {
+      "file": "api-reference/rest-api/agents.md",
+      "name": "Agents",
+      "publishable": true,
+      "title": "Agents",
+      "url": "/api-reference/rest-api/agents"
+    },
+    {
+      "file": "api-reference/rest-api/workspaces.md",
+      "name": "Workspaces",
+      "publishable": true,
+      "title": "Workspaces",
+      "url": "/api-reference/rest-api/workspaces"
+    },
+    {
+      "file": "api-reference/rest-api/skills.md",
+      "name": "Skills",
+      "publishable": true,
+      "title": "Skills",
+      "url": "/api-reference/rest-api/skills"
+    },
+    {
+      "file": "api-reference/rest-api/tenant.md",
+      "name": "Tenant",
+      "publishable": true,
+      "title": "Tenant",
+      "url": "/api-reference/rest-api/tenant"
+    },
+    {
+      "file": "api-reference/rest-api/providers.md",
+      "name": "Providers",
+      "publishable": true,
+      "title": "Providers",
+      "url": "/api-reference/rest-api/providers"
+    },
+    {
+      "file": "api-reference/rest-api/mcp-connections.md",
+      "name": "MCP connections",
+      "publishable": true,
+      "title": "MCP connections",
+      "url": "/api-reference/rest-api/mcp-connections"
+    },
+    {
+      "file": "api-reference/rest-api/mcp-oauth.md",
+      "name": "MCP OAuth",
+      "publishable": true,
+      "title": "MCP OAuth",
+      "url": "/api-reference/rest-api/mcp-oauth"
+    },
+    {
+      "file": "api-reference/rest-api/generation.md",
+      "name": "Generation",
+      "publishable": true,
+      "title": "Generation",
+      "url": "/api-reference/rest-api/generation"
+    },
+    {
+      "file": "api-reference/rest-api/sessions.md",
+      "name": "Sessions",
+      "publishable": true,
+      "title": "Sessions",
+      "url": "/api-reference/rest-api/sessions"
+    },
+    {
+      "file": "api-reference/rest-api/artifacts.md",
+      "name": "Artifacts",
+      "publishable": true,
+      "title": "Artifacts",
+      "url": "/api-reference/rest-api/artifacts"
+    },
+    {
+      "file": "api-reference/rest-api/memories.md",
+      "name": "Memories",
+      "publishable": true,
+      "title": "Memories",
+      "url": "/api-reference/rest-api/memories"
+    },
+    {
+      "file": "api-reference/rest-api/prompts.md",
+      "name": "Prompts",
+      "publishable": true,
+      "title": "Prompts",
+      "url": "/api-reference/rest-api/prompts"
+    },
+    {
+      "file": "api-reference/rest-api/usage.md",
+      "name": "Usage",
+      "publishable": true,
+      "title": "Usage",
+      "url": "/api-reference/rest-api/usage"
+    },
+    {
+      "file": "api-reference/rest-api/tasks.md",
+      "name": "Tasks",
+      "publishable": true,
+      "title": "Tasks",
+      "url": "/api-reference/rest-api/tasks"
+    },
+    {
+      "file": "api-reference/rest-api/task-runs.md",
+      "name": "Task runs",
+      "publishable": true,
+      "title": "Task runs",
+      "url": "/api-reference/rest-api/task-runs"
+    },
+    {
+      "file": "api-reference/protocols/index.mdx",
+      "name": "Protocols and contracts",
+      "publishable": true,
+      "title": "Protocols and contracts",
+      "url": "/api-reference/protocols"
+    },
+    {
+      "file": "api-reference/protocols/streaming.md",
+      "name": "Streaming protocol",
+      "publishable": true,
+      "title": "Streaming protocol",
+      "url": "/api-reference/protocols/streaming"
+    },
+    {
+      "file": "api-reference/protocols/objects-and-schemas.md",
+      "name": "Objects and schemas",
+      "publishable": true,
+      "title": "Objects and schemas",
+      "url": "/api-reference/protocols/objects-and-schemas"
+    },
+    {
+      "file": "api-reference/protocols/errors.md",
+      "name": "Errors",
+      "publishable": true,
+      "title": "Errors",
+      "url": "/api-reference/protocols/errors"
+    },
+    {
+      "file": "api-reference/protocols/resource-ids.md",
+      "name": "Resource IDs",
+      "publishable": true,
+      "title": "Resource IDs",
+      "url": "/api-reference/protocols/resource-ids"
+    },
+    {
+      "file": "api-reference/protocols/pagination-and-filtering.md",
+      "name": "Pagination and filtering",
+      "publishable": true,
+      "title": "Pagination and filtering",
+      "url": "/api-reference/protocols/pagination-and-filtering"
+    },
+    {
+      "file": "api-reference/protocols/service-limits.md",
+      "name": "Service limits",
+      "publishable": true,
+      "title": "Service limits",
+      "url": "/api-reference/protocols/service-limits"
+    },
+    {
+      "file": "getting-started/coding-agent.mdx",
+      "name": "Use BA with a coding agent",
+      "publishable": false,
+      "title": "Use BA with a coding agent",
+      "url": "/getting-started/coding-agent"
+    }
+  ]
+}

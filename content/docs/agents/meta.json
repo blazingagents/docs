@@ -1,0 +1,16 @@
+{
+  "title": "Agents",
+  "pages": [
+    "index",
+    "agents",
+    "providers-and-models",
+    "prompts",
+    "versions-and-lifecycle",
+    "skills",
+    "memory",
+    "workspaces",
+    "artifacts",
+    "output",
+    "tools"
+  ]
+}

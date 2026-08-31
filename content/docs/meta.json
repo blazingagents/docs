@@ -1,0 +1,12 @@
+{
+  "pages": [
+    "index",
+    "getting-started",
+    "agents",
+    "platform",
+    "automation",
+    "sdk",
+    "cli",
+    "api-reference"
+  ]
+}
