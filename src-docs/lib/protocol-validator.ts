@@ -1,20 +1,7 @@
 // biome-ignore-all lint/performance/noNamespaceImport: this test reflects every public runtime schema export.
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import * as agents from "@blazing-agents/core/entities/agents";
-import * as apikeys from "@blazing-agents/core/entities/apikeys";
-import * as artifacts from "@blazing-agents/core/entities/artifacts";
-import * as attribution from "@blazing-agents/core/entities/attribution";
-import * as chat from "@blazing-agents/core/entities/chat";
-import * as mcpConnections from "@blazing-agents/core/entities/mcp-connections";
-import * as memories from "@blazing-agents/core/entities/memories";
-import * as prompts from "@blazing-agents/core/entities/prompts";
-import * as providers from "@blazing-agents/core/entities/providers";
-import * as sessions from "@blazing-agents/core/entities/sessions";
-import * as tasks from "@blazing-agents/core/entities/tasks";
-import * as tenants from "@blazing-agents/core/entities/tenants";
-import * as usage from "@blazing-agents/core/entities/usage";
-import * as workspaces from "@blazing-agents/core/entities/workspaces";
+import * as contracts from "@blazingagents/sdk/contracts";
 import { expect } from "vitest";
 import { documentationContract } from "./documentation-contract.ts";
 
@@ -24,20 +11,7 @@ const STATE_ROW = /^\| `(?<name>[^`]+)` \| (?<values>[^|]+) \|$/gm;
 const SCHEMA_NAME = /`(?<name>[a-zA-Z][a-zA-Z0-9]+Schema)`/g;
 const ALPHABETICAL = (left: string, right: string) => left.localeCompare(right);
 const publicEntityExports: Record<string, unknown> = {
-  ...agents,
-  ...apikeys,
-  ...artifacts,
-  ...attribution,
-  ...chat,
-  ...mcpConnections,
-  ...memories,
-  ...prompts,
-  ...providers,
-  ...sessions,
-  ...tasks,
-  ...tenants,
-  ...usage,
-  ...workspaces,
+  ...contracts,
 };
 
 interface RuntimeSchema {

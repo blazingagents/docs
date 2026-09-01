@@ -5,7 +5,7 @@ description: Install, configure, and navigate the typed server client for Blazin
 
 # TypeScript SDK
 
-`@blazing-agents/sdk` is the typed Node.js client for the Blazing Agents `/v1`
+`@blazingagents/sdk` is the typed Node.js client for the Blazing Agents `/v1`
 API. Use its resource methods to manage configuration and data, and its
 generation helpers to stream Agent output.
 
@@ -19,13 +19,13 @@ generation helpers to stream Agent output.
 The SDK requires Node.js 24 or newer and `ai` 7.0.32 as a peer dependency.
 
 ```bash
-npm install @blazing-agents/sdk ai@7.0.32
+npm install @blazingagents/sdk ai@7.0.84
 ```
 
 ## Initialize the client [#initialize-the-client]
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 export const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,
@@ -60,7 +60,7 @@ Create an Agent, start a Session with `chat()`, retain its ID, and consume the
 decoded UI message stream:
 
 ```typescript
-import { BlazingAgents, type UIMessage } from "@blazing-agents/sdk";
+import { BlazingAgents, type UIMessage } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,

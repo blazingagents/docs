@@ -20,7 +20,7 @@ Use `client.usage.get()` for the Tenant rollup or `getForAgent()` for one Agent.
 The first half of this example queries one grouped Tenant report:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const apiKey = process.env.BLAZING_AGENTS_API_KEY;
 if (!apiKey) throw new Error("BLAZING_AGENTS_API_KEY is required");

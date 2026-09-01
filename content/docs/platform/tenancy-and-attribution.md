@@ -26,7 +26,7 @@ For a new Session, admission stamps the Turn's `userId` and metadata when the Se
 Derive the identifier from authenticated backend state, then reuse it as a filter:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const apiKey = process.env.BLAZING_AGENTS_API_KEY;
 if (!apiKey) throw new Error("BLAZING_AGENTS_API_KEY is required");
@@ -66,7 +66,7 @@ Attribution is not authentication. It is not authorization. It is not an ACL, an
 Derive attribution from the authenticated application principal, and resolve every Agent, application chat, and Session through backend authorization. Never trust platform IDs or `userId` values copied from a browser body.
 
 ```typescript
-import { type UIMessage } from "@blazing-agents/sdk";
+import { type UIMessage } from "@blazingagents/sdk";
 
 export async function runAuthorizedTurn(input: {
   principal: { subject: string; workspaceId: string };

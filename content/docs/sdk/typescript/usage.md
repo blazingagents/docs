@@ -139,7 +139,7 @@ Authentication, transport, malformed-response, and service failures may also thr
 Compare Tenant totals with one Agent's model breakdown over the same range:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
 const range = { from: "2026-07-01", to: "2026-07-20" };

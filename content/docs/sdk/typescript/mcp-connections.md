@@ -313,7 +313,7 @@ SDK request failures throw `BlazingAgentsError`. Branch on its stable lowercase 
 Create a non-OAuth Connection, test it, reconnect it with a replacement credential, and inspect the stored state:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,

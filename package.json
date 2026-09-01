@@ -13,8 +13,7 @@
     "verify-output": "node scripts/verify-docs-output.mjs"
   },
   "dependencies": {
-    "@blazing-agents/core": "0.1.0",
-    "@blazing-agents/sdk": "0.1.0",
+    "@blazingagents/sdk": "0.2.0",
     "@orama/orama": "^3.1.18",
     "@tanstack/react-router": "^1.170.32",
     "@tanstack/react-start": "^1.168.49",
@@ -32,6 +31,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/react": "^16.3.3",
     "@types/mdx": "^2.0.14",
+    "@types/node": "^26.4.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^6.1.1",

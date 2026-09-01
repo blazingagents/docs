@@ -150,7 +150,7 @@ See [SDK errors](/api-reference/protocols/errors).
 Create a Prompt, invoke it through a generation helper, update it, then delete it:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
 

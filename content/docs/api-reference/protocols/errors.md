@@ -188,7 +188,7 @@ A `validation_failed` response sets `details.issues` to normalized
 Branch on known SDK codes while preserving unknown future codes:
 
 ```typescript
-import { BlazingAgentsError } from "@blazing-agents/sdk";
+import { BlazingAgentsError } from "@blazingagents/sdk";
 
 async function inspectTaskError() {
 try {
@@ -243,9 +243,9 @@ Every SDK resource and REST endpoint page uses this error contract.
 - `packages/server-core/src/http.ts`
 - `packages/server-core/src/http-validation.ts`
 - `servers/api/src/utils/error-envelope.ts`
-- `packages/sdk/src/errors.ts`
-- `packages/sdk/src/http.ts`
-- `packages/sdk/src/generation.ts`
+- `../typescript-sdk/src/errors.ts`
+- `../typescript-sdk/src/http.ts`
+- `../typescript-sdk/src/generation.ts`
 
 ## Related guides [#related-guides]
 

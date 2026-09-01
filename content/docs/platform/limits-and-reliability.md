@@ -26,7 +26,7 @@ Never infer retry safety from an error code alone. Read operations are generally
 Use one stable key for all retries of the same logical Task submission:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const apiKey = process.env.BLAZING_AGENTS_API_KEY;
 if (!apiKey) throw new Error("BLAZING_AGENTS_API_KEY is required");
@@ -77,7 +77,7 @@ Provider replacement needs extra care because immutable Agent Versions may still
 SDK errors expose a stable `code`, optional HTTP `status`, `details`, `param`, `requestId`, and response headers. Log only fields appropriate for correlation:
 
 ```typescript
-import { BlazingAgentsError } from "@blazing-agents/sdk";
+import { BlazingAgentsError } from "@blazingagents/sdk";
 
 try {
   await client.tasks.get(taskId);
