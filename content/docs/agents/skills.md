@@ -84,6 +84,27 @@ Deletion removes metadata and files without a detach step.
 Review Skill instructions like code. Keep secrets out of Skill content, keep
 the entry file focused, and load larger references progressively.
 
+## Coding-agent skill catalog [#coding-agent-skill-catalog]
+
+The public [Blazing Agents coding-agent skill catalog](https://skills.sh/blazingagents/skills)
+helps local coding assistants build against Blazing Agents. These local skills
+are separate from the Tenant-owned runtime Skills described above: installing
+one configures a supported coding assistant and does not create or modify a
+Skill on the Blazing Agents platform.
+
+Use the [`skills` CLI](https://skills.sh/docs/cli) to inspect and install the
+catalog:
+
+```bash
+npx skills add blazingagents/skills --list
+npx skills add blazingagents/skills --skill blazing-agents
+npx skills list
+npx skills update blazing-agents
+```
+
+The catalog source is available at
+[github.com/blazingagents/skills](https://github.com/blazingagents/skills).
+
 ## SDK and API [#sdk-and-api]
 
 - [TypeScript Skills SDK](/sdk/typescript/skills)
