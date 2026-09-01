@@ -20,7 +20,7 @@ Inject `BLAZING_AGENTS_API_KEY` as an environment secret. Optionally set `BLAZIN
   env:
     BLAZING_AGENTS_API_KEY: ${{ secrets.BLAZING_AGENTS_API_KEY }}
   run: |
-    npm install --global @blazing-agents/cli@0.1.0
+    npm install --global @blazingagents/cli@0.1.0
     set +e
     ba run ag_0123456789abcdef \
       --prompt 'Summarize the release status' \
