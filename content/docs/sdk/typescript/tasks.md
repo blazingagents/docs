@@ -347,7 +347,7 @@ Create an on-demand Task, enqueue one idempotent run, persist its identifiers,
 and return to the caller:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
 const agentId = "ag_0123456789abcdef";

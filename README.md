@@ -9,7 +9,7 @@ SDK documentation, examples, and the REST API reference.
 
 - Node.js 24 or later
 - npm
-- Access to `@blazing-agents/core` and `@blazing-agents/sdk` version `0.1.0`
+- Access to the npm registry
 
 ## Development
 
@@ -49,6 +49,23 @@ sync with its navigation order. Run `npm run check` before submitting changes.
 
 The production build is written to `.output/public` for deployment to
 `docs.blazingagents.com`.
+
+## Deployment
+
+Cloudflare Pages project `blazing-agents-docs` deploys this repository through
+its GitHub integration with these settings:
+
+| Setting | Value |
+| --- | --- |
+| Production branch | `main` |
+| Node.js version | `24` |
+| Build command | `npm run build` |
+| Build output directory | `.output/public` |
+| Custom domain | `docs.blazingagents.com` |
+
+No deployment credentials belong in this repository. Cloudflare owns DNS and
+TLS, and its GitHub integration starts production deployments after changes
+land on `main`.
 
 ## Related repositories
 

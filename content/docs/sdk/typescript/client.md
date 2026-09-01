@@ -45,7 +45,7 @@ The default base URL is the local API development server. Set `baseUrl` when con
 | `onResponse` | `(response: ResponseObservation) => void` | no | — | Observes every received response before body decoding |
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,
@@ -138,7 +138,7 @@ A caller abort throws `BlazingAgentsError` with `code: "request_aborted"`. A fet
 All SDK request failures throw `BlazingAgentsError`. API error codes remain open so a newer server code can pass through unchanged.
 
 ```typescript
-import { BlazingAgentsError } from "@blazing-agents/sdk";
+import { BlazingAgentsError } from "@blazingagents/sdk";
 
 try {
   await client.agents.get("ag_0123456789abcdef");
@@ -181,7 +181,7 @@ See the canonical [error contract](/api-reference/protocols/errors#blazingagents
 Create a client, inspect an Agent, and run a stateless completion:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,
@@ -437,7 +437,7 @@ Stream errors retain the originating request ID when available. See [protocol er
 Create a Session, consume its UI-message stream, then resume the same Session:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,

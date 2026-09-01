@@ -283,7 +283,7 @@ Starting an approval continuation for a disabled Agent can fail with `agent_disa
 Create a Session, inspect its transcript, review one pending Tool call, decide it, and join the continuation:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,

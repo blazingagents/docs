@@ -156,7 +156,7 @@ Find an Artifact created by a Session, inspect it, then create a short-lived
 direct download URL:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
 const agentId = "ag_0123456789abcdef";

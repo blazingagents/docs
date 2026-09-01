@@ -26,7 +26,7 @@ You need access to a Blazing Agents tenant, a backend project, Node.js 24 or lat
     Install the SDK and its required AI SDK peer dependency:
 
     ```bash
-    npm install @blazing-agents/sdk ai
+    npm install @blazingagents/sdk ai
     ```
 
   </Step>
@@ -36,7 +36,7 @@ You need access to a Blazing Agents tenant, a backend project, Node.js 24 or lat
     Store the key and API URL in your backend environment, then save this reusable client as `client.ts`:
 
     ```typescript
-    import { BlazingAgents } from "@blazing-agents/sdk";
+    import { BlazingAgents } from "@blazingagents/sdk";
 
     export const client = new BlazingAgents({
       apiKey: process.env.BLAZING_AGENTS_API_KEY!,

@@ -132,13 +132,13 @@ await result.text;
 ## Source of truth [#source-of-truth]
 
 - `packages/core/src/entities/chat.ts`
-- `packages/sdk/src/generation.ts`
-- `packages/sdk/src/generation.chat-results.test.ts`
-- `packages/sdk/src/generation.chat-requests.test.ts`
-- `packages/sdk/src/generation.chat-errors.test.ts`
-- `packages/sdk/src/generation.transport-errors.test.ts`
-- `packages/sdk/src/generation.completion.test.ts`
-- `packages/sdk/src/generation.object.test.ts`
+- `../typescript-sdk/src/generation.ts`
+- `../typescript-sdk/src/generation.chat-results.test.ts`
+- `../typescript-sdk/src/generation.chat-requests.test.ts`
+- `../typescript-sdk/src/generation.chat-errors.test.ts`
+- `../typescript-sdk/src/generation.transport-errors.test.ts`
+- `../typescript-sdk/src/generation.completion.test.ts`
+- `../typescript-sdk/src/generation.object.test.ts`
 - `servers/api/src/routes/agents/generation.ts`
 - `servers/api/src/routes/agents/generation.test.ts`
 - `servers/api/src/routes/sessions/turns.ts`

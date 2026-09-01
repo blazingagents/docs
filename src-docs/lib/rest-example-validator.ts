@@ -1,58 +1,31 @@
 // biome-ignore-all lint/performance/noNamespaceImport: response examples resolve their documented public schema export at runtime.
-import * as agents from "@blazing-agents/core/entities/agents";
-import {
-  createAgentBodySchema,
-  updateAgentBodySchema,
-} from "@blazing-agents/core/entities/agents";
-import * as artifacts from "@blazing-agents/core/entities/artifacts";
-import * as chat from "@blazing-agents/core/entities/chat";
-import {
-  chatRequestBodySchema,
-  generationRequestBodySchema,
-} from "@blazing-agents/core/entities/chat";
-import * as mcpConnections from "@blazing-agents/core/entities/mcp-connections";
+import * as contracts from "@blazingagents/sdk/contracts";
 import {
   approveMcpOauthAuthorizationBodySchema,
-  createMcpConnectionBodySchema,
-  reconnectMcpConnectionBodySchema,
-  updateMcpAttachmentBodySchema,
-  updateMcpConnectionBodySchema,
-} from "@blazing-agents/core/entities/mcp-connections";
-import * as memories from "@blazing-agents/core/entities/memories";
-import {
-  createMemoryBodySchema,
-  updateMemoryBodySchema,
-} from "@blazing-agents/core/entities/memories";
-import * as prompts from "@blazing-agents/core/entities/prompts";
-import {
-  createPromptBodySchema,
-  updatePromptBodySchema,
-} from "@blazing-agents/core/entities/prompts";
-import * as providers from "@blazing-agents/core/entities/providers";
-import {
-  createProviderBodySchema,
-  updateProviderBodySchema,
-} from "@blazing-agents/core/entities/providers";
-import * as sessions from "@blazing-agents/core/entities/sessions";
-import { decideToolApprovalBodySchema } from "@blazing-agents/core/entities/sessions";
-import {
+  chatRequestBodySchema,
   copySkillBodySchema,
+  createAgentBodySchema,
+  createMcpConnectionBodySchema,
+  createMemoryBodySchema,
+  createPromptBodySchema,
+  createProviderBodySchema,
   createSkillBodySchema,
-} from "@blazing-agents/core/entities/skills";
-import * as tasks from "@blazing-agents/core/entities/tasks";
-import {
   createTaskBodySchema,
   createTaskRunBodySchema,
-  updateTaskBodySchema,
-} from "@blazing-agents/core/entities/tasks";
-import * as tenants from "@blazing-agents/core/entities/tenants";
-import { updateTenantSettingsBodySchema } from "@blazing-agents/core/entities/tenants";
-import * as usage from "@blazing-agents/core/entities/usage";
-import * as workspaces from "@blazing-agents/core/entities/workspaces";
-import {
   createWorkspaceBodySchema,
+  decideToolApprovalBodySchema,
+  generationRequestBodySchema,
+  reconnectMcpConnectionBodySchema,
+  updateAgentBodySchema,
+  updateMcpAttachmentBodySchema,
+  updateMcpConnectionBodySchema,
+  updateMemoryBodySchema,
+  updatePromptBodySchema,
+  updateProviderBodySchema,
+  updateTaskBodySchema,
+  updateTenantSettingsBodySchema,
   updateWorkspaceBodySchema,
-} from "@blazing-agents/core/entities/workspaces";
+} from "@blazingagents/sdk/contracts";
 import { expect } from "vitest";
 import type { z } from "zod";
 
@@ -66,18 +39,7 @@ const RESPONSE_SCHEMA_LINK =
 const RESPONSE_JSON = /```json\n(?<body>[\s\S]*?)\n```/g;
 const EMPTY_BODY = /(?:empty body|Empty)/;
 const responseSchemas: Record<string, unknown> = {
-  ...agents,
-  ...artifacts,
-  ...chat,
-  ...mcpConnections,
-  ...memories,
-  ...prompts,
-  ...providers,
-  ...sessions,
-  ...tasks,
-  ...tenants,
-  ...usage,
-  ...workspaces,
+  ...contracts,
 };
 const requiredResponseSemantics: Record<string, string[]> = {
   "create-session-turn": ["Location:", "text/event-stream"],

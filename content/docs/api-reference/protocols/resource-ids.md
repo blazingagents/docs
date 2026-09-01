@@ -100,7 +100,7 @@ Validate untrusted input locally, then let the authenticated API enforce
 Tenant ownership:
 
 ```typescript
-import { agentIdSchema } from "@blazing-agents/core/ids";
+import { agentIdSchema } from "@blazingagents/sdk/contracts";
 
 const parsed = agentIdSchema.safeParse(input.agentId);
 if (!parsed.success) {
