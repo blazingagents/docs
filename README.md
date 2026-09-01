@@ -1,9 +1,28 @@
-# Blazing Agents Documentation
-
-Source for the public [Blazing Agents documentation](https://docs.blazingagents.com).
+<div align="center">
+  <a href="https://docs.blazingagents.com">
+    <img src="./public/brand/icon.svg" alt="Blazing Agents logo" width="96">
+  </a>
+  <h1>Blazing Agents Documentation</h1>
+  <p>Guides and API references for building production agents.</p>
+  <p>
+    <a href="https://docs.blazingagents.com">Read the documentation</a>
+  </p>
+</div>
 
 The site is built with TanStack Start and Fumadocs. It includes product guides,
 SDK documentation, examples, and the REST API reference.
+
+## Features
+
+- Getting-started and platform guides for Blazing Agents users.
+- CLI, Python SDK, and TypeScript SDK documentation.
+- Agent, automation, security, and operations guides.
+- REST API reference with protocol and resource documentation.
+
+## Documentation
+
+Read the published documentation at
+[docs.blazingagents.com](https://docs.blazingagents.com).
 
 ## Requirements
 
@@ -11,9 +30,11 @@ SDK documentation, examples, and the REST API reference.
 - npm
 - Access to the npm registry
 
-## Development
+## Installation
 
 ```bash
+git clone https://github.com/blazingagents/docs.git
+cd docs
 npm install
 npm run dev
 ```
