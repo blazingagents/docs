@@ -100,7 +100,7 @@ Authentication, transport, malformed-response, and service failures may also thr
 Read the current singleton settings, configure a quota while leaving the name unchanged, and inspect the result:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
 

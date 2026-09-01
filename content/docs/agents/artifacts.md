@@ -22,7 +22,7 @@ untouched. Later edits to the source do not change the Artifact.
 ## Publish, discover, and download [#publish-discover-and-download]
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,

@@ -187,7 +187,7 @@ See [SDK errors](/api-reference/protocols/errors).
 Create, update, find, and delete a Workspace:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
 

@@ -164,7 +164,7 @@ Authentication, transport, malformed-response, and service failures can also thr
 Create attributed Memory, find and update it, then delete it:
 
 ```typescript
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
 const agentId = "ag_0123456789abcdef";

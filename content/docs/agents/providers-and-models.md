@@ -31,7 +31,7 @@ request and consumes no model tokens.
 
 ```typescript
 import assert from "node:assert/strict";
-import { BlazingAgents } from "@blazing-agents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,
