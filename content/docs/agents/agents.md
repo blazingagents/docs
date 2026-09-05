@@ -54,6 +54,7 @@ Container or compute until its first file or process operation.
 | --- | --- | --- |
 | `name` | Required; unique per Tenant | Mutable |
 | `providerId`, `model` | Both `null`, or both configured | Mutable as a valid pair |
+| `thinkingLevel` | `null` (Provider default) | Nonempty known choice or custom value when capabilities are unknown; null clears |
 | `instructions` | Defaults to `""` | Mutable |
 | `tools` | Defaults to `[]` | Supplied arrays replace the selection |
 | `mcpConnectionIds` | Defaults to `[]` | Supplied arrays replace attachments |
@@ -83,7 +84,7 @@ attachments, Workspace attachment, and Memory injection are independent:
 ## Admin Agent [#admin-agent]
 
 The platform-managed Admin Agent has one normal Workspace. A Tenant may set or
-rotate only its Provider/model pair, inspect Versions, and create pinned
+rotate its Provider/model pair and Thinking level, inspect Versions, and create pinned
 Sessions. It cannot change the name, instructions, Tools, lifecycle, Workspace,
 avatar, MCP attachments, Task assignment, or deletion state. Rejected mutations
 return `admin_agent_managed`.

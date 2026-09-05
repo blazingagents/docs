@@ -18,6 +18,16 @@ synchronize it. An explicit ID attaches an existing same-Tenant Workspace.
 The product row has no Container or compute cost until the first actual
 Workspace file or process operation.
 
+## Thinking level [#thinking-level]
+
+Create and update accept `thinkingLevel` as a nonempty string or null
+(`None` in Python). Creation defaults to Provider default; omission on update
+preserves the saved selection, and null clears it. Agent and AgentVersion
+responses include the field, and restoration copies it through normal
+validation. Known invalid combinations fail without changing configuration
+or Version history. Unknown capabilities allow custom strings, which can
+still fail during Provider execution. See [Thinking level](/agents/providers-and-models#thinking-level).
+
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
@@ -50,6 +60,7 @@ Creates an Agent and its first immutable Version.
 | `name` | `string` | yes | — | Tenant-unique name, 1–80 characters |
 | `model` | `string \| null` | no | `null` | Provider-native model ID, paired with `providerId` |
 | `providerId` | `string \| null` | no | `null` | Stored Provider, paired with `model` |
+| `thinkingLevel` | `string \| null` | no | `null` | Reasoning choice; null uses Provider default |
 | `workspaceId` | `string` | no | new default Workspace | Existing same-Tenant Workspace to attach and share |
 | `memoryInjectionEnabled` | `boolean` | no | `false` | Automatic Memory context |
 | `tools` | `AgentToolGroupId[]` | no | `[]` | Complete tool-group selection |
@@ -113,7 +124,7 @@ Updates at least one mutable configuration field and creates the next immutable 
 
 `UpdateAgentBody` accepts every [`create()`](#create) configuration field except `userId`; all fields are optional, but at least one is required. A Provider change must include `model`. Clear a configured Agent by sending both fields as `null`; clearing either field alone is rejected.
 
-For the Admin Agent, the same method accepts only `providerId` and `model`.
+For the Admin Agent, the same method accepts only `providerId`, `model`, and `thinkingLevel`.
 Each accepted settled-pair change creates the next ordinary Version; all other
 fields remain platform-managed.
 

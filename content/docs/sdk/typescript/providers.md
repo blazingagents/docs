@@ -90,3 +90,17 @@ await client.agents.update(agentId, {
 
 - [REST Providers](/api-reference/rest-api/providers)
 - [Models and Providers](/agents/providers-and-models)
+
+## `getThinkingLevels()` [#get-thinking-levels]
+
+`getThinkingLevels(providerId: string, model: string): Promise<ThinkingLevelsResponse>`
+returns `{ known: boolean, levels: string[] }` for the exact native Model ID.
+It works for manually entered IDs and custom Providers without requiring
+model listing. `known: false` permits a custom value; `known: true` with an
+empty list permits only Provider default. Null is always Provider default.
+
+```typescript
+const capabilities = await client.providers.getThinkingLevels(provider.id, model);
+await client.agents.update(agentId, { thinkingLevel: "high" });
+await client.agents.update(agentId, { thinkingLevel: null });
+```

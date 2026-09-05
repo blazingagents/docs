@@ -9,6 +9,16 @@ description: Create, inspect, update, version, disable, and extend Agents.
 
 Agents are Tenant-owned configuration records. Use these endpoints to configure execution, inspect immutable Versions, attach capabilities, or operate the reversible execution kill switch; Attribution remains immutable after creation.
 
+## Thinking configuration [#thinking-configuration]
+
+`POST` and `PUT` accept `thinkingLevel: string | null`. Creation defaults to
+null; update omission preserves it and explicit null clears it. Non-null
+values must be nonempty and require a configured Provider/Model pair. Agent
+and Version responses include this field. Known unsupported selections return
+`validation_failed` with choices, leaving state and Version history unchanged.
+The Admin Agent permits Thinking level edits alongside its Provider and Model;
+its other management and restoration restrictions remain in force.
+
 ## Endpoints [#endpoints]
 
 ### POST /v1/agents [#create-agent]
@@ -60,6 +70,7 @@ Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-sc
   "tenantId": "ten_1234567890ABCDEF",
   "name": "Support Agent",
   "model": null,
+  "thinkingLevel": null,
   "providerId": null,
   "tools": ["workspace", "write_todos"],
   "workspaceId": "ws_1234567890ABCDEF",
@@ -126,6 +137,7 @@ Response schema: [`agentsResponseSchema`](/api-reference/protocols/objects-and-s
       "tenantId": "ten_1234567890ABCDEF",
       "name": "Support Agent",
       "model": "gpt-4.1",
+      "thinkingLevel": null,
       "providerId": "prv_1234567890ABCDEF",
       "workspaceId": "ws_1234567890ABCDEF",
       "memoryInjectionEnabled": false,
@@ -191,6 +203,7 @@ Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-sc
   "tenantId": "ten_1234567890ABCDEF",
   "name": "Support Agent",
   "model": null,
+  "thinkingLevel": null,
   "providerId": null,
   "workspaceId": "ws_1234567890ABCDEF",
   "memoryInjectionEnabled": false,
@@ -265,6 +278,7 @@ Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-sc
   "tenantId": "ten_1234567890ABCDEF",
   "name": "Support Agent",
   "model": "gpt-4.1",
+  "thinkingLevel": null,
   "providerId": "prv_1234567890ABCDEF",
   "tools": ["workspace"],
   "workspaceId": "ws_1234567890ABCDEF",
