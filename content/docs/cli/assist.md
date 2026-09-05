@@ -38,6 +38,20 @@ The Admin Agent can perform these implemented operations:
 
 Tools execute on the platform under trusted Tenant, Admin Agent, and active Session scope. Lists are bounded, targeted mutations use platform IDs, and returned values omit credentials, internal object keys, signed URLs, and other internal-only fields. API-key management, Provider credential mutation, Skill mutation, avatar mutation, and Artifact content or deletion are unavailable.
 
+## Configure Thinking level [#thinking-level]
+
+Use `ba assist` to ask for an Agent's current Thinking level, create an Agent
+with a level, update a level, or clear it to Provider default. The Agent Tool
+uses `thinkingLevel: "high"` (or a custom string when capabilities are unknown)
+and `thinkingLevel: null` to clear. Updates require the ordinary Tool approval.
+For example: “Set Release Agent's Thinking level to high”, or “Clear Release
+Agent's Thinking level to Provider default”. Reading an Agent also returns its
+saved level. Configure the Admin Agent's own level through the dashboard or
+SDK; its administrative self-mutation restriction remains in place.
+
+`ba chat` and `ba run` use the Agent's resolved Version setting; they do not
+provide a per-Turn override. See [Thinking level](/agents/providers-and-models#thinking-level).
+
 ## Approval policy [#approval-policy]
 
 Reads, creation, Provider model discovery, Task runs, and Task-run cancellation proceed without approval. Tenant updates and supported resource updates or deletes pause for explicit approval. The active BA Assist Session and the Admin Agent cannot delete or mutate themselves even after approval.

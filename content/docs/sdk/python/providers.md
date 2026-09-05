@@ -70,3 +70,16 @@ API failures raise `APIStatusError`. Configured Agent writes may return `model_n
 
 - [REST Providers](/api-reference/rest-api/providers)
 - [TypeScript Providers](/sdk/typescript/providers)
+
+## `get_thinking_levels()` [#get-thinking-levels]
+
+`get_thinking_levels(provider_id: str, model: str) -> ThinkingLevels`
+returns `known: bool` and `levels: list[str]` for an exact native Model ID.
+The same method is available on the async client. Unknown metadata permits a
+custom string; a known empty list permits only Provider default (`None`).
+
+```python
+capabilities = client.providers.get_thinking_levels(provider.id, model=model)
+client.agents.update(agent_id, thinking_level="high")
+client.agents.update(agent_id, thinking_level=None)
+```

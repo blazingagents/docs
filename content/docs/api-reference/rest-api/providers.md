@@ -261,3 +261,16 @@ SDKs: [TypeScript](/sdk/typescript/providers#delete), [Python](/sdk/python/provi
 - [Python SDK](/sdk/python/providers)
 - [Objects and schemas](/api-reference/protocols/objects-and-schemas)
 - [Errors](/api-reference/protocols/errors)
+
+## GET /v1/providers/:id/thinking-levels [#get-thinking-levels]
+
+Requires Tenant bearer authentication and the required query parameter
+`model`, a nonempty Provider-native Model ID. Returns `200 OK` with
+`{ "known": true, "levels": ["off", "low", "medium", "high"] }`, or
+`{ "known": false, "levels": [] }` when capabilities cannot be discovered.
+A known empty list means only Provider default is available. This endpoint
+supports manual IDs and custom Providers without a model-listing request.
+An inaccessible Provider returns `provider_not_found`; invalid input returns
+`validation_failed`. Optional capability discovery failures return unknown.
+See [Thinking level](/agents/providers-and-models#thinking-level) for Pi
+precedence, cache scope, and independent model-access checks.

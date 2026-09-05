@@ -424,7 +424,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": null,\n  \"providerId\": null,\n  \"tools\": [\"workspace\", \"write_todos\"],\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"memoryInjectionEnabled\": true,\n  \"userId\": \"\",\n  \"metadata\": {},\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 1,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
+            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": null,\n  \"thinkingLevel\": null,\n  \"providerId\": null,\n  \"tools\": [\"workspace\", \"write_todos\"],\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"memoryInjectionEnabled\": true,\n  \"userId\": \"\",\n  \"metadata\": {},\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 1,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "Agent object",
@@ -508,7 +508,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"agents\": [\n    {\n      \"id\": \"ag_1234567890ABCDEF\",\n      \"tenantId\": \"ten_1234567890ABCDEF\",\n      \"name\": \"Support Agent\",\n      \"model\": \"gpt-4.1\",\n      \"providerId\": \"prv_1234567890ABCDEF\",\n      \"workspaceId\": \"ws_1234567890ABCDEF\",\n      \"memoryInjectionEnabled\": false,\n      \"tools\": [],\n      \"instructions\": \"Answer clearly.\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"mcpConnectionIds\": [],\n      \"avatarUrl\": null,\n      \"version\": 1,\n      \"status\": \"active\",\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00Z\"\n    }\n  ]\n}",
+            "code": "{\n  \"agents\": [\n    {\n      \"id\": \"ag_1234567890ABCDEF\",\n      \"tenantId\": \"ten_1234567890ABCDEF\",\n      \"name\": \"Support Agent\",\n      \"model\": \"gpt-4.1\",\n      \"thinkingLevel\": null,\n      \"providerId\": \"prv_1234567890ABCDEF\",\n      \"workspaceId\": \"ws_1234567890ABCDEF\",\n      \"memoryInjectionEnabled\": false,\n      \"tools\": [],\n      \"instructions\": \"Answer clearly.\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"mcpConnectionIds\": [],\n      \"avatarUrl\": null,\n      \"version\": 1,\n      \"status\": \"active\",\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00Z\"\n    }\n  ]\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "Agent objects",
@@ -592,7 +592,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": null,\n  \"providerId\": null,\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [],\n  \"instructions\": \"Answer clearly.\",\n  \"userId\": \"\",\n  \"metadata\": {},\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 1,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
+            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": null,\n  \"thinkingLevel\": null,\n  \"providerId\": null,\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [],\n  \"instructions\": \"Answer clearly.\",\n  \"userId\": \"\",\n  \"metadata\": {},\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 1,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "Agent object",
@@ -682,7 +682,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": \"gpt-4.1\",\n  \"providerId\": \"prv_1234567890ABCDEF\",\n  \"tools\": [\"workspace\"],\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"memoryInjectionEnabled\": true,\n  \"userId\": \"\",\n  \"metadata\": { \"team\": \"support\" },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 2,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00Z\"\n}",
+            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": \"gpt-4.1\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_1234567890ABCDEF\",\n  \"tools\": [\"workspace\"],\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"memoryInjectionEnabled\": true,\n  \"userId\": \"\",\n  \"metadata\": { \"team\": \"support\" },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 2,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00Z\"\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "Agent object",

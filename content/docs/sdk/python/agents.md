@@ -30,6 +30,16 @@ Every request method also accepts `extra_headers: Mapping[str, str] | None`
 and the exported `Timeout` type (`float | httpx.Timeout | None`). See [Client](/sdk/python/client)
 for request correlation, transport errors, and response observation.
 
+## Thinking level [#thinking-level]
+
+Create and update accept `thinking_level` as a nonempty string or null
+(`None` in Python). Creation defaults to Provider default; omission on update
+preserves the saved selection, and null clears it. Agent and AgentVersion
+responses include the field, and restoration copies it through normal
+validation. Known invalid combinations fail without changing configuration
+or Version history. Unknown capabilities allow custom strings, which can
+still fail during Provider execution. See [Thinking level](/agents/providers-and-models#thinking-level).
+
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
@@ -95,7 +105,7 @@ failures include `validation_failed` and `not_found`. See
 
 ### `update()` [#update]
 
-**Signature:** `update(agent_id: str, *, name: str = ..., model: str | None = ..., provider_id: str | None = ..., workspace_id: str = ..., memory_injection_enabled: bool = ..., tools: Sequence[AgentTool] = ..., instructions: str = ..., metadata: dict[str, object] = ..., mcp_connection_ids: Sequence[str] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
+**Signature:** `update(agent_id: str, *, name: str = ..., model: str | None = ..., provider_id: str | None = ..., thinking_level: str | None = ..., workspace_id: str = ..., memory_injection_enabled: bool = ..., tools: Sequence[AgentTool] = ..., instructions: str = ..., metadata: dict[str, object] = ..., mcp_connection_ids: Sequence[str] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
 
 Updates at least one mutable field and creates the next Version. Omitted fields
 stay unchanged. Changing a Provider requires a model in the same call; explicit
@@ -103,7 +113,7 @@ stay unchanged. Changing a Provider requires a model in the same call; explicit
 arrays replace their selections. `user_id` cannot be updated. Supplying no
 field raises `ValueError` before a request is sent.
 
-For the Admin Agent, `update()` accepts only `provider_id` and `model`. Each
+For the Admin Agent, `update()` accepts only `provider_id`, `model`, and `thinking_level`. Each
 accepted settled-pair change creates the next ordinary Version; all other
 fields remain platform-managed.
 
