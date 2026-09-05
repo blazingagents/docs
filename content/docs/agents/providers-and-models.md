@@ -70,6 +70,40 @@ discovery. A missing model returns `model_not_found`; unavailable validation
 returns `model_validation_unavailable`. Custom Providers accept manual IDs
 because model discovery is not standardized.
 
+## Thinking level [#thinking-level]
+
+An Agent's nullable `thinkingLevel` controls the Model's reasoning behavior.
+Omit it on creation or send `null` for Provider default, which sends no
+reasoning override. On update, omission preserves the saved value and `null`
+clears it. An unconfigured Agent must use `null`. An explicit `off` disables
+thinking where supported; it is different from Provider default.
+
+The dashboard shows a dropdown for known capabilities, including `max` when
+listed. It resets the submitted level to Provider default when you change
+Provider or Model. Unknown capabilities show Provider default and a custom
+text input. Reading a saved Agent or Version never changes its selection.
+
+Choices come from the matching Pi Provider and native Model first. If Pi has
+no capabilities, supported vendor metadata is fetched on demand. Successful
+fallback catalogs are reused for 15 minutes per Tenant and saved Provider.
+Missing metadata and discovery failures mean unknown capabilities, not an
+empty supported list. Custom endpoints and manual Model IDs remain usable
+without model-listing support.
+
+Known choices constrain Agent creation, relevant updates, and restoration.
+An incompatible retained value is rejected with the available choices; the
+Agent and Version history remain unchanged. Unknown capabilities accept a
+nonempty custom string. Independent fresh model-access validation still
+applies and can reject a write even when thinking metadata is unavailable.
+
+Vercel AI SDK executes the selection using each transport's supported
+reasoning options. Pi provides metadata, not execution or token-budget
+mappings. A level does not impose a token or cost cap or promise identical
+behavior across Models. An accepted custom value can still fail at execution;
+SDK and Provider errors are surfaced without silently substituting another
+level or retrying with Provider default. A transport that cannot express the
+selection reports an error instead of dropping it.
+
 ## Rotate or remove credentials [#rotate-or-remove-credentials]
 
 Create the replacement Provider, discover its models, update every dependent

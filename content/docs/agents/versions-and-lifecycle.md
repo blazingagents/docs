@@ -16,6 +16,13 @@ complete resulting configuration as the next Version, even for a same-value
 update. Versions cannot be edited or deleted. Avatar, enable, and disable
 operations do not create Versions.
 
+Thinking level, including Provider default (`null`), is part of each Version.
+Pins and resolved Task snapshots retain that Version's level after later
+Agent edits. Interactive, stateless, scheduled, run-now, and approval
+continuation Turns carry the resolved selection. Restoration validates the
+complete saved Provider, Model, and Thinking level before creating a new
+Version; rejected restoration leaves current configuration and history intact.
+
 ## Latest resolution and Version Pins [#latest-resolution-and-version-pins]
 
 An unpinned request resolves the latest Version when its Turn is admitted. A
