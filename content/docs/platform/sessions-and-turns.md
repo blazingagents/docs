@@ -17,7 +17,7 @@ Session list results are summaries. Each item contains its `id`, nullable `agent
 
 Starting chat without `sessionId` calls `POST /v1/agents/:agentId/sessions`. Blazing Agents mints an `ss_…` ID, returns `201 Created` with its canonical resource path in `Location`, and exposes the ID as `result.sessionId` in the TypeScript SDK. The ID is available from the response headers before the Turn finishes.
 
-The Session row materializes after admission, before model execution. Resume it by passing the returned ID; the SDK then calls the Session URL and the platform loads its stored history. A failed first Turn leaves the submitted user message, while a cancelled first Turn can leave an empty Session.
+The Session row materializes after admission, before model execution. Resume it by passing the returned ID; the SDK then calls the Session URL and the platform loads its stored history. A failed or cancelled first Turn can leave an empty, usable Session.
 
 ```typescript
 const first = await client.chat({
@@ -53,7 +53,15 @@ The final read contains the committed messages from both successful Turns.
 
 A successful interactive Turn atomically commits the accepted user message, the assistant message and its Tool activity, pending Tool-approval records, and any regeneration truncation. Its assistant-message metadata includes the Turn's usage summary.
 
-Failed interactive Turns are metered and commit only the submitted user message, never a partial assistant response. Cancelled interactive Turns are metered but leave the transcript unchanged. A failed first Turn therefore leaves a user-only Session, while a cancelled first Turn leaves the materialized Session empty. Task-run Sessions differ: their messages are committed incrementally so asynchronous progress can be inspected while the run is active.
+Failed or cancelled interactive Turns are metered and leave the transcript unchanged: no attempted user message, partial assistant response, or Tool transcript is appended. Either can leave the first materialized Session empty. Task-run Sessions differ: their messages are committed incrementally so asynchronous progress can be inspected while the run is active.
+
+## Resend and Stop
+
+Success means the generation response completes successfully, including its terminal finish chunk. An HTTP 2xx status or arbitrary stream closure alone is insufficient. Clients retain draft text/images until success. After an error or Stop, users may edit, discard, navigate, or explicitly submit again with a fresh user-message ID. This is ordinary submission, distinct from regeneration of saved history. No outcome polling or separate settlement check is required.
+
+Stop ends local consumption and requests cancellation; a disconnect does not prove server failure. An exchange may already be saved. Reopening loads saved history normally. Reuse the returned Session ID, including an empty Session; if no ID arrived, a later submission may create another Session. A busy Session error permits a later explicit resend. Repeated attempts can repeat Tool effects. Pending approvals remain durable paused interactions and use their existing continuation operation.
+
+See the [chatbot guide](/getting-started/chatbot) for examples and the FAQ.
 
 ## Read and poll the transcript [#read-and-poll-the-transcript]
 
@@ -160,7 +168,7 @@ if (after.data.some((item) => item.id === original.id)) {
 }
 ```
 
-Regeneration works only on the resume path. The platform resolves and applies the target truncation under the Turn claim. Success appends the replacement; failure leaves the retained user message without the selected prior response; cancellation leaves the transcript unchanged. Omitting `messageId` targets the latest assistant message.
+Regeneration works only on the resume path. The platform resolves the target under the Turn claim. Successful completion atomically commits truncation and replacement; failure or cancellation preserves the previous answer. Omitting `messageId` targets the latest assistant message.
 
 ## Related concepts [#related-concepts]
 

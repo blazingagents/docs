@@ -79,7 +79,7 @@ Complete [Set up Blazing Agents](/getting-started/setup), make the configured `c
 
 Omitting `sessionId` selects the create path. Blazing Agents mints the `ss_...` ID and returns it in the response `Location` header; the SDK exposes it as `result.sessionId` before the body finishes streaming.
 
-The ID identifies a Session materialized after admission and before model execution. Success commits the full exchange, failure retains the user message, and cancellation can leave the Session empty. See [Sessions and Turns](/platform/sessions-and-turns) for the full lifecycle.
+The ID identifies a Session materialized after admission and before model execution. Success commits the full exchange, failure or cancellation leaves the transcript unchanged and can leave the Session empty. See [Sessions and Turns](/platform/sessions-and-turns) for the full lifecycle.
 
 ## Production notes [#production-notes]
 
