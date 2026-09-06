@@ -4744,6 +4744,90 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/list-sessions"
       },
       {
+        "description": "Lists each Agent's most recently updated Session in one page.",
+        "examples": [
+          {
+            "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/sessions/latest\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=50\"",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/sessions/latest?limit=50\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/sessions/latest?limit=50\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/sessions/latest?limit=50\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/sessions/latest?limit=50\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/sessions/latest?limit=50\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/sessions/latest?limit=50\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "GET",
+        "operation": "list-latest-sessions",
+        "path": "/v1/sessions/latest",
+        "responseMetadata": {
+          "description": "Returns 200 OK with cursor pagination. Items are ordered by updatedAt descending, then id ascending, across Agents. Each item is a Session list item plus its agentId.",
+          "schema": {
+            "href": "/api-reference/protocols/objects-and-schemas#latest-sessions-list-response",
+            "name": "latestSessionsListResponseSchema"
+          }
+        },
+        "responses": [
+          {
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"ss_1234567890ABCDEF\",\n      \"agentId\": \"ag_1234567890ABCDEF\",\n      \"agentVersion\": 3,\n      \"messageCount\": 4,\n      \"lastMessagePreview\": \"Tell me more.\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:05:00Z\"\n    },\n    {\n      \"id\": \"ss_0987654321FEDCBA\",\n      \"agentId\": \"ag_0987654321FEDCBA\",\n      \"agentVersion\": null,\n      \"messageCount\": 2,\n      \"lastMessagePreview\": \"Thanks!\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"createdAt\": \"2026-07-09T08:00:00Z\",\n      \"updatedAt\": \"2026-07-09T08:02:00Z\"\n    }\n  ],\n  \"nextCursor\": null\n}",
+            "language": "json",
+            "contentType": "application/json",
+            "note": "cursor pagination",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"One or more request values failed validation.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The request could not be completed.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/sessions/list-latest-sessions"
+      },
+      {
         "description": "Lists stored AI SDK `UIMessage` objects. Pages are newest-first, with messages chronological within each page.",
         "examples": [
           {

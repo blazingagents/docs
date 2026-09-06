@@ -21,6 +21,7 @@ Tool approval authorizes one exact proposed Tool call. A decision creates a dura
 | --- | --- | --- |
 | [`list()`](#list) | Return one Session page | `SessionsPage` |
 | [`iter()`](#iter) | Lazily iterate Sessions | `Iterator[Session]` |
+| [`list_latest()`](#list-latest) | Return one page of the latest Session per Agent | `LatestSessionsPage` |
 | [`messages()`](#messages) | Page or poll the transcript | `SessionMessagesPage` |
 | [`tool_approvals()`](#tool-approvals) | List proposed Tool calls | `ToolApprovals` |
 | [`decide_tool_approval()`](#decide-tool-approval) | Approve or deny one call | `ToolApprovalDecision` |
@@ -58,6 +59,22 @@ for session in client.sessions.iter(agent_id=agent_id, limit=100):
 async for session in async_client.sessions.iter(agent_id=agent_id):
     print(session.id)
 ```
+
+### `list_latest()` [#list-latest]
+
+**Signature:** `client.sessions.list_latest(*, user_id=OMITTED, cursor=OMITTED, limit=OMITTED, extra_headers=None, timeout=OMITTED) -> LatestSessionsPage`
+
+Lists each Agent's most recently updated Session across the Tenant. An Agent appears at most once, and only when it has a non-deleted Session matching the filter; with `user_id`, each item is that end user's latest Session with the Agent. Use it for an Agent Inbox instead of calling `list()` once per Agent. Each item carries `agent_id` in addition to the `Session` fields.
+
+```python
+inbox = client.sessions.list_latest(user_id="customer_123", limit=25)
+for session in inbox.data:
+    print(session.agent_id, session.last_message_preview)
+
+inbox = await async_client.sessions.list_latest()
+```
+
+Raises `BlazingAgentsAPIError` with `validation_failed` or `invalid_cursor`. See [List latest Sessions](/api-reference/rest-api/sessions#list-latest-sessions).
 
 ### `messages()` [#messages]
 
@@ -150,7 +167,7 @@ See [Delete a Session](/api-reference/rest-api/sessions#delete-session).
 
 ## Response models [#response-models]
 
-`SessionsPage.data` contains `Session` models with `id`, nullable `agent_version` Pin, `message_count`, `last_message_preview`, Attribution, metadata, and timestamps. `SessionMessagesPage` contains `data`, `next_cursor`, and `latest_cursor`; each `SessionMessage` retains its `id`, role, parts, metadata, and unknown fields.
+`SessionsPage.data` contains `Session` models with `id`, nullable `agent_version` Pin, `message_count`, `last_message_preview`, Attribution, metadata, and timestamps. `LatestSessionsPage.data` contains the same fields plus `agent_id`. `SessionMessagesPage` contains `data`, `next_cursor`, and `latest_cursor`; each `SessionMessage` retains its `id`, role, parts, metadata, and unknown fields.
 
 `ToolApprovals.data` contains `ToolApproval` models. Its optional `continuation` has `id` and `state`; `ToolApprovalDecision` has `continuation_id` and `state`. Response state strings remain forward-compatible rather than closed Python literals.
 

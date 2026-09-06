@@ -11,7 +11,7 @@ A Session is one stored conversation belonging to a Tenant and Agent. Use it whe
 
 A Turn is one metered execution of an Agent request. The Tenant owns the Agent, Session, transcript, and usage; a Session belongs to exactly one Agent and cannot be resumed through another Agent.
 
-Session list results are summaries. Each item contains its `id`, nullable `agentVersion` Pin, timestamps, `messageCount`, `lastMessagePreview`, `userId`, and `metadata`; fetch messages separately for the full transcript.
+Session list results are summaries. Each item contains its `id`, nullable `agentVersion` Pin, timestamps, `messageCount`, `lastMessagePreview`, `userId`, and `metadata`; fetch messages separately for the full transcript. `GET /v1/agents/:agentId/sessions` lists one Agent's Sessions; [`GET /v1/sessions/latest`](/api-reference/rest-api/sessions#list-latest-sessions) returns the latest Session per Agent across the Tenant, optionally per end user, so an Agent Inbox needs one request instead of one list call per Agent.
 
 ## Start and resume a Session [#start-and-resume-a-session]
 

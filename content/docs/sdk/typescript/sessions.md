@@ -22,6 +22,7 @@ Tool approval decisions are scoped to one exact Tool call. A decision produces a
 | Method | Description | Returns |
 | --- | --- | --- |
 | [`list()`](#list) | List an Agent's Sessions | `SessionsListResponse` |
+| [`listLatest()`](#list-latest) | List the latest Session per Agent | `LatestSessionsListResponse` |
 | [`messages()`](#messages) | Page or poll a Session transcript | `SessionMessagesResponse` |
 | [`delete()`](#delete) | Permanently delete a Session | `void` |
 | [`toolApprovals()`](#tool-approvals) | List pending and decided Tool calls | `ToolApprovalsResponse` |
@@ -56,6 +57,28 @@ if (page.nextCursor) {
 ```
 
 Returns [`SessionsListResponse`](#sessionslistresponse). Raises `validation_failed` for malformed parameters or `invalid_cursor` for an invalid opaque cursor. See [`GET /v1/agents/:agentId/sessions`](/api-reference/rest-api/sessions#list-sessions).
+
+### `listLatest()` [#list-latest]
+
+Lists each Agent's most recently updated Session across the Tenant. An Agent appears at most once, and only when it has a non-deleted Session matching the filter. Use it for an Agent Inbox instead of calling `list()` once per Agent.
+
+**Signature:** `listLatest(options?: LatestSessionsListOptions): Promise<LatestSessionsListResponse>`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `cursor` | `string` | no | Opaque `nextCursor` from the previous page |
+| `limit` | `number` | no | Page size, 1–200; defaults to 50 |
+| `userId` | `string` | no | End-user Attribution filter; pass `""` for Tenant-level Sessions and omit for all |
+
+```typescript
+const inbox = await client.sessions.listLatest({ userId: "customer_123" });
+
+for (const session of inbox.data) {
+  console.log(session.agentId, session.lastMessagePreview);
+}
+```
+
+Returns [`LatestSessionsListResponse`](#latestsessionslistresponse). Raises `validation_failed` for malformed parameters or `invalid_cursor` for an invalid opaque cursor. See [`GET /v1/sessions/latest`](/api-reference/rest-api/sessions#list-latest-sessions).
 
 ### `messages()` [#messages]
 
@@ -189,6 +212,21 @@ interface SessionListItem {
 
 `agentVersion` is the configured immutable Version Pin, or `null` for an unpinned Session. Timestamps are ISO 8601 strings.
 
+### `LatestSessionsListResponse` [#latestsessionslistresponse]
+
+```typescript
+interface LatestSessionsListResponse {
+  data: LatestSessionListItem[];
+  nextCursor: string | null;
+}
+
+interface LatestSessionListItem extends SessionListItem {
+  agentId: string;
+}
+```
+
+Items are ordered by `updatedAt` descending, then `id` ascending, across Agents.
+
 ### `SessionMessagesResponse` [#sessionmessagesresponse]
 
 ```typescript
@@ -265,7 +303,7 @@ SDK request failures throw `BlazingAgentsError`. Branch on its stable `code`, no
 | Code | Applies to | Action |
 | --- | --- | --- |
 | `validation_failed` | All ID-based methods and invalid options | Correct the indicated input |
-| `invalid_cursor` | `list()`, `messages()` | Restart pagination from a known cursor |
+| `invalid_cursor` | `list()`, `listLatest()`, `messages()` | Restart pagination from a known cursor |
 | `not_found` | Session and approval operations | Check the Agent, Session, approval, or continuation |
 | `tool_approval_decision_conflict` | `decideToolApproval()` | Refresh approvals; the call was already decided |
 | `session_busy` | `joinToolApprovalContinuation()` | Decide every waiting approval before joining |

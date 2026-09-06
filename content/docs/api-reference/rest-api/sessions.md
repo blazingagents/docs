@@ -160,6 +160,83 @@ curl --get \
 
 SDKs: [TypeScript](/sdk/typescript/sessions#list) / [Python](/sdk/python/sessions#list). See [Sessions and Turns](/platform/sessions-and-turns) and [Build a chat endpoint](/platform/sessions-and-turns).
 
+### GET /v1/sessions/latest [#list-latest-sessions]
+
+Lists each Agent's most recently updated Session in one page.
+
+An Agent appears at most once, and only when it has at least one non-deleted Session that matches the filters. Use this for an Agent Inbox (one row per Agent showing its latest Session) instead of calling `GET /v1/agents/:agentId/sessions?limit=1` once per Agent.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; only Sessions owned by that Tenant are considered.
+
+| Location | Field           | Required | Description                               |
+| -------- | --------------- | -------- | ----------------------------------------- |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+
+| Query parameter | Type    | Default | Description                                            |
+| --------------- | ------- | ------- | ------------------------------------------------------ |
+| `cursor`        | string  | —       | Opaque cursor from `nextCursor`                        |
+| `limit`         | integer | 50      | 1–200                                                  |
+| `userId`        | string  | —       | Attribution filter; `""` selects tenant-level Sessions |
+
+With `userId`, only Sessions attributed to that end user are considered, so each item is that user's latest Session with the Agent.
+
+#### Response
+
+Returns `200 OK` with [cursor pagination](/api-reference/protocols/pagination-and-filtering). Items are ordered by `updatedAt` descending, then `id` ascending, across Agents. Each item is a Session list item plus its `agentId`.
+
+Response schema: [`latestSessionsListResponseSchema`](/api-reference/protocols/objects-and-schemas#latest-sessions-list-response).
+
+```json
+{
+  "data": [
+    {
+      "id": "ss_1234567890ABCDEF",
+      "agentId": "ag_1234567890ABCDEF",
+      "agentVersion": 3,
+      "messageCount": 4,
+      "lastMessagePreview": "Tell me more.",
+      "userId": "",
+      "metadata": {},
+      "createdAt": "2026-07-10T10:00:00Z",
+      "updatedAt": "2026-07-10T10:05:00Z"
+    },
+    {
+      "id": "ss_0987654321FEDCBA",
+      "agentId": "ag_0987654321FEDCBA",
+      "agentVersion": null,
+      "messageCount": 2,
+      "lastMessagePreview": "Thanks!",
+      "userId": "",
+      "metadata": {},
+      "createdAt": "2026-07-09T08:00:00Z",
+      "updatedAt": "2026-07-09T08:02:00Z"
+    }
+  ],
+  "nextCursor": null
+}
+```
+
+#### Errors
+
+`400 validation_failed` for malformed parameters; `400 invalid_cursor` for an
+opaque cursor that cannot be decoded; `401 unauthorized` for a missing or
+invalid credential. See [REST errors](/api-reference/protocols/errors).
+
+#### cURL
+
+```bash
+curl --get \
+  "$BLAZING_AGENTS_BASE_URL/v1/sessions/latest" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --data-urlencode "limit=50"
+```
+
+#### SDK and related guides
+
+SDKs: [TypeScript](/sdk/typescript/sessions#list-latest) / [Python](/sdk/python/sessions#list-latest). See [Sessions and Turns](/platform/sessions-and-turns) and [Tenancy and end-user attribution](/platform/tenancy-and-attribution).
+
 ### GET /v1/agents/:agentId/sessions/:sessionId/messages [#list-session-messages]
 
 Lists stored AI SDK `UIMessage` objects. Pages are newest-first, with messages chronological within each page.

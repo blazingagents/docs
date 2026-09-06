@@ -121,6 +121,19 @@ See [SDK Sessions](/sdk/typescript/sessions),
 [REST Sessions](/api-reference/rest-api/sessions), and
 [Sessions and Turns](/platform/sessions-and-turns).
 
+### LatestSessionListItem [#latestsessionlistitem]
+
+<span id="latest-sessions-list-response"></span>
+
+`latestSessionListItemSchema` / `LatestSessionListItem` extends
+`SessionListItem` with the owning `agentId`. `latestSessionsListResponseSchema`
+is the paginated envelope returned by `GET /v1/sessions/latest`, with one item
+per Agent.
+
+See [SDK Sessions](/sdk/typescript/sessions#list-latest),
+[REST Sessions](/api-reference/rest-api/sessions#list-latest-sessions), and
+[Sessions and Turns](/platform/sessions-and-turns).
+
 ### SessionMessage [#sessionmessage]
 
 <span id="session-messages-response"></span>
