@@ -16,11 +16,36 @@ generation helpers to stream Agent output.
 
 ## Install [#install]
 
-The SDK requires Node.js 24 or newer and `ai` 7.0.32 as a peer dependency.
+The SDK requires Node.js 24 or newer and `ai` 7.0.84 or a compatible newer 7.x release as a peer dependency.
 
 ```bash
 npm install @blazingagents/sdk ai@7.0.84
 ```
+
+## Migrating to 0.3.0 [#migrating-to-0-3-0]
+
+Version 0.3.0 uses one flat input object for every network method. Put resource
+IDs, payload fields, and optional `abortSignal` together; do not nest payloads
+under `body` or cancellation under `options`. Methods with no required fields
+still allow an omitted input.
+
+```typescript
+// Before 0.3.0:
+await client.agents.update(agentId, { name: "Writer" });
+const skillsBefore = client.agent(agentId).skills;
+
+// 0.3.0:
+await client.agents.update({
+  agentId,
+  name: "Writer",
+  abortSignal: controller.signal,
+});
+const skills = client.agent({ agentId }).skills;
+```
+
+Rename SDK `signal` inputs to `abortSignal`, including chat and other generation
+calls. Native Fetch still uses `signal`. Every resource method now supports
+cancellation; see [Client cancellation](/sdk/typescript/client#cancellation).
 
 ## Initialize the client [#initialize-the-client]
 
@@ -48,7 +73,7 @@ configuration](/sdk/typescript/client).
 | [`memories`](/sdk/typescript/memories) | Durable Agent Memory |
 | [`prompts`](/sdk/typescript/prompts) | Reusable Prompt templates |
 | [`sessions`](/sdk/typescript/sessions) | Session transcripts and Tool approvals |
-| [`agent(agentId).skills`](/sdk/typescript/skills) | Agent-owned Skill archives and files |
+| [`agent({ agentId }).skills`](/sdk/typescript/skills) | Agent-owned Skill archives and files |
 | [`tasks`](/sdk/typescript/tasks) | Durable Tasks and Task Runs |
 | [`workspaces`](/sdk/typescript/workspaces) | Secure execution Workspaces |
 | [`tenant`](/sdk/typescript/tenant) | Tenant identity and settings |

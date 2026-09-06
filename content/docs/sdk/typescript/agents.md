@@ -7,6 +7,10 @@ description: Create, configure, version, disable, and extend Agents with the Typ
 
 `client.agents` manages Tenant-owned Agent configuration, lifecycle, immutable Versions, avatars, and MCP Attachments.
 
+Every network method accepts one input object with optional `abortSignal`.
+`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
+types include that field too.
+
 ## Overview [#overview]
 
 Creating or ordinarily updating an Agent creates an immutable Version. Disable, enable, avatar, and MCP Attachment changes do not. Array fields are complete selections, not patches. `userId` is immutable End-user Attribution. `providerId` and `model` form one optional pair: omit both or set both to `null` for an unconfigured Agent, and supply both to configure one. `workspaceId` always identifies one attached Workspace and can be changed but not cleared.
@@ -53,7 +57,7 @@ still fail during Provider execution. See [Thinking level](/agents/providers-and
 
 Creates an Agent and its first immutable Version.
 
-**Signature:** `create(body: CreateAgentBody): Promise<Agent>`
+**Signature:** `create(input: CreateAgentBody & ResourceRequestOptions): Promise<Agent>`
 
 | Body field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
@@ -82,7 +86,7 @@ Returns [`Agent`](#agent). Raises `validation_failed`, `agent_name_conflict`, `p
 
 Lists current Agents by most recent update. The result is unpaginated.
 
-**Signature:** `list(options?: AgentsListOptions): Promise<AgentsResponse>`
+**Signature:** `list(input?: AgentsListOptions): Promise<AgentsResponse>`
 
 | Option | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -99,14 +103,14 @@ Returns `{ agents: Agent[] }`. Raises `validation_failed` for invalid options. S
 
 Retrieves current Agent configuration without creating a Version.
 
-**Signature:** `get(agentId: string): Promise<Agent>`
+**Signature:** `get(input: { agentId: string } & ResourceRequestOptions): Promise<Agent>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
 
 ```typescript
-const agent = await client.agents.get(agentId);
+const agent = await client.agents.get({ agentId });
 ```
 
 Returns [`Agent`](#agent). Raises `validation_failed` for a malformed ID or `not_found` when unavailable. See [`GET /v1/agents/:agentId`](/api-reference/rest-api/agents#get-agent).
@@ -115,12 +119,12 @@ Returns [`Agent`](#agent). Raises `validation_failed` for a malformed ID or `not
 
 Updates at least one mutable configuration field and creates the next immutable Version. Omitted fields stay unchanged; arrays replace their current values.
 
-**Signature:** `update(agentId: string, body: UpdateAgentBody): Promise<Agent>`
+**Signature:** `update(input: UpdateAgentBody & { agentId: string } & ResourceRequestOptions): Promise<Agent>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| `body` | `UpdateAgentBody` | yes | Mutable configuration fields |
+| Fields from `UpdateAgentBody` | — | no | Mutable configuration fields, at the top level alongside `agentId` |
 
 `UpdateAgentBody` accepts every [`create()`](#create) configuration field except `userId`; all fields are optional, but at least one is required. A Provider change must include `model`. Clear a configured Agent by sending both fields as `null`; clearing either field alone is rejected.
 
@@ -129,7 +133,8 @@ Each accepted settled-pair change creates the next ordinary Version; all other
 fields remain platform-managed.
 
 ```typescript
-const agent = await client.agents.update(agentId, {
+const agent = await client.agents.update({
+  agentId,
   instructions: "Write concise release notes and include migration steps.",
   metadata: { team: "platform" },
 });
@@ -142,7 +147,7 @@ Returns [`Agent`](#agent). Raises `validation_failed`, `not_found`, `agent_name_
 Permanently deletes an Agent and its history, with an explicit choice to
 preserve or delete its Artifacts.
 
-**Signature:** `delete(agentId: string, includeArtifacts: boolean): Promise<void>`
+**Signature:** `delete(input: { agentId: string; includeArtifacts: boolean } & ResourceRequestOptions): Promise<void>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -150,7 +155,7 @@ preserve or delete its Artifacts.
 | `includeArtifacts` | `boolean` | yes | Delete (`true`) or preserve (`false`) the Agent's Artifacts |
 
 ```typescript
-await client.agents.delete(agentId, false);
+await client.agents.delete({ agentId, includeArtifacts: false });
 ```
 
 Returns `void`. The attached Workspace is preserved. Raises
@@ -161,14 +166,14 @@ Returns `void`. The attached Workspace is preserved. Raises
 
 Disables an Agent. New Turns fail with `agent_disabled`; in-flight Turns finish.
 
-**Signature:** `disable(agentId: string): Promise<Agent>`
+**Signature:** `disable(input: { agentId: string } & ResourceRequestOptions): Promise<Agent>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
 
 ```typescript
-const disabled = await client.agents.disable(agentId);
+const disabled = await client.agents.disable({ agentId });
 ```
 
 Returns [`Agent`](#agent) with `status: "disabled"`. Raises `not_found` or `admin_agent_managed`. See [`POST .../disable`](/api-reference/rest-api/agents#disable-agent).
@@ -177,14 +182,14 @@ Returns [`Agent`](#agent) with `status: "disabled"`. Raises `not_found` or `admi
 
 Enables a disabled Agent. Skipped schedule fires are not replayed.
 
-**Signature:** `enable(agentId: string): Promise<Agent>`
+**Signature:** `enable(input: { agentId: string } & ResourceRequestOptions): Promise<Agent>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
 
 ```typescript
-const active = await client.agents.enable(agentId);
+const active = await client.agents.enable({ agentId });
 ```
 
 Returns [`Agent`](#agent) with `status: "active"`. Raises `not_found` or `admin_agent_managed`. See [`POST .../enable`](/api-reference/rest-api/agents#enable-agent).
@@ -193,7 +198,7 @@ Returns [`Agent`](#agent) with `status: "active"`. Raises `not_found` or `admin_
 
 Uploads or replaces an Agent's private avatar. This does not create a Version.
 
-**Signature:** `uploadAvatar(agentId: string, file: File): Promise<Agent>`
+**Signature:** `uploadAvatar(input: { agentId: string; file: File } & ResourceRequestOptions): Promise<Agent>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -201,10 +206,10 @@ Uploads or replaces an Agent's private avatar. This does not create a Version.
 | `file` | `File` | yes | PNG, JPEG, or WebP, at most 512 KiB |
 
 ```typescript
-const agent = await client.agents.uploadAvatar(
+const agent = await client.agents.uploadAvatar({
   agentId,
-  new File([avatarBytes], "avatar.webp", { type: "image/webp" }),
-);
+  file: new File([avatarBytes], "avatar.webp", { type: "image/webp" }),
+});
 ```
 
 Returns [`Agent`](#agent) with a short-lived signed `avatarUrl`. Raises `invalid_request` for a missing, oversized, or unsupported file, plus `validation_failed`, `not_found`, or `admin_agent_managed`. See [`POST .../avatar`](/api-reference/rest-api/agents#upload-agent-avatar).
@@ -213,14 +218,14 @@ Returns [`Agent`](#agent) with a short-lived signed `avatarUrl`. Raises `invalid
 
 Idempotently removes an avatar without creating a Version.
 
-**Signature:** `removeAvatar(agentId: string): Promise<Agent>`
+**Signature:** `removeAvatar(input: { agentId: string } & ResourceRequestOptions): Promise<Agent>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
 
 ```typescript
-const agent = await client.agents.removeAvatar(agentId);
+const agent = await client.agents.removeAvatar({ agentId });
 ```
 
 Returns [`Agent`](#agent) with `avatarUrl: null`. Raises `validation_failed`, `not_found`, or `admin_agent_managed`. See [`DELETE .../avatar`](/api-reference/rest-api/agents#delete-agent-avatar).
@@ -229,16 +234,16 @@ Returns [`Agent`](#agent) with `avatarUrl: null`. Raises `validation_failed`, `n
 
 Lists immutable Agent Versions newest first.
 
-**Signature:** `listVersions(agentId: string, options?: AgentVersionsListOptions): Promise<AgentVersionsResponse>`
+**Signature:** `listVersions(input: { agentId: string } & AgentVersionsListOptions): Promise<AgentVersionsResponse>`
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | `string` | yes | — | Agent ID (`ag_…`) |
-| `options.cursor` | `string` | no | — | Opaque cursor from the previous page |
-| `options.limit` | `number` | no | `50` | Page size from 1 through 200 |
+| `cursor` | `string` | no | — | Opaque cursor from the previous page |
+| `limit` | `number` | no | `50` | Page size from 1 through 200 |
 
 ```typescript
-const page = await client.agents.listVersions(agentId, { limit: 20 });
+const page = await client.agents.listVersions({ agentId, limit: 20 });
 ```
 
 Returns [`AgentVersionsResponse`](#agentversionsresponse). Raises `validation_failed`, `invalid_cursor`, or `not_found`. See [`GET .../versions`](/api-reference/rest-api/agents#list-agent-versions).
@@ -247,7 +252,7 @@ Returns [`AgentVersionsResponse`](#agentversionsresponse). Raises `validation_fa
 
 Retrieves one immutable numbered Version.
 
-**Signature:** `getVersion(agentId: string, version: number): Promise<AgentVersion>`
+**Signature:** `getVersion(input: { agentId: string; version: number } & ResourceRequestOptions): Promise<AgentVersion>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -255,7 +260,7 @@ Retrieves one immutable numbered Version.
 | `version` | `number` | yes | Positive Version number |
 
 ```typescript
-const version = await client.agents.getVersion(agentId, 1);
+const version = await client.agents.getVersion({ agentId, version: 1 });
 ```
 
 Returns [`AgentVersion`](#agentversion). Raises `validation_failed` for an invalid number or `not_found` when the Agent or Version is unavailable. See [`GET .../versions/:version`](/api-reference/rest-api/agents#get-agent-version).
@@ -264,7 +269,7 @@ Returns [`AgentVersion`](#agentversion). Raises `validation_failed` for an inval
 
 SDK-only composition that calls `getVersion()` and copies its versioned fields through `update()`. It creates a new latest Version; it never rewrites history. Workspace attachment, Attribution, status, and avatar are not restored because they are not versioned.
 
-**Signature:** `restoreVersion(agentId: string, version: number): Promise<Agent>`
+**Signature:** `restoreVersion(input: { agentId: string; version: number } & ResourceRequestOptions): Promise<Agent>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -272,7 +277,7 @@ SDK-only composition that calls `getVersion()` and copies its versioned fields t
 | `version` | `number` | yes | Positive source Version number |
 
 ```typescript
-const restored = await client.agents.restoreVersion(agentId, 1);
+const restored = await client.agents.restoreVersion({ agentId, version: 1 });
 ```
 
 Returns the new latest [`Agent`](#agent). It can raise the errors from `getVersion()` and `update()`, including reference errors when an old Provider or MCP Connection is no longer available.
@@ -281,15 +286,14 @@ Returns the new latest [`Agent`](#agent). It can raise the errors from `getVersi
 
 Lists forwarding settings for the MCP Connections selected by an Agent.
 
-**Signature:** `listMcpAttachments(agentId: string): Promise<McpAttachmentsResponse>`
+**Signature:** `listMcpAttachments(input: { agentId: string } & ResourceRequestOptions): Promise<McpAttachmentsResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
 
 ```typescript
-const { mcpAttachments } =
-  await client.agents.listMcpAttachments(agentId);
+const { mcpAttachments } = await client.agents.listMcpAttachments({ agentId });
 ```
 
 Returns `{ mcpAttachments: McpAttachmentResponse[] }`. Raises `validation_failed` or `not_found`. See [`GET .../mcp-attachments`](/api-reference/rest-api/agents#list-agent-mcp-attachments).
@@ -298,23 +302,24 @@ Returns `{ mcpAttachments: McpAttachmentResponse[] }`. Raises `validation_failed
 
 Changes end-user forwarding settings without changing MCP access control or creating an Agent Version.
 
-**Signature:** `updateMcpAttachment(agentId: string, mcpConnectionId: string, body: UpdateMcpAttachmentBody): Promise<McpAttachmentResponse>`
+**Signature:** `updateMcpAttachment(input: UpdateMcpAttachmentBody & { agentId: string; mcpConnectionId: string } & ResourceRequestOptions): Promise<McpAttachmentResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent ID |
 | `mcpConnectionId` | `string` | yes | Selected MCP Connection ID |
-| `body.forwardUserId` | `boolean` | no | Forward the request's `userId` |
-| `body.forwardedMetadataKeys` | `string[]` | no | Up to 32 unique metadata keys, each at most 64 characters |
+| `forwardUserId` | `boolean` | no | Forward the request's `userId` |
+| `forwardedMetadataKeys` | `string[]` | no | Up to 32 unique metadata keys, each at most 64 characters |
 
 At least one body field is required.
 
 ```typescript
-const attachment = await client.agents.updateMcpAttachment(
+const attachment = await client.agents.updateMcpAttachment({
   agentId,
   mcpConnectionId,
-  { forwardUserId: true, forwardedMetadataKeys: ["locale"] },
-);
+  forwardUserId: true,
+  forwardedMetadataKeys: ["locale"],
+});
 ```
 
 Returns [`McpAttachmentResponse`](#mcpattachmentresponse). Raises `validation_failed` or `not_found`. See [`PATCH .../mcp-attachments/:mcpConnectionId`](/api-reference/rest-api/agents#update-agent-mcp-attachment).
@@ -396,7 +401,9 @@ Create an Agent, create and restore Versions, operate the kill switch, then dele
 ```typescript
 import { BlazingAgents } from "@blazingagents/sdk";
 
-const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
 
 const agent = await client.agents.create({
   name: "Release writer",
@@ -404,20 +411,24 @@ const agent = await client.agents.create({
   metadata: { team: "platform" },
 });
 
-const updated = await client.agents.update(agent.id, {
+const updated = await client.agents.update({
+  agentId: agent.id,
   instructions: "Include migration steps.",
 });
 console.log(updated.version);
 
-const versions = await client.agents.listVersions(agent.id, { limit: 50 });
-const restored = await client.agents.restoreVersion(
-  agent.id,
-  versions.data.at(-1)!.version,
-);
+const versions = await client.agents.listVersions({
+  agentId: agent.id,
+  limit: 50,
+});
+const restored = await client.agents.restoreVersion({
+  agentId: agent.id,
+  version: versions.data.at(-1)!.version,
+});
 
-await client.agents.disable(restored.id);
-await client.agents.enable(restored.id);
-await client.agents.delete(restored.id, false);
+await client.agents.disable({ agentId: restored.id });
+await client.agents.enable({ agentId: restored.id });
+await client.agents.delete({ agentId: restored.id, includeArtifacts: false });
 ```
 
 ## Related [#related]

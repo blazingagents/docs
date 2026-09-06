@@ -7,6 +7,10 @@ description: Create, search, update, and delete Agent-owned persistent Memories.
 
 `client.memories` manages durable text owned by one Agent. A Memory's `userId` Attribution is fixed at creation; use `""` for Agent-general Memory.
 
+Every network method accepts one input object with optional `abortSignal`.
+`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
+types include that field too.
+
 ## Overview [#overview]
 
 Every method is nested under an `agentId`. A Memory cannot be moved to another Agent or End-user. Creating beyond the Agent's 500-Memory pool may evict the least recently accessed Memory across all `userId` partitions.
@@ -29,16 +33,17 @@ Administrative `list()` and `get()` calls do not change `lastAccessedAt`. `updat
 
 Creates a text Memory under one Agent.
 
-**Signature:** `create(agentId: string, body: CreateMemoryBody): Promise<MemoryResponse>`
+**Signature:** `create(input: CreateMemoryBody & { agentId: string } & ResourceRequestOptions): Promise<MemoryResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Owning Agent ID (`ag_…`) |
-| `body.text` | `string` | yes | Non-empty UTF-8 text, at most 10 KiB |
-| `body.userId` | `string` | no | Immutable Attribution; defaults to `""` |
+| `text` | `string` | yes | Non-empty UTF-8 text, at most 10 KiB |
+| `userId` | `string` | no | Immutable Attribution; defaults to `""` |
 
 ```typescript
-const { memory } = await client.memories.create(agentId, {
+const { memory } = await client.memories.create({
+  agentId,
   text: "Prefers concise release notes.",
   userId: "user-42",
 });
@@ -50,18 +55,19 @@ Returns [`MemoryResponse`](#memoryresponse). Raises `validation_failed` for inva
 
 Lists or full-text searches an Agent's Memories. Omit `userId` to include every Attribution partition; pass `""` to select Agent-general Memory.
 
-**Signature:** `list(agentId: string, options?: MemoriesListOptions): Promise<MemoriesListResponse>`
+**Signature:** `list(input: { agentId: string } & MemoriesListOptions): Promise<MemoriesListResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Owning Agent ID (`ag_…`) |
-| `options.userId` | `string` | no | Exact Attribution filter |
-| `options.search` | `string` | no | Non-empty full-text query |
-| `options.cursor` | `string` | no | Opaque cursor from `nextCursor` |
-| `options.limit` | `number` | no | Page size, default 50 and maximum 100 |
+| `userId` | `string` | no | Exact Attribution filter |
+| `search` | `string` | no | Non-empty full-text query |
+| `cursor` | `string` | no | Opaque cursor from `nextCursor` |
+| `limit` | `number` | no | Page size, default 50 and maximum 100 |
 
 ```typescript
-const page = await client.memories.list(agentId, {
+const page = await client.memories.list({
+  agentId,
   userId: "user-42",
   search: "release",
   limit: 25,
@@ -74,7 +80,7 @@ Returns [`MemoriesListResponse`](#memorieslistresponse). Raises `validation_fail
 
 Retrieves one Memory without changing its access recency.
 
-**Signature:** `get(agentId: string, memoryId: string): Promise<MemoryResponse>`
+**Signature:** `get(input: { agentId: string; memoryId: string } & ResourceRequestOptions): Promise<MemoryResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -82,7 +88,7 @@ Retrieves one Memory without changing its access recency.
 | `memoryId` | `string` | yes | Memory ID (`mem_…`) |
 
 ```typescript
-const { memory } = await client.memories.get(agentId, memoryId);
+const { memory } = await client.memories.get({ agentId, memoryId });
 ```
 
 Returns [`MemoryResponse`](#memoryresponse). Raises `validation_failed` for malformed IDs or `not_found` when the Agent/Memory pair is unavailable. See [`GET .../memories/:memoryId`](/api-reference/rest-api/memories#get-memory).
@@ -91,16 +97,18 @@ Returns [`MemoryResponse`](#memoryresponse). Raises `validation_failed` for malf
 
 Replaces a Memory's complete text and updates `lastAccessedAt`. Its Agent and `userId` remain unchanged.
 
-**Signature:** `update(agentId: string, memoryId: string, body: UpdateMemoryBody): Promise<MemoryResponse>`
+**Signature:** `update(input: UpdateMemoryBody & { agentId: string; memoryId: string } & ResourceRequestOptions): Promise<MemoryResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Owning Agent ID (`ag_…`) |
 | `memoryId` | `string` | yes | Memory ID (`mem_…`) |
-| `body.text` | `string` | yes | Replacement text, at most 10 KiB |
+| `text` | `string` | yes | Replacement text, at most 10 KiB |
 
 ```typescript
-const { memory } = await client.memories.update(agentId, memoryId, {
+const { memory } = await client.memories.update({
+  agentId,
+  memoryId,
   text: "Prefers release notes under five lines.",
 });
 ```
@@ -111,10 +119,10 @@ Returns [`MemoryResponse`](#memoryresponse). Raises `validation_failed` for malf
 
 Permanently deletes one Memory.
 
-**Signature:** `delete(agentId: string, memoryId: string): Promise<void>`
+**Signature:** `delete(input: { agentId: string; memoryId: string } & ResourceRequestOptions): Promise<void>`
 
 ```typescript
-await client.memories.delete(agentId, memoryId);
+await client.memories.delete({ agentId, memoryId });
 ```
 
 Returns `void`. Raises `validation_failed` for malformed IDs or `not_found` when the Agent/Memory pair is unavailable. See [`DELETE .../memories/:memoryId`](/api-reference/rest-api/memories#delete-memory).
@@ -166,25 +174,31 @@ Create attributed Memory, find and update it, then delete it:
 ```typescript
 import { BlazingAgents } from "@blazingagents/sdk";
 
-const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
 const agentId = "ag_0123456789abcdef";
 
-const { memory } = await client.memories.create(agentId, {
+const { memory } = await client.memories.create({
+  agentId,
   userId: "user-42",
   text: "Prefers concise release notes.",
 });
 
-const page = await client.memories.list(agentId, {
+const page = await client.memories.list({
+  agentId,
   userId: "user-42",
   search: "release",
 });
 
-const updated = await client.memories.update(agentId, memory.id, {
+const updated = await client.memories.update({
+  agentId,
+  memoryId: memory.id,
   text: "Prefers release notes under five lines.",
 });
 
 console.log(page.data.length, updated.memory.lastAccessedAt);
-await client.memories.delete(agentId, memory.id);
+await client.memories.delete({ agentId, memoryId: memory.id });
 ```
 
 ## Related [#related]

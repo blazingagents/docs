@@ -7,6 +7,10 @@ description: List, inspect, create download URLs for, and delete files deliberat
 
 `client.artifacts` accesses immutable files an Agent deliberately published from its Workspace.
 
+Every network method accepts one input object with optional `abortSignal`.
+`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
+types include that field too.
+
 ## Overview [#overview]
 
 Artifacts belong to a Tenant and retain their originating Agent and Session as
@@ -29,13 +33,13 @@ available only through an explicit five-minute R2 presigned URL.
 
 Lists the Tenant's Artifacts newest first. Page size is fixed at 50.
 
-**Signature:** `list(options?: ArtifactsListOptions): Promise<ArtifactsListResponse>`
+**Signature:** `list(input?: ArtifactsListOptions): Promise<ArtifactsListResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `options.agentId` | `string` | no | Restrict results to one Agent (`ag_…`) |
-| `options.sessionId` | `string` | no | Restrict results to one Session (`ss_…`) |
-| `options.cursor` | `string` | no | Opaque cursor from `nextCursor` |
+| `agentId` | `string` | no | Restrict results to one Agent (`ag_…`) |
+| `sessionId` | `string` | no | Restrict results to one Session (`ss_…`) |
+| `cursor` | `string` | no | Opaque cursor from `nextCursor` |
 
 ```typescript
 const page = await client.artifacts.list({
@@ -50,14 +54,14 @@ Returns [`ArtifactsListResponse`](#artifactslistresponse). Raises `validation_fa
 
 Returns one Tenant-owned Artifact's metadata without downloading its bytes.
 
-**Signature:** `get(artifactId: string): Promise<ArtifactListItem>`
+**Signature:** `get(input: { artifactId: string } & ResourceRequestOptions): Promise<ArtifactListItem>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `artifactId` | `string` | yes | Artifact ID (`at_…`) |
 
 ```typescript
-const artifact = await client.artifacts.get(artifactId);
+const artifact = await client.artifacts.get({ artifactId });
 console.log(artifact.filename, artifact.sizeBytes);
 ```
 
@@ -70,15 +74,16 @@ foreign Artifact. See
 Creates a direct R2 presigned URL that expires after five minutes. Treat it as
 a bearer secret and keep it out of logs.
 
-**Signature:** `createDownloadUrl(artifactId: string): Promise<ArtifactDownloadUrlResponse>`
+**Signature:** `createDownloadUrl(input: { artifactId: string } & ResourceRequestOptions): Promise<ArtifactDownloadUrlResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `artifactId` | `string` | yes | Artifact ID (`at_…`) |
 
 ```typescript
-const { url, expiresAt } =
-  await client.artifacts.createDownloadUrl(artifactId);
+const { url, expiresAt } = await client.artifacts.createDownloadUrl({
+  artifactId,
+});
 ```
 
 Returns [`ArtifactDownloadUrlResponse`](#artifactdownloadurlresponse). Raises
@@ -91,10 +96,10 @@ Artifact. See
 Hard-deletes an Artifact's immutable R2 object and database row without changing
 the Workspace source file. A repeated deletion returns `not_found`.
 
-**Signature:** `delete(artifactId: string): Promise<void>`
+**Signature:** `delete(input: { artifactId: string } & ResourceRequestOptions): Promise<void>`
 
 ```typescript
-await client.artifacts.delete(artifactId);
+await client.artifacts.delete({ artifactId });
 ```
 
 Returns `void`. Raises `validation_failed` for malformed IDs or `not_found` for a missing, foreign, or already deleted Artifact. See [`DELETE /v1/artifacts/:artifactId`](/api-reference/rest-api/artifacts#delete-artifact).
@@ -158,7 +163,9 @@ direct download URL:
 ```typescript
 import { BlazingAgents } from "@blazingagents/sdk";
 
-const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
 const agentId = "ag_0123456789abcdef";
 const sessionId = "ss_0123456789abcdef";
 
@@ -166,8 +173,12 @@ const page = await client.artifacts.list({ agentId, sessionId });
 const artifact = page.data[0];
 
 if (artifact) {
-  const detail = await client.artifacts.get(artifact.artifactId);
-  const download = await client.artifacts.createDownloadUrl(artifact.artifactId);
+  const detail = await client.artifacts.get({
+    artifactId: artifact.artifactId,
+  });
+  const download = await client.artifacts.createDownloadUrl({
+    artifactId: artifact.artifactId,
+  });
 
   console.log({
     filename: detail.filename,

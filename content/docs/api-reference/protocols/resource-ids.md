@@ -107,7 +107,7 @@ if (!parsed.success) {
   throw new Error("Malformed Agent ID");
 }
 
-const agent = await client.agents.get(parsed.data);
+const agent = await client.agents.get({ agentId: parsed.data });
 ```
 
 ## Used by [#used-by]

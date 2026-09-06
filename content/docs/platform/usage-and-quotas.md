@@ -82,7 +82,8 @@ Query Tenant and Agent totals for the same inclusive UTC date window, preserve a
 
 ```typescript
 const tenantUsage = await client.usage.get({ from, to, groupBy: "agent" });
-const agentUsage = await client.usage.getForAgent(agentId, {
+const agentUsage = await client.usage.getForAgent({
+  agentId,
   from,
   to,
   groupBy: "day",

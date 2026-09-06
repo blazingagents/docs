@@ -34,10 +34,12 @@ const turn = await client.chat({
   message: {
     id: crypto.randomUUID(),
     role: "user",
-    parts: [{
-      type: "text",
-      text: `Write /outputs/release.md with exactly ${JSON.stringify(expected)}, then use publish_artifacts for /outputs/release.md.`,
-    }],
+    parts: [
+      {
+        type: "text",
+        text: `Write /outputs/release.md with exactly ${JSON.stringify(expected)}, then use publish_artifacts for /outputs/release.md.`,
+      },
+    ],
   },
 });
 
@@ -48,7 +50,9 @@ const page = await client.artifacts.list({ agentId, sessionId });
 const artifact = page.data.find((item) => item.filename === "release.md");
 if (!artifact) throw new Error("release.md was not published");
 
-const { url } = await client.artifacts.createDownloadUrl(artifact.artifactId);
+const { url } = await client.artifacts.createDownloadUrl({
+  artifactId: artifact.artifactId,
+});
 const response = await fetch(url);
 if (artifact.mediaType !== "text/markdown") throw new Error("Unexpected type");
 if ((await response.text()) !== expected) throw new Error("Bytes differ");
