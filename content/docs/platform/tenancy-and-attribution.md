@@ -57,7 +57,7 @@ After the Turn succeeds, the final expression prints `true` because the filtered
 
 ## Reporting and filtering [#reporting-and-filtering]
 
-Session lists accept a `userId` filter. Tenant-wide and per-Agent usage queries can filter by `userId` or group by `user`; usage also supports Agent, model, Session, day, and time-window dimensions. See [`sessions.list`](/sdk/typescript/sessions#list) and [`usage.get`](/sdk/typescript/usage#get) for exact fields.
+Session lists accept a `userId` filter, including [`GET /v1/sessions/latest`](/api-reference/rest-api/sessions#list-latest-sessions), which returns the latest Session per Agent and, with `userId`, that end user's latest Session with each Agent. Tenant-wide and per-Agent usage queries can filter by `userId` or group by `user`; usage also supports Agent, model, Session, day, and time-window dimensions. See [`sessions.list`](/sdk/typescript/sessions#list) and [`usage.get`](/sdk/typescript/usage#get) for exact fields.
 
 Omitting a `userId` filter includes all Attribution buckets visible to the Tenant credential. Passing `userId: ""` selects only tenant-level activity; a non-empty value selects that exact opaque identifier.
 

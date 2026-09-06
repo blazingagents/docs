@@ -33,6 +33,7 @@ order messages chronologically inside each page.
 | MCP Attachments   | [`agents.listMcpAttachments`](/sdk/typescript/agents#list-mcp-attachments)                               | [`list-agent-mcp-attachments`](/api-reference/rest-api/agents#list-agent-mcp-attachments)                              | none                         | bounded; no public `limit`                      | owning Agent path                            |
 | Prompts           | [`prompts.list`](/sdk/typescript/prompts#list)                                                           | [`list-prompts`](/api-reference/rest-api/prompts#list-prompts)                                                         | none                         | bounded; no public `limit`                      | `userId`                                     |
 | Sessions          | [`sessions.list`](/sdk/typescript/sessions#list)                                                         | [`list-sessions`](/api-reference/rest-api/sessions#list-sessions)                                                      | `nextCursor`                 | default 50, max 200                             | `userId`                                     |
+| Latest Sessions   | [`sessions.listLatest`](/sdk/typescript/sessions#list-latest)                                            | [`list-latest-sessions`](/api-reference/rest-api/sessions#list-latest-sessions)                                    | `nextCursor`                 | default 50, max 200                             | `userId`                                     |
 | Session messages  | [`sessions.messages`](/sdk/typescript/sessions#messages)                                                 | [`list-session-messages`](/api-reference/rest-api/sessions#list-session-messages)                                      | `nextCursor`, `latestCursor` | default 50, max 200                             | `cursor` or `after`                          |
 | Artifacts         | [`artifacts.list`](/sdk/typescript/artifacts#list)                                                       | [`list-artifacts`](/api-reference/rest-api/artifacts#list-artifacts)                                                   | `nextCursor`                 | fixed 50; no public `limit`                     | `agentId`, `sessionId`                       |
 | Memories          | [`memories.list`](/sdk/typescript/memories#list)                                                         | [`list-memories`](/api-reference/rest-api/memories#list-memories)                                                      | `nextCursor`                 | default 50, max 100                             | `userId`, `search`                           |
@@ -220,6 +221,7 @@ Python page and iterator contracts are documented for
 [`agents.list_mcp_attachments()`](/sdk/python/agents#list-mcp-attachments),
 [`prompts.list()`](/sdk/python/prompts#list),
 [`sessions.list()`](/sdk/python/sessions#list),
+[`sessions.list_latest()`](/sdk/python/sessions#list-latest),
 [`sessions.messages()`](/sdk/python/sessions#messages),
 [`artifacts.list()`](/sdk/python/artifacts#list),
 [`memories.list()`](/sdk/python/memories#list),
