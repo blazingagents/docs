@@ -5,6 +5,10 @@ description: TypeScript SDK Provider CRUD and cost-free model discovery.
 
 # Providers
 
+Every network method accepts one input object with optional `abortSignal`.
+`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
+types include that field too.
+
 ## Overview [#overview]
 
 `client.providers` manages Tenant Provider credentials. Keys are write-only. Provider model discovery makes no inference request and returns only normalized Provider-native IDs.
@@ -24,39 +28,39 @@ description: TypeScript SDK Provider CRUD and cost-free model discovery.
 
 ### `create()` [#create]
 
-**Signature:** `create(body: CreateProviderBody): Promise<ProviderResponse>`
+**Signature:** `create(input: CreateProviderBody & ResourceRequestOptions): Promise<ProviderResponse>`
 
 `body` contains `name`, `providerType`, `apiKey`, and optional `baseUrl`; custom Providers require `baseUrl`. `ProviderType` includes `vercel_ai_gateway`, which accepts only a Vercel AI Gateway key and no `baseUrl` or underlying vendor/routing configuration.
 
 ### `list()` [#list]
 
-**Signature:** `list(): Promise<ProvidersResponse>`
+**Signature:** `list(input?: ResourceRequestOptions): Promise<ProvidersResponse>`
 
 ### `get()` [#get]
 
-**Signature:** `get(id: string): Promise<ProviderResponse>`
+**Signature:** `get(input: { providerId: string } & ResourceRequestOptions): Promise<ProviderResponse>`
 
 ### `listModels()` [#list-models]
 
-**Signature:** `listModels(id: string): Promise<ProviderModelsResponse>`
+**Signature:** `listModels(input: { providerId: string } & ResourceRequestOptions): Promise<ProviderModelsResponse>`
 
 Fetches a fresh cost-free catalog, returning trimmed, deduplicated, lexically sorted model IDs. Custom Providers raise `model_discovery_unsupported`; unavailable catalogs raise `model_validation_unavailable`.
 
 Gateway discovery is public. Its result proves catalog membership only, not saved-key access, credits, Team policy, routing, or successful inference.
 
 ```typescript
-const { models } = await client.providers.listModels(providerId);
+const { models } = await client.providers.listModels({ providerId });
 ```
 
 ### `update()` [#update]
 
-**Signature:** `update(id: string, body: UpdateProviderBody): Promise<ProviderResponse>`
+**Signature:** `update(input: UpdateProviderBody & { providerId: string } & ResourceRequestOptions): Promise<ProviderResponse>`
 
-Only `body.name` is mutable. Provider type, API key, and base URL are immutable; create a replacement Provider to change them.
+Only `name` is mutable. Provider type, API key, and base URL are immutable; create a replacement Provider to change them.
 
 ### `delete()` [#delete]
 
-**Signature:** `delete(id: string, options?: { confirmVersionInvalidation?: boolean }): Promise<void>`
+**Signature:** `delete(input: DeleteProviderOptions & { providerId: string } & ResourceRequestOptions): Promise<void>`
 
 Current Agent references raise `provider_in_use` even when confirmation is true. Historical Versions or explicit Session and Task Pins raise `provider_historical_use` with impact details. Pass `{ confirmVersionInvalidation: true }` to delete the key while preserving immutable history; affected execution and restoration then raise `provider_not_found`.
 
@@ -79,8 +83,11 @@ const provider = await client.providers.create({
   baseUrl: null,
   apiKey: process.env.OPENAI_API_KEY!,
 });
-const { models } = await client.providers.listModels(provider.id);
-await client.agents.update(agentId, {
+const { models } = await client.providers.listModels({
+  providerId: provider.id,
+});
+await client.agents.update({
+  agentId,
   providerId: provider.id,
   model: models[0].id,
 });
@@ -100,7 +107,10 @@ model listing. `known: false` permits a custom value; `known: true` with an
 empty list permits only Provider default. Null is always Provider default.
 
 ```typescript
-const capabilities = await client.providers.getThinkingLevels(provider.id, model);
-await client.agents.update(agentId, { thinkingLevel: "high" });
-await client.agents.update(agentId, { thinkingLevel: null });
+const capabilities = await client.providers.getThinkingLevels({
+  providerId: provider.id,
+  model,
+});
+await client.agents.update({ agentId, thinkingLevel: "high" });
+await client.agents.update({ agentId, thinkingLevel: null });
 ```

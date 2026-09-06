@@ -39,7 +39,7 @@ a second Session with the same Attribution scope:
 import assert from "node:assert/strict";
 
 const userId = "app-user-42";
-await client.agents.update(agentId, { memoryInjectionEnabled: true });
+await client.agents.update({ agentId, memoryInjectionEnabled: true });
 
 const first = await client.chat({
   agentId,
@@ -53,7 +53,8 @@ const first = await client.chat({
 await first.toResponse().text();
 const firstSessionId = await first.sessionId;
 
-const saved = await client.memories.create(agentId, {
+const saved = await client.memories.create({
+  agentId,
   userId,
   text: "Prefers concise status updates.",
 });
@@ -80,7 +81,8 @@ persistence; the response demonstrates injection into a later Turn.
 ## Search and retention [#search-and-retention]
 
 ```typescript
-const matches = await client.memories.list(agentId, {
+const matches = await client.memories.list({
+  agentId,
   userId,
   search: "concise status",
   limit: 10,

@@ -7,6 +7,10 @@ description: Manage, test, authorize, and reconnect tenant MCP Connections.
 
 `client.mcpConnections` manages Tenant-level remote Streamable HTTP MCP Connections. Credentials are write-only. Attach Connection IDs to an Agent through its configuration; MCP Attachments control which Attribution fields are forwarded.
 
+Every network method accepts one input object with optional `abortSignal`.
+`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
+types include that field too.
+
 ## Overview [#overview]
 
 Authentication is a discriminated union:
@@ -39,7 +43,7 @@ Most methods work with a Tenant API key. [`connect()`](#connect) is the exceptio
 
 Creates a reusable MCP Connection. Secrets are encrypted and never returned.
 
-**Signature:** `create(body: CreateMcpConnectionBody): Promise<McpConnectionResponse>`
+**Signature:** `create(input: CreateMcpConnectionBody & ResourceRequestOptions): Promise<McpConnectionResponse>`
 
 | Body field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -66,7 +70,7 @@ Returns [`McpConnectionResponse`](#mcpconnectionresponse). Authorization-code OA
 
 Lists the Tenant's MCP Connections with every credential redacted.
 
-**Signature:** `list(): Promise<McpConnectionsResponse>`
+**Signature:** `list(input?: ResourceRequestOptions): Promise<McpConnectionsResponse>`
 
 ```typescript
 const { mcpConnections } = await client.mcpConnections.list();
@@ -78,10 +82,12 @@ Returns `{ mcpConnections: McpConnectionResponse[] }`. Only standard authenticat
 
 Retrieves one MCP Connection by its `mcp_…` ID.
 
-**Signature:** `get(id: string): Promise<McpConnectionResponse>`
+**Signature:** `get(input: { mcpConnectionId: string } & ResourceRequestOptions): Promise<McpConnectionResponse>`
 
 ```typescript
-const connection = await client.mcpConnections.get(connectionId);
+const connection = await client.mcpConnections.get({
+  mcpConnectionId: connectionId,
+});
 ```
 
 Returns [`McpConnectionResponse`](#mcpconnectionresponse). Raises `validation_failed` for a malformed ID or `not_found` when the Connection is unavailable. See [`GET /v1/mcp-connections/:id`](/api-reference/rest-api/mcp-connections#get-mcp-connection).
@@ -90,15 +96,16 @@ Returns [`McpConnectionResponse`](#mcpconnectionresponse). Raises `validation_fa
 
 Renames a Connection without changing its URL or credentials. Use `reconnect()` for connection details.
 
-**Signature:** `update(id: string, body: UpdateMcpConnectionBody): Promise<McpConnectionResponse>`
+**Signature:** `update(input: UpdateMcpConnectionBody & { mcpConnectionId: string } & ResourceRequestOptions): Promise<McpConnectionResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `id` | `string` | yes | MCP Connection ID (`mcp_…`) |
-| `body.name` | `string` | yes | New Tenant-unique name, 1–80 characters |
+| `name` | `string` | yes | New Tenant-unique name, 1–80 characters |
 
 ```typescript
-const renamed = await client.mcpConnections.update(connectionId, {
+const renamed = await client.mcpConnections.update({
+  mcpConnectionId: connectionId,
   name: "Production issue tracker",
 });
 ```
@@ -109,10 +116,10 @@ Returns [`McpConnectionResponse`](#mcpconnectionresponse). Raises `validation_fa
 
 Permanently deletes an unused Connection and revokes stored OAuth credentials. Detach it from every Agent first.
 
-**Signature:** `delete(id: string): Promise<void>`
+**Signature:** `delete(input: { mcpConnectionId: string } & ResourceRequestOptions): Promise<void>`
 
 ```typescript
-await client.mcpConnections.delete(connectionId);
+await client.mcpConnections.delete({ mcpConnectionId: connectionId });
 ```
 
 Returns `void`. Raises `validation_failed`, `not_found`, or `mcp_connection_in_use` while an Agent references the Connection. See [`DELETE /v1/mcp-connections/:id`](/api-reference/rest-api/mcp-connections#delete-mcp-connection).
@@ -121,10 +128,12 @@ Returns `void`. Raises `validation_failed`, `not_found`, or `mcp_connection_in_u
 
 Tests the stored endpoint and credential, discovers server and Tool details, and persists the resulting lifecycle state.
 
-**Signature:** `test(id: string): Promise<McpConnectionTestResponse>`
+**Signature:** `test(input: { mcpConnectionId: string } & ResourceRequestOptions): Promise<McpConnectionTestResponse>`
 
 ```typescript
-const result = await client.mcpConnections.test(connectionId);
+const result = await client.mcpConnections.test({
+  mcpConnectionId: connectionId,
+});
 
 if (result.ok) {
   console.log(result.server, result.toolNames);
@@ -139,15 +148,16 @@ Returns [`McpConnectionTestResponse`](#mcpconnectiontestresponse). Success sets 
 
 Creates a short-lived setup continuation for an authorization-code OAuth Connection and returns an application URL to open in a browser.
 
-**Signature:** `connect(id: string): Promise<McpConnectionOauthConnectResponse>`
+**Signature:** `connect(input: { mcpConnectionId: string } & ResourceRequestOptions): Promise<McpConnectionOauthConnectResponse>`
 
 ```typescript
 const dashboardClient = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_DASHBOARD_JWT!,
 });
 
-const { authorizationUrl } =
-  await dashboardClient.mcpConnections.connect(connectionId);
+const { authorizationUrl } = await dashboardClient.mcpConnections.connect({
+  mcpConnectionId: connectionId,
+});
 
 console.log("Open in the authenticated application:", authorizationUrl);
 ```
@@ -160,12 +170,13 @@ Returns [`McpConnectionOauthConnectResponse`](#mcpconnectionoauthconnectresponse
 
 Replaces a Connection's URL, authentication mode, and credential. The name stays unchanged.
 
-**Signature:** `reconnect(id: string, body: ReconnectMcpConnectionBody): Promise<McpConnectionReconnectResult>`
+**Signature:** `reconnect(input: ReconnectMcpConnectionBody & { mcpConnectionId: string } & ResourceRequestOptions): Promise<McpConnectionReconnectResult>`
 
 The body matches [`create()`](#create) without `name`. `url` and `authType` are required; credential fields depend on `authType`.
 
 ```typescript
-const result = await client.mcpConnections.reconnect(connectionId, {
+const result = await client.mcpConnections.reconnect({
+  mcpConnectionId: connectionId,
   url: "https://mcp.example.com/v2/mcp",
   authType: "oauth_client_credentials",
   clientId: process.env.MCP_CLIENT_ID!,
@@ -326,16 +337,21 @@ const connection = await client.mcpConnections.create({
   bearerToken: process.env.MCP_BEARER_TOKEN!,
 });
 
-const test = await client.mcpConnections.test(connection.id);
+const test = await client.mcpConnections.test({
+  mcpConnectionId: connection.id,
+});
 if (!test.ok) throw new Error(test.error.message);
 
-const replacement = await client.mcpConnections.reconnect(connection.id, {
+const replacement = await client.mcpConnections.reconnect({
+  mcpConnectionId: connection.id,
   url: connection.url,
   authType: "bearer",
   bearerToken: process.env.MCP_REPLACEMENT_BEARER_TOKEN!,
 });
 
-const stored = await client.mcpConnections.get(connection.id);
+const stored = await client.mcpConnections.get({
+  mcpConnectionId: connection.id,
+});
 console.log({
   status: replacement.status,
   tools: test.toolNames,

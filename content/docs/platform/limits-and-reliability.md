@@ -35,8 +35,8 @@ const client = new BlazingAgents({ apiKey });
 const taskId = "tk_0123456789abcdef";
 const idempotencyKey = "daily-report:2026-07-20";
 
-const first = await client.tasks.createRun(taskId, { idempotencyKey });
-const replay = await client.tasks.createRun(taskId, { idempotencyKey });
+const first = await client.tasks.createRun({ taskId, idempotencyKey });
+const replay = await client.tasks.createRun({ taskId, idempotencyKey });
 
 console.log(first.runId === replay.runId);
 ```
@@ -80,7 +80,7 @@ SDK errors expose a stable `code`, optional HTTP `status`, `details`, `param`, `
 import { BlazingAgentsError } from "@blazingagents/sdk";
 
 try {
-  await client.tasks.get(taskId);
+  await client.tasks.get({ taskId });
 } catch (error) {
   if (!BlazingAgentsError.isInstance(error)) throw error;
   console.error({

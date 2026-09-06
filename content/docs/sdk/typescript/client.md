@@ -19,7 +19,7 @@ The default base URL is the local API development server. Set `baseUrl` when con
 | --- | --- | --- |
 | `agents` | Configure Agents and immutable Agent Versions | [Agents](/sdk/typescript/agents) |
 | `sessions` | Inspect Sessions and handle Tool approvals | [Sessions](/sdk/typescript/sessions) |
-| `agent(agentId).skills` | Manage one Agent's Skill archives | [Skills](/sdk/typescript/skills) |
+| `agent({ agentId }).skills` | Manage one Agent's Skill archives | [Skills](/sdk/typescript/skills) |
 | `providers` | Manage Provider credentials and discover models | [Providers](/sdk/typescript/providers) |
 | `mcpConnections` | Configure MCP servers and Agent attachments | [MCP connections](/sdk/typescript/mcp-connections) |
 | `memories` | Read and delete Agent Memory | [Memories](/sdk/typescript/memories) |
@@ -58,7 +58,7 @@ const client = new BlazingAgents({
 const correlated = client.withOptions({
   clientRequestId: "checkout-attempt-42",
 });
-const agent = await correlated.agents.get("ag_0123456789abcdef");
+const agent = await correlated.agents.get({ agentId: "ag_0123456789abcdef" });
 ```
 
 The constructor creates the resource clients synchronously and does not make a network request. Requests use `Authorization: Bearer <apiKey>`.
@@ -74,9 +74,9 @@ Retain `requestId` when contacting support.
 Selects one Agent and returns its scoped resources. Creating the scoped client
 does not make a network request.
 
-**Signature:** `agent(agentId: string): AgentClient`
+**Signature:** `agent(input: { agentId: string }): AgentClient`
 
-Use `client.agent(agentId).skills` for every operation on Skills owned by that
+Use `client.agent({ agentId }).skills` for every operation on Skills owned by that
 Agent. See [Skills](/sdk/typescript/skills).
 
 ### `withOptions()` [#with-options]
@@ -114,7 +114,8 @@ The SDK supplies the URL, method, bearer header, body, and any supported abort s
 
 ## Cancellation [#cancellation]
 
-Generation inputs accept `signal`. Tool approval methods accept an options object containing `signal`:
+Every network method accepts optional `abortSignal` in its single input object,
+including resource reads, mutations, uploads, and generation:
 
 ```typescript
 const controller = new AbortController();
@@ -122,14 +123,16 @@ const controller = new AbortController();
 const pending = client.completion({
   agentId: "ag_0123456789abcdef",
   prompt: "Summarize this request.",
-  signal: controller.signal,
+  abortSignal: controller.signal,
 });
 
 controller.abort();
 await pending;
 ```
 
-`sessions.decideToolApproval()` and `sessions.joinToolApprovalContinuation()` also support `{ signal }`. Other resource methods do not expose per-request cancellation.
+For example, `client.agents.get({ agentId, abortSignal: controller.signal })`
+cancels an Agent read. The SDK forwards `abortSignal` to Fetch as its native
+`signal` option. Cancelling a request does not roll back completed server work.
 
 A caller abort throws `BlazingAgentsError` with `code: "request_aborted"`. A fetch failure before an HTTP exchange throws `code: "network_error"`.
 
@@ -141,12 +144,9 @@ All SDK request failures throw `BlazingAgentsError`. API error codes remain open
 import { BlazingAgentsError } from "@blazingagents/sdk";
 
 try {
-  await client.agents.get("ag_0123456789abcdef");
+  await client.agents.get({ agentId: "ag_0123456789abcdef" });
 } catch (error) {
-  if (
-    BlazingAgentsError.isInstance(error) &&
-    error.code === "not_found"
-  ) {
+  if (BlazingAgentsError.isInstance(error) && error.code === "not_found") {
     console.log("Agent not found", error.requestId);
   }
 }
@@ -188,7 +188,7 @@ const client = new BlazingAgents({
   baseUrl: process.env.BLAZING_AGENTS_BASE_URL,
 });
 
-const agent = await client.agents.get("ag_0123456789abcdef");
+const agent = await client.agents.get({ agentId: "ag_0123456789abcdef" });
 
 const result = await client.completion({
   agentId: agent.id,
@@ -209,7 +209,7 @@ Every generation call still creates a metered Turn.
 
 ## Overview [#overview]
 
-Every generation input requires `agentId`. Optional `userId` and `metadata` add End-user Attribution; omit them for tenant-level Attribution. Pass `signal` to cancel the request. Pass `clientRequestId` to correlate this attempt with caller-owned logs without manipulating headers.
+Every generation input requires `agentId`. Optional `userId` and `metadata` add End-user Attribution; omit them for tenant-level Attribution. Pass `abortSignal` to cancel the request. Pass `clientRequestId` to correlate this attempt with caller-owned logs without manipulating headers.
 
 Each method accepts either literal content or a saved Prompt:
 
@@ -245,7 +245,7 @@ Creates a Session when `sessionId` is omitted, or resumes an existing Session wh
 | `userId` | `string` | no | End-user Attribution ID |
 | `metadata` | `Record<string, unknown>` | no | Tenant-defined Attribution metadata |
 | `clientRequestId` | `string` | no | Caller-owned request correlation sent as `X-Client-Request-Id` |
-| `signal` | `AbortSignal` | no | Cancels the request |
+| `abortSignal` | `AbortSignal` | no | Cancels the request |
 
 `regenerate-message` is valid only when resuming a Session. Its optional `messageId` selects where the transcript is truncated. A resumed Session keeps its immutable Version Pin, so `version` cannot be combined with `sessionId`.
 
@@ -284,7 +284,7 @@ Runs stateless text generation and exposes both incremental text and an awaited 
 | `userId` | `string` | no | End-user Attribution ID |
 | `metadata` | `Record<string, unknown>` | no | Tenant-defined Attribution metadata |
 | `clientRequestId` | `string` | no | Caller-owned request correlation sent as `X-Client-Request-Id` |
-| `signal` | `AbortSignal` | no | Cancels the request |
+| `abortSignal` | `AbortSignal` | no | Cancels the request |
 
 ```typescript
 const completion = await client.completion({
@@ -318,7 +318,7 @@ Runs stateless structured generation against a JSON Schema and exposes partial v
 | `userId` | `string` | no | End-user Attribution ID |
 | `metadata` | `Record<string, unknown>` | no | Tenant-defined Attribution metadata |
 | `clientRequestId` | `string` | no | Caller-owned request correlation sent as `X-Client-Request-Id` |
-| `signal` | `AbortSignal` | no | Cancels the request |
+| `abortSignal` | `AbortSignal` | no | Cancels the request |
 
 ```typescript
 const result = await client.object({
@@ -385,7 +385,7 @@ type CompletionInput =
       version?: number;
       userId?: string;
       metadata?: Record<string, unknown>;
-      signal?: AbortSignal;
+      abortSignal?: AbortSignal;
     }
   | {
       agentId: string;
@@ -395,7 +395,7 @@ type CompletionInput =
       version?: number;
       userId?: string;
       metadata?: Record<string, unknown>;
-      signal?: AbortSignal;
+      abortSignal?: AbortSignal;
     };
 ```
 
@@ -408,7 +408,7 @@ type CompletionInput =
 | `ChatMessageInput` / `ChatPromptInput` | `agentId` plus exactly one message source; create accepts only `submit-message`, while resume also accepts `regenerate-message` |
 | `ChatInput` | Union of the two chat inputs |
 | `ChatResult` | Optional request ID, Session ID promise, and terminal UI-message stream/response helpers |
-| `CompletionPromptInput` / `CompletionPromptIdInput` | `agentId`, exactly one Prompt source; optional Version Pin, Attribution, and signal |
+| `CompletionPromptInput` / `CompletionPromptIdInput` | `agentId`, exactly one Prompt source; optional Version Pin, Attribution, and `abortSignal` |
 | `CompletionInput` | Union of the two completion inputs |
 | `CompletionResult` | Optional request ID, text stream, final text promise, and response helper |
 | `ObjectPromptInput` / `ObjectPromptIdInput` | Completion fields plus required JSON `schema` |

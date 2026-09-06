@@ -37,8 +37,11 @@ Complete the [Quickstart](/getting-started/quickstart), then set `BLAZING_AGENTS
       const { chatId, userId, message } = await app.authorize(request);
       const existingSessionId = await app.loadSessionId(userId, chatId);
       const result = await client.chat({
-        agentId, ...(existingSessionId ? { sessionId: existingSessionId } : {}),
-        message, signal: request.signal, userId,
+        agentId,
+        ...(existingSessionId ? { sessionId: existingSessionId } : {}),
+        message,
+        abortSignal: request.signal,
+        userId,
       });
       if (existingSessionId) return result.toResponse();
       const sessionId = await result.sessionId;

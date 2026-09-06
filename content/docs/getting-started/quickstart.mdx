@@ -36,7 +36,9 @@ Complete [Set up Blazing Agents](/getting-started/setup), make the configured `c
       baseUrl: null,
       apiKey,
     });
-    const { models } = await client.providers.listModels(provider.id);
+    const { models } = await client.providers.listModels({
+      providerId: provider.id,
+    });
     const model = models.find(({ id }) => id === "gpt-4.1");
     if (!model) throw new Error("gpt-4.1 is unavailable");
 
@@ -82,7 +84,7 @@ The ID identifies a Session materialized after admission and before model execut
 ## Production notes [#production-notes]
 
 - Store the Session ID as soon as `result.sessionId` resolves.
-- Pass the caller's `AbortSignal` as `signal` when cancellation should stop the Turn.
+- Pass the caller's `AbortSignal` as `abortSignal` when cancellation should stop the Turn.
 - Keep the API key on your backend and out of browser or mobile code.
 
 ## Continue learning [#continue-learning]

@@ -51,12 +51,15 @@ const client = new BlazingAgents({
 });
 const agentId = process.env.AGENT_ID!;
 
-const page = await client.agents.listVersions(agentId, { limit: 10 });
+const page = await client.agents.listVersions({ agentId, limit: 10 });
 const version = page.data[0]?.version;
 if (!version) throw new Error("No Agent Versions found");
 
-const inspected = await client.agents.getVersion(agentId, version);
-const restored = await client.agents.restoreVersion(agentId, inspected.version);
+const inspected = await client.agents.getVersion({ agentId, version });
+const restored = await client.agents.restoreVersion({
+  agentId,
+  version: inspected.version,
+});
 if (restored.version <= inspected.version) {
   throw new Error("Restore did not create a newer Version");
 }

@@ -62,11 +62,17 @@ responses for an owned Task.
 
 ```typescript
 const cancelInput = { idempotencyKey: `weekly-report-cancel:${weekStart}` };
-const cancellation = await client.tasks.createRun(task.id, cancelInput);
-await client.tasks.cancelRun(task.id, cancellation.runId);
+const cancellation = await client.tasks.createRun({
+  taskId: task.id,
+  ...cancelInput,
+});
+await client.tasks.cancelRun({ taskId: task.id, runId: cancellation.runId });
 
 // From a later request, scheduled job, or worker invocation:
-const cancellationState = await client.tasks.getRun(task.id, cancellation.runId);
+const cancellationState = await client.tasks.getRun({
+  taskId: task.id,
+  runId: cancellation.runId,
+});
 console.log(cancellationState.status);
 ```
 
@@ -81,7 +87,8 @@ const { task } = await client.tasks.create({
   name: "Build weekly report",
   prompt: "Build the weekly report and summarize the result.",
 });
-const { runId } = await client.tasks.createRun(task.id, {
+const { runId } = await client.tasks.createRun({
+  taskId: task.id,
   idempotencyKey: `weekly-report:${weekStart}`,
 });
 // Persist task.id and runId, then return to the caller.
@@ -91,11 +98,11 @@ From a later request, scheduled job, or worker invocation, load the persisted
 IDs and inspect one durable snapshot:
 
 ```typescript
-const run = await client.tasks.getRun(taskId, runId);
+const run = await client.tasks.getRun({ taskId, runId });
 if (run.status === "queued" || run.status === "running") {
   console.log("Task is still active; check again in a later invocation.");
 } else {
-  const messages = await client.tasks.runMessages(taskId, runId);
+  const messages = await client.tasks.runMessages({ taskId, runId });
   const finalResponse = messages.data.findLast(
     (message) => message.role === "assistant",
   );

@@ -191,21 +191,21 @@ Branch on known SDK codes while preserving unknown future codes:
 import { BlazingAgentsError } from "@blazingagents/sdk";
 
 async function inspectTaskError() {
-try {
-  await client.tasks.get(taskId);
-} catch (error) {
-  if (!BlazingAgentsError.isInstance(error)) throw error;
+  try {
+    await client.tasks.get({ taskId });
+  } catch (error) {
+    if (!BlazingAgentsError.isInstance(error)) throw error;
 
-  console.error({
-    code: error.code,
-    requestId: error.requestId,
-    status: error.status,
-  });
+    console.error({
+      code: error.code,
+      requestId: error.requestId,
+      status: error.status,
+    });
 
-  if (error.code === "quota_exceeded") return;
-  if (error.code === "request_aborted") return;
-  throw error;
-}
+    if (error.code === "quota_exceeded") return;
+    if (error.code === "request_aborted") return;
+    throw error;
+  }
 }
 ```
 
