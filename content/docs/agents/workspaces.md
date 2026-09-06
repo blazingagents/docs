@@ -68,8 +68,14 @@ const workspace = await client.workspaces.create({
   },
 });
 
-await client.agents.update(firstAgentId, { workspaceId: workspace.id });
-await client.agents.update(secondAgentId, { workspaceId: workspace.id });
+await client.agents.update({
+  agentId: firstAgentId,
+  workspaceId: workspace.id,
+});
+await client.agents.update({
+  agentId: secondAgentId,
+  workspaceId: workspace.id,
+});
 ```
 
 Reassignment changes only the attachment and does not copy files from the old

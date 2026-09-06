@@ -40,7 +40,7 @@ if (streamed !== finalText) {
 }
 ```
 
-For chat, await `result.sessionId` to retain the server-minted Session ID, then fully drain the selected UI-message stream or return its relay response. If the caller abandons that body before it finishes, cancel the selected stream or abort the supplied `signal`; cancellation propagates so the Turn can settle.
+For chat, await `result.sessionId` to retain the server-minted Session ID, then fully drain the selected UI-message stream or return its relay response. If the caller abandons that body before it finishes, cancel the selected stream or abort the supplied `abortSignal`; cancellation propagates so the Turn can settle.
 
 <Callout type="warn" title="Consume a stream once">
   A chat response body can be claimed once through `toResponse()`. Calling it
@@ -62,7 +62,10 @@ declare const chatSessions: {
 export async function handleChat(request: Request) {
   const { message, messageId, sessionId, trigger } = await request.json();
   if (sessionId) {
-    await chatSessions.assertOwnedBy({ sessionId, userId: authenticatedUserId });
+    await chatSessions.assertOwnedBy({
+      sessionId,
+      userId: authenticatedUserId,
+    });
   }
   const chat = await client.chat({
     agentId,
@@ -70,7 +73,7 @@ export async function handleChat(request: Request) {
     ...(messageId ? { messageId } : {}),
     ...(sessionId ? { sessionId } : {}),
     ...(trigger ? { trigger } : {}),
-    signal: request.signal,
+    abortSignal: request.signal,
     userId: authenticatedUserId,
   });
 
@@ -99,29 +102,43 @@ export function Chat({
 }) {
   const [input, setInput] = useState("");
   const [transport] = useState(
-    () => new BlazingAgentsChatTransport({
-      api: "/api/chat",
-      onSessionId: rememberSessionId,
-      sessionId: initialSessionId,
-    }),
+    () =>
+      new BlazingAgentsChatTransport({
+        api: "/api/chat",
+        onSessionId: rememberSessionId,
+        sessionId: initialSessionId,
+      }),
   );
   const { error, messages, sendMessage, status, stop } = useChat({
     transport,
   });
 
-  return <form onSubmit={(event) => {
-    event.preventDefault();
-    if (input.trim()) void sendMessage({ text: input });
-  }}>
-    {messages.map((message) => <div key={message.id}>
-      {message.parts.map((part, index) =>
-        part.type === "text" ? <span key={index}>{part.text}</span> : null)}
-    </div>)}
-    <input value={input} onChange={(event) => setInput(event.target.value)} />
-    <button disabled={status === "submitted" || status === "streaming"}>Send</button>
-    {status === "streaming" && <button type="button" onClick={stop}>Stop</button>}
-    {error && <p role="alert">The response could not be completed.</p>}
-  </form>;
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (input.trim()) void sendMessage({ text: input });
+      }}
+    >
+      {messages.map((message) => (
+        <div key={message.id}>
+          {message.parts.map((part, index) =>
+            part.type === "text" ? <span key={index}>{part.text}</span> : null,
+          )}
+        </div>
+      ))}
+      <input value={input} onChange={(event) => setInput(event.target.value)} />
+      <button disabled={status === "submitted" || status === "streaming"}>
+        Send
+      </button>
+      {status === "streaming" && (
+        <button type="button" onClick={stop}>
+          Stop
+        </button>
+      )}
+      {error && <p role="alert">The response could not be completed.</p>}
+    </form>
+  );
 }
 ```
 
@@ -166,7 +183,7 @@ The platform resolves and applies the selected truncation under the Turn claim. 
 
 ## Abort, errors, and settlement [#abort-errors-and-settlement]
 
-Pass an `AbortSignal` as `signal`; the SDK forwards it to the request and cancellation propagates into the Turn. Agent resolution, validation, quota, and similar failures before streaming starts reject the SDK call as typed HTTP errors without Session, transcript, usage, provider, model, or Workspace side effects.
+Pass an `AbortSignal` as `abortSignal`; the SDK forwards it to the request and cancellation propagates into the Turn. Agent resolution, validation, quota, and similar failures before streaming starts reject the SDK call as typed HTTP errors without Session, transcript, usage, provider, model, or Workspace side effects.
 
 After chat SSE starts, a native server-generated `{ type: "error", errorText }` chunk represents Turn failure. It remains a valid AI SDK chunk, not transcript content. `toResponse()` relays the raw SSE body without decoding it; transport failures surface while its body is consumed.
 

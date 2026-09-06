@@ -29,19 +29,20 @@ An approved call may execute in the continuation; a denied call produces a denie
 List approvals for the Session and display the stored Tool name and input to the decision maker. Submit only `approved` and an optional non-empty `reason`; the decision response returns `continuationId` and its current `state`.
 
 ```typescript
-const pending = await client.sessions.toolApprovals(agentId, sessionId);
+const pending = await client.sessions.toolApprovals({ agentId, sessionId });
 const approval = pending.data.find((item) => item.decision === "pending");
 if (!approval) {
   throw new Error("No pending Tool approval");
 }
 
 console.log(approval.toolName, approval.input);
-const decision = await client.sessions.decideToolApproval(
+const decision = await client.sessions.decideToolApproval({
   agentId,
   sessionId,
-  approval.approvalId,
-  { approved: true, reason: "Reviewed by the operator" }
-);
+  approvalId: approval.approvalId,
+  approved: true,
+  reason: "Reviewed by the operator",
+});
 
 if (!(["waiting", "queued"] as string[]).includes(decision.state)) {
   throw new Error(`Unexpected continuation state: ${decision.state}`);
@@ -50,11 +51,11 @@ if (decision.state === "waiting") {
   throw new Error("Decide the remaining sibling approvals before joining");
 }
 
-const continuation = await client.sessions.joinToolApprovalContinuation(
+const continuation = await client.sessions.joinToolApprovalContinuation({
   agentId,
   sessionId,
-  decision.continuationId
-);
+  continuationId: decision.continuationId,
+});
 await continuation.toResponse().text();
 ```
 

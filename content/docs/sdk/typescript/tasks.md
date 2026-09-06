@@ -7,6 +7,10 @@ description: Manage asynchronous Tasks, schedules, Task runs, transcripts, and c
 
 `client.tasks` manages reusable asynchronous Agent instructions and their executions. A Task is a definition; every run has independent durable lifecycle state and receives a fresh Session when execution starts.
 
+Every network method accepts one input object with optional `abortSignal`.
+`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
+types include that field too.
+
 ## Overview [#overview]
 
 Tasks can be on-demand (`schedule: null`) or scheduled once, at an interval, or by a five-field numeric cron expression. `agentVersion: null` follows the Agent's current Version; an integer pins a Version. Task `agentId`, `userId`, and each run's inherited Attribution are immutable.
@@ -34,7 +38,7 @@ Only one run per Task can be active. Runs move from `queued` to `running`, then 
 
 Creates an on-demand or scheduled Task. `submit: true` also enqueues an initial run, but Task creation itself is not idempotent.
 
-**Signature:** `create(body: CreateTaskBody): Promise<CreateTaskResponse>`
+**Signature:** `create(input: CreateTaskBody & ResourceRequestOptions): Promise<CreateTaskResponse>`
 
 | Body field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
@@ -69,7 +73,7 @@ Returns [`CreateTaskResponse`](#createtaskresponse). Raises `validation_failed`,
 
 Lists non-deleted Tasks with compact latest-run state.
 
-**Signature:** `list(options?: TasksListOptions): Promise<TasksListResponse>`
+**Signature:** `list(input?: TasksListOptions): Promise<TasksListResponse>`
 
 | Option | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -88,10 +92,10 @@ Returns [`TasksListResponse`](#taskslistresponse). Raises `validation_failed` fo
 
 Retrieves one non-deleted Task without triggering it.
 
-**Signature:** `get(taskId: string): Promise<TaskResponse>`
+**Signature:** `get(input: { taskId: string } & ResourceRequestOptions): Promise<TaskResponse>`
 
 ```typescript
-const task = await client.tasks.get(taskId);
+const task = await client.tasks.get({ taskId });
 ```
 
 Returns [`TaskResponse`](#taskresponse). Raises `validation_failed` for a malformed ID or `not_found` when the Task is unavailable. See [`GET /v1/tasks/:taskId`](/api-reference/rest-api/tasks#get-task).
@@ -100,7 +104,7 @@ Returns [`TaskResponse`](#taskresponse). Raises `validation_failed` for a malfor
 
 Changes one or more mutable fields. Pass `schedule: null` to make the Task on-demand or `agentVersion: null` to follow the Agent's current Version.
 
-**Signature:** `update(taskId: string, body: UpdateTaskBody): Promise<TaskResponse>`
+**Signature:** `update(input: UpdateTaskBody & { taskId: string } & ResourceRequestOptions): Promise<TaskResponse>`
 
 | Body field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -114,7 +118,8 @@ Changes one or more mutable fields. Pass `schedule: null` to make the Task on-de
 At least one field is required. `agentId`, `userId`, and existing run facts cannot change.
 
 ```typescript
-const task = await client.tasks.update(taskId, {
+const task = await client.tasks.update({
+  taskId,
   enabled: false,
   metadata: { pausedBy: "ops" },
 });
@@ -126,10 +131,10 @@ Returns [`TaskResponse`](#taskresponse). Raises `validation_failed`, `not_found`
 
 Soft-deletes a Task while preserving its existing runs and Sessions.
 
-**Signature:** `delete(taskId: string): Promise<void>`
+**Signature:** `delete(input: { taskId: string } & ResourceRequestOptions): Promise<void>`
 
 ```typescript
-await client.tasks.delete(taskId);
+await client.tasks.delete({ taskId });
 ```
 
 Returns `void`. Raises `validation_failed`, `not_found`, or `task_active_run_exists` while a run is active. See [`DELETE /v1/tasks/:taskId`](/api-reference/rest-api/tasks#delete-task).
@@ -138,15 +143,16 @@ Returns `void`. Raises `validation_failed`, `not_found`, or `task_active_run_exi
 
 Enqueues an immediate run. An idempotency key makes retries for this Task resolve to the same logical run; omitting the body sends `{}`.
 
-**Signature:** `createRun(taskId: string, body?: CreateTaskRunBody): Promise<CreateTaskRunResponse>`
+**Signature:** `createRun(input: CreateTaskRunBody & { taskId: string } & ResourceRequestOptions): Promise<CreateTaskRunResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `taskId` | `string` | yes | Task ID (`tk_…`) |
-| `body.idempotencyKey` | `string` | no | Non-empty caller-defined replay key |
+| `idempotencyKey` | `string` | no | Non-empty caller-defined replay key |
 
 ```typescript
-const { runId } = await client.tasks.createRun(taskId, {
+const { runId } = await client.tasks.createRun({
+  taskId,
   idempotencyKey: "daily-summary-2026-08-02",
 });
 ```
@@ -157,7 +163,7 @@ Returns immediately with `{ runId: string }`. Persist `runId`, then use `getRun(
 
 Lists a Task's runs newest first.
 
-**Signature:** `listRuns(taskId: string, options?: TaskRunsListOptions): Promise<TaskRunsListResponse>`
+**Signature:** `listRuns(input: { taskId: string } & TaskRunsListOptions): Promise<TaskRunsListResponse>`
 
 | Option | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -165,7 +171,7 @@ Lists a Task's runs newest first.
 | `limit` | `number` | no | Page size, default 50 and maximum 200 |
 
 ```typescript
-const page = await client.tasks.listRuns(taskId, { limit: 25 });
+const page = await client.tasks.listRuns({ taskId, limit: 25 });
 ```
 
 Returns [`TaskRunsListResponse`](#taskrunslistresponse). Raises `validation_failed`, `invalid_cursor`, or `not_found`. See [`GET .../runs`](/api-reference/rest-api/task-runs#list-task-runs).
@@ -174,10 +180,10 @@ Returns [`TaskRunsListResponse`](#taskrunslistresponse). Raises `validation_fail
 
 Retrieves durable state for one run. `sessionId` remains `null` until execution attaches its fresh Session.
 
-**Signature:** `getRun(taskId: string, runId: string): Promise<TaskRunResponse>`
+**Signature:** `getRun(input: { taskId: string; runId: string } & ResourceRequestOptions): Promise<TaskRunResponse>`
 
 ```typescript
-const run = await client.tasks.getRun(taskId, runId);
+const run = await client.tasks.getRun({ taskId, runId });
 ```
 
 Returns [`TaskRunResponse`](#taskrunresponse). Raises `validation_failed` for malformed IDs or `not_found` for a missing, foreign, or mismatched Task/run pair. See [`GET .../runs/:runId`](/api-reference/rest-api/task-runs#get-task-run).
@@ -186,7 +192,7 @@ Returns [`TaskRunResponse`](#taskrunresponse). Raises `validation_failed` for ma
 
 Reads a run's Session transcript. A queued run without a Session returns an empty page. Use `cursor` to walk backward or `after` to poll forward, never both.
 
-**Signature:** `runMessages(taskId: string, runId: string, options?: TaskRunMessagesOptions): Promise<TaskRunMessagesResponse>`
+**Signature:** `runMessages(input: { taskId: string; runId: string } & TaskRunMessagesOptions): Promise<TaskRunMessagesResponse>`
 
 | Option | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -195,7 +201,9 @@ Reads a run's Session transcript. A queued run without a Session returns an empt
 | `limit` | `number` | no | Page size, default 50 and maximum 200 |
 
 ```typescript
-const transcript = await client.tasks.runMessages(taskId, runId, {
+const transcript = await client.tasks.runMessages({
+  taskId,
+  runId,
   after: latestCursor,
   limit: 50,
 });
@@ -207,10 +215,10 @@ Returns [`TaskRunMessagesResponse`](#taskrunmessagesresponse). Raises `validatio
 
 Requests cooperative cancellation and returns before the state transition finishes. Poll `getRun()` for the result. Missing, mismatched, and terminal runs are deliberately non-enumerating no-ops after an owned Task is found.
 
-**Signature:** `cancelRun(taskId: string, runId: string): Promise<void>`
+**Signature:** `cancelRun(input: { taskId: string; runId: string } & ResourceRequestOptions): Promise<void>`
 
 ```typescript
-await client.tasks.cancelRun(taskId, runId);
+await client.tasks.cancelRun({ taskId, runId });
 ```
 
 Returns `void`. Raises `validation_failed` for malformed IDs or `not_found` when the Task itself is unavailable. See [`POST .../cancel`](/api-reference/rest-api/task-runs#cancel-task-run).
@@ -280,12 +288,7 @@ interface TasksListResponse {
 
 ```typescript
 type TaskRunStatus =
-  | "queued"
-  | "running"
-  | "blocked"
-  | "succeeded"
-  | "failed"
-  | "canceled";
+  "queued" | "running" | "blocked" | "succeeded" | "failed" | "canceled";
 
 interface TaskRunsListResponse {
   data: TaskRunResponse[];
@@ -349,7 +352,9 @@ and return to the caller:
 ```typescript
 import { BlazingAgents } from "@blazingagents/sdk";
 
-const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
 const agentId = "ag_0123456789abcdef";
 
 const { task } = await client.tasks.create({
@@ -358,7 +363,8 @@ const { task } = await client.tasks.create({
   prompt: "Summarize the release queue.",
 });
 
-const { runId } = await client.tasks.createRun(task.id, {
+const { runId } = await client.tasks.createRun({
+  taskId: task.id,
   idempotencyKey: "release-summary-2026-08-02",
 });
 
@@ -370,11 +376,11 @@ IDs and inspect one durable snapshot. If the run is active, end the invocation
 and let the caller or scheduler check again later:
 
 ```typescript
-const run = await client.tasks.getRun(taskId, runId);
+const run = await client.tasks.getRun({ taskId, runId });
 if (run.status === "queued" || run.status === "running") {
   console.log("Task is still active; check again in a later invocation.");
 } else {
-  const transcript = await client.tasks.runMessages(taskId, runId);
+  const transcript = await client.tasks.runMessages({ taskId, runId });
   for (const message of transcript.data) console.log(message);
   console.log(run.status, run.error);
 }

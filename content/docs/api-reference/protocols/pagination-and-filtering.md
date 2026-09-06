@@ -76,7 +76,7 @@ Page through Sessions until the backward cursor is exhausted:
 let cursor: string | undefined;
 
 do {
-  const page = await client.sessions.list(agentId, { cursor, limit: 100 });
+  const page = await client.sessions.list({ agentId, cursor, limit: 100 });
   for (const session of page.data) {
     console.log(session.id);
   }
@@ -88,7 +88,7 @@ Bootstrap from a backward read, persist its non-null tail, then poll forward.
 Only a `nextCursor` returned by a forward request is passed back as `after`:
 
 ```typescript
-const bootstrap = await client.tasks.runMessages(taskId, runId, { limit: 50 });
+const bootstrap = await client.tasks.runMessages({ taskId, runId, limit: 50 });
 for (const message of bootstrap.data) console.log(message);
 
 if (bootstrap.latestCursor === null) {
@@ -99,7 +99,9 @@ await saveTail(bootstrap.latestCursor);
 let after: string | undefined = bootstrap.latestCursor;
 
 do {
-  const page = await client.tasks.runMessages(taskId, runId, {
+  const page = await client.tasks.runMessages({
+    taskId,
+    runId,
     after,
     limit: 50,
   });

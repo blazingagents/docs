@@ -5,7 +5,7 @@ description: Create, upload, inspect, copy, and edit Agent-owned Skills.
 
 # Skills
 
-`client.agent(agentId).skills` manages Skills owned by one Agent. Select the
+`client.agent({ agentId }).skills` manages Skills owned by one Agent. Select the
 Agent once, then create, inspect, copy, or edit its Skills without repeating the
 owner ID. A Skill is a directory whose required root `SKILL.md` supplies its
 name and description; supporting files can contain arbitrary bytes. Postgres
@@ -13,10 +13,14 @@ stores its metadata and R2 stores its authoritative files independently of
 Workspaces. Skill creation and management do not initialize the Agent's
 Workspace or Sandbox Container.
 
+Every network method accepts one input object with optional `abortSignal`.
+`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
+types include that field too.
+
 ## Overview [#overview]
 
 Every operation is scoped by the authenticated Tenant and the Agent selected
-with `client.agent(agentId)`. Skill IDs use the `skill_…` format. File paths
+with `client.agent({ agentId })`. Skill IDs use the `skill_…` format. File paths
 must be safe, non-empty relative paths without `.` or `..` segments.
 
 An Agent can own up to 100 Skills. A Skill can contain up to 100 files and 10 MiB uncompressed. Creating or replacing `SKILL.md` reparses strict YAML frontmatter; a Skill's name must be unique within its Agent.
@@ -41,7 +45,7 @@ An Agent can own up to 100 Skills. A Skill can contain up to 100 files and 10 Mi
 
 Creates a Skill from root Markdown with valid frontmatter.
 
-**Signature:** `create(input: CreateSkillBody): Promise<SkillDetail>`
+**Signature:** `create(input: CreateSkillBody & ResourceRequestOptions): Promise<SkillDetail>`
 
 | Input field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -49,7 +53,7 @@ Creates a Skill from root Markdown with valid frontmatter.
 | `content` | `string` | yes | Markdown beginning with accepted YAML frontmatter |
 
 ```typescript
-const skills = client.agent(agentId).skills;
+const skills = client.agent({ agentId }).skills;
 const skill = await skills.create({
   path: "SKILL.md",
   content: "---\nname: deploy\ndescription: Deploy the application.\n---\n",
@@ -62,7 +66,7 @@ Returns [`SkillDetail`](#skilldetail). Raises `skill_invalid_markdown`, `skill_n
 
 Imports a complete `zip`, `tar`, or `tar.gz` archive.
 
-**Signature:** `upload(input: { source: { file: Blob | Uint8Array; type: SkillArchiveType } }): Promise<SkillDetail>`
+**Signature:** `upload(input: { source: { file: Blob | Uint8Array; type: SkillArchiveType } } & ResourceRequestOptions): Promise<SkillDetail>`
 
 | Input field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -70,7 +74,7 @@ Imports a complete `zip`, `tar`, or `tar.gz` archive.
 | `source.type` | `"zip" \| "tar" \| "tar.gz"` | yes | Archive format |
 
 ```typescript
-const skills = client.agent(agentId).skills;
+const skills = client.agent({ agentId }).skills;
 const skill = await skills.upload({
   source: { file: archiveBytes, type: "tar.gz" },
 });
@@ -82,7 +86,7 @@ Returns [`SkillDetail`](#skilldetail). Raises `skill_invalid_archive`, `skill_in
 
 Lists one Agent's Skills with opaque cursor pagination.
 
-**Signature:** `list(options?: SkillsListOptions): Promise<SkillsListResponse>`
+**Signature:** `list(input?: SkillsListOptions): Promise<SkillsListResponse>`
 
 | Input field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
@@ -90,7 +94,7 @@ Lists one Agent's Skills with opaque cursor pagination.
 | `limit` | `number` | no | `50` | Page size from 1 through 100 |
 
 ```typescript
-const skills = client.agent(agentId).skills;
+const skills = client.agent({ agentId }).skills;
 const page = await skills.list({ limit: 50 });
 ```
 
@@ -100,14 +104,14 @@ Returns [`SkillsListResponse`](#skillslistresponse). Raises `validation_failed`,
 
 Retrieves a Skill's metadata and current file inventory.
 
-**Signature:** `get(input: { skillId: string }): Promise<SkillDetail>`
+**Signature:** `get(input: { skillId: string } & ResourceRequestOptions): Promise<SkillDetail>`
 
 | Input field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `skillId` | `string` | yes | Skill ID (`skill_…`) |
 
 ```typescript
-const skills = client.agent(agentId).skills;
+const skills = client.agent({ agentId }).skills;
 const skill = await skills.get({ skillId });
 ```
 
@@ -117,7 +121,7 @@ Returns [`SkillDetail`](#skilldetail). Raises `validation_failed` or `skill_not_
 
 Downloads a file without text decoding.
 
-**Signature:** `getFile(input: { skillId: string; path: string }): Promise<Uint8Array>`
+**Signature:** `getFile(input: { path: string; skillId: string } & ResourceRequestOptions): Promise<Uint8Array>`
 
 | Input field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -125,7 +129,7 @@ Downloads a file without text decoding.
 | `path` | `string` | yes | Safe relative path, including `SKILL.md` |
 
 ```typescript
-const skills = client.agent(agentId).skills;
+const skills = client.agent({ agentId }).skills;
 const bytes = await skills.getFile({
   skillId,
   path: "scripts/deploy.sh",
@@ -138,10 +142,10 @@ Returns raw `Uint8Array` bytes. Raises `validation_failed` or `skill_not_found`.
 
 Creates or replaces a file. Replacing `SKILL.md` updates the Skill metadata after validating its frontmatter.
 
-**Signature:** `putFile(input: { skillId: string; path: string; content: Blob | string | Uint8Array }): Promise<SkillDetail>`
+**Signature:** `putFile(input: { content: Blob | string | Uint8Array; path: string; skillId: string } & ResourceRequestOptions): Promise<SkillDetail>`
 
 ```typescript
-const skills = client.agent(agentId).skills;
+const skills = client.agent({ agentId }).skills;
 const skill = await skills.putFile({
   skillId,
   path: "scripts/deploy.sh",
@@ -155,10 +159,10 @@ Returns the updated [`SkillDetail`](#skilldetail). Raises `validation_failed`, `
 
 Deletes a supporting file. Deleting an absent supporting file is idempotent; root `SKILL.md` cannot be deleted.
 
-**Signature:** `deleteFile(input: { skillId: string; path: string }): Promise<SkillDetail>`
+**Signature:** `deleteFile(input: { path: string; skillId: string } & ResourceRequestOptions): Promise<SkillDetail>`
 
 ```typescript
-const skills = client.agent(agentId).skills;
+const skills = client.agent({ agentId }).skills;
 const skill = await skills.deleteFile({
   skillId,
   path: "scripts/deploy.sh",
@@ -171,7 +175,7 @@ Returns the updated [`SkillDetail`](#skilldetail). Raises `invalid_request` for 
 
 Copies a Skill independently to one or more destination Agents. Results preserve destination order; one failed destination does not reject successful copies.
 
-**Signature:** `copy(input: { skillId: string; to: { agentIds: string[] } }): Promise<SkillCopyResults>`
+**Signature:** `copy(input: { skillId: string; to: { agentIds: string[] } } & ResourceRequestOptions): Promise<SkillCopyResults>`
 
 | Input field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -179,7 +183,7 @@ Copies a Skill independently to one or more destination Agents. Results preserve
 | `to.agentIds` | `string[]` | yes | 1–30 unique destination Agent IDs |
 
 ```typescript
-const skills = client.agent(agentId).skills;
+const skills = client.agent({ agentId }).skills;
 const results = await skills.copy({
   skillId,
   to: { agentIds: [destinationAgentId] },
@@ -192,14 +196,14 @@ Returns [`SkillCopyResults`](#skillcopyresults). The request raises `validation_
 
 Deletes a Skill and all its files.
 
-**Signature:** `delete(input: { skillId: string }): Promise<void>`
+**Signature:** `delete(input: { skillId: string } & ResourceRequestOptions): Promise<void>`
 
 | Input field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `skillId` | `string` | yes | Skill ID (`skill_…`) |
 
 ```typescript
-const skills = client.agent(agentId).skills;
+const skills = client.agent({ agentId }).skills;
 await skills.delete({ skillId });
 ```
 
@@ -277,8 +281,10 @@ Create a Skill, add and read a supporting file, inspect it, and delete it:
 ```typescript
 import { BlazingAgents } from "@blazingagents/sdk";
 
-const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
-const skills = client.agent(agentId).skills;
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
+const skills = client.agent({ agentId }).skills;
 
 const skill = await skills.create({
   path: "SKILL.md",

@@ -9,6 +9,10 @@ description: Create, inspect, update, filter, and delete durable private Workspa
 Workspace stores only its product record; its Cloudflare Sandbox Container
 starts lazily on the first actual file or process operation.
 
+Every network method accepts one input object with optional `abortSignal`.
+`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
+types include that field too.
+
 ## Overview [#overview]
 
 Every Workspace is fenced to the authenticated Tenant. `userId` is immutable End-user Attribution: omit it or pass `""` for a tenant-level Workspace. `metadata` and `networkPolicy` remain mutable. The policy applies to every Agent sharing the Workspace. An attached Agent blocks deletion.
@@ -34,7 +38,7 @@ cleaned up.
 
 Creates a Workspace without starting its Cloudflare Sandbox container.
 
-**Signature:** `create(body?: CreateWorkspaceBody): Promise<Workspace>`
+**Signature:** `create(input?: CreateWorkspaceBody & ResourceRequestOptions): Promise<Workspace>`
 
 | Body field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
@@ -61,7 +65,7 @@ Returns [`Workspace`](#workspace). Raises `validation_failed` for invalid input.
 
 Lists Workspaces newest first, optionally filtered by exact Attribution.
 
-**Signature:** `list(options?: WorkspacesListOptions): Promise<WorkspacesListResponse>`
+**Signature:** `list(input?: WorkspacesListOptions): Promise<WorkspacesListResponse>`
 
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
@@ -82,7 +86,7 @@ Returns [`WorkspacesListResponse`](#workspaceslistresponse). Raises `validation_
 
 Retrieves one Workspace without starting its Cloudflare Sandbox container.
 
-**Signature:** `get(input: { workspaceId: string }): Promise<Workspace>`
+**Signature:** `get(input: { workspaceId: string } & ResourceRequestOptions): Promise<Workspace>`
 
 | Input field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -98,7 +102,7 @@ Returns [`Workspace`](#workspace). Raises `validation_failed` for a malformed ID
 
 Replaces supplied mutable fields without starting the Cloudflare Sandbox container. Attribution cannot be changed.
 
-**Signature:** `update(input: UpdateWorkspaceBody & { workspaceId: string }): Promise<Workspace>`
+**Signature:** `update(input: UpdateWorkspaceBody & { workspaceId: string } & ResourceRequestOptions): Promise<Workspace>`
 
 | Input field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -125,7 +129,7 @@ Returns [`Workspace`](#workspace). Raises `validation_failed` for invalid or emp
 Deletes a Workspace, its Cloudflare Sandbox container, and its R2 backup.
 Reassign all attached Agents first.
 
-**Signature:** `delete(input: { workspaceId: string }): Promise<"completed" | "pending">`
+**Signature:** `delete(input: { workspaceId: string } & ResourceRequestOptions): Promise<"completed" | "pending">`
 
 | Input field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -189,7 +193,9 @@ Create, update, find, and delete a Workspace:
 ```typescript
 import { BlazingAgents } from "@blazingagents/sdk";
 
-const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
 
 const workspace = await client.workspaces.create({
   name: "Release files",

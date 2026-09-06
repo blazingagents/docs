@@ -109,7 +109,7 @@ const controller = new AbortController();
 const result = await client.completion({
   agentId,
   prompt: "Analyze the report.",
-  signal: controller.signal,
+  abortSignal: controller.signal,
 });
 
 controller.abort();

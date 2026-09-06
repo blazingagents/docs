@@ -49,7 +49,9 @@ environment.
       authType: "none",
     });
 
-    const test = await client.mcpConnections.test(connection.id);
+    const test = await client.mcpConnections.test({
+      mcpConnectionId: connection.id,
+    });
     if (!test.ok) {
       throw new Error(`${test.error.code}: ${test.error.message}`);
     }
@@ -75,10 +77,12 @@ environment.
 
     async function beginMcpOAuth(
       connectionId: string,
-      tenantAdminAccessToken: string
+      tenantAdminAccessToken: string,
     ) {
       const adminClient = new BlazingAgents({ apiKey: tenantAdminAccessToken });
-      const { authorizationUrl } = await adminClient.mcpConnections.connect(connectionId);
+      const { authorizationUrl } = await adminClient.mcpConnections.connect({
+        mcpConnectionId: connectionId,
+      });
       return Response.redirect(authorizationUrl, 303);
     }
     ```
@@ -97,11 +101,10 @@ environment.
     merge the new ID:
 
     ```typescript
-    const agent = await client.agents.get(agentId);
-    await client.agents.update(agentId, {
-      mcpConnectionIds: [
-        ...new Set([...agent.mcpConnectionIds, connection.id]),
-      ],
+    const agent = await client.agents.get({ agentId });
+    await client.agents.update({
+      agentId,
+      mcpConnectionIds: [...new Set([...agent.mcpConnectionIds, connection.id])],
     });
     ```
 

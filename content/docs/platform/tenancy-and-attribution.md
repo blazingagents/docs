@@ -37,7 +37,11 @@ const userId = "usr_7f3a9c";
 
 const turn = await client.chat({
   agentId,
-  message: { id: "msg_user_1", role: "user", parts: [{ type: "text", text: "Summarize my open items." }] },
+  message: {
+    id: "msg_user_1",
+    role: "user",
+    parts: [{ type: "text", text: "Summarize my open items." }],
+  },
   userId,
   metadata: { workspace: "primary" },
 });
@@ -45,7 +49,7 @@ const turn = await client.chat({
 await turn.toResponse().text(); // Drain the Turn so the transcript can commit.
 
 const sessionId = await turn.sessionId;
-const sessions = await client.sessions.list(agentId, { userId });
+const sessions = await client.sessions.list({ agentId, userId });
 console.log(sessions.data.some((session) => session.id === sessionId));
 ```
 
@@ -87,8 +91,12 @@ export async function runAuthorizedTurn(input: {
   await result.toResponse().text();
   if (!chat.sessionId) await saveAuthorizedSession(input.appChatId, sessionId);
 
-  const sessions = await client.sessions.list(chat.agentId, { userId });
-  const usage = await client.usage.getForAgent(chat.agentId, {
+  const sessions = await client.sessions.list({
+    agentId: chat.agentId,
+    userId,
+  });
+  const usage = await client.usage.getForAgent({
+    agentId: chat.agentId,
     userId,
     groupBy: "session",
   });

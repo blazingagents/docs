@@ -43,7 +43,7 @@ const second = await client.chat({
 });
 
 await second.toResponse().text();
-const transcript = await client.sessions.messages(agentId, sessionId);
+const transcript = await client.sessions.messages({ agentId, sessionId });
 console.log(transcript.data);
 ```
 
@@ -101,7 +101,7 @@ export async function handleChat(request: Request, appChatId: string) {
     agentId: chat.agentId,
     ...(chat.sessionId ? { sessionId: chat.sessionId } : {}),
     message,
-    signal: request.signal,
+    abortSignal: request.signal,
     userId: principal.stableId,
   });
 
@@ -140,7 +140,7 @@ const first = await client.chat({ agentId, message, userId });
 const sessionId = await first.sessionId;
 await first.toResponse().text();
 
-const before = await client.sessions.messages(agentId, sessionId);
+const before = await client.sessions.messages({ agentId, sessionId });
 const original = before.data.find((item) => item.role === "assistant");
 if (!original) throw new Error("No stored assistant response");
 
@@ -154,7 +154,7 @@ const retry = await client.chat({
 });
 await retry.toResponse().text();
 
-const after = await client.sessions.messages(agentId, sessionId);
+const after = await client.sessions.messages({ agentId, sessionId });
 if (after.data.some((item) => item.id === original.id)) {
   throw new Error("The original response was not replaced");
 }

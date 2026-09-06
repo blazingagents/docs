@@ -36,8 +36,9 @@ Agent updates replace the complete `tools` array. Read the current Agent and
 merge the group to preserve unrelated selections.
 
 ```typescript
-const agent = await client.agents.get(agentId);
-await client.agents.update(agentId, {
+const agent = await client.agents.get({ agentId });
+await client.agents.update({
+  agentId,
   tools: agent.tools.includes("workspace")
     ? agent.tools
     : [...agent.tools, "workspace" as const],
@@ -96,10 +97,12 @@ Session.
       message: {
         id: crypto.randomUUID(),
         role: "user",
-        parts: [{
-          type: "text",
-          text: `Use write to create durable.txt containing exactly ${sentinel}. Do not publish it.`,
-        }],
+        parts: [
+          {
+            type: "text",
+            text: `Use write to create durable.txt containing exactly ${sentinel}. Do not publish it.`,
+          },
+        ],
       },
     });
     await writeTurn.toResponse().text();
@@ -117,20 +120,27 @@ Session.
       message: {
         id: crypto.randomUUID(),
         role: "user",
-        parts: [{ type: "text", text: "Use read to read durable.txt, then summarize." }],
+        parts: [
+          { type: "text", text: "Use read to read durable.txt, then summarize." },
+        ],
       },
     });
     const sessionId = await readTurn.sessionId;
     await readTurn.toResponse().text();
 
-    const { data } = await client.sessions.messages(agentId, sessionId);
-    const result = data.flatMap((message) => message.parts).find(
-      (part) => part.type === "tool-read" && part.state === "output-available"
-    )?.output;
+    const { data } = await client.sessions.messages({ agentId, sessionId });
+    const result = data
+      .flatMap((message) => message.parts)
+      .find(
+        (part) => part.type === "tool-read" && part.state === "output-available",
+      )?.output;
     if (
-      typeof result !== "object" || result === null ||
-      !("path" in result) || !("content" in result) ||
-      result.path !== "/workspace/durable.txt" || result.content !== sentinel
+      typeof result !== "object" ||
+      result === null ||
+      !("path" in result) ||
+      !("content" in result) ||
+      result.path !== "/workspace/durable.txt" ||
+      result.content !== sentinel
     ) {
       throw new Error("Persistence check failed");
     }
@@ -154,12 +164,15 @@ const turn = await client.chat({
   message: {
     id: crypto.randomUUID(),
     role: "user",
-    parts: [{
-      type: "text",
-      text: "Use write to create status.txt containing PENDING plus a newline. "
-        + "Use edit to replace PENDING with READY. Verify it with read, grep for READY, "
-        + "and glob for status.txt. Run `wc -c < status.txt` with bash. Then summarize.",
-    }],
+    parts: [
+      {
+        type: "text",
+        text:
+          "Use write to create status.txt containing PENDING plus a newline. " +
+          "Use edit to replace PENDING with READY. Verify it with read, grep for READY, " +
+          "and glob for status.txt. Run `wc -c < status.txt` with bash. Then summarize.",
+      },
+    ],
   },
 });
 await turn.toResponse().text();

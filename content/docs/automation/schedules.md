@@ -44,14 +44,14 @@ const { task } = await client.tasks.create({
   prompt: "Refresh the operations summary.",
   schedule: expectedSchedule,
 });
-const stored = await client.tasks.get(task.id);
+const stored = await client.tasks.get({ taskId: task.id });
 if (JSON.stringify(stored.schedule) !== JSON.stringify(expectedSchedule)) {
   throw new Error("The persisted schedule does not match");
 }
-let runs = await client.tasks.listRuns(task.id);
+let runs = await client.tasks.listRuns({ taskId: task.id });
 for (let attempt = 0; attempt < 70 && runs.data.length === 0; attempt += 1) {
   await new Promise((resolve) => setTimeout(resolve, 1_000));
-  runs = await client.tasks.listRuns(task.id);
+  runs = await client.tasks.listRuns({ taskId: task.id });
 }
 if (!runs.data[0]) throw new Error("No scheduled run was observed");
 console.log(runs.data[0].status);

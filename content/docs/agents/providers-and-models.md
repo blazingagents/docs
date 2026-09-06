@@ -48,11 +48,14 @@ const provider = await client.providers.create({
 assert.equal(provider.keyFragment, apiKey.slice(-4));
 assert.ok(!("apiKey" in provider));
 
-const { models } = await client.providers.listModels(provider.id);
+const { models } = await client.providers.listModels({
+  providerId: provider.id,
+});
 const model = models.find(({ id }) => id === "anthropic/claude-sonnet-4.5");
 assert.ok(model, "Required Provider model is unavailable");
 
-await client.agents.update(process.env.AGENT_ID!, {
+await client.agents.update({
+  agentId: process.env.AGENT_ID!,
   providerId: provider.id,
   model: model.id,
 });

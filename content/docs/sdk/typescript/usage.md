@@ -7,6 +7,10 @@ description: Query bounded Tenant-wide and per-Agent token, request, and duratio
 
 `client.usage` reads append-only per-Turn usage after it has been rolled up daily. Results are operational measurements, not billing records.
 
+Every network method accepts one input object with optional `abortSignal`.
+`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
+types include that field too.
+
 ## Overview [#overview]
 
 Usage reports input tokens, output tokens, requests, and duration in milliseconds. Queries may filter by Agent, Session, or End-user Attribution and group by `day`, `agent`, `model`, `session`, or `user`.
@@ -26,7 +30,7 @@ Supply both `from` and `to` or neither. The default is the last 30 days ending t
 
 Returns usage across the Tenant, optionally narrowed by Agent, Session, or Attribution.
 
-**Signature:** `get(query?: Partial<UsageQuery>): Promise<UsageResponse>`
+**Signature:** `get(input?: Partial<UsageQuery> & ResourceRequestOptions): Promise<UsageResponse>`
 
 | Query field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -52,17 +56,19 @@ Returns [`UsageResponse`](#usageresponse). Raises `validation_failed` for a part
 
 Returns usage scoped to the Agent in the path. The aggregation does not require the Agent to exist; a valid ID with no matching rows returns empty buckets and zero totals.
 
-**Signature:** `getForAgent(agentId: string, query?: Partial<UsageQuery>): Promise<UsageResponse>`
+**Signature:** `getForAgent(input: Partial<UsageQuery> & { agentId: string } & ResourceRequestOptions): Promise<UsageResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent scope (`ag_…`) |
-| `query` | `Partial<UsageQuery>` | no | Same filters and grouping as `get()` |
+| Other fields from `UsageQuery` | — | no | Same filters and grouping as `get()`, alongside `agentId` |
 
-The path fixes the Agent scope. If `query.agentId` is supplied, it does not override the path.
+The input's `agentId` fixes the Agent scope. Supply filters such as `userId`
+and `groupBy` in the same object.
 
 ```typescript
-const usage = await client.usage.getForAgent("ag_0123456789abcdef", {
+const usage = await client.usage.getForAgent({
+  agentId: "ag_0123456789abcdef",
   userId: "user-42",
   groupBy: "session",
   limit: 20,
@@ -141,12 +147,15 @@ Compare Tenant totals with one Agent's model breakdown over the same range:
 ```typescript
 import { BlazingAgents } from "@blazingagents/sdk";
 
-const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
 const range = { from: "2026-07-01", to: "2026-07-20" };
 
 const [tenantUsage, agentUsage] = await Promise.all([
   client.usage.get({ ...range, groupBy: "day" }),
-  client.usage.getForAgent("ag_0123456789abcdef", {
+  client.usage.getForAgent({
+    agentId: "ag_0123456789abcdef",
     ...range,
     groupBy: "model",
   }),

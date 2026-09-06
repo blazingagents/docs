@@ -7,6 +7,10 @@ description: Read and update Tenant display settings and soft quota configuratio
 
 `client.tenant` reads and updates settings for the Tenant authenticated by the client credential. It is a singleton resource: methods do not accept a Tenant ID.
 
+Every network method accepts one input object with optional `abortSignal`.
+`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
+types include that field too.
+
 ## Overview [#overview]
 
 Settings contain a display `name` and nullable `quota`. `quota: null` means no configured monthly quota. Within a quota, either token or request limit may be `null` to disable that measure; `resetDay` is always required and ranges from 1 through 28.
@@ -26,7 +30,7 @@ Settings contain a display `name` and nullable `quota`. `quota: null` means no c
 
 Returns the complete settings for the authenticated Tenant.
 
-**Signature:** `get(): Promise<TenantSettingsResponse>`
+**Signature:** `get(input?: ResourceRequestOptions): Promise<TenantSettingsResponse>`
 
 ```typescript
 const settings = await client.tenant.get();
@@ -38,7 +42,7 @@ Returns [`TenantSettingsResponse`](#tenantsettingsresponse). Only standard authe
 
 Changes the Tenant display name, quota, or both. Omitted top-level fields remain unchanged. A supplied quota is a complete replacement; pass `quota: null` to remove it.
 
-**Signature:** `patch(body: UpdateTenantSettingsBody): Promise<TenantSettingsResponse>`
+**Signature:** `patch(input: UpdateTenantSettingsBody & ResourceRequestOptions): Promise<TenantSettingsResponse>`
 
 | Body field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -102,7 +106,9 @@ Read the current singleton settings, configure a quota while leaving the name un
 ```typescript
 import { BlazingAgents } from "@blazingagents/sdk";
 
-const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
 
 const current = await client.tenant.get();
 const updated = await client.tenant.patch({

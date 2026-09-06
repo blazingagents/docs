@@ -7,6 +7,10 @@ description: Manage reusable Prompt templates and invoke them from generation he
 
 `client.prompts` manages tenant-owned named message templates. Variables are inferred from `{{variable}}` placeholders and supplied only when invoking the Prompt.
 
+Every network method accepts one input object with optional `abortSignal`.
+`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
+types include that field too.
+
 ## Overview [#overview]
 
 Prompt names are unique within a Tenant. A Prompt belongs either to the Tenant (`userId: ""`) or to an attributed End-user; Attribution is set at creation and cannot be changed. Metadata and template content remain mutable.
@@ -29,7 +33,7 @@ Templates may contain up to 10 variables. Variable names must match `[A-Za-z_][A
 
 Creates a Prompt and infers its variable names from the template.
 
-**Signature:** `create(body: CreatePromptBody): Promise<PromptResponse>`
+**Signature:** `create(input: CreatePromptBody & ResourceRequestOptions): Promise<PromptResponse>`
 
 | Body field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -53,14 +57,14 @@ Returns [`PromptResponse`](#promptresponse). Raises `validation_failed` for inva
 
 Lists Prompts by most recent update. Omit `userId` to list every Prompt or pass an exact value; `""` selects Tenant-level Prompts.
 
-**Signature:** `list(userId?: string): Promise<PromptsResponse>`
+**Signature:** `list(input?: { userId?: string } & ResourceRequestOptions): Promise<PromptsResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `userId` | `string` | no | Exact Attribution filter |
 
 ```typescript
-const { prompts } = await client.prompts.list("user-42");
+const { prompts } = await client.prompts.list({ userId: "user-42" });
 ```
 
 Returns `{ prompts: PromptResponse[] }`. Only standard authentication and service errors apply. See [`GET /v1/prompts`](/api-reference/rest-api/prompts#list-prompts).
@@ -69,10 +73,10 @@ Returns `{ prompts: PromptResponse[] }`. Only standard authentication and servic
 
 Retrieves one Prompt by its `prompt_…` ID.
 
-**Signature:** `get(promptId: string): Promise<PromptResponse>`
+**Signature:** `get(input: { promptId: string } & ResourceRequestOptions): Promise<PromptResponse>`
 
 ```typescript
-const prompt = await client.prompts.get(promptId);
+const prompt = await client.prompts.get({ promptId });
 ```
 
 Returns [`PromptResponse`](#promptresponse). Raises `validation_failed` for a malformed ID or `not_found` when the Prompt is unavailable. See [`GET /v1/prompts/:promptId`](/api-reference/rest-api/prompts#get-prompt).
@@ -81,19 +85,20 @@ Returns [`PromptResponse`](#promptresponse). Raises `validation_failed` for a ma
 
 Changes a Prompt in place. Omitted fields remain unchanged, and `userId` cannot be updated.
 
-**Signature:** `update(promptId: string, body: UpdatePromptBody): Promise<PromptResponse>`
+**Signature:** `update(input: UpdatePromptBody & { promptId: string } & ResourceRequestOptions): Promise<PromptResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `promptId` | `string` | yes | Prompt ID (`prompt_…`) |
-| `body.name` | `string` | no | New Tenant-unique name |
-| `body.template` | `string` | no | New template; recomputes `variables` |
-| `body.metadata` | `Record<string, unknown>` | no | Complete replacement metadata |
+| `name` | `string` | no | New Tenant-unique name |
+| `template` | `string` | no | New template; recomputes `variables` |
+| `metadata` | `Record<string, unknown>` | no | Complete replacement metadata |
 
 At least one body field is required.
 
 ```typescript
-const prompt = await client.prompts.update(promptId, {
+const prompt = await client.prompts.update({
+  promptId,
   template: "Summarize {{feature}} for the {{audience}}.",
 });
 ```
@@ -104,10 +109,10 @@ Returns [`PromptResponse`](#promptresponse). Raises `validation_failed` for inva
 
 Permanently deletes a Prompt. Previously rendered transcripts remain unchanged.
 
-**Signature:** `delete(promptId: string): Promise<void>`
+**Signature:** `delete(input: { promptId: string } & ResourceRequestOptions): Promise<void>`
 
 ```typescript
-await client.prompts.delete(promptId);
+await client.prompts.delete({ promptId });
 ```
 
 Returns `void`. Raises `validation_failed` for a malformed ID or `not_found` when the Prompt is unavailable. See [`DELETE /v1/prompts/:promptId`](/api-reference/rest-api/prompts#delete-prompt).
@@ -152,7 +157,9 @@ Create a Prompt, invoke it through a generation helper, update it, then delete i
 ```typescript
 import { BlazingAgents } from "@blazingagents/sdk";
 
-const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
 
 const prompt = await client.prompts.create({
   name: "Release note",
@@ -166,10 +173,11 @@ const result = await client.completion({
 });
 console.log(await result.text);
 
-await client.prompts.update(prompt.id, {
+await client.prompts.update({
+  promptId: prompt.id,
   metadata: { purpose: "release" },
 });
-await client.prompts.delete(prompt.id);
+await client.prompts.delete({ promptId: prompt.id });
 ```
 
 ## Related [#related]
