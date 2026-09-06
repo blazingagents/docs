@@ -11,7 +11,7 @@ Usage records what each Turn consumed and rolls those records up for reporting. 
 
 Every Turn appends one usage record with input tokens, output tokens, one request count, duration, Agent Version, provider, model, Session or stateless marker, and Attribution. Daily rollups aggregate token, request, and duration fields for queries and quota windows.
 
-Settlement runs for successful, failed, and cancelled Turns. A failure before the model reports usage can therefore record zero tokens but still records the request and duration. If an error or abort happens after completed model steps, tokens already reported by those steps remain in usage. A failed interactive Turn retains only the submitted user message; cancellation leaves its transcript unchanged, though an admitted first Turn has already materialized the Session.
+Settlement runs for successful, failed, and cancelled Turns. A failure before the model reports usage can therefore record zero tokens but still records the request and duration. If an error or abort happens after completed model steps, tokens already reported by those steps remain in usage. A failed or canceled interactive Turn leaves its transcript unchanged, though an admitted first Turn has already materialized the Session.
 
 ## Query usage [#query-usage]
 

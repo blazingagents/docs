@@ -7,6 +7,12 @@ description: Design for bounded operations, typed failures, idempotent submissio
 
 Blazing Agents enforces product bounds and durable execution controls, while the tenant's application remains responsible for safe retries and external side effects. Use these contracts to distinguish a platform guarantee from work your integration must reconcile.
 
+## Interactive resend
+
+For interactive chat, retain submitted text/images until successful response completion. After failure or Stop, permit editing, discard, navigation, and explicit ordinary resend with a fresh user-message ID. A busy Session is a displayed error, not a permanent composer lock. Do not automatically replay generation or poll an ordinary-Turn outcome. A lost response can hide a saved exchange; reopening reads history normally. Repeated submissions can repeat external Tool effects. See [the chatbot guide](/getting-started/chatbot).
+
+The durable Task guarantees and polling below apply to Task runs.
+
 ## Product limits and pagination [#product-limits-and-pagination]
 
 Resource counts, text and upload sizes, schedule intervals, usage windows, and page sizes are enforced by public schemas, services, and storage constraints. Use the canonical [service-limits table](/api-reference/protocols/service-limits) for current values instead of embedding them in application logic.

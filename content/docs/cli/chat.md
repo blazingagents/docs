@@ -15,7 +15,7 @@ Select the Agent by exact ID or full name. Exact-case full names win; one case-i
 
 ## Start a chat [#start-a-chat]
 
-Without `--session`, the CLI opens an empty local TUI. The platform mints and materializes a Session after the first message is admitted, before model execution. A failed Turn can therefore leave a user-only Session, while cancellation can leave it empty.
+Without `--session`, the CLI opens an empty local TUI. The platform mints and materializes a Session after the first message is admitted, before model execution. A failed or canceled Turn can therefore leave an empty Session. Resend submits a new attempt; it does not regenerate a failed message.
 
 ```bash
 ba chat 'Release Agent'

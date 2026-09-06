@@ -62,7 +62,7 @@ Complete the [Quickstart](/getting-started/quickstart), then set `BLAZING_AGENTS
 
     The first call omits `sessionId`. The SDK reads the minted ID from response headers after admission, and the handler commits its `(userId, chatId) → sessionId` mapping before relaying the stream.
 
-    The Session is already materialized: success commits the exchange, failure retains the user message, and cancellation can leave it empty. Mapping-write failures error the relay and reach the application's error reporter instead of being discarded. Later calls load the server-owned mapping and pass its `sessionId` to `client.chat()`.
+    The Session is already materialized: success commits the exchange, failure or cancellation leaves the transcript unchanged and can leave it empty. Mapping-write failures error the relay and reach the application's error reporter instead of being discarded. Later calls load the server-owned mapping and pass its `sessionId` to `client.chat()`.
 
   </Step>
   <Step>
