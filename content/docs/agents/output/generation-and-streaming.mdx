@@ -179,7 +179,7 @@ const regenerated = await client.chat({
 });
 ```
 
-The platform resolves and applies the selected truncation under the Turn claim. Success appends the replacement; failure leaves the retained user message without the selected prior response; cancellation leaves the transcript unchanged. Omitting `messageId` targets the latest assistant response; targeting a user message removes that user event before the supplied message is appended again.
+The platform resolves the selected target under the Turn claim. Successful completion atomically commits truncation and replacement; failure or cancellation preserves the previous answer. Omitting `messageId` targets the latest assistant response; targeting a user message removes that user event before the supplied message is appended again.
 
 ## Abort, errors, and settlement [#abort-errors-and-settlement]
 
@@ -189,7 +189,7 @@ After chat SSE starts, a native server-generated `{ type: "error", errorText }` 
 
 For completion, `textStream` propagates the underlying transport error. Only awaited `text` normalizes that failure to `BlazingAgentsError` with code `stream_error`. Every admitted Turn settles usage, including model failure and cancellation.
 
-Successful chat commits its accepted exchange to the Session. Failed chat commits only the submitted user message, while cancelled chat leaves the transcript unchanged. Completion remains a metered Turn, resolves an Agent Version, and records Attribution and usage, but creates no Session or transcript.
+Successful chat commits its accepted exchange to the Session. Failed or cancelled chat leaves the transcript unchanged. Completion remains a metered Turn, resolves an Agent Version, and records Attribution and usage, but creates no Session or transcript.
 
 ## Reference [#reference]
 

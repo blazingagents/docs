@@ -214,6 +214,10 @@ export const documentationPages = [
     "url": "/getting-started"
   },
   {
+    "path": "getting-started/chatbot.mdx",
+    "url": "/getting-started/chatbot"
+  },
+  {
     "path": "getting-started/connect-your-app.mdx",
     "url": "/getting-started/connect-your-app"
   },
@@ -4452,7 +4456,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates a Session and runs its first Turn. Validation and admission failures leave no Session; later failures keep the user message without an assistant response.",
+        "description": "Creates a Session and runs its first Turn. Validation/admission failures leave no Session; execution failures leave an empty, usable Session.",
         "examples": [
           {
             "code": "curl --include --no-buffer --request POST \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"message\":{\"id\":\"msg_client_1\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"Hello\"}]}}'",
@@ -7571,6 +7575,14 @@ export const documentationTree: SerializedPageTree = {
             "description": "Relay a chat stream through your authenticated backend and safely resume its Session.",
             "url": "/getting-started/connect-your-app",
             "$ref": "getting-started/connect-your-app.mdx"
+          },
+          {
+            "$id": "getting-started/chatbot.mdx",
+            "type": "page",
+            "name": "Build a chatbot",
+            "description": "Send, Stop, edit, resend, and regenerate with SDK-native chat.",
+            "url": "/getting-started/chatbot",
+            "$ref": "getting-started/chatbot.mdx"
           },
           {
             "$id": "getting-started/next-steps.mdx",

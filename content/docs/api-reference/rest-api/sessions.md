@@ -13,7 +13,7 @@ A Session stores a stateful Agent transcript and its Tool-approval lifecycle. Us
 
 ### POST /v1/agents/:agentId/sessions [#create-session-turn]
 
-Creates a Session and runs its first Turn. Validation and admission failures leave no Session; later failures keep the user message without an assistant response.
+Creates a Session and runs its first Turn. Validation/admission failures leave no Session; execution failures leave an empty, usable Session.
 
 #### Request
 
@@ -45,7 +45,7 @@ The body is an AI SDK UI message SSE stream of `UIMessageChunk` events. The resp
 
 #### Errors
 
-`400 validation_failed` covers malformed/mixed input; `provider_required` rejects an unconfigured resolved Version before Session, Turn, transcript, or billing side effects. Prompt variables and other state failures use their specific codes. `402 subscription_required` or `usage_credit_required` blocks billable execution. `404 not_found` applies to a missing Agent, Provider, or Prompt, while `agent_version_not_found` identifies a missing Pin and `workspace_not_found` identifies a missing Workspace. `409 agent_disabled` can reject execution. `429 quota_exceeded` or `rate_limited`, plus retryable `service_unavailable`, may occur before admission. Pre-stream failures use the JSON envelope; mid-stream failures emit an AI SDK error chunk. Failed admitted Turns are metered and retain the submitted user message; cancellation leaves the transcript unchanged. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` covers malformed/mixed input; `provider_required` rejects an unconfigured resolved Version before Session, Turn, transcript, or billing side effects. Prompt variables and other state failures use their specific codes. `402 subscription_required` or `usage_credit_required` blocks billable execution. `404 not_found` applies to a missing Agent, Provider, or Prompt, while `agent_version_not_found` identifies a missing Pin and `workspace_not_found` identifies a missing Workspace. `409 agent_disabled` can reject execution. `429 quota_exceeded` or `rate_limited`, plus retryable `service_unavailable`, may occur before admission. Pre-stream failures use the JSON envelope; mid-stream failures emit an AI SDK error chunk. Failed or canceled admitted Turns are metered and leave the transcript unchanged. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -83,7 +83,7 @@ Returns `200 OK` with an AI SDK UI message SSE stream, `Content-Type: text/event
 
 #### Errors
 
-`400 validation_failed` covers invalid input; `provider_required` rejects an unconfigured pinned Version before Turn or billing side effects. Prompt variables, Version mismatch, and regeneration state use their specific codes. `402 subscription_required` or `usage_credit_required` blocks billable execution. `404 not_found` applies to an unknown/deleted Session or missing Agent, Provider, Prompt, or Workspace. `409 agent_disabled` can reject execution. `429 quota_exceeded` or `rate_limited`, plus retryable `service_unavailable`, may occur before admission. Failed admitted Turns are metered and retain the submitted user message. Failed regeneration also removes the selected prior response; cancellation leaves the transcript unchanged. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` covers invalid input; `provider_required` rejects an unconfigured pinned Version before Turn or billing side effects. Prompt variables, Version mismatch, and regeneration state use their specific codes. `402 subscription_required` or `usage_credit_required` blocks billable execution. `404 not_found` applies to an unknown/deleted Session or missing Agent, Provider, Prompt, or Workspace. `409 agent_disabled` can reject execution. `429 quota_exceeded` or `rate_limited`, plus retryable `service_unavailable`, may occur before admission. Failed or canceled admitted Turns are metered and leave the transcript unchanged. Failed or canceled regeneration preserves the selected prior response. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 

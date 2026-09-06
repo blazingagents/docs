@@ -56,9 +56,8 @@ the request and canceling the selected decoded or relay stream propagates to
 the active Turn. Completion and object inputs also forward `AbortSignal`; use
 it to cancel the Turn rather than relying on cancellation of one tee branch.
 Canceling a Tool approval join only detaches that polling response: it does not
-cancel the durable continuation. Failed interactive Turns commit only their
-submitted user message; failed regeneration also applies its selected
-truncation. Canceled interactive Turns leave the transcript unchanged. Both are
+cancel the durable continuation. Failed or canceled interactive Turns leave the transcript unchanged, including
+the previous answer during regeneration. Both are
 metered, and external Tool side effects are not rolled back. Durable Tasks
 differ: the worker attaches a fresh Session
 before execution and incrementally commits user, assistant, and failure events,
