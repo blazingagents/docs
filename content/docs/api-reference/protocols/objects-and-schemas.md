@@ -126,7 +126,9 @@ See [SDK Sessions](/sdk/typescript/sessions),
 <span id="latest-sessions-list-response"></span>
 
 `latestSessionListItemSchema` / `LatestSessionListItem` extends
-`SessionListItem` with the owning `agentId`. `latestSessionsListResponseSchema`
+`SessionListItem` with the owning `agentId`, nullable `model`, nullable
+`thinkingLevel`, and `status` (`"active"` or `"disabled"`). These fields describe
+the Agent's current state, independently of a Session's pinned Version. `latestSessionsListResponseSchema`
 is the paginated envelope returned by `GET /v1/sessions/latest`, with one item
 per Agent.
 

@@ -164,7 +164,7 @@ SDKs: [TypeScript](/sdk/typescript/sessions#list) / [Python](/sdk/python/session
 
 Lists each Agent's most recently updated Session in one page.
 
-An Agent appears at most once, and only when it has at least one non-deleted Session that matches the filters. Use this for an Agent Inbox (one row per Agent showing its latest Session) instead of calling `GET /v1/agents/:agentId/sessions?limit=1` once per Agent.
+An Agent appears at most once, and only when it has at least one non-deleted, nonempty Session that matches the filters. Use this for an Agent Inbox (one row per Agent showing its latest Session) instead of calling `GET /v1/agents/:agentId/sessions?limit=1` once per Agent.
 
 #### Request
 
@@ -184,7 +184,7 @@ With `userId`, only Sessions attributed to that end user are considered, so each
 
 #### Response
 
-Returns `200 OK` with [cursor pagination](/api-reference/protocols/pagination-and-filtering). Items are ordered by `updatedAt` descending, then `id` ascending, across Agents. Each item is a Session list item plus its `agentId`.
+Returns `200 OK` with [cursor pagination](/api-reference/protocols/pagination-and-filtering). Items are ordered by `updatedAt` descending, then `id` ascending, across Agents. Each item is a Session list item plus its `agentId`, nullable `model`, nullable `thinkingLevel`, and `status` (`"active"` or `"disabled"`). These are the Agent's current values, independently of the Session's pinned Version or previous Turns. Disabled Agents remain included.
 
 Response schema: [`latestSessionsListResponseSchema`](/api-reference/protocols/objects-and-schemas#latest-sessions-list-response).
 
@@ -194,6 +194,9 @@ Response schema: [`latestSessionsListResponseSchema`](/api-reference/protocols/o
     {
       "id": "ss_1234567890ABCDEF",
       "agentId": "ag_1234567890ABCDEF",
+      "model": "gpt-5",
+      "thinkingLevel": "high",
+      "status": "disabled",
       "agentVersion": 3,
       "messageCount": 4,
       "lastMessagePreview": "Tell me more.",
