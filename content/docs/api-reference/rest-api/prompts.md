@@ -27,8 +27,12 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and JSO
 | ---------- | ------ | -------- | ------------------------------------------------------------ |
 | `name`     | string | yes      | 1–80 characters                                              |
 | `template` | string | yes      | Non-empty template, up to 10,240 characters and 10 variables |
+| `agentId` | string or null | no | Same-Tenant Agent link; omission or null means unlinked |
 | `userId`   | string | no       | Defaults to `""`                                             |
 | `metadata` | object | no       | Defaults to `{}`                                             |
+
+Deleting a linked Agent also deletes its Prompts. Unlinked Prompts remain.
+A missing or foreign Agent link returns `404 not_found`.
 
 Variable names match `[A-Za-z_][A-Za-z0-9_]*`.
 
@@ -42,6 +46,7 @@ Response schema: [`promptResponseSchema`](/api-reference/protocols/objects-and-s
 {
   "id": "prompt_1234567890ABCDEF",
   "tenantId": "ten_1234567890ABCDEF",
+  "agentId": null,
   "name": "Welcome",
   "template": "Welcome, {{name}}!",
   "variables": ["name"],
@@ -86,6 +91,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). The cr
 
 | Query parameter | Type   | Required | Description                                           |
 | --------------- | ------ | -------- | ----------------------------------------------------- |
+| `agentId` | string | no | Exact Agent link filter; combines with userId |
 | `userId`        | string | no       | Attribution filter; `""` selects tenant-level Prompts |
 
 There is no request body.
@@ -135,6 +141,7 @@ Response schema: [`promptResponseSchema`](/api-reference/protocols/objects-and-s
 {
   "id": "prompt_1234567890ABCDEF",
   "tenantId": "ten_1234567890ABCDEF",
+  "agentId": null,
   "name": "Welcome",
   "template": "Welcome, {{name}}!",
   "variables": ["name"],
@@ -175,11 +182,13 @@ Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, 
 
 | Body field | Type   | Required | Description                           |
 | ---------- | ------ | -------- | ------------------------------------- |
+| `agentId` | string or null | no | Set or clear the Agent link |
 | `name`     | string | no       | New name                              |
 | `template` | string | no       | New template, up to 10,240 characters |
 | `metadata` | object | no       | Replacement metadata                  |
 
-At least one body field is required. There are no query parameters.
+At least one body field is required. There are no query parameters. A missing
+or foreign Agent link returns `404 not_found`.
 
 #### Response
 

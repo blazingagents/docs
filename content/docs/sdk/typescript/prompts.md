@@ -13,7 +13,7 @@ types include that field too.
 
 ## Overview [#overview]
 
-Prompt names are unique within a Tenant. A Prompt belongs either to the Tenant (`userId: ""`) or to an attributed End-user; Attribution is set at creation and cannot be changed. Metadata and template content remain mutable.
+Prompt names are unique within a Tenant. A Prompt belongs either to the Tenant (`userId: ""`) or to an attributed End-user; Attribution is set at creation and cannot be changed. Metadata and template content remain mutable. An optional, mutable `agentId` links to an Agent in the same Tenant. Deleting that Agent deletes linked Prompts. Update with `agentId: null` to clear the link.
 
 Templates may contain up to 10 variables. Variable names must match `[A-Za-z_][A-Za-z0-9_]*`. Updating a template recomputes the returned `variables` array. Prompt records are not retained in transcripts; only their rendered text enters a generation or Session transcript.
 
@@ -22,9 +22,9 @@ Templates may contain up to 10 variables. Variable names must match `[A-Za-z_][A
 | Method | Description | Returns |
 | --- | --- | --- |
 | [`create()`](#create) | Create a reusable Prompt | `PromptResponse` |
-| [`list()`](#list) | List all or filter by exact `userId` | `PromptsResponse` |
+| [`list()`](#list) | List all or filter by exact `userId` and/or `agentId` | `PromptsResponse` |
 | [`get()`](#get) | Retrieve one Prompt | `PromptResponse` |
-| [`update()`](#update) | Change a Prompt's name, template, or metadata | `PromptResponse` |
+| [`update()`](#update) | Change a Prompt's name, template, metadata, or Agent link | `PromptResponse` |
 | [`delete()`](#delete) | Permanently delete a Prompt | `void` |
 
 ## Methods [#methods]
@@ -39,6 +39,7 @@ Creates a Prompt and infers its variable names from the template.
 | --- | --- | --- | --- |
 | `name` | `string` | yes | Tenant-unique display name, 1–80 characters |
 | `template` | `string` | yes | Non-empty template, up to 10,240 characters and 10 variables |
+| `agentId` | `string \| null` | no | Same-Tenant Agent link; omitted or null means unlinked |
 | `userId` | `string` | no | End-user Attribution; defaults to `""` |
 | `metadata` | `Record<string, unknown>` | no | Mutable metadata; defaults to `{}` |
 
@@ -51,20 +52,21 @@ const prompt = await client.prompts.create({
 });
 ```
 
-Returns [`PromptResponse`](#promptresponse). Raises `validation_failed` for invalid input, `prompt_name_conflict` for a duplicate name, or `prompt_limit_reached` at the Tenant cap. See [`POST /v1/prompts`](/api-reference/rest-api/prompts#create-prompt).
+Returns [`PromptResponse`](#promptresponse). Raises `validation_failed` for invalid input, `prompt_name_conflict` for a duplicate name, or `prompt_limit_reached` at the Tenant cap. A missing or foreign Agent uses `not_found`. See [`POST /v1/prompts`](/api-reference/rest-api/prompts#create-prompt).
 
 ### `list()` [#list]
 
-Lists Prompts by most recent update. Omit `userId` to list every Prompt or pass an exact value; `""` selects Tenant-level Prompts.
+Lists Prompts by most recent update. Omit both filters to list every Prompt or pass exact values; `""` selects Tenant-level Prompts.
 
-**Signature:** `list(input?: { userId?: string } & ResourceRequestOptions): Promise<PromptsResponse>`
+**Signature:** `list(input?: { userId?: string; agentId?: string } & ResourceRequestOptions): Promise<PromptsResponse>`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `userId` | `string` | no | Exact Attribution filter |
+| `agentId` | `string` | no | Exact Agent link filter; combines with userId |
 
 ```typescript
-const { prompts } = await client.prompts.list({ userId: "user-42" });
+const { prompts } = await client.prompts.list({ userId: "user-42", agentId: "ag_0123456789abcdef" });
 ```
 
 Returns `{ prompts: PromptResponse[] }`. Only standard authentication and service errors apply. See [`GET /v1/prompts`](/api-reference/rest-api/prompts#list-prompts).
@@ -90,6 +92,7 @@ Changes a Prompt in place. Omitted fields remain unchanged, and `userId` cannot 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `promptId` | `string` | yes | Prompt ID (`prompt_…`) |
+| `agentId` | `string \| null` | no | Set or clear the Agent link |
 | `name` | `string` | no | New Tenant-unique name |
 | `template` | `string` | no | New template; recomputes `variables` |
 | `metadata` | `Record<string, unknown>` | no | Complete replacement metadata |
@@ -125,6 +128,7 @@ Returns `void`. Raises `validation_failed` for a malformed ID or `not_found` whe
 | --- | --- | --- |
 | `id` | `string` | Prompt ID (`prompt_…`) |
 | `tenantId` | `string` | Owning Tenant ID (`ten_…`) |
+| `agentId` | `string \| null` | Linked Agent; null when unlinked |
 | `name` | `string` | Tenant-unique display name |
 | `template` | `string` | Unrendered template |
 | `variables` | `string[]` | Inferred, de-duplicated variable names in template order |

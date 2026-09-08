@@ -58,7 +58,16 @@ enters a Session transcript, so later edits or deletion do not change history.
 A Tenant can store up to 100 Prompts. Names are unique per Tenant and at most
 80 characters. Templates are non-empty, at most 10,240 characters, and contain
 at most 10 distinct variables. `userId` is immutable Attribution; `name`,
-`template`, and `metadata` are mutable. Deletion is permanent.
+`template`, `metadata`, and the optional `agentId` link are mutable. Deletion is permanent.
+
+Set `agentId` when creating a Prompt to link it to an Agent in the same Tenant.
+Omit it or pass `null` to leave the Prompt unlinked; update with `null` to clear
+an existing link. Deleting an Agent also deletes its linked Prompts. Unlinked
+Prompts remain. The link supports organization and filtering; any Agent in
+the Tenant can still invoke the Prompt. Attribution remains independent.
+
+List filters accept `agentId` and `userId` together and return their intersection.
+Omitting both returns all Tenant Prompts.
 
 ## SDK and API [#sdk-and-api]
 

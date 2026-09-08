@@ -312,7 +312,9 @@ See [SDK Task runs](/sdk/typescript/tasks#list-runs),
 
 <span id="prompt-response"></span><span id="prompts-response"></span>
 
-`promptSchema` / `Prompt` has mutable name, template, and metadata. `variables`
+`promptSchema` / `Prompt` has mutable name, template, metadata, and nullable
+`agentId`. The linked Agent must belong to the same Tenant; deleting it deletes
+the Prompt. Omit the link at creation or set it to null to leave it unlinked. `variables`
 is inferred from distinct valid `{{name}}` tokens and is read-only. Identity,
 `userId`, and creation time are immutable. `promptsResponseSchema` wraps a
 `prompts` array for list responses.

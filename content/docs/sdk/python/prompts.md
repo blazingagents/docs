@@ -35,10 +35,13 @@ Every resource method is keyword-only and accepts
 
 ### `create()` [#create]
 
-**Signature:** `create(*, name: str, template: str, user_id: str = ..., metadata: dict[str, object] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Prompt`
+**Signature:** `create(*, name: str, template: str, agent_id: str | None = ..., user_id: str = ..., metadata: dict[str, object] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Prompt`
 
 Creates a Prompt. Omitted `user_id` becomes `""` (Tenant-level Attribution)
-and omitted metadata becomes `{}`. `user_id` is immutable.
+and omitted metadata becomes `{}`. `user_id` is immutable. Optional `agent_id`
+links to an Agent in the same Tenant; omission or `None` leaves it unlinked.
+Deleting that Agent deletes its linked Prompts. A missing or foreign Agent
+returns `not_found`.
 
 ```python
 prompt = client.prompts.create(
@@ -55,11 +58,11 @@ Server failures include `validation_failed`, `prompt_name_conflict`, and
 
 ### `list()` [#list]
 
-**Signature:** `list(*, user_id: str = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Prompts`
+**Signature:** `list(*, agent_id: str = ..., user_id: str = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Prompts`
 
 Returns the unpaginated `Prompts` model with `prompts: list[Prompt]`. Omit
-`user_id` for every Prompt or pass an exact value; `""` selects Tenant-level
-Prompts. See [`GET /v1/prompts`](/api-reference/rest-api/prompts#list-prompts).
+both `user_id` and `agent_id` for every Prompt or pass exact values; `""` selects Tenant-level
+Prompts. Both filters together return their intersection. See [`GET /v1/prompts`](/api-reference/rest-api/prompts#list-prompts).
 
 ### `get()` [#get]
 
@@ -71,11 +74,12 @@ Retrieves one Prompt by its `prompt_…` ID. Failures include
 
 ### `update()` [#update]
 
-**Signature:** `update(*, prompt_id: str, name: str = ..., template: str = ..., metadata: dict[str, object] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Prompt`
+**Signature:** `update(*, prompt_id: str, agent_id: str | None = ..., name: str = ..., template: str = ..., metadata: dict[str, object] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Prompt`
 
 Changes any supplied mutable field. Omission leaves a field unchanged;
 metadata is a complete replacement, and changing `template` recomputes
-`variables`. Supplying no mutable field raises `ValueError` locally.
+`variables`. Set `agent_id` to change the link or `None` to clear it.
+Supplying no mutable field raises `ValueError` locally.
 
 ```python
 prompt = client.prompts.update(
@@ -115,7 +119,7 @@ produce `prompt_variable_missing`; unknown variables produce
 ## Response model and errors [#response-model-and-errors]
 
 `Prompt` exposes `id`, `tenant_id`, `name`, `template`, `variables`,
-`user_id`, `metadata`, `created_at`, and `updated_at`. It is a Pydantic v2
+`agent_id` (an Agent ID or `None`), `user_id`, `metadata`, `created_at`, and `updated_at`. It is a Pydantic v2
 model that preserves unknown server fields and carries a non-serialized
 `_request_id`.
 
