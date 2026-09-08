@@ -6114,7 +6114,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"prompt_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Welcome\",\n  \"template\": \"Welcome, {{name}}!\",\n  \"variables\": [\"name\"],\n  \"userId\": \"\",\n  \"metadata\": {},\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
+            "code": "{\n  \"id\": \"prompt_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"agentId\": null,\n  \"name\": \"Welcome\",\n  \"template\": \"Welcome, {{name}}!\",\n  \"variables\": [\"name\"],\n  \"userId\": \"\",\n  \"metadata\": {},\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "Prompt object",
@@ -6288,7 +6288,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"prompt_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Welcome\",\n  \"template\": \"Welcome, {{name}}!\",\n  \"variables\": [\"name\"],\n  \"userId\": \"\",\n  \"metadata\": {},\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
+            "code": "{\n  \"id\": \"prompt_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"agentId\": null,\n  \"name\": \"Welcome\",\n  \"template\": \"Welcome, {{name}}!\",\n  \"variables\": [\"name\"],\n  \"userId\": \"\",\n  \"metadata\": {},\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "Prompt object",
