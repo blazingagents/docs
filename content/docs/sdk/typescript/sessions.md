@@ -222,10 +222,13 @@ interface LatestSessionsListResponse {
 
 interface LatestSessionListItem extends SessionListItem {
   agentId: string;
+  model: string | null;
+  thinkingLevel: string | null;
+  status: "active" | "disabled";
 }
 ```
 
-Items are ordered by `updatedAt` descending, then `id` ascending, across Agents.
+Items are ordered by `updatedAt` descending, then `id` ascending, across Agents. The Agent fields reflect current configuration and status, independently of a Session's pinned Version. Disabled Agents remain included. Requires SDK 0.5.0 or later.
 
 ### `SessionMessagesResponse` [#sessionmessagesresponse]
 

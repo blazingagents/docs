@@ -167,7 +167,7 @@ See [Delete a Session](/api-reference/rest-api/sessions#delete-session).
 
 ## Response models [#response-models]
 
-`SessionsPage.data` contains `Session` models with `id`, nullable `agent_version` Pin, `message_count`, `last_message_preview`, Attribution, metadata, and timestamps. `LatestSessionsPage.data` contains the same fields plus `agent_id`. `SessionMessagesPage` contains `data`, `next_cursor`, and `latest_cursor`; each `SessionMessage` retains its `id`, role, parts, metadata, and unknown fields.
+`SessionsPage.data` contains `Session` models with `id`, nullable `agent_version` Pin, `message_count`, `last_message_preview`, Attribution, metadata, and timestamps. `LatestSessionsPage.data` contains the same fields plus `agent_id`, nullable `model`, nullable `thinking_level`, and `status` (`"active"` or `"disabled"`). These describe the Agent's current configuration and status, independently of the Session's pinned Version; disabled Agents remain included. These typed fields require SDK 0.2.0 or later. `SessionMessagesPage` contains `data`, `next_cursor`, and `latest_cursor`; each `SessionMessage` retains its `id`, role, parts, metadata, and unknown fields.
 
 `ToolApprovals.data` contains `ToolApproval` models. Its optional `continuation` has `id` and `state`; `ToolApprovalDecision` has `continuation_id` and `state`. Response state strings remain forward-compatible rather than closed Python literals.
 
