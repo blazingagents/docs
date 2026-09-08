@@ -4786,7 +4786,7 @@ export const restApiOperations = [
         "operation": "list-latest-sessions",
         "path": "/v1/sessions/latest",
         "responseMetadata": {
-          "description": "Returns 200 OK with cursor pagination. Items are ordered by updatedAt descending, then id ascending, across Agents. Each item is a Session list item plus its agentId.",
+          "description": "Returns 200 OK with cursor pagination. Items are ordered by updatedAt descending, then id ascending, across Agents. Each item is a Session list item plus its agentId, nullable model, nullable thinkingLevel, and status (\"active\" or \"disabled\"). These are the Agent's current values, independently of the Session's pinned Version or previous Turns. Disabled Agents remain included.",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#latest-sessions-list-response",
             "name": "latestSessionsListResponseSchema"
@@ -4794,7 +4794,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"data\": [\n    {\n      \"id\": \"ss_1234567890ABCDEF\",\n      \"agentId\": \"ag_1234567890ABCDEF\",\n      \"agentVersion\": 3,\n      \"messageCount\": 4,\n      \"lastMessagePreview\": \"Tell me more.\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:05:00Z\"\n    },\n    {\n      \"id\": \"ss_0987654321FEDCBA\",\n      \"agentId\": \"ag_0987654321FEDCBA\",\n      \"agentVersion\": null,\n      \"messageCount\": 2,\n      \"lastMessagePreview\": \"Thanks!\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"createdAt\": \"2026-07-09T08:00:00Z\",\n      \"updatedAt\": \"2026-07-09T08:02:00Z\"\n    }\n  ],\n  \"nextCursor\": null\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"ss_1234567890ABCDEF\",\n      \"agentId\": \"ag_1234567890ABCDEF\",\n      \"model\": \"gpt-5\",\n      \"thinkingLevel\": \"high\",\n      \"status\": \"disabled\",\n      \"agentVersion\": 3,\n      \"messageCount\": 4,\n      \"lastMessagePreview\": \"Tell me more.\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:05:00Z\"\n    },\n    {\n      \"id\": \"ss_0987654321FEDCBA\",\n      \"agentId\": \"ag_0987654321FEDCBA\",\n      \"agentVersion\": null,\n      \"messageCount\": 2,\n      \"lastMessagePreview\": \"Thanks!\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"createdAt\": \"2026-07-09T08:00:00Z\",\n      \"updatedAt\": \"2026-07-09T08:02:00Z\"\n    }\n  ],\n  \"nextCursor\": null\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "cursor pagination",
