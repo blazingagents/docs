@@ -59,6 +59,8 @@ Container or compute until its first file or process operation.
 | `tools` | Defaults to `[]` | Supplied arrays replace the selection |
 | `mcpConnectionIds` | Defaults to `[]` | Supplied arrays replace attachments |
 | `workspaceId` | Omission creates a Workspace | Mutable to another same-Tenant Workspace |
+| `autoCompaction` | Defaults to `true` | Versioned; enables automatic context summaries |
+| `compactionReserveTokens` | Defaults to `16384` | Versioned; nonnegative safe integer in tokens |
 | `memoryInjectionEnabled` | Defaults to `false` | Mutable |
 | `userId` | Defaults to `""` | Immutable Attribution |
 | `metadata` | Defaults to `{}` | Replaced as a complete object |
