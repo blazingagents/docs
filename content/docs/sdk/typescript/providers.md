@@ -36,6 +36,8 @@ types include that field too.
 
 **Signature:** `list(input?: ResourceRequestOptions): Promise<ProvidersResponse>`
 
+`ProvidersResponse.providers` is `ProviderListItem[]`. Each list item contains only `id`, `name`, `providerType`, `createdAt`, and `updatedAt`. Use `get()` for the base URL and key fragment.
+
 ### `get()` [#get]
 
 **Signature:** `get(input: { providerId: string } & ResourceRequestOptions): Promise<ProviderResponse>`

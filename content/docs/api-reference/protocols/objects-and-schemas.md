@@ -198,6 +198,9 @@ See [SDK Tool approvals](/sdk/typescript/sessions#tool-approvals),
 are never returned. Ordinary update accepts only `name`. Provider type,
 credential, and base URL are immutable; create a replacement Provider to
 change them.
+`providersResponseSchema` returns `{ providers: ProviderListItem[] }`; each list item contains only
+`id`, `name`, `providerType`, `createdAt`, and `updatedAt`. Use Get Provider for `baseUrl` and `keyFragment`.
+
 Model discovery returns `{ models: Array<{ id: string }> }` through
 `providerModelsResponseSchema`.
 

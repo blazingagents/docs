@@ -69,7 +69,7 @@ Requires bearer authentication. There are no path, query, or body parameters.
 
 #### Response
 
-Returns `200 OK` with the redacted Provider collection.
+Returns `200 OK` with Provider list items containing only `id`, `name`, `providerType`, `createdAt`, and `updatedAt`. Use Get Provider for the base URL and key fragment.
 
 Response schema: [`providersResponseSchema`](/api-reference/protocols/objects-and-schemas#providers-response).
 
@@ -80,8 +80,6 @@ Response schema: [`providersResponseSchema`](/api-reference/protocols/objects-an
       "id": "prv_1234567890ABCDEF",
       "name": "Production OpenAI",
       "providerType": "openai",
-      "baseUrl": null,
-      "keyFragment": "wxyz",
       "createdAt": "2026-07-10T10:00:00Z",
       "updatedAt": "2026-07-10T10:00:00Z"
     }
