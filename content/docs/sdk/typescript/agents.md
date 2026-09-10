@@ -32,6 +32,15 @@ validation. Known invalid combinations fail without changing configuration
 or Version history. Unknown capabilities allow custom strings, which can
 still fail during Provider execution. See [Thinking level](/agents/providers-and-models#thinking-level).
 
+## Automatic context compaction [#automatic-context-compaction]
+
+Create and update accept `autoCompaction` (creation default: `true`)
+and `compactionReserveTokens` (creation default: `16384`). The reserve accepts a
+nonnegative safe integer up to `9007199254740991`; omission on update preserves
+saved values. Agent and Agent Version responses include both fields, and restoration
+copies them. See [context compaction](/agents/agents#automatic-context-compaction)
+for thresholds, summary usage, unknown models, and failure behavior.
+
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
@@ -66,6 +75,8 @@ Creates an Agent and its first immutable Version.
 | `providerId` | `string \| null` | no | `null` | Stored Provider, paired with `model` |
 | `thinkingLevel` | `string \| null` | no | `null` | Reasoning choice; null uses Provider default |
 | `workspaceId` | `string` | no | new default Workspace | Existing same-Tenant Workspace to attach and share |
+| `autoCompaction` | `boolean` | no | `true` | Summarize older context automatically |
+| `compactionReserveTokens` | `number` | no | `16384` | Tokens reserved below the model window |
 | `memoryInjectionEnabled` | `boolean` | no | `false` | Automatic Memory context |
 | `tools` | `AgentToolGroupId[]` | no | `[]` | Complete tool-group selection |
 | `instructions` | `string` | no | `""` | Instructions, up to 3,000 characters |
@@ -336,6 +347,8 @@ Returns [`McpAttachmentResponse`](#mcpattachmentresponse). Raises `validation_fa
 | `model` | `string \| null` | Provider-native model ID, or `null` when unconfigured |
 | `providerId` | `string \| null` | Stored Provider, or `null` when unconfigured |
 | `workspaceId` | `string` | Current Workspace attachment |
+| `autoCompaction` | `boolean` | Automatic compaction setting |
+| `compactionReserveTokens` | `number` | Compaction reserve in tokens |
 | `memoryInjectionEnabled` | `boolean` | Whether Memory is injected automatically |
 | `tools` | `AgentToolGroupId[]` | Selected tool groups |
 | `instructions` | `string` | System instructions |
@@ -354,7 +367,7 @@ Returns [`McpAttachmentResponse`](#mcpattachmentresponse). Raises `validation_fa
 
 ### `AgentVersion` [#agentversion]
 
-`AgentVersion` contains `agentId`, `tenantId`, `version`, `name`, `model`, `providerId`, `memoryInjectionEnabled`, `tools`, `instructions`, `metadata`, `mcpConnectionIds`, and `createdAt`. It intentionally omits current `workspaceId`, `userId`, avatar, status, and update timestamp.
+`AgentVersion` contains `agentId`, `tenantId`, `version`, `name`, `model`, `providerId`, `thinkingLevel`, `autoCompaction`, `compactionReserveTokens`, `memoryInjectionEnabled`, `tools`, `instructions`, `metadata`, `mcpConnectionIds`, and `createdAt`. It intentionally omits current `workspaceId`, `userId`, avatar, status, and update timestamp.
 
 ### `AgentVersionsResponse` [#agentversionsresponse]
 

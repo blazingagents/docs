@@ -82,8 +82,9 @@ JavaScript string units despite the constant's historical `...BYTES` name.
 
 Limit behavior is not uniform. Memory capacity evicts rather than rejects;
 Task overlap skips without a Task-run row; Workspace operations dispatch
-independently without a product-level compute admission state; context-window overflow is a Provider failure
-because the full Session history is sent without platform truncation. A Turn
+independently without a product-level compute admission state; automatic context compaction summarizes older messages by default. The Agent
+controls its reserve in tokens. Context overflow remains possible when compaction
+is disabled, cannot reduce an indivisible input, or fails. A Turn
 deadline does not roll back an external operation already accepted by a Tool.
 
 Internal deployment values such as DBOS polling and pool sizes, scheduler

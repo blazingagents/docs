@@ -40,6 +40,15 @@ validation. Known invalid combinations fail without changing configuration
 or Version history. Unknown capabilities allow custom strings, which can
 still fail during Provider execution. See [Thinking level](/agents/providers-and-models#thinking-level).
 
+## Automatic context compaction [#automatic-context-compaction]
+
+Create and update accept `auto_compaction` (creation default: `True`)
+and `compaction_reserve_tokens` (creation default: `16384`). The reserve accepts a
+nonnegative safe integer up to `9007199254740991`; omission on update preserves
+saved values. Agent and Agent Version responses include both fields, and restoration
+copies them. See [context compaction](/agents/agents#automatic-context-compaction)
+for thresholds, summary usage, unknown models, and failure behavior.
+
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
@@ -64,7 +73,7 @@ still fail during Provider execution. See [Thinking level](/agents/providers-and
 
 ### `create()` [#create]
 
-**Signature:** `create(*, name: str, model: str | _Omitted = ..., provider_id: str | _Omitted = ..., workspace_id: str = ..., memory_injection_enabled: bool = ..., tools: list[AgentTool] = ..., instructions: str = ..., user_id: str = ..., metadata: dict[str, object] = ..., mcp_connection_ids: list[str] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
+**Signature:** `create(*, name: str, model: str | _Omitted = ..., provider_id: str | _Omitted = ..., workspace_id: str = ..., auto_compaction: bool = ..., compaction_reserve_tokens: int = ..., memory_injection_enabled: bool = ..., tools: list[AgentTool] = ..., instructions: str = ..., user_id: str = ..., metadata: dict[str, object] = ..., mcp_connection_ids: list[str] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
 
 Creates an Agent and Version 1. `name` is required. Omit both `provider_id` and
 `model` to create an unconfigured Agent, or provide both to configure it. `workspace_id` accepts a string or
@@ -105,7 +114,7 @@ failures include `validation_failed` and `not_found`. See
 
 ### `update()` [#update]
 
-**Signature:** `update(agent_id: str, *, name: str = ..., model: str | None = ..., provider_id: str | None = ..., thinking_level: str | None = ..., workspace_id: str = ..., memory_injection_enabled: bool = ..., tools: Sequence[AgentTool] = ..., instructions: str = ..., metadata: dict[str, object] = ..., mcp_connection_ids: Sequence[str] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
+**Signature:** `update(agent_id: str, *, name: str = ..., model: str | None = ..., provider_id: str | None = ..., thinking_level: str | None = ..., workspace_id: str = ..., auto_compaction: bool = ..., compaction_reserve_tokens: int = ..., memory_injection_enabled: bool = ..., tools: Sequence[AgentTool] = ..., instructions: str = ..., metadata: dict[str, object] = ..., mcp_connection_ids: Sequence[str] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
 
 Updates at least one mutable field and creates the next Version. Omitted fields
 stay unchanged. Changing a Provider requires a model in the same call; explicit
@@ -292,6 +301,8 @@ invalid success body raises `pydantic.ValidationError`.
 | `model` | `str \| None` | Opaque model identifier, or `None` when unconfigured |
 | `provider_id` | `str \| None` | Stored Provider, or `None` when unconfigured |
 | `workspace_id` | `str` | Current Workspace attachment |
+| `auto_compaction` | `bool` | Automatic compaction setting |
+| `compaction_reserve_tokens` | `int` | Compaction reserve in tokens |
 | `memory_injection_enabled` | `bool` | Whether Memory is injected automatically |
 | `tools` | `list[str]` | Selected Tool groups |
 | `instructions` | `str` | System instructions |
@@ -306,7 +317,7 @@ invalid success body raises `pydantic.ValidationError`.
 ### `AgentVersion` [#agentversion]
 
 `AgentVersion` contains `agent_id`, `tenant_id`, `version`, `name`, `model`,
-`provider_id`, `memory_injection_enabled`, `tools`, `instructions`, `metadata`,
+`provider_id`, `thinking_level`, `auto_compaction`, `compaction_reserve_tokens`, `memory_injection_enabled`, `tools`, `instructions`, `metadata`,
 `mcp_connection_ids`, and `created_at`. It intentionally omits current
 `workspace_id`, `user_id`, avatar, status, and update timestamp.
 
