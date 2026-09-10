@@ -32,6 +32,8 @@ Custom Providers require `base_url`. `ProviderType` includes `"vercel_ai_gateway
 
 **Signature:** `list() -> Providers`
 
+`Providers.providers` is `list[ProviderListItem]`. Each list item contains only `id`, `name`, `provider_type`, `created_at`, and `updated_at`. Use `get()` for the base URL and key fragment.
+
 ### `get()` [#get]
 
 **Signature:** `get(provider_id: str) -> Provider`
