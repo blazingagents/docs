@@ -3180,7 +3180,7 @@ export const restApiOperations = [
         "operation": "list-providers",
         "path": "/v1/providers",
         "responseMetadata": {
-          "description": "Returns 200 OK with the redacted Provider collection.",
+          "description": "Returns 200 OK with Provider list items containing only id, name, providerType, createdAt, and updatedAt. Use Get Provider for the base URL and key fragment.",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#providers-response",
             "name": "providersResponseSchema"
@@ -3188,7 +3188,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"providers\": [\n    {\n      \"id\": \"prv_1234567890ABCDEF\",\n      \"name\": \"Production OpenAI\",\n      \"providerType\": \"openai\",\n      \"baseUrl\": null,\n      \"keyFragment\": \"wxyz\",\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00Z\"\n    }\n  ]\n}",
+            "code": "{\n  \"providers\": [\n    {\n      \"id\": \"prv_1234567890ABCDEF\",\n      \"name\": \"Production OpenAI\",\n      \"providerType\": \"openai\",\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00Z\"\n    }\n  ]\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "providersResponseSchema",
