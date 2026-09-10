@@ -107,3 +107,31 @@ and [Security and credentials](/platform/security-and-credentials).
 - SDK: [TypeScript Agents](/sdk/typescript/agents) and [Python Agents](/sdk/python/agents)
 - CLI: [Chat](/cli/chat) and [Run](/cli/run)
 - REST: [Agents API](/api-reference/rest-api/agents)
+
+## Automatic context compaction [#automatic-context-compaction]
+
+`autoCompaction` defaults to `true`. Before each model request, BA can summarize
+older conversation content and retain recent messages. The stored Session
+transcript remains readable in full. Both settings belong to Agent Versions,
+so pinning and restoring a Version also selects its compaction policy.
+
+`compactionReserveTokens` defaults to `16384` and accepts a nonnegative safe
+integer (up to `9007199254740991`). Compaction starts when estimated current
+context exceeds the model context window minus this reserve. A larger reserve
+starts compaction earlier; it also changes Pi's summary-generation budget.
+This is a token count, not a percentage or a maximum conversation length.
+
+BA uses Pi's model catalog and compaction method, including its recent-history
+budget of 20,000 tokens. Models absent from the catalog use Pi's custom-model
+fallback of 128,000 context tokens. This fallback is an estimate of capacity;
+a Provider can still reject a request. BA attempts one compaction and retry
+for a recognized context overflow before any generated content is streamed.
+An indivisible oversized input, summary failure, or failed retry surfaces as
+an execution error.
+
+Context size uses the latest usable model-call usage plus estimates for new
+content, rather than summing usage across the conversation. Summary calls use
+the Agent's configured Provider and model and are included in Turn token usage.
+Set `autoCompaction` to `false` to disable new automatic compaction; existing
+Session summaries remain part of the prepared context.
+
