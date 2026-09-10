@@ -5,6 +5,14 @@ description: Create, inspect, update, version, disable, and extend Agents.
 
 # Agents
 
+## Automatic context compaction [#automatic-context-compaction]
+
+`POST` and `PUT` accept `autoCompaction` (creation default `true`) and
+`compactionReserveTokens` (creation default `16384`, nonnegative safe integer).
+Omission on update preserves saved settings. Both are returned on Agents and Agent
+Versions. See [context compaction](/agents/agents#automatic-context-compaction)
+for the policy, summary usage, and failure behavior.
+
 ## Overview [#overview]
 
 Agents are Tenant-owned configuration records. Use these endpoints to configure execution, inspect immutable Versions, attach capabilities, or operate the reversible execution kill switch; Attribution remains immutable after creation.
@@ -41,6 +49,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and JSO
 | `tools`                  | string[]       | no       | `[]`                         |
 | `workspaceId`            | string         | no       | New default Workspace        |
 | `instructions`           | string         | no       | `""`                         |
+| `autoCompaction` | boolean | no | `true` |
+| `compactionReserveTokens` | integer | no | `16384` |
 | `memoryInjectionEnabled` | boolean        | no       | `false`                      |
 | `userId`                 | string         | no       | `""`                         |
 | `metadata`               | object         | no       | `{}`                         |
@@ -71,6 +81,8 @@ Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-sc
   "name": "Support Agent",
   "model": null,
   "thinkingLevel": null,
+  "autoCompaction": true,
+  "compactionReserveTokens": 16384,
   "providerId": null,
   "tools": ["workspace", "write_todos"],
   "workspaceId": "ws_1234567890ABCDEF",
@@ -138,6 +150,8 @@ Response schema: [`agentsResponseSchema`](/api-reference/protocols/objects-and-s
       "name": "Support Agent",
       "model": "gpt-4.1",
       "thinkingLevel": null,
+      "autoCompaction": true,
+      "compactionReserveTokens": 16384,
       "providerId": "prv_1234567890ABCDEF",
       "workspaceId": "ws_1234567890ABCDEF",
       "memoryInjectionEnabled": false,
@@ -204,6 +218,8 @@ Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-sc
   "name": "Support Agent",
   "model": null,
   "thinkingLevel": null,
+  "autoCompaction": true,
+  "compactionReserveTokens": 16384,
   "providerId": null,
   "workspaceId": "ws_1234567890ABCDEF",
   "memoryInjectionEnabled": false,
@@ -256,6 +272,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and JSO
 | Body `tools`                  | string[]       | no       | Complete replacement tool-group list |
 | Body `workspaceId`            | string         | no       | Reassign to another Workspace        |
 | Body `instructions`           | string         | no       | Up to 3,000 characters               |
+| Body `autoCompaction` | boolean | no | Enable automatic compaction |
+| Body `compactionReserveTokens` | integer | no | Nonnegative safe-integer reserve in tokens |
 | Body `memoryInjectionEnabled` | boolean        | no       | Toggle automatic memory context      |
 | Body `metadata`               | object         | no       | Replacement metadata                 |
 | Body `mcpConnectionIds`       | string[]       | no       | Complete replacement MCP list        |
@@ -279,6 +297,8 @@ Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-sc
   "name": "Support Agent",
   "model": "gpt-4.1",
   "thinkingLevel": null,
+  "autoCompaction": true,
+  "compactionReserveTokens": 16384,
   "providerId": "prv_1234567890ABCDEF",
   "tools": ["workspace"],
   "workspaceId": "ws_1234567890ABCDEF",
