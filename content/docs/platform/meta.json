@@ -6,6 +6,7 @@
     "tenancy-and-attribution",
     "security-and-credentials",
     "usage-and-quotas",
-    "limits-and-reliability"
+    "limits-and-reliability",
+    "chat-integrations"
   ]
 }

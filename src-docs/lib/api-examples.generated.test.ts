@@ -39,7 +39,7 @@ function operation(id: string) {
 
 describe("generated REST API examples", () => {
   test("generates every request language and documented success response", () => {
-    expect(operations).toHaveLength(81);
+    expect(operations).toHaveLength(92);
     for (const candidate of operations) {
       expect(candidate.examples.map(({ language }) => language)).toEqual([
         "bash",

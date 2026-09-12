@@ -14,6 +14,7 @@
     "tasks",
     "prompts",
     "usage",
-    "tenant"
+    "tenant",
+    "chat-integrations"
   ]
 }
