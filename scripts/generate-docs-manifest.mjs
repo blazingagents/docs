@@ -35,6 +35,8 @@ const TRAILING_PERIOD = /\.$/;
 const TERMINAL_PUNCTUATION = /[.!?:]$/;
 const SAMPLE_TIMESTAMP = "2026-07-20T12:00:00.000Z";
 const AGENT_RESPONSE_EXAMPLE = {
+  approvalInChat: { default: "full", overrides: [] },
+  approvalInTasks: { default: "full", overrides: [] },
   avatarUrl: null,
   createdAt: SAMPLE_TIMESTAMP,
   id: "ag_1234567890ABCDEF",
@@ -54,6 +56,8 @@ const AGENT_RESPONSE_EXAMPLE = {
   workspaceId: "ws_1234567890ABCDEF",
 };
 const AGENT_VERSION_EXAMPLE = {
+  approvalInChat: { default: "full", overrides: [] },
+  approvalInTasks: { default: "full", overrides: [] },
   agentId: "ag_1234567890ABCDEF",
   createdAt: SAMPLE_TIMESTAMP,
   instructions: "Answer clearly.",
@@ -232,6 +236,10 @@ const REPRESENTATIVE_RESPONSES = new Map([
       data: [
         {
           approvalId: "approval-1",
+          tool: null,
+          assistantMessageId: "msg_1234567890ABCDEF",
+          createdAt: SAMPLE_TIMESTAMP,
+          decidedAt: null,
           decision: "pending",
           input: { action: "deleteById", agentId: "ag_1234567890ABCDEF" },
           reason: null,

@@ -27,6 +27,18 @@ and Version responses include this field. Known unsupported selections return
 The Admin Agent permits Thinking level edits alongside its Provider and Model;
 its other management and restoration restrictions remain in force.
 
+## Tool approval configuration [#tool-approval-configuration]
+
+POST create and PUT update accept `approvalInChat` and `approvalInTasks`, each an
+[ApprovalPolicy](/api-reference/protocols/objects-and-schemas#approval-policy).
+Agent and Agent Version responses include both fields. Creation defaults each to
+`{"default":"full","overrides":[]}`. Update omission preserves the policy;
+a supplied policy replaces it, and omitted or empty `overrides` clears the list.
+Neither accepts null. Built-in targets must be available; new/changed MCP targets
+require live discovery on an attached same-Tenant Connection. Duplicate targets
+are invalid. Configuration and attachment changes must leave rules consistent.
+See [policy examples and validation](/agents/tools/tool-approvals#approval-policies).
+
 ## Endpoints [#endpoints]
 
 ### POST /v1/agents [#create-agent]
@@ -49,6 +61,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and JSO
 | `tools`                  | string[]       | no       | `[]`                         |
 | `workspaceId`            | string         | no       | New default Workspace        |
 | `instructions`           | string         | no       | `""`                         |
+| `approvalInChat` | ApprovalPolicy | no | `{"default":"full","overrides":[]}` |
+| `approvalInTasks` | ApprovalPolicy | no | `{"default":"full","overrides":[]}` |
 | `autoCompaction` | boolean | no | `true` |
 | `compactionReserveTokens` | integer | no | `16384` |
 | `memoryInjectionEnabled` | boolean        | no       | `false`                      |
@@ -81,6 +95,8 @@ Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-sc
   "name": "Support Agent",
   "model": null,
   "thinkingLevel": null,
+  "approvalInChat": {"default":"full","overrides":[]},
+  "approvalInTasks": {"default":"full","overrides":[]},
   "autoCompaction": true,
   "compactionReserveTokens": 16384,
   "providerId": null,
@@ -150,6 +166,8 @@ Response schema: [`agentsResponseSchema`](/api-reference/protocols/objects-and-s
       "name": "Support Agent",
       "model": "gpt-4.1",
       "thinkingLevel": null,
+      "approvalInChat": {"default":"full","overrides":[]},
+      "approvalInTasks": {"default":"full","overrides":[]},
       "autoCompaction": true,
       "compactionReserveTokens": 16384,
       "providerId": "prv_1234567890ABCDEF",
@@ -218,6 +236,8 @@ Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-sc
   "name": "Support Agent",
   "model": null,
   "thinkingLevel": null,
+  "approvalInChat": {"default":"full","overrides":[]},
+  "approvalInTasks": {"default":"full","overrides":[]},
   "autoCompaction": true,
   "compactionReserveTokens": 16384,
   "providerId": null,
@@ -274,6 +294,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and JSO
 | Body `instructions`           | string         | no       | Up to 3,000 characters               |
 | Body `autoCompaction` | boolean | no | Enable automatic compaction |
 | Body `compactionReserveTokens` | integer | no | Nonnegative safe-integer reserve in tokens |
+| Body `approvalInChat` | ApprovalPolicy | no | Replace chat/stateless policy; omit to preserve |
+| Body `approvalInTasks` | ApprovalPolicy | no | Replace Task policy; omit to preserve |
 | Body `memoryInjectionEnabled` | boolean        | no       | Toggle automatic memory context      |
 | Body `metadata`               | object         | no       | Replacement metadata                 |
 | Body `mcpConnectionIds`       | string[]       | no       | Complete replacement MCP list        |
@@ -297,6 +319,8 @@ Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-sc
   "name": "Support Agent",
   "model": "gpt-4.1",
   "thinkingLevel": null,
+  "approvalInChat": {"default":"full","overrides":[]},
+  "approvalInTasks": {"default":"full","overrides":[]},
   "autoCompaction": true,
   "compactionReserveTokens": 16384,
   "providerId": "prv_1234567890ABCDEF",

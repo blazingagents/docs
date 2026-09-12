@@ -5,6 +5,17 @@ description: Run stateful Turns and manage Session history and Tool approvals.
 
 # Sessions
 
+## Policy-driven approvals [#policy-driven-approvals]
+
+Interactive Sessions use the Agent's versioned `approvalInChat` policy. Manual
+review and automatic escalation reuse the existing list/decide/join lifecycle.
+See [review availability](/agents/tools/tool-approvals#review-availability) and
+[exact backend metadata optionality](/api-reference/protocols/objects-and-schemas#tool-approval-metadata).
+
+The backend adds structured `tool`, `assistantMessageId`, `createdAt`, and
+`decidedAt` metadata. New SDK field support is release-dependent; the existing
+manual lifecycle remains usable without those fields.
+
 ## Overview [#overview]
 
 A Session stores a stateful Agent transcript and its Tool-approval lifecycle. Use these endpoints to start or resume Turns, inspect history, delete the Session, or decide and join approvals. After admission, creation materializes before model execution; resume never creates a missing Session.

@@ -7,6 +7,14 @@ description: Manage asynchronous Tasks, schedules, Task runs, transcripts, and c
 
 `client.tasks` manages reusable asynchronous Agent instructions and their Task runs. A Task is definition state; each run has its own lifecycle, Turn identity, and fresh Session after execution is admitted.
 
+## Tool approval policy [#tool-approval-policy]
+
+Task execution uses the resolved Agent Version's `approvalInTasks` policy. Tasks
+have no manual approval continuation path: manual calls and automatic escalation
+without a human are denied, with blocked work reported to the model. Other
+permitted work can continue. An unexpected pending human approval fails the Task.
+See [Tool approvals](/agents/tools/tool-approvals).
+
 ## Overview [#overview]
 
 All arguments are keyword-only except the leading `task_id` and `run_id` identifiers shown in signatures. `list()` and `list_runs()` return one Pydantic page; `iter()` and `iter_runs()` lazily paginate. Async clients keep the same operation names: await request methods and use `async for` for lazy iteration.

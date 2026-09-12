@@ -10,6 +10,15 @@ not a person, running process, [Session, or Turn](/platform/sessions-and-turns).
 Create one when multiple executions should share instructions, a model,
 capabilities, and durable resources.
 
+## Tool approval policies [#tool-approval-policies]
+
+`approvalInChat` and `approvalInTasks` are independent versioned Agent settings,
+initially full with no overrides. See [Tool approvals](/agents/tools/tool-approvals)
+for exact Tool matching, validation, and human/automatic review behavior. Restoring
+a Version must copy both policies along with its other configuration; older SDK
+restoration helpers may omit them. Use an SDK release with policy restoration
+support or include both saved policies explicitly in a REST update.
+
 ## What an Agent controls [#what-an-agent-controls]
 
 An Agent stores its name, optional [Provider and model](/agents/providers-and-models),

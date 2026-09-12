@@ -7,6 +7,20 @@ description: Page Sessions and transcripts, decide Tool approvals, and join dura
 
 `client.sessions` reads and deletes stored Sessions and handles Tool approvals. Start or resume a Session with [`client.chat()`](/sdk/python/client#chat).
 
+## Policy-driven approvals [#policy-driven-approvals]
+
+Interactive Sessions use the Agent's versioned `approvalInChat` policy. Manual
+review and automatic escalation reuse the existing list/decide/join lifecycle.
+See [review availability](/agents/tools/tool-approvals#review-availability) and
+[exact backend metadata optionality](/api-reference/protocols/objects-and-schemas#tool-approval-metadata).
+
+The backend adds structured `tool`, `assistantMessageId`, `createdAt`, and
+`decidedAt` metadata. In the planned v0.5.0 SDK release, `ToolApproval` exposes these as `tool`,
+`assistant_message_id`, `created_at`, and `decided_at`; missing optional metadata
+is accepted. `tool` is a structured `ToolReference`, including `connection_id`
+for MCP. `decision` remains `pending`, `approved`, or `denied`. The existing
+manual lifecycle remains usable without those fields.
+
 ## Overview [#overview]
 
 All arguments are keyword-only. `list()` returns one `SessionsPage`; `iter()` lazily requests subsequent pages. The asynchronous resource has the same method names: await request methods, use `async for` with `iter()`, and await `join_tool_approval_continuation()` before consuming its `AsyncByteStream`.

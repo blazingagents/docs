@@ -5,6 +5,14 @@ description: Create and manage asynchronous Task definitions and schedules.
 
 # Tasks
 
+## Tool approval policy [#tool-approval-policy]
+
+Task execution uses the resolved Agent Version's `approvalInTasks` policy. Tasks
+have no manual approval continuation path: manual calls and automatic escalation
+without a human are denied, with blocked work reported to the model. Other
+permitted work can continue. An unexpected pending human approval fails the Task.
+See [Tool approvals](/agents/tools/tool-approvals).
+
 ## Overview [#overview]
 
 Tasks define reusable asynchronous Agent work with optional schedules. Use them for on-demand execution or recurring automation whose runs remain independently observable.
