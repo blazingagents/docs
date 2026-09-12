@@ -5,6 +5,13 @@ description: Run stateless text or structured generation.
 
 # Generation
 
+## Stateless Tool approval [#stateless-tool-approval]
+
+Stateless execution uses `approvalInChat` and has no human continuation path.
+Manual calls, automatic review failures, and automatic escalation are blocked;
+permitted work can continue with an explanation of blocked actions available to
+the model. See [Tool approvals](/agents/tools/tool-approvals).
+
 ## Overview [#overview]
 
 Generation runs a stateless Agent Turn without creating Session history. Use it for one-shot text or JSON-schema-constrained output when later continuation is unnecessary.

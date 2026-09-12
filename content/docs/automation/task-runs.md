@@ -7,6 +7,14 @@ description: Submit, inspect, cancel, and diagnose one durable background execut
 
 A Task run is one durable execution of a [Task](/automation/tasks). Use an on-demand run when an Agent should complete work asynchronously without waiting on an interactive request.
 
+## Tool approval policy [#tool-approval-policy]
+
+Task execution uses the resolved Agent Version's `approvalInTasks` policy. Tasks
+have no manual approval continuation path: manual calls and automatic escalation
+without a human are denied, with blocked work reported to the model. Other
+permitted work can continue. An unexpected pending human approval fails the Task.
+See [Tool approvals](/agents/tools/tool-approvals).
+
 ## Outcome [#outcome]
 
 You will obtain a terminal Task run and its final assistant message. The main

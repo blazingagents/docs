@@ -7,6 +7,13 @@ description: Choose stateful chat or stateless text and consume or relay its str
 
 Generation runs an Agent as a Turn and streams progress before terminal settlement completes. Use chat for stored history and completion for one stateless text result; use [structured output](/agents/output/structured-output) when the result must follow a JSON Schema.
 
+## Stateless Tool approval [#stateless-tool-approval]
+
+Stateless execution uses `approvalInChat` and has no human continuation path.
+Manual calls, automatic review failures, and automatic escalation are blocked;
+permitted work can continue with an explanation of blocked actions available to
+the model. See [Tool approvals](/agents/tools/tool-approvals).
+
 ## Choose stateful chat or stateless text [#choose-stateful-chat-or-stateless-text]
 
 |                     | `client.chat`                                                                       | `client.completion`                                                 |

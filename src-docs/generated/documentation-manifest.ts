@@ -428,7 +428,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": null,\n  \"thinkingLevel\": null,\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"providerId\": null,\n  \"tools\": [\"workspace\", \"write_todos\"],\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"memoryInjectionEnabled\": true,\n  \"userId\": \"\",\n  \"metadata\": {},\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 1,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
+            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": null,\n  \"thinkingLevel\": null,\n  \"approvalInChat\": {\"default\":\"full\",\"overrides\":[]},\n  \"approvalInTasks\": {\"default\":\"full\",\"overrides\":[]},\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"providerId\": null,\n  \"tools\": [\"workspace\", \"write_todos\"],\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"memoryInjectionEnabled\": true,\n  \"userId\": \"\",\n  \"metadata\": {},\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 1,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "Agent object",
@@ -512,7 +512,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"agents\": [\n    {\n      \"id\": \"ag_1234567890ABCDEF\",\n      \"tenantId\": \"ten_1234567890ABCDEF\",\n      \"name\": \"Support Agent\",\n      \"model\": \"gpt-4.1\",\n      \"thinkingLevel\": null,\n      \"autoCompaction\": true,\n      \"compactionReserveTokens\": 16384,\n      \"providerId\": \"prv_1234567890ABCDEF\",\n      \"workspaceId\": \"ws_1234567890ABCDEF\",\n      \"memoryInjectionEnabled\": false,\n      \"tools\": [],\n      \"instructions\": \"Answer clearly.\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"mcpConnectionIds\": [],\n      \"avatarUrl\": null,\n      \"version\": 1,\n      \"status\": \"active\",\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00Z\"\n    }\n  ]\n}",
+            "code": "{\n  \"agents\": [\n    {\n      \"id\": \"ag_1234567890ABCDEF\",\n      \"tenantId\": \"ten_1234567890ABCDEF\",\n      \"name\": \"Support Agent\",\n      \"model\": \"gpt-4.1\",\n      \"thinkingLevel\": null,\n      \"approvalInChat\": {\"default\":\"full\",\"overrides\":[]},\n      \"approvalInTasks\": {\"default\":\"full\",\"overrides\":[]},\n      \"autoCompaction\": true,\n      \"compactionReserveTokens\": 16384,\n      \"providerId\": \"prv_1234567890ABCDEF\",\n      \"workspaceId\": \"ws_1234567890ABCDEF\",\n      \"memoryInjectionEnabled\": false,\n      \"tools\": [],\n      \"instructions\": \"Answer clearly.\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"mcpConnectionIds\": [],\n      \"avatarUrl\": null,\n      \"version\": 1,\n      \"status\": \"active\",\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00Z\"\n    }\n  ]\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "Agent objects",
@@ -596,7 +596,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": null,\n  \"thinkingLevel\": null,\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"providerId\": null,\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [],\n  \"instructions\": \"Answer clearly.\",\n  \"userId\": \"\",\n  \"metadata\": {},\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 1,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
+            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": null,\n  \"thinkingLevel\": null,\n  \"approvalInChat\": {\"default\":\"full\",\"overrides\":[]},\n  \"approvalInTasks\": {\"default\":\"full\",\"overrides\":[]},\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"providerId\": null,\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [],\n  \"instructions\": \"Answer clearly.\",\n  \"userId\": \"\",\n  \"metadata\": {},\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 1,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "Agent object",
@@ -686,7 +686,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": \"gpt-4.1\",\n  \"thinkingLevel\": null,\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"providerId\": \"prv_1234567890ABCDEF\",\n  \"tools\": [\"workspace\"],\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"memoryInjectionEnabled\": true,\n  \"userId\": \"\",\n  \"metadata\": { \"team\": \"support\" },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 2,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00Z\"\n}",
+            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": \"gpt-4.1\",\n  \"thinkingLevel\": null,\n  \"approvalInChat\": {\"default\":\"full\",\"overrides\":[]},\n  \"approvalInTasks\": {\"default\":\"full\",\"overrides\":[]},\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"providerId\": \"prv_1234567890ABCDEF\",\n  \"tools\": [\"workspace\"],\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"memoryInjectionEnabled\": true,\n  \"userId\": \"\",\n  \"metadata\": { \"team\": \"support\" },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 2,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00Z\"\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "Agent object",
@@ -874,7 +874,7 @@ export const restApiOperations = [
             "contentType": "application/json",
             "note": "Agent",
             "status": "200",
-            "code": "{\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-20T12:00:00.000Z\",\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"mcpConnectionIds\": [],\n  \"memoryInjectionEnabled\": true,\n  \"metadata\": {},\n  \"model\": \"openrouter/auto\",\n  \"name\": \"Support Agent\",\n  \"providerId\": null,\n  \"status\": \"active\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"updatedAt\": \"2026-07-20T12:00:00.000Z\",\n  \"userId\": \"\",\n  \"version\": 1,\n  \"workspaceId\": \"ws_1234567890ABCDEF\"\n}",
+            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-20T12:00:00.000Z\",\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"mcpConnectionIds\": [],\n  \"memoryInjectionEnabled\": true,\n  \"metadata\": {},\n  \"model\": \"openrouter/auto\",\n  \"name\": \"Support Agent\",\n  \"providerId\": null,\n  \"status\": \"active\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"updatedAt\": \"2026-07-20T12:00:00.000Z\",\n  \"userId\": \"\",\n  \"version\": 1,\n  \"workspaceId\": \"ws_1234567890ABCDEF\"\n}",
             "language": "json"
           },
           {
@@ -964,7 +964,7 @@ export const restApiOperations = [
             "contentType": "application/json",
             "note": "Agent",
             "status": "200",
-            "code": "{\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-20T12:00:00.000Z\",\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"mcpConnectionIds\": [],\n  \"memoryInjectionEnabled\": true,\n  \"metadata\": {},\n  \"model\": \"openrouter/auto\",\n  \"name\": \"Support Agent\",\n  \"providerId\": null,\n  \"status\": \"active\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"updatedAt\": \"2026-07-20T12:00:00.000Z\",\n  \"userId\": \"\",\n  \"version\": 1,\n  \"workspaceId\": \"ws_1234567890ABCDEF\"\n}",
+            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-20T12:00:00.000Z\",\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"mcpConnectionIds\": [],\n  \"memoryInjectionEnabled\": true,\n  \"metadata\": {},\n  \"model\": \"openrouter/auto\",\n  \"name\": \"Support Agent\",\n  \"providerId\": null,\n  \"status\": \"active\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"updatedAt\": \"2026-07-20T12:00:00.000Z\",\n  \"userId\": \"\",\n  \"version\": 1,\n  \"workspaceId\": \"ws_1234567890ABCDEF\"\n}",
             "language": "json"
           },
           {
@@ -1054,7 +1054,7 @@ export const restApiOperations = [
             "contentType": "application/json",
             "note": "Agent object",
             "status": "200",
-            "code": "{\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-20T12:00:00.000Z\",\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"mcpConnectionIds\": [],\n  \"memoryInjectionEnabled\": true,\n  \"metadata\": {},\n  \"model\": \"openrouter/auto\",\n  \"name\": \"Support Agent\",\n  \"providerId\": null,\n  \"status\": \"active\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"updatedAt\": \"2026-07-20T12:00:00.000Z\",\n  \"userId\": \"\",\n  \"version\": 1,\n  \"workspaceId\": \"ws_1234567890ABCDEF\"\n}",
+            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-20T12:00:00.000Z\",\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"mcpConnectionIds\": [],\n  \"memoryInjectionEnabled\": true,\n  \"metadata\": {},\n  \"model\": \"openrouter/auto\",\n  \"name\": \"Support Agent\",\n  \"providerId\": null,\n  \"status\": \"active\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"updatedAt\": \"2026-07-20T12:00:00.000Z\",\n  \"userId\": \"\",\n  \"version\": 1,\n  \"workspaceId\": \"ws_1234567890ABCDEF\"\n}",
             "language": "json"
           },
           {
@@ -1162,7 +1162,7 @@ export const restApiOperations = [
             "contentType": "application/json",
             "note": "Agent object",
             "status": "200",
-            "code": "{\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-20T12:00:00.000Z\",\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"mcpConnectionIds\": [],\n  \"memoryInjectionEnabled\": true,\n  \"metadata\": {},\n  \"model\": \"openrouter/auto\",\n  \"name\": \"Support Agent\",\n  \"providerId\": null,\n  \"status\": \"active\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"updatedAt\": \"2026-07-20T12:00:00.000Z\",\n  \"userId\": \"\",\n  \"version\": 1,\n  \"workspaceId\": \"ws_1234567890ABCDEF\"\n}",
+            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-20T12:00:00.000Z\",\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"mcpConnectionIds\": [],\n  \"memoryInjectionEnabled\": true,\n  \"metadata\": {},\n  \"model\": \"openrouter/auto\",\n  \"name\": \"Support Agent\",\n  \"providerId\": null,\n  \"status\": \"active\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"updatedAt\": \"2026-07-20T12:00:00.000Z\",\n  \"userId\": \"\",\n  \"version\": 1,\n  \"workspaceId\": \"ws_1234567890ABCDEF\"\n}",
             "language": "json"
           },
           {
@@ -1258,7 +1258,7 @@ export const restApiOperations = [
             "contentType": "application/json",
             "note": "AgentVersionsResponse",
             "status": "200",
-            "code": "{\n  \"data\": [\n    {\n      \"agentId\": \"ag_1234567890ABCDEF\",\n      \"createdAt\": \"2026-07-20T12:00:00.000Z\",\n      \"instructions\": \"Answer clearly.\",\n      \"mcpConnectionIds\": [],\n      \"memoryInjectionEnabled\": true,\n      \"metadata\": {},\n      \"model\": \"openrouter/auto\",\n      \"name\": \"Support Agent\",\n      \"providerId\": null,\n      \"tenantId\": \"ten_1234567890ABCDEF\",\n      \"tools\": [\n        \"workspace\"\n      ],\n      \"version\": 1\n    }\n  ],\n  \"nextCursor\": null\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"approvalInChat\": {\n        \"default\": \"full\",\n        \"overrides\": []\n      },\n      \"approvalInTasks\": {\n        \"default\": \"full\",\n        \"overrides\": []\n      },\n      \"agentId\": \"ag_1234567890ABCDEF\",\n      \"createdAt\": \"2026-07-20T12:00:00.000Z\",\n      \"instructions\": \"Answer clearly.\",\n      \"mcpConnectionIds\": [],\n      \"memoryInjectionEnabled\": true,\n      \"metadata\": {},\n      \"model\": \"openrouter/auto\",\n      \"name\": \"Support Agent\",\n      \"providerId\": null,\n      \"tenantId\": \"ten_1234567890ABCDEF\",\n      \"tools\": [\n        \"workspace\"\n      ],\n      \"version\": 1\n    }\n  ],\n  \"nextCursor\": null\n}",
             "language": "json"
           },
           {
@@ -1348,7 +1348,7 @@ export const restApiOperations = [
             "contentType": "application/json",
             "note": "AgentVersion",
             "status": "200",
-            "code": "{\n  \"agentId\": \"ag_1234567890ABCDEF\",\n  \"createdAt\": \"2026-07-20T12:00:00.000Z\",\n  \"instructions\": \"Answer clearly.\",\n  \"mcpConnectionIds\": [],\n  \"memoryInjectionEnabled\": true,\n  \"metadata\": {},\n  \"model\": \"openrouter/auto\",\n  \"name\": \"Support Agent\",\n  \"providerId\": null,\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"tools\": [\n    \"workspace\"\n  ],\n  \"version\": 1\n}",
+            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"agentId\": \"ag_1234567890ABCDEF\",\n  \"createdAt\": \"2026-07-20T12:00:00.000Z\",\n  \"instructions\": \"Answer clearly.\",\n  \"mcpConnectionIds\": [],\n  \"memoryInjectionEnabled\": true,\n  \"metadata\": {},\n  \"model\": \"openrouter/auto\",\n  \"name\": \"Support Agent\",\n  \"providerId\": null,\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"tools\": [\n    \"workspace\"\n  ],\n  \"version\": 1\n}",
             "language": "json"
           },
           {
@@ -5054,7 +5054,7 @@ export const restApiOperations = [
             "contentType": "application/json",
             "note": "ToolApprovalsResponse",
             "status": "200",
-            "code": "{\n  \"continuation\": {\n    \"id\": \"tool-approval:message-1\",\n    \"state\": \"waiting\"\n  },\n  \"data\": [\n    {\n      \"approvalId\": \"approval-1\",\n      \"decision\": \"pending\",\n      \"input\": {\n        \"action\": \"deleteById\",\n        \"agentId\": \"ag_1234567890ABCDEF\"\n      },\n      \"reason\": null,\n      \"toolCallId\": \"call-1\",\n      \"toolName\": \"agents\"\n    }\n  ]\n}",
+            "code": "{\n  \"continuation\": {\n    \"id\": \"tool-approval:message-1\",\n    \"state\": \"waiting\"\n  },\n  \"data\": [\n    {\n      \"approvalId\": \"approval-1\",\n      \"tool\": null,\n      \"assistantMessageId\": \"msg_1234567890ABCDEF\",\n      \"createdAt\": \"2026-07-20T12:00:00.000Z\",\n      \"decidedAt\": null,\n      \"decision\": \"pending\",\n      \"input\": {\n        \"action\": \"deleteById\",\n        \"agentId\": \"ag_1234567890ABCDEF\"\n      },\n      \"reason\": null,\n      \"toolCallId\": \"call-1\",\n      \"toolName\": \"agents\"\n    }\n  ]\n}",
             "language": "json"
           },
           {
