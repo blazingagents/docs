@@ -15,7 +15,7 @@ See [review availability](/agents/tools/tool-approvals#review-availability) and
 [exact backend metadata optionality](/api-reference/protocols/objects-and-schemas#tool-approval-metadata).
 
 The backend adds structured `tool`, `assistantMessageId`, `createdAt`, and
-`decidedAt` metadata. In the planned v0.5.0 SDK release, `ToolApproval` exposes these as `tool`,
+`decidedAt` metadata. Starting in Python SDK v0.5.0, `ToolApproval` exposes these as `tool`,
 `assistant_message_id`, `created_at`, and `decided_at`; missing optional metadata
 is accepted. `tool` is a structured `ToolReference`, including `connection_id`
 for MCP. `decision` remains `pending`, `approved`, or `denied`. The existing
