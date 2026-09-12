@@ -214,11 +214,14 @@ curl --request GET "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890AB
 
 ### PATCH /v1/chat-connections/:id [#rename-chat-connection]
 
-Rename a connection.
+Update a connection.
 
 #### Request
 
-Send `{"name":"Support"}`. Other configuration fields cannot be patched.
+Send `name`, top-level `webhookUrl`, or both; empty updates are rejected.
+Use `webhookUrl` to save the final connection-specific callback after creation
+or change the API hostname. Other configuration fields remain fixed. Updating
+the saved URL does not register a platform webhook or refresh saved health.
 
 #### Response
 

@@ -21,7 +21,8 @@ existing TypeScript or Python SDK; connection management uses the
 2. Add bot scopes `app_mentions:read`, `chat:write`, `channels:history`,
    `groups:history`, `im:history`, `mpim:history`, `users:read`, `channels:read`,
    `groups:read`, `im:read`, and `mpim:read`. Reinstall after changing scopes.
-3. Create a connection with `platform: "slack"` using the REST reference below.
+3. Create a connection with `platform: "slack"`, then save its final callback
+   URL as described below.
 4. Set **both** Event Subscriptions and Interactivity Request URLs to
    `https://<BA API host>/v1/chat/webhooks/slack/<connectionId>`.
    Enable both features. Subscribe to `app_mention`, `message.channels`,
@@ -34,7 +35,8 @@ existing TypeScript or Python SDK; connection management uses the
 
 1. Create a bot through BotFather. Collect its token and numeric bot ID, and
    choose a webhook secret containing letters, digits, underscores or hyphens.
-2. Create a connection with `platform: "telegram"` using the REST reference.
+2. Create a connection with `platform: "telegram"`, then save its final callback
+   URL as described below.
 3. Register `https://<BA API host>/v1/chat/webhooks/telegram/<connectionId>` with
    Telegram's `setWebhook`, passing the same secret as `secret_token` and allowing
    `message` and `callback_query` updates. Creating a BA connection does not
@@ -44,15 +46,16 @@ existing TypeScript or Python SDK; connection management uses the
    Topic conversations require a forum-enabled supergroup.
 5. Send a message and a follow-up, then test an approval button if applicable.
 
-### Callback URL setup limitation
+### Save the final callback URL
 
-The current API requires `configuration.webhookUrl` at creation, before the new
-connection ID is known, and only supports renaming afterward. You can supply an
-HTTPS placeholder, then register the actual connection-specific URL with Slack
-or Telegram after creation. Intake uses the actual route; Telegram's URL health
-check will report a mismatch against the stored placeholder. A stable forwarding
-URL configured by your infrastructure operator avoids that mismatch. Do not treat
-a passing token check as proof that callbacks work.
+Creation returns the connection ID used in the callback path. Create with an
+initial HTTPS URL, then PATCH `/v1/chat-connections/<connectionId>` with a top-level
+`webhookUrl` containing the final path. Register that same URL with Slack or
+Telegram and run the connection's `/health` operation.
+
+Changing the saved URL does not register a platform webhook or refresh health.
+Repeat these steps if your API hostname changes. A passing token check alone
+does not prove that callbacks work.
 
 ## Conversations and approvals
 
