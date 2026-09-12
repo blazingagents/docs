@@ -12,20 +12,6 @@ All endpoints require a Tenant bearer credential and active subscription. IDs us
 an Agent can have several connections. Agent and platform identity are immutable.
 See [setup](/platform/chat-integrations) for callbacks and permissions.
 
-Create requires `name` (1–80 characters), `agentId`, `platform`, `configuration`,
-and `credentials`; `enabled` defaults to `true`.
-
-| Platform | Configuration | Credentials |
-| --- | --- | --- |
-| `slack` | `teamId`, `appId`, `webhookUrl`, optional `channelIds` | `botToken`, `signingSecret` |
-| `telegram` | `botId`, `webhookUrl`, optional `chatIds` | `botToken`, `webhookSecret` |
-
-Use strings for Telegram IDs. Callback URLs must be HTTPS without credentials,
-query or fragment. Destination lists accept at most 20 IDs and select health
-probes, not access restrictions. Create does not register platform webhooks.
-The [TypeScript](/sdk/typescript/chat-integrations) and
-[Python](/sdk/python/chat-integrations) examples show a complete create request.
-
 A connection response contains `id`, `tenantId`, `agentId`, `name`, `platform`,
 `enabled`, `configuration` (including `platform`), verified `identity`, `health`,
 `credentialFragment` (last four token characters), `credentialVersion`,
@@ -41,7 +27,21 @@ Create a connection.
 
 #### Request
 
-Send the create body described above. Identity is verified before saving.
+Create requires `name` (1–80 characters), `agentId`, `platform`, `configuration`,
+and `credentials`; `enabled` defaults to `true`.
+
+| Platform | Configuration | Credentials |
+| --- | --- | --- |
+| `slack` | `teamId`, `appId`, `webhookUrl`, optional `channelIds` | `botToken`, `signingSecret` |
+| `telegram` | `botId`, `webhookUrl`, optional `chatIds` | `botToken`, `webhookSecret` |
+
+Use strings for Telegram IDs. Callback URLs must be HTTPS without credentials,
+query or fragment. Destination lists accept at most 20 IDs and select health
+probes, not access restrictions. Create does not register platform webhooks.
+The [TypeScript](/sdk/typescript/chat-integrations) and
+[Python](/sdk/python/chat-integrations) examples show a complete create request.
+
+Identity is verified before saving.
 
 #### Response
 
@@ -277,7 +277,9 @@ Rotate credentials.
 
 #### Request
 
-Send `platform` and the complete credential bundle for the same installation. Enabled state and Sessions are preserved.
+Send `platform` and the complete credentials for the same installation: Slack uses
+`botToken` and `signingSecret`; Telegram uses `botToken` and `webhookSecret`.
+Enabled state and Sessions are preserved.
 
 #### Response
 
