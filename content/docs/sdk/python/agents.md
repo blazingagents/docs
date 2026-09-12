@@ -53,11 +53,10 @@ for thresholds, summary usage, unknown models, and failure behavior.
 
 The backend accepts `approvalInChat` and `approvalInTasks` on create/update and
 returns both on Agents and Versions. The corresponding Python SDK fields
-are `approval_in_chat` and `approval_in_tasks` in the planned v0.5.0 release (not yet verified published).
+are `approval_in_chat` and `approval_in_tasks` available starting in v0.5.0.
 Do not assume these fields or policy restoration are available in older installed
-SDKs. TypeScript v0.7.0 and Python v0.4.0 predate this support; use the
-[REST contract](/api-reference/rest-api/agents#tool-approval-configuration) until
-your SDK release includes it.
+SDKs. Python v0.4.0 predates this support; upgrade to v0.5.0 or use the
+[REST contract](/api-reference/rest-api/agents#tool-approval-configuration).
 
 Each policy has required `default` and an override list of structured Tool
 references and decisions. Both modes use `full`, `deny`, `manual`, or `auto`.
@@ -67,7 +66,7 @@ its list. Policy-aware `restore_version()` must copy both saved policies through
 validation; older helpers can leave current policies in place instead.
 See [examples and validation](/agents/tools/tool-approvals#approval-policies).
 
-The policy release exposes `ApprovalDecision`, `BuiltinToolName`,
+Version v0.5.0 exposes `ApprovalDecision`, `BuiltinToolName`,
 `ApprovalPolicyInput`, `ApprovalOverrideInput`, and `ToolReferenceInput`
 (`BuiltinToolReferenceInput` or `McpToolReferenceInput`). Response models include
 `ApprovalPolicy`, `ApprovalOverride`, `BuiltinToolReference`, `McpToolReference`,
@@ -76,7 +75,7 @@ as `connectionId` on the wire. Input `overrides` is optional and normalized to a
 empty list; `OMITTED` on either update argument preserves the saved policy.
 
 ```python
-# Requires the policy-support SDK release.
+# Requires blazing_agents v0.5.0 or later.
 client.agents.update(
     agent_id=agent_id,
     approval_in_chat={
@@ -342,8 +341,8 @@ invalid success body raises `pydantic.ValidationError`.
 | `model` | `str \| None` | Opaque model identifier, or `None` when unconfigured |
 | `provider_id` | `str \| None` | Stored Provider, or `None` when unconfigured |
 | `workspace_id` | `str` | Current Workspace attachment |
-| `approval_in_chat` | `ApprovalPolicy` | Chat/stateless policy; requires policy-support release |
-| `approval_in_tasks` | `ApprovalPolicy` | Task policy; requires policy-support release |
+| `approval_in_chat` | `ApprovalPolicy` | Chat/stateless policy; available since v0.5.0 |
+| `approval_in_tasks` | `ApprovalPolicy` | Task policy; available since v0.5.0 |
 | `auto_compaction` | `bool` | Automatic compaction setting |
 | `compaction_reserve_tokens` | `int` | Compaction reserve in tokens |
 | `memory_injection_enabled` | `bool` | Whether Memory is injected automatically |
