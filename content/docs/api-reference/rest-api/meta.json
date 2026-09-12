@@ -17,6 +17,7 @@
     "prompts",
     "usage",
     "tasks",
-    "task-runs"
+    "task-runs",
+    "chat-connections"
   ]
 }

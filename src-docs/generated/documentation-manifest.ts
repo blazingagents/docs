@@ -118,6 +118,10 @@ export const documentationPages = [
     "url": "/api-reference/rest-api/authentication"
   },
   {
+    "path": "api-reference/rest-api/chat-connections.md",
+    "url": "/api-reference/rest-api/chat-connections"
+  },
+  {
     "path": "api-reference/rest-api/generation.md",
     "url": "/api-reference/rest-api/generation"
   },
@@ -238,6 +242,10 @@ export const documentationPages = [
     "url": "/platform"
   },
   {
+    "path": "platform/chat-integrations.md",
+    "url": "/platform/chat-integrations"
+  },
+  {
     "path": "platform/limits-and-reliability.md",
     "url": "/platform/limits-and-reliability"
   },
@@ -272,6 +280,10 @@ export const documentationPages = [
   {
     "path": "sdk/python/artifacts.md",
     "url": "/sdk/python/artifacts"
+  },
+  {
+    "path": "sdk/python/chat-integrations.md",
+    "url": "/sdk/python/chat-integrations"
   },
   {
     "path": "sdk/python/client.md",
@@ -328,6 +340,10 @@ export const documentationPages = [
   {
     "path": "sdk/typescript/artifacts.md",
     "url": "/sdk/typescript/artifacts"
+  },
+  {
+    "path": "sdk/typescript/chat-integrations.md",
+    "url": "/sdk/typescript/chat-integrations"
   },
   {
     "path": "sdk/typescript/client.md",
@@ -7603,6 +7619,848 @@ export const restApiOperations = [
     "pageId": "api-reference/rest-api/task-runs.md",
     "title": "Task runs",
     "url": "/api-reference/rest-api/task-runs"
+  },
+  {
+    "operations": [
+      {
+        "description": "Create a connection.",
+        "examples": [
+          {
+            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Support\",\"agentId\":\"ag_1234567890ABCDEF\",\"platform\":\"telegram\",\"configuration\":{\"botId\":\"123456789\",\"webhookUrl\":\"https://example.com/chat\"},\"credentials\":{\"botToken\":\"123456789:REPLACE_WITH_BOT_TOKEN\",\"webhookSecret\":\"REPLACE_WITH_WEBHOOK_SECRET\"}}'",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/chat-connections\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"name\\\":\\\"Support\\\",\\\"agentId\\\":\\\"ag_1234567890ABCDEF\\\",\\\"platform\\\":\\\"telegram\\\",\\\"configuration\\\":{\\\"botId\\\":\\\"123456789\\\",\\\"webhookUrl\\\":\\\"https://example.com/chat\\\"},\\\"credentials\\\":{\\\"botToken\\\":\\\"123456789:REPLACE_WITH_BOT_TOKEN\\\",\\\"webhookSecret\\\":\\\"REPLACE_WITH_WEBHOOK_SECRET\\\"}}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/chat-connections\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"name\\\":\\\"Support\\\",\\\"agentId\\\":\\\"ag_1234567890ABCDEF\\\",\\\"platform\\\":\\\"telegram\\\",\\\"configuration\\\":{\\\"botId\\\":\\\"123456789\\\",\\\"webhookUrl\\\":\\\"https://example.com/chat\\\"},\\\"credentials\\\":{\\\"botToken\\\":\\\"123456789:REPLACE_WITH_BOT_TOKEN\\\",\\\"webhookSecret\\\":\\\"REPLACE_WITH_WEBHOOK_SECRET\\\"}}\" });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/chat-connections\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"name\\\":\\\"Support\\\",\\\"agentId\\\":\\\"ag_1234567890ABCDEF\\\",\\\"platform\\\":\\\"telegram\\\",\\\"configuration\\\":{\\\"botId\\\":\\\"123456789\\\",\\\"webhookUrl\\\":\\\"https://example.com/chat\\\"},\\\"credentials\\\":{\\\"botToken\\\":\\\"123456789:REPLACE_WITH_BOT_TOKEN\\\",\\\"webhookSecret\\\":\\\"REPLACE_WITH_WEBHOOK_SECRET\\\"}}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"name\\\":\\\"Support\\\",\\\"agentId\\\":\\\"ag_1234567890ABCDEF\\\",\\\"platform\\\":\\\"telegram\\\",\\\"configuration\\\":{\\\"botId\\\":\\\"123456789\\\",\\\"webhookUrl\\\":\\\"https://example.com/chat\\\"},\\\"credentials\\\":{\\\"botToken\\\":\\\"123456789:REPLACE_WITH_BOT_TOKEN\\\",\\\"webhookSecret\\\":\\\"REPLACE_WITH_WEBHOOK_SECRET\\\"}}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"name\\\":\\\"Support\\\",\\\"agentId\\\":\\\"ag_1234567890ABCDEF\\\",\\\"platform\\\":\\\"telegram\\\",\\\"configuration\\\":{\\\"botId\\\":\\\"123456789\\\",\\\"webhookUrl\\\":\\\"https://example.com/chat\\\"},\\\"credentials\\\":{\\\"botToken\\\":\\\"123456789:REPLACE_WITH_BOT_TOKEN\\\",\\\"webhookSecret\\\":\\\"REPLACE_WITH_WEBHOOK_SECRET\\\"}}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"name\\\":\\\"Support\\\",\\\"agentId\\\":\\\"ag_1234567890ABCDEF\\\",\\\"platform\\\":\\\"telegram\\\",\\\"configuration\\\":{\\\"botId\\\":\\\"123456789\\\",\\\"webhookUrl\\\":\\\"https://example.com/chat\\\"},\\\"credentials\\\":{\\\"botToken\\\":\\\"123456789:REPLACE_WITH_BOT_TOKEN\\\",\\\"webhookSecret\\\":\\\"REPLACE_WITH_WEBHOOK_SECRET\\\"}}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "POST",
+        "operation": "create-chat-connection",
+        "path": "/v1/chat-connections",
+        "responseMetadata": {
+          "description": "201 Created — A connection object."
+        },
+        "responses": [
+          {
+            "code": "{\n  \"id\": \"cc_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"agentId\": \"ag_1234567890ABCDEF\",\n  \"name\": \"Support\",\n  \"platform\": \"telegram\",\n  \"enabled\": true,\n  \"configuration\": {\n    \"platform\": \"telegram\",\n    \"botId\": \"123456789\",\n    \"webhookUrl\": \"https://example.com/chat\",\n    \"chatIds\": []\n  },\n  \"identity\": {\n    \"botId\": \"123456789\",\n    \"botUserId\": \"123456789\",\n    \"teamId\": null,\n    \"appId\": null\n  },\n  \"health\": {\n    \"checkedAt\": \"2026-09-12T12:00:00Z\",\n    \"tokenValid\": true,\n    \"identityVerified\": true,\n    \"checks\": [\n      {\n        \"code\": \"webhook_url\",\n        \"status\": \"fail\"\n      }\n    ]\n  },\n  \"credentialFragment\": \"OKEN\",\n  \"credentialVersion\": 1,\n  \"createdAt\": \"2026-09-12T12:00:00Z\",\n  \"updatedAt\": \"2026-09-12T12:00:00Z\"\n}",
+            "language": "json",
+            "contentType": "application/json",
+            "note": "JSON response body",
+            "status": "201"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"Malformed JSON in request body\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/chat-connections/create-chat-connection"
+      },
+      {
+        "description": "List connections.",
+        "examples": [
+          {
+            "code": "curl --request GET \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/chat-connections\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/chat-connections\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/chat-connections\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "GET",
+        "operation": "list-chat-connections",
+        "path": "/v1/chat-connections",
+        "responseMetadata": {
+          "description": "200 OK — {chatConnections: [...]} in creation order."
+        },
+        "responses": [
+          {
+            "code": "{\n  \"chatConnections\": [\n    {\n      \"id\": \"cc_1234567890ABCDEF\",\n      \"tenantId\": \"ten_1234567890ABCDEF\",\n      \"agentId\": \"ag_1234567890ABCDEF\",\n      \"name\": \"Support\",\n      \"platform\": \"telegram\",\n      \"enabled\": true,\n      \"configuration\": {\n        \"platform\": \"telegram\",\n        \"botId\": \"123456789\",\n        \"webhookUrl\": \"https://example.com/chat\",\n        \"chatIds\": []\n      },\n      \"identity\": {\n        \"botId\": \"123456789\",\n        \"botUserId\": \"123456789\",\n        \"teamId\": null,\n        \"appId\": null\n      },\n      \"health\": {\n        \"checkedAt\": \"2026-09-12T12:00:00Z\",\n        \"tokenValid\": true,\n        \"identityVerified\": true,\n        \"checks\": [\n          {\n            \"code\": \"webhook_url\",\n            \"status\": \"fail\"\n          }\n        ]\n      },\n      \"credentialFragment\": \"OKEN\",\n      \"credentialVersion\": 1,\n      \"createdAt\": \"2026-09-12T12:00:00Z\",\n      \"updatedAt\": \"2026-09-12T12:00:00Z\"\n    }\n  ]\n}",
+            "language": "json",
+            "contentType": "application/json",
+            "note": "JSON response body",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/chat-connections/list-chat-connections"
+      },
+      {
+        "description": "Read a connection.",
+        "examples": [
+          {
+            "code": "curl --request GET \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/chat-connections/cc_1234567890ABCDEF\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/chat-connections/cc_1234567890ABCDEF\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/chat-connections/cc_1234567890ABCDEF\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "GET",
+        "operation": "get-chat-connection",
+        "path": "/v1/chat-connections/:id",
+        "responseMetadata": {
+          "description": "200 OK — A connection object."
+        },
+        "responses": [
+          {
+            "code": "{\n  \"id\": \"cc_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"agentId\": \"ag_1234567890ABCDEF\",\n  \"name\": \"Support\",\n  \"platform\": \"telegram\",\n  \"enabled\": true,\n  \"configuration\": {\n    \"platform\": \"telegram\",\n    \"botId\": \"123456789\",\n    \"webhookUrl\": \"https://example.com/chat\",\n    \"chatIds\": []\n  },\n  \"identity\": {\n    \"botId\": \"123456789\",\n    \"botUserId\": \"123456789\",\n    \"teamId\": null,\n    \"appId\": null\n  },\n  \"health\": {\n    \"checkedAt\": \"2026-09-12T12:00:00Z\",\n    \"tokenValid\": true,\n    \"identityVerified\": true,\n    \"checks\": [\n      {\n        \"code\": \"webhook_url\",\n        \"status\": \"fail\"\n      }\n    ]\n  },\n  \"credentialFragment\": \"OKEN\",\n  \"credentialVersion\": 1,\n  \"createdAt\": \"2026-09-12T12:00:00Z\",\n  \"updatedAt\": \"2026-09-12T12:00:00Z\"\n}",
+            "language": "json",
+            "contentType": "application/json",
+            "note": "JSON response body",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/chat-connections/get-chat-connection"
+      },
+      {
+        "description": "Rename a connection.",
+        "examples": [
+          {
+            "code": "curl --request PATCH \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Support\"}'",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/chat-connections/cc_1234567890ABCDEF\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"name\\\":\\\"Support\\\"}\"\n\nresponse = requests.request(method=\"PATCH\", url=url, headers=headers, data=body)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/chat-connections/cc_1234567890ABCDEF\";\n\nconst response = await fetch(url, { method: \"PATCH\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"name\\\":\\\"Support\\\"}\" });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/chat-connections/cc_1234567890ABCDEF\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"PATCH\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"name\\\":\\\"Support\\\"}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"name\\\":\\\"Support\\\"}\")\n\trequest, err := http.NewRequest(\"PATCH\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"PATCH\", HttpRequest.BodyPublishers.ofString(\"{\\\"name\\\":\\\"Support\\\"}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF\")\nrequest = Net::HTTPGenericRequest.new(\"PATCH\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"name\\\":\\\"Support\\\"}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "PATCH",
+        "operation": "rename-chat-connection",
+        "path": "/v1/chat-connections/:id",
+        "responseMetadata": {
+          "description": "200 OK — A connection object."
+        },
+        "responses": [
+          {
+            "code": "{\n  \"id\": \"cc_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"agentId\": \"ag_1234567890ABCDEF\",\n  \"name\": \"Support\",\n  \"platform\": \"telegram\",\n  \"enabled\": true,\n  \"configuration\": {\n    \"platform\": \"telegram\",\n    \"botId\": \"123456789\",\n    \"webhookUrl\": \"https://example.com/chat\",\n    \"chatIds\": []\n  },\n  \"identity\": {\n    \"botId\": \"123456789\",\n    \"botUserId\": \"123456789\",\n    \"teamId\": null,\n    \"appId\": null\n  },\n  \"health\": {\n    \"checkedAt\": \"2026-09-12T12:00:00Z\",\n    \"tokenValid\": true,\n    \"identityVerified\": true,\n    \"checks\": [\n      {\n        \"code\": \"webhook_url\",\n        \"status\": \"fail\"\n      }\n    ]\n  },\n  \"credentialFragment\": \"OKEN\",\n  \"credentialVersion\": 1,\n  \"createdAt\": \"2026-09-12T12:00:00Z\",\n  \"updatedAt\": \"2026-09-12T12:00:00Z\"\n}",
+            "language": "json",
+            "contentType": "application/json",
+            "note": "JSON response body",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"Malformed JSON in request body\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/chat-connections/rename-chat-connection"
+      },
+      {
+        "description": "Rotate credentials.",
+        "examples": [
+          {
+            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/credentials\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"platform\":\"telegram\",\"botToken\":\"123456789:REPLACE_WITH_BOT_TOKEN\",\"webhookSecret\":\"REPLACE_WITH_WEBHOOK_SECRET\"}'",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/chat-connections/cc_1234567890ABCDEF/credentials\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"platform\\\":\\\"telegram\\\",\\\"botToken\\\":\\\"123456789:REPLACE_WITH_BOT_TOKEN\\\",\\\"webhookSecret\\\":\\\"REPLACE_WITH_WEBHOOK_SECRET\\\"}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/chat-connections/cc_1234567890ABCDEF/credentials\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"platform\\\":\\\"telegram\\\",\\\"botToken\\\":\\\"123456789:REPLACE_WITH_BOT_TOKEN\\\",\\\"webhookSecret\\\":\\\"REPLACE_WITH_WEBHOOK_SECRET\\\"}\" });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/chat-connections/cc_1234567890ABCDEF/credentials\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"platform\\\":\\\"telegram\\\",\\\"botToken\\\":\\\"123456789:REPLACE_WITH_BOT_TOKEN\\\",\\\"webhookSecret\\\":\\\"REPLACE_WITH_WEBHOOK_SECRET\\\"}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/credentials\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"platform\\\":\\\"telegram\\\",\\\"botToken\\\":\\\"123456789:REPLACE_WITH_BOT_TOKEN\\\",\\\"webhookSecret\\\":\\\"REPLACE_WITH_WEBHOOK_SECRET\\\"}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/credentials\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"platform\\\":\\\"telegram\\\",\\\"botToken\\\":\\\"123456789:REPLACE_WITH_BOT_TOKEN\\\",\\\"webhookSecret\\\":\\\"REPLACE_WITH_WEBHOOK_SECRET\\\"}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/credentials\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"platform\\\":\\\"telegram\\\",\\\"botToken\\\":\\\"123456789:REPLACE_WITH_BOT_TOKEN\\\",\\\"webhookSecret\\\":\\\"REPLACE_WITH_WEBHOOK_SECRET\\\"}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "POST",
+        "operation": "rotate-chat-credentials",
+        "path": "/v1/chat-connections/:id/credentials",
+        "responseMetadata": {
+          "description": "200 OK — A connection object."
+        },
+        "responses": [
+          {
+            "code": "{\n  \"id\": \"cc_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"agentId\": \"ag_1234567890ABCDEF\",\n  \"name\": \"Support\",\n  \"platform\": \"telegram\",\n  \"enabled\": true,\n  \"configuration\": {\n    \"platform\": \"telegram\",\n    \"botId\": \"123456789\",\n    \"webhookUrl\": \"https://example.com/chat\",\n    \"chatIds\": []\n  },\n  \"identity\": {\n    \"botId\": \"123456789\",\n    \"botUserId\": \"123456789\",\n    \"teamId\": null,\n    \"appId\": null\n  },\n  \"health\": {\n    \"checkedAt\": \"2026-09-12T12:00:00Z\",\n    \"tokenValid\": true,\n    \"identityVerified\": true,\n    \"checks\": [\n      {\n        \"code\": \"webhook_url\",\n        \"status\": \"fail\"\n      }\n    ]\n  },\n  \"credentialFragment\": \"OKEN\",\n  \"credentialVersion\": 1,\n  \"createdAt\": \"2026-09-12T12:00:00Z\",\n  \"updatedAt\": \"2026-09-12T12:00:00Z\"\n}",
+            "language": "json",
+            "contentType": "application/json",
+            "note": "JSON response body",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"Malformed JSON in request body\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/chat-connections/rotate-chat-credentials"
+      },
+      {
+        "description": "Check health.",
+        "examples": [
+          {
+            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/health\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/chat-connections/cc_1234567890ABCDEF/health\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/chat-connections/cc_1234567890ABCDEF/health\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/chat-connections/cc_1234567890ABCDEF/health\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/health\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/health\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"POST\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/health\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "POST",
+        "operation": "check-chat-health",
+        "path": "/v1/chat-connections/:id/health",
+        "responseMetadata": {
+          "description": "200 OK — A connection object, including refreshed health."
+        },
+        "responses": [
+          {
+            "code": "{\n  \"id\": \"cc_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"agentId\": \"ag_1234567890ABCDEF\",\n  \"name\": \"Support\",\n  \"platform\": \"telegram\",\n  \"enabled\": true,\n  \"configuration\": {\n    \"platform\": \"telegram\",\n    \"botId\": \"123456789\",\n    \"webhookUrl\": \"https://example.com/chat\",\n    \"chatIds\": []\n  },\n  \"identity\": {\n    \"botId\": \"123456789\",\n    \"botUserId\": \"123456789\",\n    \"teamId\": null,\n    \"appId\": null\n  },\n  \"health\": {\n    \"checkedAt\": \"2026-09-12T12:00:00Z\",\n    \"tokenValid\": true,\n    \"identityVerified\": true,\n    \"checks\": [\n      {\n        \"code\": \"webhook_url\",\n        \"status\": \"fail\"\n      }\n    ]\n  },\n  \"credentialFragment\": \"OKEN\",\n  \"credentialVersion\": 1,\n  \"createdAt\": \"2026-09-12T12:00:00Z\",\n  \"updatedAt\": \"2026-09-12T12:00:00Z\"\n}",
+            "language": "json",
+            "contentType": "application/json",
+            "note": "JSON response body",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/chat-connections/check-chat-health"
+      },
+      {
+        "description": "Enable intake.",
+        "examples": [
+          {
+            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/enable\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/chat-connections/cc_1234567890ABCDEF/enable\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/chat-connections/cc_1234567890ABCDEF/enable\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/chat-connections/cc_1234567890ABCDEF/enable\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/enable\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/enable\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"POST\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/enable\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "POST",
+        "operation": "enable-chat-connection",
+        "path": "/v1/chat-connections/:id/enable",
+        "responseMetadata": {
+          "description": "200 OK — A connection object."
+        },
+        "responses": [
+          {
+            "code": "{\n  \"id\": \"cc_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"agentId\": \"ag_1234567890ABCDEF\",\n  \"name\": \"Support\",\n  \"platform\": \"telegram\",\n  \"enabled\": true,\n  \"configuration\": {\n    \"platform\": \"telegram\",\n    \"botId\": \"123456789\",\n    \"webhookUrl\": \"https://example.com/chat\",\n    \"chatIds\": []\n  },\n  \"identity\": {\n    \"botId\": \"123456789\",\n    \"botUserId\": \"123456789\",\n    \"teamId\": null,\n    \"appId\": null\n  },\n  \"health\": {\n    \"checkedAt\": \"2026-09-12T12:00:00Z\",\n    \"tokenValid\": true,\n    \"identityVerified\": true,\n    \"checks\": [\n      {\n        \"code\": \"webhook_url\",\n        \"status\": \"fail\"\n      }\n    ]\n  },\n  \"credentialFragment\": \"OKEN\",\n  \"credentialVersion\": 1,\n  \"createdAt\": \"2026-09-12T12:00:00Z\",\n  \"updatedAt\": \"2026-09-12T12:00:00Z\"\n}",
+            "language": "json",
+            "contentType": "application/json",
+            "note": "JSON response body",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/chat-connections/enable-chat-connection"
+      },
+      {
+        "description": "Disable intake.",
+        "examples": [
+          {
+            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/disable\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/chat-connections/cc_1234567890ABCDEF/disable\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/chat-connections/cc_1234567890ABCDEF/disable\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/chat-connections/cc_1234567890ABCDEF/disable\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/disable\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/disable\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"POST\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/disable\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "POST",
+        "operation": "disable-chat-connection",
+        "path": "/v1/chat-connections/:id/disable",
+        "responseMetadata": {
+          "description": "200 OK — A connection object."
+        },
+        "responses": [
+          {
+            "code": "{\n  \"id\": \"cc_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"agentId\": \"ag_1234567890ABCDEF\",\n  \"name\": \"Support\",\n  \"platform\": \"telegram\",\n  \"enabled\": false,\n  \"configuration\": {\n    \"platform\": \"telegram\",\n    \"botId\": \"123456789\",\n    \"webhookUrl\": \"https://example.com/chat\",\n    \"chatIds\": []\n  },\n  \"identity\": {\n    \"botId\": \"123456789\",\n    \"botUserId\": \"123456789\",\n    \"teamId\": null,\n    \"appId\": null\n  },\n  \"health\": {\n    \"checkedAt\": \"2026-09-12T12:00:00Z\",\n    \"tokenValid\": true,\n    \"identityVerified\": true,\n    \"checks\": [\n      {\n        \"code\": \"webhook_url\",\n        \"status\": \"fail\"\n      }\n    ]\n  },\n  \"credentialFragment\": \"OKEN\",\n  \"credentialVersion\": 1,\n  \"createdAt\": \"2026-09-12T12:00:00Z\",\n  \"updatedAt\": \"2026-09-12T12:00:00Z\"\n}",
+            "language": "json",
+            "contentType": "application/json",
+            "note": "JSON response body",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/chat-connections/disable-chat-connection"
+      },
+      {
+        "description": "Delete a connection.",
+        "examples": [
+          {
+            "code": "curl --request DELETE \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/chat-connections/cc_1234567890ABCDEF\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"DELETE\", url=url, headers=headers)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/chat-connections/cc_1234567890ABCDEF\";\n\nconst response = await fetch(url, { method: \"DELETE\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/chat-connections/cc_1234567890ABCDEF\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"DELETE\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"DELETE\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"DELETE\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF\")\nrequest = Net::HTTPGenericRequest.new(\"DELETE\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "DELETE",
+        "operation": "delete-chat-connection",
+        "path": "/v1/chat-connections/:id",
+        "responseMetadata": {
+          "description": "204 No Content — Empty body."
+        },
+        "responses": [
+          {
+            "note": "No response body",
+            "status": "204"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/chat-connections/delete-chat-connection"
+      },
+      {
+        "description": "Inspect deliveries.",
+        "examples": [
+          {
+            "code": "curl --request GET \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/deliveries\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/chat-connections/cc_1234567890ABCDEF/deliveries\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/chat-connections/cc_1234567890ABCDEF/deliveries\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/chat-connections/cc_1234567890ABCDEF/deliveries\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/deliveries\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/deliveries\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/deliveries\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "GET",
+        "operation": "list-chat-deliveries",
+        "path": "/v1/chat-connections/:id/deliveries",
+        "responseMetadata": {
+          "description": "200 OK — {data, nextCursor} with delivery source IDs, status, attempt, diagnostic code, representation and known receipts. Credentials, message bodies and tool arguments are omitted."
+        },
+        "responses": [
+          {
+            "code": "{\n  \"data\": [],\n  \"nextCursor\": null\n}",
+            "language": "json",
+            "contentType": "application/json",
+            "note": "JSON response body",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/chat-connections/list-chat-deliveries"
+      },
+      {
+        "description": "Repair delivery.",
+        "examples": [
+          {
+            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/deliveries/cd_1234567890ABCDEF/repair\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"expectedAttempt\":1,\"previousSenderStopped\":true,\"acceptDuplicateRisk\":true}'",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/chat-connections/cc_1234567890ABCDEF/deliveries/cd_1234567890ABCDEF/repair\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"expectedAttempt\\\":1,\\\"previousSenderStopped\\\":true,\\\"acceptDuplicateRisk\\\":true}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/chat-connections/cc_1234567890ABCDEF/deliveries/cd_1234567890ABCDEF/repair\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"expectedAttempt\\\":1,\\\"previousSenderStopped\\\":true,\\\"acceptDuplicateRisk\\\":true}\" });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/chat-connections/cc_1234567890ABCDEF/deliveries/cd_1234567890ABCDEF/repair\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"expectedAttempt\\\":1,\\\"previousSenderStopped\\\":true,\\\"acceptDuplicateRisk\\\":true}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/deliveries/cd_1234567890ABCDEF/repair\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"expectedAttempt\\\":1,\\\"previousSenderStopped\\\":true,\\\"acceptDuplicateRisk\\\":true}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/deliveries/cd_1234567890ABCDEF/repair\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"expectedAttempt\\\":1,\\\"previousSenderStopped\\\":true,\\\"acceptDuplicateRisk\\\":true}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-connections/cc_1234567890ABCDEF/deliveries/cd_1234567890ABCDEF/repair\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"expectedAttempt\\\":1,\\\"previousSenderStopped\\\":true,\\\"acceptDuplicateRisk\\\":true}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "POST",
+        "operation": "repair-chat-delivery",
+        "path": "/v1/chat-connections/:id/deliveries/:deliveryId/repair",
+        "responseMetadata": {
+          "description": "200 OK — The delivery result. Inspect its status: an HTTP success alone does not establish confirmed delivery."
+        },
+        "responses": [
+          {
+            "code": "{\n  \"id\": \"cd_1234567890ABCDEF\",\n  \"connectionId\": \"cc_1234567890ABCDEF\",\n  \"sessionId\": \"ss_1234567890ABCDEF\",\n  \"threadId\": \"telegram:123456789\",\n  \"attempt\": 2,\n  \"kind\": \"reply\",\n  \"status\": \"confirmed\"\n}",
+            "language": "json",
+            "contentType": "application/json",
+            "note": "JSON response body",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"Malformed JSON in request body\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/chat-connections/repair-chat-delivery"
+      }
+    ],
+    "pageId": "api-reference/rest-api/chat-connections.md",
+    "title": "Chat connections",
+    "url": "/api-reference/rest-api/chat-connections"
   }
 ] as const;
 export const documentationTree: SerializedPageTree = {
@@ -7895,6 +8753,14 @@ export const documentationTree: SerializedPageTree = {
             "description": "Design for bounded operations, typed failures, idempotent submission, cancellation, and durable recovery.",
             "url": "/platform/limits-and-reliability",
             "$ref": "platform/limits-and-reliability.md"
+          },
+          {
+            "$id": "platform/chat-integrations.md",
+            "type": "page",
+            "name": "Slack and Telegram",
+            "description": "Connect your own Slack app or Telegram bot to a hosted Agent.",
+            "url": "/platform/chat-integrations",
+            "$ref": "platform/chat-integrations.md"
           }
         ],
         "$id": "platform",
@@ -8073,6 +8939,14 @@ export const documentationTree: SerializedPageTree = {
                 "description": "Read and update Tenant display settings and soft quota configuration.",
                 "url": "/sdk/typescript/tenant",
                 "$ref": "sdk/typescript/tenant.md"
+              },
+              {
+                "$id": "sdk/typescript/chat-integrations.md",
+                "type": "page",
+                "name": "Chat integrations",
+                "description": "Connect an Agent to Telegram using REST alongside your existing SDK.",
+                "url": "/sdk/typescript/chat-integrations",
+                "$ref": "sdk/typescript/chat-integrations.md"
               }
             ],
             "$id": "sdk/typescript",
@@ -8196,6 +9070,14 @@ export const documentationTree: SerializedPageTree = {
                 "description": "Read and update Tenant settings and soft quotas with the Python SDK.",
                 "url": "/sdk/python/tenant",
                 "$ref": "sdk/python/tenant.md"
+              },
+              {
+                "$id": "sdk/python/chat-integrations.md",
+                "type": "page",
+                "name": "Chat integrations",
+                "description": "Connect an Agent to Telegram using REST alongside your existing SDK.",
+                "url": "/sdk/python/chat-integrations",
+                "$ref": "sdk/python/chat-integrations.md"
               }
             ],
             "$id": "sdk/python",
@@ -8421,6 +9303,14 @@ export const documentationTree: SerializedPageTree = {
                 "description": "Start, inspect, poll, and cancel Task runs.",
                 "url": "/api-reference/rest-api/task-runs",
                 "$ref": "api-reference/rest-api/task-runs.md"
+              },
+              {
+                "$id": "api-reference/rest-api/chat-connections.md",
+                "type": "page",
+                "name": "Chat connections",
+                "description": "Create and manage Slack and Telegram connections and inspect delivery outcomes.",
+                "url": "/api-reference/rest-api/chat-connections",
+                "$ref": "api-reference/rest-api/chat-connections.md"
               }
             ],
             "$id": "api-reference/rest-api",
