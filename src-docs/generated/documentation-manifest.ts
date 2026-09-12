@@ -7851,7 +7851,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/chat-connections/get-chat-connection"
       },
       {
-        "description": "Rename a connection.",
+        "description": "Update a connection.",
         "examples": [
           {
             "code": "curl --request PATCH \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Support\"}'",
