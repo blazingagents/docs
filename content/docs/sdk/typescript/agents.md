@@ -45,11 +45,10 @@ for thresholds, summary usage, unknown models, and failure behavior.
 
 The backend accepts `approvalInChat` and `approvalInTasks` on create/update and
 returns both on Agents and Versions. The corresponding Typescript SDK fields
-are `approvalInChat` and `approvalInTasks` in the planned v0.8.0 release (not yet verified published).
+are `approvalInChat` and `approvalInTasks` available starting in v0.8.0.
 Do not assume these fields or policy restoration are available in older installed
-SDKs. TypeScript v0.7.0 and Python v0.4.0 predate this support; use the
-[REST contract](/api-reference/rest-api/agents#tool-approval-configuration) until
-your SDK release includes it.
+SDKs. TypeScript v0.7.0 predates this support; upgrade to v0.8.0 or use the
+[REST contract](/api-reference/rest-api/agents#tool-approval-configuration).
 
 Each policy has required `default` and an override list of structured Tool
 references and decisions. Both modes use `full`, `deny`, `manual`, or `auto`.
@@ -59,14 +58,14 @@ its list. Policy-aware `restoreVersion()` must copy both saved policies through 
 validation; older helpers can leave current policies in place instead.
 See [examples and validation](/agents/tools/tool-approvals#approval-policies).
 
-The policy release exports `ApprovalDecision`, `ApprovalPolicy`, and
+Version v0.8.0 exports `ApprovalDecision`, `ApprovalPolicy`, and
 `ToolReference` from the package root and `/contracts`; `/contracts` also exports
 `approvalDecisionSchema`, `approvalPolicySchema`, and `toolReferenceSchema`.
 `ApprovalPolicy` describes normalized output (required `overrides`), while
 `CreateAgentBody` and `UpdateAgentBody` permit omitted input overrides.
 
 ```typescript
-// Requires the policy-support SDK release.
+// Requires @blazingagents/sdk v0.8.0 or later.
 await client.agents.update({
   agentId,
   approvalInChat: {

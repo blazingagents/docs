@@ -19,7 +19,7 @@ See [review availability](/agents/tools/tool-approvals#review-availability) and
 [exact backend metadata optionality](/api-reference/protocols/objects-and-schemas#tool-approval-metadata).
 
 The backend adds structured `tool`, `assistantMessageId`, `createdAt`, and
-`decidedAt` metadata. New SDK field support is release-dependent; the existing
+`decidedAt` metadata. These fields are supported starting in TypeScript SDK v0.8.0. The existing
 manual lifecycle remains usable without those fields.
 
 ## Overview [#overview]
@@ -270,7 +270,7 @@ type ToolApprovalContinuationState =
 type JSONValue =
   null | boolean | number | string | JSONValue[] | { [key: string]: JSONValue };
 
-// Metadata fields require the policy-support release (planned v0.8.0).
+// Metadata fields require the policy-support release (v0.8.0).
 // ToolReference is exported by that release.
 interface ToolApprovalState {
   tool?: ToolReference | null;
