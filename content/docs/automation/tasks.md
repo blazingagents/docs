@@ -7,6 +7,14 @@ description: Define reusable background Agent work and control the configuration
 
 A Task is persisted configuration for running an Agent asynchronously. It stores the Agent, instruction, optional Version Pin, attribution, enabled state, and optional schedule. The Task is a definition; each execution is a separate [Task run](/automation/task-runs).
 
+## Tool approval policy [#tool-approval-policy]
+
+Task execution uses the resolved Agent Version's `approvalInTasks` policy. Tasks
+have no manual approval continuation path: manual calls and automatic escalation
+without a human are denied, with blocked work reported to the model. Other
+permitted work can continue. An unexpected pending human approval fails the Task.
+See [Tool approvals](/agents/tools/tool-approvals).
+
 ## Task definition [#task-definition]
 
 A Task has a `tk_…` ID and belongs to one Tenant and Agent. Its core fields are:

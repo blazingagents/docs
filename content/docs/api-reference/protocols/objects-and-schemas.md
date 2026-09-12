@@ -62,6 +62,27 @@ accepts it. See [Attribution](#attribution).
 | `toolApprovalContinuationStateSchema` | `waiting`, `queued`, `running`, `succeeded`, `failed` |
 | `toolApprovalStateSchema.decision` | `pending`, `approved`, `denied` |
 
+### ApprovalPolicy [#approval-policy]
+
+Agent and AgentVersion expose `approvalInChat` and `approvalInTasks`:
+
+```typescript
+type PolicyMode = "full" | "deny" | "manual" | "auto";
+type ToolReference =
+  | { type: "builtin"; name: string } // Validated against the built-in catalog.
+  | { type: "mcp"; connectionId: string; name: string };
+type ApprovalPolicy = {
+  default: PolicyMode;
+  overrides: Array<{ tool: ToolReference; decision: PolicyMode }>;
+};
+```
+
+These illustrative wire types do not imply SDK export availability. Inputs may
+omit `overrides` (normalized to `[]`); responses include it. Both policies default
+to full with no overrides. Policy objects, rules, and references reject unknown
+fields; duplicate Tool references within one policy are invalid. Update omission
+preserves the field; supplying a policy replaces it. See [approval policies](/agents/tools/tool-approvals#approval-policies).
+
 ### Agent [#agent]
 
 <span id="agent-response"></span><span id="agents-response"></span>
@@ -175,6 +196,25 @@ See [SDK chat generation](/sdk/typescript/client#chat),
 [REST Session messages](/api-reference/rest-api/sessions#list-session-messages),
 [Generation and streaming](/agents/output/generation-and-streaming), and
 [Stream responses into a frontend](/agents/output/generation-and-streaming).
+
+### Tool approval metadata [#tool-approval-metadata]
+
+Each list response record has the following backend fields:
+
+| Field | Type | Presence |
+| --- | --- | --- |
+| `approvalId`, `toolCallId`, `toolName` | string | Required, nonempty |
+| `input` | JSON value | Required |
+| `decision` | `pending` \| `approved` \| `denied` | Required; distinct from policy modes |
+| `reason` | string \| null | Required |
+| `tool` | [ToolReference](#approval-policy) \| null | Optional; null for Admin ordinary-policy reference |
+| `assistantMessageId` | string | Optional, nonempty when present; not nullable |
+| `createdAt` | ISO datetime string | Optional; not nullable |
+| `decidedAt` | ISO datetime string \| null | Optional |
+
+`tool` preserves original MCP identity; `toolName` is the runtime name.
+`assistantMessageId` links to Session history and usage. Do not require optional
+metadata when consuming older records.
 
 ### ToolApprovalState [#toolapprovalstate]
 

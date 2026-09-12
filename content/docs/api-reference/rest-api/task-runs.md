@@ -5,6 +5,14 @@ description: Start, inspect, poll, and cancel Task runs.
 
 # Task runs
 
+## Tool approval policy [#tool-approval-policy]
+
+Task execution uses the resolved Agent Version's `approvalInTasks` policy. Tasks
+have no manual approval continuation path: manual calls and automatic escalation
+without a human are denied, with blocked work reported to the model. Other
+permitted work can continue. An unexpected pending human approval fails the Task.
+See [Tool approvals](/agents/tools/tool-approvals).
+
 ## Overview [#overview]
 
 Task runs are durable executions of Task definitions. Use these endpoints to enqueue on-demand work, poll its lifecycle and transcript, or request cooperative cancellation.

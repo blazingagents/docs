@@ -41,6 +41,44 @@ saved values. Agent and Agent Version responses include both fields, and restora
 copies them. See [context compaction](/agents/agents#automatic-context-compaction)
 for thresholds, summary usage, unknown models, and failure behavior.
 
+## Tool approval policies [#tool-approval-policies]
+
+The backend accepts `approvalInChat` and `approvalInTasks` on create/update and
+returns both on Agents and Versions. The corresponding Typescript SDK fields
+are `approvalInChat` and `approvalInTasks` in the planned v0.8.0 release (not yet verified published).
+Do not assume these fields or policy restoration are available in older installed
+SDKs. TypeScript v0.7.0 and Python v0.4.0 predate this support; use the
+[REST contract](/api-reference/rest-api/agents#tool-approval-configuration) until
+your SDK release includes it.
+
+Each policy has required `default` and an override list of structured Tool
+references and decisions. Both modes use `full`, `deny`, `manual`, or `auto`.
+Defaults are full with no overrides. Omitted update fields stay unchanged;
+a supplied policy replaces the whole policy, and omitted/empty overrides clear
+its list. Policy-aware `restoreVersion()` must copy both saved policies through normal
+validation; older helpers can leave current policies in place instead.
+See [examples and validation](/agents/tools/tool-approvals#approval-policies).
+
+The policy release exports `ApprovalDecision`, `ApprovalPolicy`, and
+`ToolReference` from the package root and `/contracts`; `/contracts` also exports
+`approvalDecisionSchema`, `approvalPolicySchema`, and `toolReferenceSchema`.
+`ApprovalPolicy` describes normalized output (required `overrides`), while
+`CreateAgentBody` and `UpdateAgentBody` permit omitted input overrides.
+
+```typescript
+// Requires the policy-support SDK release.
+await client.agents.update({
+  agentId,
+  approvalInChat: {
+    default: "full",
+    overrides: [{ tool: { type: "builtin", name: "bash" }, decision: "manual" }],
+  },
+  approvalInTasks: { default: "deny" },
+});
+```
+
+The Agent must already have the Workspace Tool group enabled for this `bash` rule.
+
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
@@ -75,6 +113,8 @@ Creates an Agent and its first immutable Version.
 | `providerId` | `string \| null` | no | `null` | Stored Provider, paired with `model` |
 | `thinkingLevel` | `string \| null` | no | `null` | Reasoning choice; null uses Provider default |
 | `workspaceId` | `string` | no | new default Workspace | Existing same-Tenant Workspace to attach and share |
+| `approvalInChat` | `ApprovalPolicy` | Chat/stateless policy; requires policy-support release |
+| `approvalInTasks` | `ApprovalPolicy` | Task policy; requires policy-support release |
 | `autoCompaction` | `boolean` | no | `true` | Summarize older context automatically |
 | `compactionReserveTokens` | `number` | no | `16384` | Tokens reserved below the model window |
 | `memoryInjectionEnabled` | `boolean` | no | `false` | Automatic Memory context |
@@ -347,6 +387,8 @@ Returns [`McpAttachmentResponse`](#mcpattachmentresponse). Raises `validation_fa
 | `model` | `string \| null` | Provider-native model ID, or `null` when unconfigured |
 | `providerId` | `string \| null` | Stored Provider, or `null` when unconfigured |
 | `workspaceId` | `string` | Current Workspace attachment |
+| `approvalInChat` | `ApprovalPolicy` | Chat/stateless policy; requires policy-support release |
+| `approvalInTasks` | `ApprovalPolicy` | Task policy; requires policy-support release |
 | `autoCompaction` | `boolean` | Automatic compaction setting |
 | `compactionReserveTokens` | `number` | Compaction reserve in tokens |
 | `memoryInjectionEnabled` | `boolean` | Whether Memory is injected automatically |
@@ -367,7 +409,7 @@ Returns [`McpAttachmentResponse`](#mcpattachmentresponse). Raises `validation_fa
 
 ### `AgentVersion` [#agentversion]
 
-`AgentVersion` contains `agentId`, `tenantId`, `version`, `name`, `model`, `providerId`, `thinkingLevel`, `autoCompaction`, `compactionReserveTokens`, `memoryInjectionEnabled`, `tools`, `instructions`, `metadata`, `mcpConnectionIds`, and `createdAt`. It intentionally omits current `workspaceId`, `userId`, avatar, status, and update timestamp.
+`AgentVersion` contains `agentId`, `tenantId`, `version`, `name`, `model`, `providerId`, `thinkingLevel`, `approvalInChat`, `approvalInTasks`, `autoCompaction`, `compactionReserveTokens`, `memoryInjectionEnabled`, `tools`, `instructions`, `metadata`, `mcpConnectionIds`, and `createdAt`. It intentionally omits current `workspaceId`, `userId`, avatar, status, and update timestamp.
 
 ### `AgentVersionsResponse` [#agentversionsresponse]
 

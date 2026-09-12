@@ -11,6 +11,17 @@ Every network method accepts one input object with optional `abortSignal`.
 `ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
 types include that field too.
 
+## Policy-driven approvals [#policy-driven-approvals]
+
+Interactive Sessions use the Agent's versioned `approvalInChat` policy. Manual
+review and automatic escalation reuse the existing list/decide/join lifecycle.
+See [review availability](/agents/tools/tool-approvals#review-availability) and
+[exact backend metadata optionality](/api-reference/protocols/objects-and-schemas#tool-approval-metadata).
+
+The backend adds structured `tool`, `assistantMessageId`, `createdAt`, and
+`decidedAt` metadata. New SDK field support is release-dependent; the existing
+manual lifecycle remains usable without those fields.
+
 ## Overview [#overview]
 
 Session and transcript lists use opaque cursors. Both list limits default to 50 and accept 1–200. Transcript `cursor` walks older pages; `after` polls forward from `latestCursor`. Do not pass both.
@@ -259,7 +270,13 @@ type ToolApprovalContinuationState =
 type JSONValue =
   null | boolean | number | string | JSONValue[] | { [key: string]: JSONValue };
 
+// Metadata fields require the policy-support release (planned v0.8.0).
+// ToolReference is exported by that release.
 interface ToolApprovalState {
+  tool?: ToolReference | null;
+  assistantMessageId?: string;
+  createdAt?: string;
+  decidedAt?: string | null;
   approvalId: string;
   decision: ToolApprovalDecision;
   input: JSONValue;

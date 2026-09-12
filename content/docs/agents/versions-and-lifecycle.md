@@ -9,6 +9,15 @@ Every Agent has immutable, monotonically numbered Versions and a separate
 active or disabled status. Use Versions to audit or select configuration;
 disable an Agent to stop new work without deleting it.
 
+## Tool approval policies [#tool-approval-policies]
+
+`approvalInChat` and `approvalInTasks` are independent versioned Agent settings,
+initially full with no overrides. See [Tool approvals](/agents/tools/tool-approvals)
+for exact Tool matching, validation, and human/automatic review behavior. Restoring
+a Version must copy both policies along with its other configuration; older SDK
+restoration helpers may omit them. Use an SDK release with policy restoration
+support or include both saved policies explicitly in a REST update.
+
 ## How Versions are created [#how-versions-are-created]
 
 Agent creation writes Version `1`. Every accepted ordinary update stores the

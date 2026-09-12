@@ -49,6 +49,47 @@ saved values. Agent and Agent Version responses include both fields, and restora
 copies them. See [context compaction](/agents/agents#automatic-context-compaction)
 for thresholds, summary usage, unknown models, and failure behavior.
 
+## Tool approval policies [#tool-approval-policies]
+
+The backend accepts `approvalInChat` and `approvalInTasks` on create/update and
+returns both on Agents and Versions. The corresponding Python SDK fields
+are `approval_in_chat` and `approval_in_tasks` in the planned v0.5.0 release (not yet verified published).
+Do not assume these fields or policy restoration are available in older installed
+SDKs. TypeScript v0.7.0 and Python v0.4.0 predate this support; use the
+[REST contract](/api-reference/rest-api/agents#tool-approval-configuration) until
+your SDK release includes it.
+
+Each policy has required `default` and an override list of structured Tool
+references and decisions. Both modes use `full`, `deny`, `manual`, or `auto`.
+Defaults are full with no overrides. Omitted update fields stay unchanged;
+a supplied policy replaces the whole policy, and omitted/empty overrides clear
+its list. Policy-aware `restore_version()` must copy both saved policies through normal
+validation; older helpers can leave current policies in place instead.
+See [examples and validation](/agents/tools/tool-approvals#approval-policies).
+
+The policy release exposes `ApprovalDecision`, `BuiltinToolName`,
+`ApprovalPolicyInput`, `ApprovalOverrideInput`, and `ToolReferenceInput`
+(`BuiltinToolReferenceInput` or `McpToolReferenceInput`). Response models include
+`ApprovalPolicy`, `ApprovalOverride`, `BuiltinToolReference`, `McpToolReference`,
+and `ToolReference`. Nested MCP inputs use `connection_id`; the SDK serializes it
+as `connectionId` on the wire. Input `overrides` is optional and normalized to an
+empty list; `OMITTED` on either update argument preserves the saved policy.
+
+```python
+# Requires the policy-support SDK release.
+client.agents.update(
+    agent_id=agent_id,
+    approval_in_chat={
+        "default": "full",
+        "overrides": [{"tool": {"type": "builtin", "name": "bash"}, "decision": "manual"}],
+    },
+    approval_in_tasks={"default": "deny"},
+)
+```
+
+The Agent must already have the Workspace Tool group enabled for this `bash` rule.
+The async client accepts the same inputs with `await`.
+
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
@@ -301,6 +342,8 @@ invalid success body raises `pydantic.ValidationError`.
 | `model` | `str \| None` | Opaque model identifier, or `None` when unconfigured |
 | `provider_id` | `str \| None` | Stored Provider, or `None` when unconfigured |
 | `workspace_id` | `str` | Current Workspace attachment |
+| `approval_in_chat` | `ApprovalPolicy` | Chat/stateless policy; requires policy-support release |
+| `approval_in_tasks` | `ApprovalPolicy` | Task policy; requires policy-support release |
 | `auto_compaction` | `bool` | Automatic compaction setting |
 | `compaction_reserve_tokens` | `int` | Compaction reserve in tokens |
 | `memory_injection_enabled` | `bool` | Whether Memory is injected automatically |
