@@ -7826,7 +7826,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "agents/tools/tool-approvals.md",
                 "type": "page",
                 "name": "Tool approvals",
-                "description": "Review durable Tool input, decide it safely, and join the resulting continuation Turn.",
+                "description": "Configure Tool approval policies and let people approve or deny calls in chat.",
                 "url": "/agents/tools/tool-approvals",
                 "$ref": "agents/tools/tool-approvals.md"
               }
