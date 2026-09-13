@@ -8944,7 +8944,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/chat-integrations.md",
                 "type": "page",
                 "name": "Chat integrations",
-                "description": "Connect an Agent to Telegram using REST alongside your existing SDK.",
+                "description": "Configure Slack and Telegram connections with the TypeScript SDK.",
                 "url": "/sdk/typescript/chat-integrations",
                 "$ref": "sdk/typescript/chat-integrations.md"
               }
@@ -9075,7 +9075,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/chat-integrations.md",
                 "type": "page",
                 "name": "Chat integrations",
-                "description": "Connect an Agent to Telegram using REST alongside your existing SDK.",
+                "description": "Configure Slack and Telegram connections with the Python SDK.",
                 "url": "/sdk/python/chat-integrations",
                 "$ref": "sdk/python/chat-integrations.md"
               }
