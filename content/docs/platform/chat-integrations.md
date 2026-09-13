@@ -10,9 +10,9 @@ keeps Session history, posts replies, and presents tool approval buttons in chat
 You need a configured Agent, an active subscription, a Tenant API key, and bot
 credentials. Keep all credentials on your backend.
 
-BA runs Vercel Chat SDK for these connections. Your application can keep using the
-existing TypeScript or Python SDK; connection management uses the
-[Chat Connections REST API](/api-reference/rest-api/chat-connections).
+BA runs Vercel Chat SDK for these connections. Use the TypeScript or Python SDK
+to manage connections, or call the
+[Chat Connections REST API](/api-reference/rest-api/chat-connections) directly.
 
 ## Connect Slack
 
@@ -49,9 +49,9 @@ existing TypeScript or Python SDK; connection management uses the
 ### Save the final callback URL
 
 Creation returns the connection ID used in the callback path. Create with an
-initial HTTPS URL, then PATCH `/v1/chat-connections/<connectionId>` with a top-level
-`webhookUrl` containing the final path. Register that same URL with Slack or
-Telegram and run the connection's `/health` operation.
+initial HTTPS URL and `enabled: false`, then update `webhookUrl` to the final path
+using the SDK or PATCH `/v1/chat-connections/<connectionId>`. Register that same
+URL with Slack or Telegram, run a health check, then enable it and test a message.
 
 Changing the saved URL does not register a platform webhook or refresh health.
 Repeat these steps if your API hostname changes. A passing token check alone
@@ -97,7 +97,7 @@ truncate long output. The BA Session retains the complete canonical reply.
 
 Use the [TypeScript example](/sdk/typescript/chat-integrations) or
 [Python example](/sdk/python/chat-integrations) to create a managed connection.
-Neither SDK currently has a Chat Connections resource.
+TypeScript exposes `chatConnections`; Python exposes `chat_connections`.
 
 If you already host a Vercel Chat SDK bot, you can call BA's existing `completion`
 method from its message handler and post the returned text. That is a custom
