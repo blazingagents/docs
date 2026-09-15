@@ -29,10 +29,32 @@ wire names.
 
 | Method | Description | Returns |
 | --- | --- | --- |
+| [`overview()`](#overview-method) | Query dashboard totals and bounded breakdowns | `UsageOverview` |
 | [`get()`](#get) | Query Tenant-wide usage | `Usage` |
 | [`get_for_agent()`](#get-for-agent) | Query usage scoped to one Agent | `Usage` |
 
 ## Methods [#methods]
+
+### `overview()` [#overview-method]
+
+**Signature:** `overview(*, from_: str = ..., to: str = ..., limit: int = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> UsageOverview`
+
+Returns dashboard-ready usage across the Tenant. `from_` and `to` are inclusive
+UTC dates and must be supplied together; `limit` defaults to 5 and accepts
+1–20.
+
+```python
+dashboard = client.usage.overview(
+    from_="2026-07-01",
+    to="2026-07-07",
+    limit=5,
+)
+print(dashboard.totals.request_count, dashboard.active_agent_count)
+```
+
+Failures include `validation_failed` for a partial, reversed, or oversized
+range or invalid limit. See
+[`GET /v1/usage/overview`](/api-reference/rest-api/usage#get-usage-overview).
 
 ### `get()` [#get]
 
@@ -97,12 +119,23 @@ counter fields.
 These are Pydantic v2 models that preserve unknown server fields. The
 top-level `Usage` carries a non-serialized `_request_id`.
 
+`UsageOverview` contains `totals: UsageTotals`, `daily`, `by_agent`, `by_user`,
+and `by_model` lists of `UsageBucket`, plus `active_agent_count`. Daily buckets
+include every day in the selected or default range in ascending order,
+including zero-usage days. Agent and End-user rankings are capped at
+`limit`; model buckets may end with a remainder row whose `provider` and
+`model` are `None`, keeping the model sum equal to `totals`. Tenant-level usage
+has `user_id=""` and can appear in `by_user`. The active count includes every
+used Agent before the ranking limit. `UsageOverview` also preserves unknown
+fields and carries `_request_id`.
+
 ## Async, errors, and request correlation [#async-errors-and-request-correlation]
 
 Async usage uses the same names and arguments:
 
 ```python
 usage = await async_client.usage.get(group_by="model")
+dashboard = await async_client.usage.overview(limit=5)
 agent_usage = await async_client.usage.get_for_agent(
     "ag_0123456789abcdef",
     group_by="day",

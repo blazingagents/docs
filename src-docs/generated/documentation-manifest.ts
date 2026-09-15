@@ -4760,40 +4760,40 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/list-sessions"
       },
       {
-        "description": "Lists each Agent's most recently updated Session in one page.",
+        "description": "Lists the Tenant's most recently updated Sessions. Set `byAgent=true` for one latest Session per Agent.",
         "examples": [
           {
-            "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/sessions/latest\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=50\"",
+            "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/sessions/latest\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=10\" \\\n  --data-urlencode \"byAgent=false\"",
             "label": "cURL",
             "language": "bash"
           },
           {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/sessions/latest?limit=50\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/sessions/latest?limit=10&byAgent=false\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
             "label": "Python",
             "language": "python"
           },
           {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/sessions/latest?limit=50\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/sessions/latest?limit=10&byAgent=false\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
             "label": "JavaScript",
             "language": "javascript"
           },
           {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/sessions/latest?limit=50\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/sessions/latest?limit=10&byAgent=false\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
             "label": "PHP",
             "language": "php"
           },
           {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/sessions/latest?limit=50\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/sessions/latest?limit=10&byAgent=false\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
             "label": "Go",
             "language": "go"
           },
           {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/sessions/latest?limit=50\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/sessions/latest?limit=10&byAgent=false\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
             "label": "Java",
             "language": "java"
           },
           {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/sessions/latest?limit=50\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/sessions/latest?limit=10&byAgent=false\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
             "label": "Ruby",
             "language": "ruby"
           }
@@ -4802,7 +4802,7 @@ export const restApiOperations = [
         "operation": "list-latest-sessions",
         "path": "/v1/sessions/latest",
         "responseMetadata": {
-          "description": "Returns 200 OK with cursor pagination. Items are ordered by updatedAt descending, then id ascending, across Agents. Each item is a Session list item plus its agentId, nullable model, nullable thinkingLevel, and status (\"active\" or \"disabled\"). These are the Agent's current values, independently of the Session's pinned Version or previous Turns. Disabled Agents remain included.",
+          "description": "Returns 200 OK with cursor pagination. Items are ordered by updatedAt descending, then id ascending. Each item is a Session list item plus its agentId, nullable model, nullable thinkingLevel, and status (\"active\" or \"disabled\"). These are the Agent's current values, independently of the Session's pinned Version or previous Turns. Disabled Agents remain included.",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#latest-sessions-list-response",
             "name": "latestSessionsListResponseSchema"
@@ -6529,6 +6529,90 @@ export const restApiOperations = [
   },
   {
     "operations": [
+      {
+        "description": "Returns the bounded usage data needed for an operational dashboard in one response.",
+        "examples": [
+          {
+            "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/usage/overview\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"from=2026-07-10\" \\\n  --data-urlencode \"to=2026-07-10\" \\\n  --data-urlencode \"limit=5\"",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/usage/overview?from=2026-07-10&to=2026-07-10&limit=5\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/usage/overview?from=2026-07-10&to=2026-07-10&limit=5\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/usage/overview?from=2026-07-10&to=2026-07-10&limit=5\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/usage/overview?from=2026-07-10&to=2026-07-10&limit=5\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/usage/overview?from=2026-07-10&to=2026-07-10&limit=5\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/usage/overview?from=2026-07-10&to=2026-07-10&limit=5\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "GET",
+        "operation": "get-usage-overview",
+        "path": "/v1/usage/overview",
+        "responseMetadata": {
+          "description": "Returns 200 OK with dashboard usage totals and breakdowns.",
+          "schema": {
+            "href": "/api-reference/protocols/objects-and-schemas#usage-overview-response",
+            "name": "usageOverviewResponseSchema"
+          }
+        },
+        "responses": [
+          {
+            "code": "{\n  \"totals\": {\n    \"inputTokens\": 120,\n    \"outputTokens\": 80,\n    \"requestCount\": 2,\n    \"durationMs\": 1400\n  },\n  \"daily\": [\n    {\n      \"day\": \"2026-07-10\",\n      \"agentId\": null,\n      \"sessionId\": null,\n      \"userId\": null,\n      \"provider\": null,\n      \"model\": null,\n      \"inputTokens\": 120,\n      \"outputTokens\": 80,\n      \"requestCount\": 2,\n      \"durationMs\": 1400\n    }\n  ],\n  \"byAgent\": [],\n  \"byUser\": [],\n  \"byModel\": [],\n  \"activeAgentCount\": 1\n}",
+            "language": "json",
+            "contentType": "application/json",
+            "note": "dashboard usage totals and breakdowns",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"One or more request values failed validation.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/usage/get-usage-overview"
+      },
       {
         "description": "Returns Tenant usage rollups for ranges of up to 31 days.",
         "examples": [

@@ -173,9 +173,7 @@ SDKs: [TypeScript](/sdk/typescript/sessions#list) / [Python](/sdk/python/session
 
 ### GET /v1/sessions/latest [#list-latest-sessions]
 
-Lists each Agent's most recently updated Session in one page.
-
-An Agent appears at most once, and only when it has at least one non-deleted, nonempty Session that matches the filters. Use this for an Agent Inbox (one row per Agent showing its latest Session) instead of calling `GET /v1/agents/:agentId/sessions?limit=1` once per Agent.
+Lists the Tenant's most recently updated Sessions. Set `byAgent=true` for one latest Session per Agent.
 
 #### Request
 
@@ -190,12 +188,13 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). The cr
 | `cursor`        | string  | —       | Opaque cursor from `nextCursor`                        |
 | `limit`         | integer | 50      | 1–200                                                  |
 | `userId`        | string  | —       | Attribution filter; `""` selects tenant-level Sessions |
+| `byAgent`       | boolean | `false` | When true, return at most one latest Session per Agent  |
 
-With `userId`, only Sessions attributed to that end user are considered, so each item is that user's latest Session with the Agent.
+With `byAgent=false`, multiple returned Sessions may belong to the same Agent. With `byAgent=true`, an Agent appears at most once and only when it has a non-deleted, nonempty Session matching the filters. Use the latter for an Agent Inbox instead of calling `GET /v1/agents/:agentId/sessions?limit=1` once per Agent. With `userId`, only Sessions attributed to that End-user are considered.
 
 #### Response
 
-Returns `200 OK` with [cursor pagination](/api-reference/protocols/pagination-and-filtering). Items are ordered by `updatedAt` descending, then `id` ascending, across Agents. Each item is a Session list item plus its `agentId`, nullable `model`, nullable `thinkingLevel`, and `status` (`"active"` or `"disabled"`). These are the Agent's current values, independently of the Session's pinned Version or previous Turns. Disabled Agents remain included.
+Returns `200 OK` with [cursor pagination](/api-reference/protocols/pagination-and-filtering). Items are ordered by `updatedAt` descending, then `id` ascending. Each item is a Session list item plus its `agentId`, nullable `model`, nullable `thinkingLevel`, and `status` (`"active"` or `"disabled"`). These are the Agent's current values, independently of the Session's pinned Version or previous Turns. Disabled Agents remain included.
 
 Response schema: [`latestSessionsListResponseSchema`](/api-reference/protocols/objects-and-schemas#latest-sessions-list-response).
 
@@ -244,7 +243,8 @@ invalid credential. See [REST errors](/api-reference/protocols/errors).
 curl --get \
   "$BLAZING_AGENTS_BASE_URL/v1/sessions/latest" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "limit=50"
+  --data-urlencode "limit=10" \
+  --data-urlencode "byAgent=false"
 ```
 
 #### SDK and related guides
