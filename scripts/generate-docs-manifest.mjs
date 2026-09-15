@@ -152,6 +152,14 @@ const USAGE_EXAMPLE = {
     requestCount: 2,
   },
 };
+const USAGE_OVERVIEW_EXAMPLE = {
+  activeAgentCount: 1,
+  byAgent: [],
+  byModel: [],
+  byUser: [],
+  daily: USAGE_EXAMPLE.buckets,
+  totals: USAGE_EXAMPLE.totals,
+};
 const WORKSPACE_EXAMPLE = {
   createdAt: SAMPLE_TIMESTAMP,
   id: "ws_1234567890ABCDEF",
@@ -277,6 +285,7 @@ const REPRESENTATIVE_RESPONSES = new Map([
     ],
   ],
   ["taskobject", TASK_EXAMPLE],
+  ["usageoverviewresponse", USAGE_OVERVIEW_EXAMPLE],
   ["usageresponse", USAGE_EXAMPLE],
   [
     "workspaceslistresponseschema",

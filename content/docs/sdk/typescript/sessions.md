@@ -33,7 +33,7 @@ Tool approval decisions are scoped to one exact Tool call. A decision produces a
 | Method | Description | Returns |
 | --- | --- | --- |
 | [`list()`](#list) | List an Agent's Sessions | `SessionsListResponse` |
-| [`listLatest()`](#list-latest) | List the latest Session per Agent | `LatestSessionsListResponse` |
+| [`listLatest()`](#list-latest) | List recent Sessions, optionally one per Agent | `LatestSessionsListResponse` |
 | [`messages()`](#messages) | Page or poll a Session transcript | `SessionMessagesResponse` |
 | [`delete()`](#delete) | Permanently delete a Session | `void` |
 | [`toolApprovals()`](#tool-approvals) | List pending and decided Tool calls | `ToolApprovalsResponse` |
@@ -71,7 +71,7 @@ Returns [`SessionsListResponse`](#sessionslistresponse). Raises `validation_fail
 
 ### `listLatest()` [#list-latest]
 
-Lists each Agent's most recently updated Session across the Tenant. An Agent appears at most once, and only when it has a non-deleted Session matching the filter. Use it for an Agent Inbox instead of calling `list()` once per Agent.
+Lists the most recently updated Sessions across the Tenant. By default, multiple rows may belong to the same Agent. Set `byAgent: true` for at most one latest Session per Agent and use that mode for an Agent Inbox instead of calling `list()` once per Agent.
 
 **Signature:** `listLatest(options?: LatestSessionsListOptions): Promise<LatestSessionsListResponse>`
 
@@ -80,9 +80,13 @@ Lists each Agent's most recently updated Session across the Tenant. An Agent app
 | `cursor` | `string` | no | Opaque `nextCursor` from the previous page |
 | `limit` | `number` | no | Page size, 1–200; defaults to 50 |
 | `userId` | `string` | no | End-user Attribution filter; pass `""` for Tenant-level Sessions and omit for all |
+| `byAgent` | `boolean` | no | Defaults to `false`; when true, return at most one latest Session per Agent |
 
 ```typescript
-const inbox = await client.sessions.listLatest({ userId: "customer_123" });
+const inbox = await client.sessions.listLatest({
+  userId: "customer_123",
+  byAgent: true,
+});
 
 for (const session of inbox.data) {
   console.log(session.agentId, session.lastMessagePreview);

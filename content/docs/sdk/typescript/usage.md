@@ -21,10 +21,37 @@ Supply both `from` and `to` or neither. The default is the last 30 days ending t
 
 | Method | Description | Returns |
 | --- | --- | --- |
+| [`overview()`](#overview-method) | Query dashboard totals and bounded breakdowns | `UsageOverviewResponse` |
 | [`get()`](#get) | Query Tenant-wide usage | `UsageResponse` |
 | [`getForAgent()`](#get-for-agent) | Query usage scoped to one Agent | `UsageResponse` |
 
 ## Methods [#methods]
+
+### `overview()` [#overview-method]
+
+Returns dashboard-ready usage across the Tenant in one bounded response.
+
+**Signature:** `overview(input?: Partial<UsageOverviewQuery> & ResourceRequestOptions): Promise<UsageOverviewResponse>`
+
+| Query field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `from` | `string` | with `to` | Inclusive UTC date (`YYYY-MM-DD`) |
+| `to` | `string` | with `from` | Inclusive UTC date (`YYYY-MM-DD`) |
+| `limit` | `number` | no | Top rows per ranking, 1–20; defaults to 5 |
+
+```typescript
+const dashboard = await client.usage.overview({
+  from: "2026-07-01",
+  to: "2026-07-07",
+  limit: 5,
+});
+
+console.log(dashboard.totals.requestCount, dashboard.activeAgentCount);
+```
+
+Returns [`UsageOverviewResponse`](#usageoverviewresponse). Raises
+`validation_failed` for a partial, reversed, or oversized range or invalid
+limit. See [`GET /v1/usage/overview`](/api-reference/rest-api/usage#get-usage-overview).
 
 ### `get()` [#get]
 
@@ -130,13 +157,40 @@ interface UsageResponse {
 
 Fields unrelated to the selected grouping are `null`. See the canonical [Usage schemas](/api-reference/protocols/objects-and-schemas#usage-response).
 
+### `UsageOverviewResponse` [#usageoverviewresponse]
+
+```typescript
+interface UsageOverviewQuery {
+  from?: string;
+  to?: string;
+  limit: number;
+}
+
+interface UsageOverviewResponse {
+  totals: UsageTotals;
+  daily: UsageBucket[];
+  byAgent: UsageBucket[];
+  byUser: UsageBucket[];
+  byModel: UsageBucket[];
+  activeAgentCount: number;
+}
+```
+
+The SDK accepts `Partial<UsageOverviewQuery>`. `daily` contains every day in
+the selected or default range in ascending order, including zero-usage days.
+`byAgent` and `byUser` contain the top `limit` rows by
+total tokens. `byModel` contains the top rows and may end with a remainder
+bucket whose `provider` and `model` are both `null`, so summing model buckets
+still matches `totals`. Tenant-level usage has `userId: ""` and can appear in
+`byUser`. `activeAgentCount` covers all used Agents before the ranking limit.
+
 ## Errors [#errors]
 
 SDK request failures throw `BlazingAgentsError`. Branch on its stable `code`, not its message.
 
 | Code | Applies to | Action |
 | --- | --- | --- |
-| `validation_failed` | Both methods | Correct the date range, ID, filter, grouping, or limit |
+| `validation_failed` | All methods | Correct the date range, ID, filter, grouping, or limit |
 
 Authentication, transport, malformed-response, and service failures may also throw. See [SDK errors](/api-reference/protocols/errors).
 

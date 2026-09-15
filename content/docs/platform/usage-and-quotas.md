@@ -17,6 +17,13 @@ Settlement runs for successful, failed, and cancelled Turns. A failure before th
 
 Use `client.usage.get()` for the Tenant rollup or `getForAgent()` for one Agent. Queries return `totals` plus `buckets` grouped by `day`, `agent`, `model`, `session`, or `user`; filters include date range, Agent, Session, and `userId`. Supplying only one of the `from` and `to` date bounds is invalid, and a custom range is bounded by the [service limits](/api-reference/protocols/service-limits).
 
+Use `client.usage.overview()` for a dashboard. One bounded response contains
+exhaustive totals and one bucket for every day including zero-usage days, top Agent and End-user rankings, an
+exhaustive model distribution through an optional remainder bucket, and the
+number of distinct Agents used during the range. Its ranking limit defaults to
+5 and accepts 1–20. Tenant-level usage is eligible for the End-user ranking as
+`userId: ""`; the active Agent count is calculated before ranking is limited.
+
 The first half of this example queries one grouped Tenant report:
 
 ```typescript
