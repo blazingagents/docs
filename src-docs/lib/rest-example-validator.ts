@@ -189,6 +189,11 @@ const responseSchemaAssignments: Record<
     schema: "usageResponseSchema",
     statuses: [200],
   },
+  "get-usage-overview": {
+    anchor: "usage-overview-response",
+    schema: "usageOverviewResponseSchema",
+    statuses: [200],
+  },
   "get-workspace": {
     anchor: "workspace",
     schema: "workspaceSchema",
@@ -422,6 +427,7 @@ const requiredCurlSemantics: Record<string, string[]> = {
   generate: ["--no-buffer", '"output":{"type":"text"}'],
   "join-tool-approval-continuation": ["--no-buffer"],
   "get-usage": ["from=", "to="],
+  "get-usage-overview": ["from=", "to=", "limit="],
   "list-memories": ["userId=", "search="],
   "list-task-run-messages": ["after=", "limit="],
   "resume-session-turn": ["--no-buffer"],

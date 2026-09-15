@@ -57,7 +57,7 @@ After the Turn succeeds, the final expression prints `true` because the filtered
 
 ## Reporting and filtering [#reporting-and-filtering]
 
-Session lists accept a `userId` filter, including [`GET /v1/sessions/latest`](/api-reference/rest-api/sessions#list-latest-sessions), which returns the latest Session per Agent and, with `userId`, that end user's latest Session with each Agent. Tenant-wide and per-Agent usage queries can filter by `userId` or group by `user`; usage also supports Agent, model, Session, day, and time-window dimensions. See [`sessions.list`](/sdk/typescript/sessions#list) and [`usage.get`](/sdk/typescript/usage#get) for exact fields.
+Session lists accept a `userId` filter, including [`GET /v1/sessions/latest`](/api-reference/rest-api/sessions#list-latest-sessions), which returns recent Sessions globally or, with `byAgent=true`, at most one latest Session per Agent. Tenant-wide and per-Agent usage queries can filter by `userId` or group by `user`; the usage overview includes a bounded End-user ranking in which `userId: ""` remains the Tenant-level bucket. Usage also supports Agent, model, Session, day, and time-window dimensions. See [`sessions.list`](/sdk/typescript/sessions#list), [`usage.get`](/sdk/typescript/usage#get), and [`usage.overview`](/sdk/typescript/usage#overview-method) for exact fields.
 
 Omitting a `userId` filter includes all Attribution buckets visible to the Tenant credential. Passing `userId: ""` selects only tenant-level activity; a non-empty value selects that exact opaque identifier.
 
@@ -120,9 +120,11 @@ See [Security and credentials](/platform/security-and-credentials), [Usage and q
 - [TypeScript SDK `chat`](/sdk/typescript/client#chat)
 - [TypeScript SDK `sessions.list`](/sdk/typescript/sessions#list)
 - [TypeScript SDK `usage.get`](/sdk/typescript/usage#get)
+- [TypeScript SDK `usage.overview`](/sdk/typescript/usage#overview-method)
 - [Python SDK `chat`](/sdk/python/client#chat)
 - [Python SDK `sessions.list`](/sdk/python/sessions#list)
 - [Python SDK `usage.get`](/sdk/python/usage#get)
+- [Python SDK `usage.overview`](/sdk/python/usage#overview-method)
 - [Python SDK Tenant settings](/sdk/python/tenant)
 - [REST generation](/api-reference/rest-api/generation#generate)
 - [REST Sessions](/api-reference/rest-api/sessions#list-sessions)

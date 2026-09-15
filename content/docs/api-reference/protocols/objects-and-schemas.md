@@ -149,9 +149,10 @@ See [SDK Sessions](/sdk/typescript/sessions),
 `latestSessionListItemSchema` / `LatestSessionListItem` extends
 `SessionListItem` with the owning `agentId`, nullable `model`, nullable
 `thinkingLevel`, and `status` (`"active"` or `"disabled"`). These fields describe
-the Agent's current state, independently of a Session's pinned Version. `latestSessionsListResponseSchema`
-is the paginated envelope returned by `GET /v1/sessions/latest`, with one item
-per Agent.
+the Agent's current state, independently of a Session's pinned Version.
+`latestSessionsListResponseSchema` is the paginated envelope returned by
+`GET /v1/sessions/latest`. The default mode returns the latest Sessions across
+the Tenant; `byAgent=true` returns at most one item per Agent.
 
 See [SDK Sessions](/sdk/typescript/sessions#list-latest),
 [REST Sessions](/api-reference/rest-api/sessions#list-latest-sessions), and
@@ -378,6 +379,24 @@ nullable: stateless usage returns `sessionId: null`, while a tenant-level
 See [SDK Usage](/sdk/typescript/usage),
 [REST Usage](/api-reference/rest-api/usage), and
 [Usage and quotas](/platform/usage-and-quotas).
+
+### UsageOverviewResponse [#usageoverviewresponse]
+
+<span id="usage-overview-response"></span>
+
+`usageOverviewResponseSchema` / `UsageOverviewResponse` contains exhaustive
+`totals`, one ascending `daily` bucket for every day including zero-usage days,
+bounded `byAgent`, `byUser`, and
+`byModel` rankings, and `activeAgentCount`. Ranked rows use the existing usage
+bucket shape. Agent and End-user rankings are capped without changing totals;
+the model ranking may append a `provider: null`, `model: null` remainder bucket
+so its sum still matches the overall totals. Tenant-level usage retains
+`userId: ""`. The active count includes every used Agent before the ranking
+limit.
+
+See [TypeScript Usage](/sdk/typescript/usage#overview-method),
+[Python Usage](/sdk/python/usage#overview-method), and
+[REST Usage](/api-reference/rest-api/usage#get-usage-overview).
 
 ### Tenant [#tenant]
 

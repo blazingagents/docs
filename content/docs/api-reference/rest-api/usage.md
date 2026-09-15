@@ -11,6 +11,80 @@ Usage endpoints aggregate metered Agent activity into bounded UTC ranges. Use th
 
 ## Endpoints [#endpoints]
 
+### GET /v1/usage/overview [#get-usage-overview]
+
+Returns the bounded usage data needed for an operational dashboard in one response.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary.
+
+| Location | Field           | Required | Description                               |
+| -------- | --------------- | -------- | ----------------------------------------- |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+
+| Query parameter | Type         | Default      | Description                    |
+| --------------- | ------------ | ------------ | ------------------------------ |
+| `from`, `to`    | `YYYY-MM-DD` | last 30 days | Supply both or neither         |
+| `limit`         | integer      | 5            | 1–20 rows per ranked breakdown |
+
+The inclusive date range uses the same 31-day maximum as other usage queries.
+
+#### Response
+
+Returns `200 OK` with [dashboard usage totals and breakdowns](/api-reference/protocols/objects-and-schemas#usage-overview-response).
+
+Response schema: [`usageOverviewResponseSchema`](/api-reference/protocols/objects-and-schemas#usage-overview-response).
+
+```json
+{
+  "totals": {
+    "inputTokens": 120,
+    "outputTokens": 80,
+    "requestCount": 2,
+    "durationMs": 1400
+  },
+  "daily": [
+    {
+      "day": "2026-07-10",
+      "agentId": null,
+      "sessionId": null,
+      "userId": null,
+      "provider": null,
+      "model": null,
+      "inputTokens": 120,
+      "outputTokens": 80,
+      "requestCount": 2,
+      "durationMs": 1400
+    }
+  ],
+  "byAgent": [],
+  "byUser": [],
+  "byModel": [],
+  "activeAgentCount": 1
+}
+```
+
+`daily` includes every day in the range, including zero-usage days, and is ordered ascending. `byAgent` and `byUser` are ordered by total tokens descending and capped by `limit`; their ID breaks ties. `byModel` uses the same ordering and cap, then may append one remainder bucket with `provider: null` and `model: null` that aggregates omitted models. Consequently, model totals remain exhaustive. Tenant-level Attribution (`userId: ""`) is eligible for `byUser`. `activeAgentCount` counts every distinct Agent with usage in the range before the ranking limit is applied.
+
+#### Errors
+
+`400 validation_failed` for a partial, reversed, or oversized range or an invalid limit. See [REST errors](/api-reference/protocols/errors).
+
+#### cURL
+
+```bash
+curl --get "$BLAZING_AGENTS_BASE_URL/v1/usage/overview" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --data-urlencode "from=2026-07-10" \
+  --data-urlencode "to=2026-07-10" \
+  --data-urlencode "limit=5"
+```
+
+#### SDK and related guides
+
+SDK: [TypeScript `overview`](/sdk/typescript/usage#overview-method) or [Python `overview`](/sdk/python/usage#overview-method). See [Usage and quotas](/platform/usage-and-quotas).
+
 ### GET /v1/usage [#get-usage]
 
 Returns Tenant usage rollups for ranges of up to 31 days.

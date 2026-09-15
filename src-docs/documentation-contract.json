@@ -2797,7 +2797,11 @@
     },
     {
       "anchors": {
-        "assignedIds": ["get-usage", "get-agent-usage"],
+        "assignedIds": [
+          "get-usage-overview",
+          "get-usage",
+          "get-agent-usage"
+        ],
         "kind": "operations"
       },
       "cards": [],
@@ -2946,6 +2950,7 @@
           "TaskRun",
           "Prompt",
           "UsageResponse",
+          "UsageOverviewResponse",
           "Tenant",
           "Quota",
           "Attribution"
@@ -2970,6 +2975,7 @@
           "taskrun",
           "prompt",
           "usageresponse",
+          "usageoverviewresponse",
           "tenant",
           "quota",
           "attribution"
@@ -2995,6 +3001,7 @@
           "taskRunSchema",
           "promptSchema",
           "usageResponseSchema",
+          "usageOverviewResponseSchema",
           "tenantSchema",
           "quotaSchema",
           "attributionCreateInputSchema"
@@ -3487,6 +3494,11 @@
       "method": "DELETE",
       "operation": "delete-prompt",
       "path": "/v1/prompts/:promptId"
+    },
+    {
+      "method": "GET",
+      "operation": "get-usage-overview",
+      "path": "/v1/usage/overview"
     },
     {
       "method": "GET",
