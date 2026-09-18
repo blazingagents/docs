@@ -496,8 +496,9 @@ Response schema: [`agentSchema`](/api-reference/protocols/objects-and-schemas#ag
 
 #### Errors
 
-`400 invalid_request` when the multipart body has no `file`. The same code uses
-status `413` above 512 KiB and `415` for another media type. A malformed Agent
+`400 validation_failed` when the multipart body has no `file` or the file is
+not a PNG, JPEG, or WebP image of at most 512 KiB; `415 invalid_request` when
+the request body is not `multipart/form-data`. A malformed Agent
 ID uses `400 validation_failed`; `404 not_found` applies when the Agent is
 missing or foreign; and `409 admin_agent_managed` protects the Admin Agent. See
 [REST errors](/api-reference/protocols/errors).

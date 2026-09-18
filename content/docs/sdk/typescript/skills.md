@@ -136,7 +136,7 @@ const bytes = await skills.getFile({
 });
 ```
 
-Returns raw `Uint8Array` bytes. Raises `validation_failed` or `skill_not_found`. See [`GET .../files/*`](/api-reference/rest-api/skills#get-skill-file).
+Returns raw `Uint8Array` bytes. Raises `validation_failed` or `skill_not_found`. See [`GET .../files?path=<path>`](/api-reference/rest-api/skills#get-skill-file).
 
 ### `putFile()` [#put-file]
 
@@ -153,7 +153,7 @@ const skill = await skills.putFile({
 });
 ```
 
-Returns the updated [`SkillDetail`](#skilldetail). Raises `validation_failed`, `skill_not_found`, `skill_invalid_markdown`, `skill_name_conflict`, `skill_too_many_files`, or `skill_uncompressed_too_large`. See [`PUT .../files/*`](/api-reference/rest-api/skills#put-skill-file).
+Returns the updated [`SkillDetail`](#skilldetail). Raises `validation_failed`, `skill_not_found`, `skill_invalid_markdown`, `skill_name_conflict`, `skill_too_many_files`, or `skill_uncompressed_too_large`. See [`PUT .../files?path=<path>`](/api-reference/rest-api/skills#put-skill-file).
 
 ### `deleteFile()` [#delete-file]
 
@@ -169,7 +169,7 @@ const skill = await skills.deleteFile({
 });
 ```
 
-Returns the updated [`SkillDetail`](#skilldetail). Raises `invalid_request` for root `SKILL.md`, `validation_failed`, or `skill_not_found`. See [`DELETE .../files/*`](/api-reference/rest-api/skills#delete-skill-file).
+Returns the updated [`SkillDetail`](#skilldetail). Raises `invalid_request` for root `SKILL.md`, `validation_failed`, or `skill_not_found`. See [`DELETE .../files?path=<path>`](/api-reference/rest-api/skills#delete-skill-file).
 
 ### `copy()` [#copy]
 
