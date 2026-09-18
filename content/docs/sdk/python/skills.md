@@ -168,7 +168,7 @@ script = skills.read_file(
 ```
 
 Server failures include `validation_failed` and `skill_not_found`. See
-[`GET .../files/*`](/api-reference/rest-api/skills#get-skill-file).
+[`GET .../files?path=<path>`](/api-reference/rest-api/skills#get-skill-file).
 
 ### `replace_file()` [#replace-file]
 
@@ -191,7 +191,7 @@ Returns the updated [`SkillDetail`](#skill-and-skilldetail). Failures include
 `validation_failed`, `skill_not_found`, `skill_invalid_markdown`,
 `skill_name_conflict`, `skill_too_many_files`, and
 `skill_uncompressed_too_large`. See
-[`PUT .../files/*`](/api-reference/rest-api/skills#put-skill-file).
+[`PUT .../files?path=<path>`](/api-reference/rest-api/skills#put-skill-file).
 
 ### `delete_file()` [#delete-file]
 
@@ -201,7 +201,7 @@ Deletes a supporting file and returns the updated inventory. Deleting an
 absent supporting file is idempotent; root `SKILL.md` cannot be deleted.
 Failures include `invalid_request`, `validation_failed`, and
 `skill_not_found`. See
-[`DELETE .../files/*`](/api-reference/rest-api/skills#delete-skill-file).
+[`DELETE .../files?path=<path>`](/api-reference/rest-api/skills#delete-skill-file).
 
 ### `copy()` [#copy]
 

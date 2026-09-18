@@ -228,8 +228,8 @@ agent = client.agents.upload_avatar(
 ```
 
 Returns an `Agent` whose `avatar_url` is a short-lived signed URL. Missing
-filenames raise `ValueError`; server failures include `invalid_request`,
-`validation_failed`, `not_found`, and `admin_agent_managed`. See
+filenames raise `ValueError`; server failures include `validation_failed`,
+`not_found`, and `admin_agent_managed`. See
 [`POST .../avatar`](/api-reference/rest-api/agents#upload-agent-avatar).
 
 ### `remove_avatar()` [#remove-avatar]

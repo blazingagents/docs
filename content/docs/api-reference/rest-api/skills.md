@@ -162,13 +162,14 @@ curl --request DELETE \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### GET /v1/agents/:agentId/skills/:skillId/files/* [#get-skill-file]
+### GET /v1/agents/:agentId/skills/:skillId/files?path=\<path\> [#get-skill-file]
 
 Downloads the raw bytes of a Skill file.
 
 #### Request
 
-Requires valid Agent and Skill IDs plus a non-empty file path.
+Requires valid Agent and Skill IDs plus the `path` query parameter naming a
+non-empty file path, for example `?path=assets/icon.bin`.
 
 #### Response
 
@@ -184,18 +185,19 @@ SDK: [TypeScript](/sdk/typescript/skills#get-file) /
 #### cURL
 
 ```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files/assets/icon.bin" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=assets/icon.bin" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --output icon.bin
 ```
 
-### PUT /v1/agents/:agentId/skills/:skillId/files/* [#put-skill-file]
+### PUT /v1/agents/:agentId/skills/:skillId/files?path=\<path\> [#put-skill-file]
 
 Creates or replaces a Skill file from raw bytes.
 
 #### Request
 
-The body is the exact file content. Replacing `SKILL.md` reparses its
+The `path` query parameter names the target file and the body is the exact
+file content. Replacing `SKILL.md` reparses its
 frontmatter and preserves the Skill ID.
 
 #### Response
@@ -215,18 +217,18 @@ SDK: [TypeScript](/sdk/typescript/skills#put-file) /
 
 ```bash
 curl --request PUT \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files/scripts/deploy.sh" \
+  "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=scripts/deploy.sh" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --data-binary "@deploy.sh"
 ```
 
-### DELETE /v1/agents/:agentId/skills/:skillId/files/* [#delete-skill-file]
+### DELETE /v1/agents/:agentId/skills/:skillId/files?path=\<path\> [#delete-skill-file]
 
 Deletes a supporting Skill file while protecting root `SKILL.md`.
 
 #### Request
 
-Requires a non-root, safe relative file path.
+The `path` query parameter names a non-root, safe relative file path.
 
 #### Response
 
@@ -246,7 +248,7 @@ SDK: [TypeScript](/sdk/typescript/skills#delete-file) /
 
 ```bash
 curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files/scripts/deploy.sh" \
+  "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=scripts/deploy.sh" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 

@@ -1074,19 +1074,13 @@ export const restApiOperations = [
             "language": "json"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request could not be completed.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"One or more request values failed validation.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request could not be completed.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "413"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"The request could not be completed.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "415"
@@ -2462,44 +2456,44 @@ export const restApiOperations = [
         "description": "Downloads the raw bytes of a Skill file.",
         "examples": [
           {
-            "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files/assets/icon.bin\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --output icon.bin",
+            "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=assets/icon.bin\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --output icon.bin",
             "label": "cURL",
             "language": "bash"
           },
           {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/\" + os.environ[\"AGENT_ID\"] + \"/skills/\" + os.environ[\"SKILL_ID\"] + \"/files/assets/icon.bin\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nopen(\"icon.bin\", \"wb\").write(response.content)",
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/\" + os.environ[\"AGENT_ID\"] + \"/skills/\" + os.environ[\"SKILL_ID\"] + \"/files?path=assets/icon.bin\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nopen(\"icon.bin\", \"wb\").write(response.content)",
             "label": "Python",
             "language": "python"
           },
           {
-            "code": "import { writeFile } from \"node:fs/promises\";\n\nconst url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/\" + process.env.AGENT_ID + \"/skills/\" + process.env.SKILL_ID + \"/files/assets/icon.bin\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nawait writeFile(\"icon.bin\", Buffer.from(await response.arrayBuffer()));",
+            "code": "import { writeFile } from \"node:fs/promises\";\n\nconst url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/\" + process.env.AGENT_ID + \"/skills/\" + process.env.SKILL_ID + \"/files?path=assets/icon.bin\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nawait writeFile(\"icon.bin\", Buffer.from(await response.arrayBuffer()));",
             "label": "JavaScript",
             "language": "javascript"
           },
           {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/\" . getenv(\"AGENT_ID\") . \"/skills/\" . getenv(\"SKILL_ID\") . \"/files/assets/icon.bin\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\nfile_put_contents(\"icon.bin\", $response);",
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/\" . getenv(\"AGENT_ID\") . \"/skills/\" . getenv(\"SKILL_ID\") . \"/files?path=assets/icon.bin\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\nfile_put_contents(\"icon.bin\", $response);",
             "label": "PHP",
             "language": "php"
           },
           {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + os.Getenv(\"AGENT_ID\") + \"/skills/\" + os.Getenv(\"SKILL_ID\") + \"/files/assets/icon.bin\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\toutput, err := os.Create(\"icon.bin\")\n\tif err != nil { panic(err) }\n\tdefer output.Close()\n\t_, _ = io.Copy(output, response.Body)\n}",
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + os.Getenv(\"AGENT_ID\") + \"/skills/\" + os.Getenv(\"SKILL_ID\") + \"/files?path=assets/icon.bin\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\toutput, err := os.Create(\"icon.bin\")\n\tif err != nil { panic(err) }\n\tdefer output.Close()\n\t_, _ = io.Copy(output, response.Body)\n}",
             "label": "Go",
             "language": "go"
           },
           {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + System.getenv(\"AGENT_ID\") + \"/skills/\" + System.getenv(\"SKILL_ID\") + \"/files/assets/icon.bin\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    Files.write(Path.of(\"icon.bin\"), response.body());\n  }\n}",
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + System.getenv(\"AGENT_ID\") + \"/skills/\" + System.getenv(\"SKILL_ID\") + \"/files?path=assets/icon.bin\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    Files.write(Path.of(\"icon.bin\"), response.body());\n  }\n}",
             "label": "Java",
             "language": "java"
           },
           {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + ENV.fetch(\"AGENT_ID\") + \"/skills/\" + ENV.fetch(\"SKILL_ID\") + \"/files/assets/icon.bin\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nFile.binwrite(\"icon.bin\", response.body)",
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + ENV.fetch(\"AGENT_ID\") + \"/skills/\" + ENV.fetch(\"SKILL_ID\") + \"/files?path=assets/icon.bin\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nFile.binwrite(\"icon.bin\", response.body)",
             "label": "Ruby",
             "language": "ruby"
           }
         ],
         "method": "GET",
         "operation": "get-skill-file",
-        "path": "/v1/agents/:agentId/skills/:skillId/files/*",
+        "path": "/v1/agents/:agentId/skills/:skillId/files?path=\\<path\\>",
         "responseMetadata": {
           "description": "Returns 200 OK with Content-Type: application/octet-stream and raw bytes."
         },
@@ -2546,44 +2540,44 @@ export const restApiOperations = [
         "description": "Creates or replaces a Skill file from raw bytes.",
         "examples": [
           {
-            "code": "curl --request PUT \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files/scripts/deploy.sh\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-binary \"@deploy.sh\"",
+            "code": "curl --request PUT \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=scripts/deploy.sh\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-binary \"@deploy.sh\"",
             "label": "cURL",
             "language": "bash"
           },
           {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/\" + os.environ[\"AGENT_ID\"] + \"/skills/\" + os.environ[\"SKILL_ID\"] + \"/files/scripts/deploy.sh\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\nbody = open(\"deploy.sh\", \"rb\")\n\nresponse = requests.request(method=\"PUT\", url=url, headers=headers, data=body)\nprint(response.text)",
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/\" + os.environ[\"AGENT_ID\"] + \"/skills/\" + os.environ[\"SKILL_ID\"] + \"/files?path=scripts/deploy.sh\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\nbody = open(\"deploy.sh\", \"rb\")\n\nresponse = requests.request(method=\"PUT\", url=url, headers=headers, data=body)\nprint(response.text)",
             "label": "Python",
             "language": "python"
           },
           {
-            "code": "import { readFile } from \"node:fs/promises\";\n\nconst url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/\" + process.env.AGENT_ID + \"/skills/\" + process.env.SKILL_ID + \"/files/scripts/deploy.sh\";\n\nconst response = await fetch(url, { method: \"PUT\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY }, body: await readFile(\"deploy.sh\") });\nconsole.log(await response.text());",
+            "code": "import { readFile } from \"node:fs/promises\";\n\nconst url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/\" + process.env.AGENT_ID + \"/skills/\" + process.env.SKILL_ID + \"/files?path=scripts/deploy.sh\";\n\nconst response = await fetch(url, { method: \"PUT\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY }, body: await readFile(\"deploy.sh\") });\nconsole.log(await response.text());",
             "label": "JavaScript",
             "language": "javascript"
           },
           {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/\" . getenv(\"AGENT_ID\") . \"/skills/\" . getenv(\"SKILL_ID\") . \"/files/scripts/deploy.sh\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"PUT\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, file_get_contents(\"deploy.sh\"));\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/\" . getenv(\"AGENT_ID\") . \"/skills/\" . getenv(\"SKILL_ID\") . \"/files?path=scripts/deploy.sh\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"PUT\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, file_get_contents(\"deploy.sh\"));\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
             "label": "PHP",
             "language": "php"
           },
           {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + os.Getenv(\"AGENT_ID\") + \"/skills/\" + os.Getenv(\"SKILL_ID\") + \"/files/scripts/deploy.sh\"\n\tvar body io.Reader = http.NoBody\n\tfile, err := os.Open(\"deploy.sh\")\n\tif err != nil { panic(err) }\n\tdefer file.Close()\n\tbody = file\n\trequest, err := http.NewRequest(\"PUT\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + os.Getenv(\"AGENT_ID\") + \"/skills/\" + os.Getenv(\"SKILL_ID\") + \"/files?path=scripts/deploy.sh\"\n\tvar body io.Reader = http.NoBody\n\tfile, err := os.Open(\"deploy.sh\")\n\tif err != nil { panic(err) }\n\tdefer file.Close()\n\tbody = file\n\trequest, err := http.NewRequest(\"PUT\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
             "label": "Go",
             "language": "go"
           },
           {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + System.getenv(\"AGENT_ID\") + \"/skills/\" + System.getenv(\"SKILL_ID\") + \"/files/scripts/deploy.sh\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"PUT\", HttpRequest.BodyPublishers.ofFile(Path.of(\"deploy.sh\")));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + System.getenv(\"AGENT_ID\") + \"/skills/\" + System.getenv(\"SKILL_ID\") + \"/files?path=scripts/deploy.sh\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"PUT\", HttpRequest.BodyPublishers.ofFile(Path.of(\"deploy.sh\")));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
             "label": "Java",
             "language": "java"
           },
           {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + ENV.fetch(\"AGENT_ID\") + \"/skills/\" + ENV.fetch(\"SKILL_ID\") + \"/files/scripts/deploy.sh\")\nrequest = Net::HTTPGenericRequest.new(\"PUT\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest.body = File.binread(\"deploy.sh\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + ENV.fetch(\"AGENT_ID\") + \"/skills/\" + ENV.fetch(\"SKILL_ID\") + \"/files?path=scripts/deploy.sh\")\nrequest = Net::HTTPGenericRequest.new(\"PUT\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest.body = File.binread(\"deploy.sh\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
             "label": "Ruby",
             "language": "ruby"
           }
         ],
         "method": "PUT",
         "operation": "put-skill-file",
-        "path": "/v1/agents/:agentId/skills/:skillId/files/*",
+        "path": "/v1/agents/:agentId/skills/:skillId/files?path=\\<path\\>",
         "responseMetadata": {
           "description": "Returns 200 OK with an application/json updated Skill detail.",
           "schema": {
@@ -2641,44 +2635,44 @@ export const restApiOperations = [
         "description": "Deletes a supporting Skill file while protecting root `SKILL.md`.",
         "examples": [
           {
-            "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files/scripts/deploy.sh\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
+            "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=scripts/deploy.sh\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
             "label": "cURL",
             "language": "bash"
           },
           {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/\" + os.environ[\"AGENT_ID\"] + \"/skills/\" + os.environ[\"SKILL_ID\"] + \"/files/scripts/deploy.sh\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"DELETE\", url=url, headers=headers)\nprint(response.text)",
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/\" + os.environ[\"AGENT_ID\"] + \"/skills/\" + os.environ[\"SKILL_ID\"] + \"/files?path=scripts/deploy.sh\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"DELETE\", url=url, headers=headers)\nprint(response.text)",
             "label": "Python",
             "language": "python"
           },
           {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/\" + process.env.AGENT_ID + \"/skills/\" + process.env.SKILL_ID + \"/files/scripts/deploy.sh\";\n\nconst response = await fetch(url, { method: \"DELETE\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/\" + process.env.AGENT_ID + \"/skills/\" + process.env.SKILL_ID + \"/files?path=scripts/deploy.sh\";\n\nconst response = await fetch(url, { method: \"DELETE\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
             "label": "JavaScript",
             "language": "javascript"
           },
           {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/\" . getenv(\"AGENT_ID\") . \"/skills/\" . getenv(\"SKILL_ID\") . \"/files/scripts/deploy.sh\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"DELETE\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/\" . getenv(\"AGENT_ID\") . \"/skills/\" . getenv(\"SKILL_ID\") . \"/files?path=scripts/deploy.sh\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"DELETE\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
             "label": "PHP",
             "language": "php"
           },
           {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + os.Getenv(\"AGENT_ID\") + \"/skills/\" + os.Getenv(\"SKILL_ID\") + \"/files/scripts/deploy.sh\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"DELETE\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + os.Getenv(\"AGENT_ID\") + \"/skills/\" + os.Getenv(\"SKILL_ID\") + \"/files?path=scripts/deploy.sh\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"DELETE\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
             "label": "Go",
             "language": "go"
           },
           {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + System.getenv(\"AGENT_ID\") + \"/skills/\" + System.getenv(\"SKILL_ID\") + \"/files/scripts/deploy.sh\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"DELETE\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + System.getenv(\"AGENT_ID\") + \"/skills/\" + System.getenv(\"SKILL_ID\") + \"/files?path=scripts/deploy.sh\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"DELETE\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
             "label": "Java",
             "language": "java"
           },
           {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + ENV.fetch(\"AGENT_ID\") + \"/skills/\" + ENV.fetch(\"SKILL_ID\") + \"/files/scripts/deploy.sh\")\nrequest = Net::HTTPGenericRequest.new(\"DELETE\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/\" + ENV.fetch(\"AGENT_ID\") + \"/skills/\" + ENV.fetch(\"SKILL_ID\") + \"/files?path=scripts/deploy.sh\")\nrequest = Net::HTTPGenericRequest.new(\"DELETE\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
             "label": "Ruby",
             "language": "ruby"
           }
         ],
         "method": "DELETE",
         "operation": "delete-skill-file",
-        "path": "/v1/agents/:agentId/skills/:skillId/files/*",
+        "path": "/v1/agents/:agentId/skills/:skillId/files?path=\\<path\\>",
         "responseMetadata": {
           "description": "Returns 200 OK with an application/json updated Skill detail.",
           "schema": {
