@@ -262,7 +262,7 @@ const agent = await client.agents.uploadAvatar({
 });
 ```
 
-Returns [`Agent`](#agent) with a short-lived signed `avatarUrl`. Raises `invalid_request` for a missing, oversized, or unsupported file, plus `validation_failed`, `not_found`, or `admin_agent_managed`. See [`POST .../avatar`](/api-reference/rest-api/agents#upload-agent-avatar).
+Returns [`Agent`](#agent) with a short-lived signed `avatarUrl`. Raises `validation_failed` for a missing, oversized, or unsupported file, plus `not_found` or `admin_agent_managed`. See [`POST .../avatar`](/api-reference/rest-api/agents#upload-agent-avatar).
 
 ### `removeAvatar()` [#remove-avatar]
 
