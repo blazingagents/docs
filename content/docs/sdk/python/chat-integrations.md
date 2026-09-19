@@ -12,46 +12,33 @@ provide these methods; await calls on the asynchronous client.
 
 ## Create a Telegram connection
 
-Run this in a trusted environment with the environment variables below. Set the
-base URL to your BA API origin without `/v1`.
+Run this in a trusted environment with the environment variables below.
 
 ```python
 import os
 from blazing_agents import BlazingAgents
 
-base_url = os.environ["BLAZING_AGENTS_BASE_URL"]
-with BlazingAgents(
-    api_key=os.environ["BLAZING_AGENTS_API_KEY"], base_url=base_url
-) as client:
+with BlazingAgents(api_key=os.environ["BLAZING_AGENTS_API_KEY"]) as client:
     connection = client.chat_connections.create(
         name="Support on Telegram",
         agent_id=os.environ["BA_AGENT_ID"],
         platform="telegram",
         enabled=False,
-        configuration={
-            "bot_id": os.environ["TELEGRAM_BOT_ID"],
-            "webhook_url": f"{base_url}/v1/chat/webhooks/telegram/pending",
-        },
-        credentials={
-            "bot_token": os.environ["TELEGRAM_BOT_TOKEN"],
-            "webhook_secret": os.environ["TELEGRAM_WEBHOOK_SECRET"],
-        },
+        configuration={"business_mode": False},
+        credentials={"bot_token": os.environ["TELEGRAM_BOT_TOKEN"]},
     )
-    webhook_url = f"{base_url}/v1/chat/webhooks/telegram/{connection.id}"
-    client.chat_connections.update(connection.id, webhook_url=webhook_url)
-    print(webhook_url)
+    print(connection.webhook_url)
+    client.chat_connections.enable(connection.id)
 ```
 
-Register the printed URL with Telegram using the same webhook secret. Then call
-`client.chat_connections.check_health(connection.id)` and
-`client.chat_connections.enable(connection.id)`, and send the bot a test message.
-See [Slack and Telegram setup](/platform/chat-integrations) for registration
-and permissions.
+BA generates the Telegram webhook secret and registers the returned URL when
+enabled. Call `client.chat_connections.check_health(connection.id)`, require the
+`webhook_url` check to pass, and send the bot a test message.
 
-For Slack, use `platform="slack"`, configuration fields `team_id`, `app_id`, and
-`webhook_url`, and credentials `bot_token` and `signing_secret`. Use `slack` in the
-callback path. Optional `channel_ids` (Slack) and `chat_ids` (Telegram) select
-health checks; they do not restrict who can message the bot.
+For Slack, use `platform="slack"`, credentials `bot_token` and `signing_secret`,
+and paste the returned `webhook_url` into Slack. Optional `channel_ids` (Slack),
+`chat_ids` (Telegram), and Telegram `business_mode` configure health probes and
+registration; destination IDs are not access restrictions.
 
 ## Manage connections
 
@@ -63,7 +50,7 @@ accept optional `extra_headers` and `timeout`.
 | `list()` | None | `ChatConnections` with `.chat_connections` |
 | `get()` | Connection ID | `ChatConnection` |
 | `create()` | `name`, `agent_id`, `platform`, `configuration`, `credentials`, optional `enabled` | `ChatConnection` |
-| `update()` | Connection ID, at least one of `name` or `webhook_url` | `ChatConnection` |
+| `update()` | Connection ID, at least one of `name` or `configuration` | `ChatConnection` |
 | `rotate_credentials()` | Connection ID, `platform`, complete `credentials` dictionary | `ChatConnection` |
 | `check_health()` | Connection ID | `ChatConnection` with refreshed health |
 | `enable()` | Connection ID | `ChatConnection` |
@@ -75,11 +62,10 @@ fragment, never the credentials. Health checks report `pass`, `fail`, or `unknow
 verify unknown settings manually. A valid token alone does not prove delivery.
 
 Creation defaults to enabled; the example keeps intake disabled during setup.
-Update changes only the name or saved callback URL. Credential rotation requires
-the complete credential bundle for the same installation. Changing the Agent or
-bot requires a new connection. Registration with Slack or Telegram remains a
-separate action, including updating Telegram's registered secret after rotation.
+The returned `webhook_url` is read-only. Update changes the name, destinations,
+or Telegram Business mode. Credential rotation requires the complete platform
+bundle. Changing the Agent or bot requires a new connection. BA owns Telegram
+registration; Slack setup remains manual.
 
-If creation times out, list connections before retrying. If saving the callback
-fails, update the existing connection. See the
+If creation times out, list connections before retrying. See the
 [REST reference](/api-reference/rest-api/chat-connections) for API errors.

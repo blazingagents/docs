@@ -16,15 +16,14 @@ to manage connections, or call the
 
 ## Connect Slack
 
-1. Create and install a Slack app in your workspace. Collect its workspace ID,
-   app ID, bot token, and signing secret.
+1. Create and install a Slack app in your workspace. Collect its bot token and
+   signing secret.
 2. Add bot scopes `app_mentions:read`, `chat:write`, `channels:history`,
    `groups:history`, `im:history`, `mpim:history`, `users:read`, `channels:read`,
    `groups:read`, `im:read`, and `mpim:read`. Reinstall after changing scopes.
-3. Create a connection with `platform: "slack"`, then save its final callback
-   URL as described below.
-4. Set **both** Event Subscriptions and Interactivity Request URLs to
-   `https://<BA API host>/v1/chat/webhooks/slack/<connectionId>`.
+3. Create a connection with `platform: "slack"` and copy the returned
+   `webhookUrl`.
+4. Set **both** Event Subscriptions and Interactivity Request URLs to that URL.
    Enable both features. Subscribe to `app_mention`, `message.channels`,
    `message.groups`, `message.im`, and `message.mpim`.
 5. Invite the bot to each intended public or private channel. Mention it in a
@@ -33,29 +32,26 @@ to manage connections, or call the
 
 ## Connect Telegram
 
-1. Create a bot through BotFather. Collect its token and numeric bot ID, and
-   choose a webhook secret containing letters, digits, underscores or hyphens.
-2. Create a connection with `platform: "telegram"`, then save its final callback
-   URL as described below.
-3. Register `https://<BA API host>/v1/chat/webhooks/telegram/<connectionId>` with
-   Telegram's `setWebhook`, passing the same secret as `secret_token` and allowing
-   `message` and `callback_query` updates. Creating a BA connection does not
-   register this webhook for you.
+1. Create a bot through BotFather and collect its token.
+2. Create a connection with `platform: "telegram"`. Set `businessMode: true`
+   only for a Telegram Business bot.
+3. Enable the connection. BA generates the webhook secret and registers the
+   computed `webhookUrl` with Telegram. If the bot already points to another
+   webhook, enabling returns `409 chat_webhook_conflict`; other registration
+   failures return `502 chat_webhook_registration_failed`.
 4. Start a DM with the bot or add it to your group. If you need unmentioned group
    follow-ups, disable privacy through BotFather and verify the bot's membership.
    Topic conversations require a forum-enabled supergroup.
 5. Send a message and a follow-up, then test an approval button if applicable.
 
-### Save the final callback URL
+### Server-owned callback URL
 
-Creation returns the connection ID used in the callback path. Create with an
-initial HTTPS URL and `enabled: false`, then update `webhookUrl` to the final path
-using the SDK or PATCH `/v1/chat-connections/<connectionId>`. Register that same
-URL with Slack or Telegram, run a health check, then enable it and test a message.
-
-Changing the saved URL does not register a platform webhook or refresh health.
-Repeat these steps if your API hostname changes. A passing token check alone
-does not prove that callbacks work.
+BA computes the read-only `webhookUrl` from its public API origin and the
+connection ID. Clients never construct or update it. Slack requires you to paste
+the returned URL into the app. BA registers Telegram on enabled creation,
+enabling, credential rotation, and Business mode changes. A passing token check
+alone does not prove that callbacks work; require the `webhook_url` health check
+to pass.
 
 ## Conversations and approvals
 
@@ -78,12 +74,12 @@ fresh. `/reset` does not replace an active Session.
   membership, platform callback settings, and fresh connection health. `unknown`
   means a check could not establish the result; verify that setting manually.
 - **Rotate credentials:** submit the full credential bundle for the same bot or
-  installation. Sessions remain attached. Update the platform webhook secret too
-  when rotating Telegram's secret.
+  installation. Sessions remain attached. Telegram requires only the new bot
+  token; BA generates a new secret and re-registers the webhook when enabled.
 - **Disable:** stops new messages and approval clicks; admitted work may finish.
   Enabling accepts future events without replaying missed messages.
-- **Delete:** disconnects the bot from BA and preserves BA Sessions. Uninstalling
-  the Slack app or clearing Telegram's webhook is a separate platform action.
+- **Delete:** disconnects the bot from BA and preserves BA Sessions. BA clears a
+  matching Telegram webhook; uninstalling a Slack app remains separate.
 - **Missing output after a completed Turn:** inspect deliveries. `confirmed` means
   the adapter returned and its receipt was saved; `failed` means a known failure;
   `ambiguous` means a send may have succeeded. `pending` has not been claimed.
