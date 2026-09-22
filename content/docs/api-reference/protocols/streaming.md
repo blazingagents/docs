@@ -59,9 +59,10 @@ Canceling a Tool approval join only detaches that polling response: it does not
 cancel the durable continuation. Failed or canceled interactive Turns leave the transcript unchanged, including
 the previous answer during regeneration. Both are
 metered, and external Tool side effects are not rolled back. Durable Tasks
-differ: the worker attaches a fresh Session
-before execution and incrementally commits user, assistant, and failure events,
-so failed or canceled Task runs can leave transcript and failure history.
+differ: the worker attaches a fresh Session and persists the user message
+before generation. The terminal assistant message, including failure metadata,
+is persisted during final usage settlement. Failed or canceled Task runs can
+therefore retain transcript and failure history.
 
 A Tool approval decision returns `202` and a continuation identifier. Joining
 that continuation returns its terminal SSE stream; it does not reopen the

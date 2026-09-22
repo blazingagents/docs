@@ -50,8 +50,10 @@ Response schema: [`mcpConnectionResponseSchema`](/api-reference/protocols/object
 uses `mcp_connection_invalid`, `mcp_connection_authentication_failed`,
 `mcp_connection_unreachable`, or `mcp_connection_discovery_failed`. Duplicate
 names use `409 mcp_connection_name_conflict`, and the Tenant cap uses
-`mcp_connection_limit_reached`. A failed create does not retain the staged
-connection. See [REST errors](/api-reference/protocols/errors).
+`mcp_connection_limit_reached`. A failed create leaves no Connection or
+credential stored. For `none` and `bearer`, live validation runs before
+name-uniqueness and Tenant-cap checks, so an upstream validation error can take
+precedence. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 

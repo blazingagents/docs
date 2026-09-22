@@ -57,7 +57,7 @@ For a Workspace-backed Turn, cancellation or deadline stops new dispatch but doe
 
 ## Durable recovery guarantees [#durable-recovery-guarantees]
 
-DBOS durably records Task workflow progress, cleanup, and Sandbox deletion; it does not reserve Sandbox capacity around the Turn. Task Session events are committed incrementally behind the active-run fence. A product-side Turn claim prevents recovery from rerunning model, Tool, filesystem, Artifact, Session, or usage effects after an unfinished attempt: a recorded completed outcome is reused, while an unfinished claim becomes an interrupted failure.
+DBOS durably records Task workflow progress, cleanup, and Sandbox deletion; it does not reserve Sandbox capacity around the Turn. Task user messages are persisted before generation; the terminal assistant message is persisted during final usage settlement, behind the active-run fence. A product-side Turn claim prevents recovery from rerunning model, Tool, filesystem, Artifact, Session, or usage effects after an unfinished attempt: a recorded completed outcome is reused, while an unfinished claim becomes an interrupted failure.
 
 These controls provide at-most-once Task Turn execution, not exactly-once external effects. Product-database and DBOS-system-database writes are not atomic; reconciliation repairs missed enqueue and scheduling work. Integrations must still reconcile ambiguous remote effects and use compensating actions where needed.
 

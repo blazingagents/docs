@@ -182,7 +182,7 @@ See [Get a Task run](/api-reference/rest-api/task-runs#get-task-run).
 
 **Signature:** `client.tasks.run_messages(task_id: str, run_id: str, *, cursor=OMITTED, after=OMITTED, limit=OMITTED, extra_headers=None, timeout=OMITTED) -> TaskRunMessagesPage`
 
-Reads the fresh Session transcript, which persists incrementally during execution. Before a Session exists it returns an empty page. Use `cursor` to walk backward or `after` with a saved `latest_cursor` to poll forward, never both.
+Reads the fresh Session transcript. The user message is saved before generation; the terminal assistant message is saved during final usage settlement. Before a Session exists it returns an empty page. Use `cursor` to walk backward or `after` with a saved `latest_cursor` to poll forward, never both.
 
 ```python
 messages = client.tasks.run_messages(task_id, run_id, limit=50)
