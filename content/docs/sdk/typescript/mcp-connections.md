@@ -64,7 +64,7 @@ const connection = await client.mcpConnections.create({
 });
 ```
 
-Returns [`McpConnectionResponse`](#mcpconnectionresponse). Authorization-code OAuth returns `needs_auth`; other modes return `connected` after live validation. Raises `validation_failed`, `mcp_connection_name_conflict`, `mcp_connection_limit_reached`, or a live setup error. A failed live setup does not retain its staged Connection. See [`POST /v1/mcp-connections`](/api-reference/rest-api/mcp-connections#create-mcp-connection).
+Returns [`McpConnectionResponse`](#mcpconnectionresponse). Authorization-code OAuth returns `needs_auth`; other modes return `connected` after live validation. Raises `validation_failed`, `mcp_connection_name_conflict`, `mcp_connection_limit_reached`, or a live setup error. A failed live setup leaves no Connection or credential stored. See [`POST /v1/mcp-connections`](/api-reference/rest-api/mcp-connections#create-mcp-connection).
 
 ### `list()` [#list]
 

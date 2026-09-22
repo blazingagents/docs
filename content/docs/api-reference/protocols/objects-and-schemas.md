@@ -134,8 +134,9 @@ See [SDK Agent Versions](/sdk/typescript/agents#list-versions),
 timestamps. An admitted Session materializes before model execution. A failed
 first Turn retains its user message; cancellation can leave an empty Session.
 It has no update operation; deletion makes it inaccessible. This rule describes
-interactive Session creation. A durable Task attaches a fresh Session before
-execution and incrementally persists user, assistant, and failure events, so a
+interactive Session creation. A durable Task attaches a fresh Session and
+persists the user message before generation. The terminal assistant message,
+including failure metadata, is persisted during final usage settlement, so a
 failed Task run can retain transcript and failure history.
 
 See [SDK Sessions](/sdk/typescript/sessions),
@@ -344,7 +345,7 @@ See [SDK Task listing](/sdk/typescript/tasks#list),
 `taskRunSchema` / `TaskRun` status is `queued`, `running`, `blocked`,
 `succeeded`, `failed`, or `canceled`. Session, error, start, finish, and cancel
 timestamps are nullable according to lifecycle. Attribution and the resolved
-Agent Version are fixed at enqueue/execution. `turnId` is `null` until the run
+Agent Version are fixed at enqueue. `turnId` is `null` until the run
 passes Turn admission; blocked runs therefore retain `turnId: null`. Cancel is
 the only caller-driven mutation.
 

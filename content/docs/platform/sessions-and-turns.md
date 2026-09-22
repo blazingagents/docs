@@ -53,7 +53,7 @@ The final read contains the committed messages from both successful Turns.
 
 A successful interactive Turn atomically commits the accepted user message, the assistant message and its Tool activity, pending Tool-approval records, and any regeneration truncation. Its assistant-message metadata includes the Turn's usage summary.
 
-Failed or cancelled interactive Turns are metered and leave the transcript unchanged: no attempted user message, partial assistant response, or Tool transcript is appended. Either can leave the first materialized Session empty. Task-run Sessions differ: their messages are committed incrementally so asynchronous progress can be inspected while the run is active.
+Failed or cancelled interactive Turns are metered and leave the transcript unchanged: no attempted user message, partial assistant response, or Tool transcript is appended. Either can leave the first materialized Session empty. Task-run Sessions persist the user message before generation and the terminal assistant message during final usage settlement; they do not publish intermediate assistant messages.
 
 ## Resend and Stop
 
