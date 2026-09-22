@@ -97,7 +97,7 @@ connection = client.mcp_connections.create(
 
 Failures include `validation_failed`, `mcp_connection_name_conflict`,
 `mcp_connection_limit_reached`, and live setup errors. A failed live setup
-does not retain its staged Connection. See
+leaves no Connection or credential stored. See
 [`POST /v1/mcp-connections`](/api-reference/rest-api/mcp-connections#create-mcp-connection).
 
 ### `list()` [#list]
