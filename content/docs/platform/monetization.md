@@ -7,6 +7,8 @@ description: Collect model-token usage and bill your own customers through your 
 
 Merchant monetization lets each Tenant bill its own customers for model-token usage through its own Polar or Dodo merchant account. Blazing Agents records usage per Turn, attributes it to your end user, and delivers one immutable usage event to your provider. Your provider owns invoicing, allowances, and money movement; Blazing Agents never touches your customers' payments and BA's own billing stays entirely separate.
 
+Merchant monetization is opt-in per Tenant (`monetizationEnabled`, off by default — enable it in the dashboard under **Settings** or **Monetization**, or via `PATCH /v1/tenant`). While off, nothing is sent to your provider: executions carry no merchant admission data and usage that settles late is discarded rather than delivered. Turning off discards every event your provider has not yet accepted and stops the eligibility guard; your connection and customer bindings are kept, but re-enabling does not resurrect discarded events or backfill usage.
+
 ## What each side owns [#what-each-side-owns]
 
 - **Blazing Agents** measures settled Turn usage, freezes one immutable Merchant usage event per Turn, keeps a delivery ledger, and retries delivery durably until the provider accepts the event or you resolve it.
@@ -125,7 +127,7 @@ The ledger (`client.merchantUsageEvents.list()`) shows every event with a `statu
 | `unmapped` | No customer bound for the `userId` | `bind_and_release` — bind, then release |
 | `incomplete` | Payload could not be built for delivery | `investigate` |
 | `expired` | Dodo's one-hour ingestion window passed | `discard` + provider-side correction |
-| `discarded` | Operator-excluded or force-deletion cleanup | none |
+| `discarded` | Operator-excluded or monetization switched off | none |
 
 Events are immutable; corrections never rewrite a recorded timestamp or token count. For `uncertain` events you can confirm provider-side state first: Dodo events are retrievable by `event_id`, and Polar events can be searched by `ba_event_id` metadata.
 
@@ -134,4 +136,4 @@ Events are immutable; corrections never rewrite a recorded timestamp or token co
 - Asynchronous provider eligibility is not a spending lock: a Turn can exceed a balance while running, and the guard only gates admission.
 - An ingestion receipt confirms the provider accepted the event; it is not invoice proof. Billing disputes are resolved at the provider.
 - `unmapped` and `incomplete` events are held in the ledger — never exported as zero usage — until bound, retried, or discarded.
-- Tenant deletion holds cleanup until every event reaches `accepted` or `discarded`; a forced deletion discards unresolved events and accepts that their usage is unbilled.
+- Tenant deletion is scheduled 24 hours out and cancellable until the deadline; unresolved events are deleted with the tenant — usage still in flight when the deadline arrives goes unbilled.
