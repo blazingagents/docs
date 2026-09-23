@@ -250,6 +250,10 @@ export const documentationPages = [
     "url": "/platform/limits-and-reliability"
   },
   {
+    "path": "platform/monetization.md",
+    "url": "/platform/monetization"
+  },
+  {
     "path": "platform/security-and-credentials.mdx",
     "url": "/platform/security-and-credentials"
   },
@@ -8823,6 +8827,14 @@ export const documentationTree: SerializedPageTree = {
             "description": "Query per-Turn metering and configure Tenant-set monthly safety ceilings without conflating them with billing.",
             "url": "/platform/usage-and-quotas",
             "$ref": "platform/usage-and-quotas.md"
+          },
+          {
+            "$id": "platform/monetization.md",
+            "type": "page",
+            "name": "Bill your users for model tokens",
+            "description": "Collect model-token usage and bill your own customers through your Polar or Dodo merchant account.",
+            "url": "/platform/monetization",
+            "$ref": "platform/monetization.md"
           },
           {
             "$id": "platform/limits-and-reliability.md",
