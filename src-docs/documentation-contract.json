@@ -5,18 +5,32 @@
         "assignedIds": [],
         "kind": "h2"
       },
-      "cards": ["/agents", "/platform", "/automation"],
+      "cards": [
+        "/getting-started/connect-your-app",
+        "/agents/workspaces",
+        "/automation/tasks",
+        "/agents/tools",
+        "/platform/monetization"
+      ],
       "callout": null,
       "componentCounts": {
         "Cards": 1,
-        "Card": 3
+        "Card": 5
       },
       "fences": {
         "endpointCurls": false,
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },

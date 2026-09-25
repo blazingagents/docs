@@ -8564,7 +8564,7 @@ export const documentationTree: SerializedPageTree = {
         "$id": "index.mdx",
         "type": "page",
         "name": "Blazing Agents",
-        "description": "Understand how Blazing Agents runs production Agents and choose the right path through the documentation.",
+        "description": "Ship production agents without building the infrastructure behind them.",
         "url": "/",
         "$ref": "index.mdx"
       },
