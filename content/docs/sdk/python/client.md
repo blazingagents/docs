@@ -65,8 +65,9 @@ use `async for` with its iterator. See [Skills](/sdk/python/skills).
 **Signature:** `with_options(*, client_request_id: str) -> BlazingAgents`
 
 Returns a scoped client that adds `X-Client-Request-Id` to resource and
-generation calls without changing the original client. The async client has
-the same synchronous configuration method and return shape.
+generation calls without changing the original client. On
+`AsyncBlazingAgents`, the method is also synchronous and returns an
+`AsyncBlazingAgents`.
 
 ```python
 correlated = client.with_options(client_request_id="checkout-attempt-42")
@@ -121,7 +122,7 @@ All SDK exceptions derive from `BlazingAgentsError`.
 | `APIStatusError` | A non-successful response; preserves `status_code`, headers, server `code`, `details`, `param`, `request_id`, safe `response_body`, and `retry_after` |
 | `APIConnectionError` | A network failure before a complete response |
 | `APITimeoutError` | An HTTP timeout; also an `APIConnectionError` |
-| `StreamError` | A read, ownership, header, decoding, or finalization failure after stream headers arrive |
+| `StreamError` | A read, ownership, header, decoding, or finalization failure after stream headers arrive; preserves `status_code`, headers, `request_id`, and `retry_after` |
 | `ObjectTruncationError` | Complete transport response containing incomplete JSON |
 | `ObjectJSONDecodeError` | Complete transport response containing invalid JSON |
 | `ObjectValidationError` | Decoded JSON that fails the requested Pydantic-compatible output type |
@@ -172,17 +173,21 @@ There is no `achat()` or other `a`-prefixed generation alias.
 
 **Signature:** `chat(*, agent_id, message=..., prompt_id=..., variables=..., trigger=..., message_id=..., session_id=..., version=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> ChatStream`
 
-Returns a one-owner `ChatStream` of the server's exact AI SDK SSE bytes. The
-SDK does not decode or re-encode `UIMessageChunk` values.
+Returns a one-owner `ChatStream` that yields the server's exact AI SDK SSE
+bytes. The SDK does not decode or re-encode `UIMessageChunk` values.
 
 ```python
 with client.chat(
     agent_id="ag_0123456789abcdef",
-    message={"id": "message-1", "role": "user", "parts": []},
+    message={
+        "id": "message-1",
+        "role": "user",
+        "parts": [{"type": "text", "text": "Hello"}],
+    },
 ) as stream:
     session_id = stream.session_id
     for chunk in stream:
-        relay(chunk)
+        print(chunk.decode(), end="")
 ```
 
 Omit `session_id` to create a Session; the resolved `ss_...` ID comes from the
@@ -235,12 +240,13 @@ The async form is `stream = await client.completion_stream(...)`; use
 
 ### `object()` [#object]
 
-**Signature:** `object(*, agent_id, output_type=..., json_schema=..., prompt=..., prompt_id=..., variables=..., version=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> object`
+**Signature:** `object(*, agent_id, output_type=..., json_schema=..., prompt=..., prompt_id=..., variables=..., version=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> T | JsonValue`
 
 Pass exactly one of a Pydantic-compatible `output_type` or raw `json_schema`.
 The SDK derives JSON Schema from `output_type`, decodes only the complete
-response, and validates it through Pydantic's `TypeAdapter`. A raw schema
-returns JSON-compatible Python values.
+response, and validates it through Pydantic's `TypeAdapter`, so the result is
+an instance of `output_type` (`T`). A raw schema returns an unvalidated
+JSON-compatible Python value (`JsonValue`).
 
 ```python
 from pydantic import BaseModel
@@ -260,7 +266,7 @@ Use `await client.object(...)` with the async client.
 
 ### `object_stream()` [#object-stream]
 
-**Signature:** `object_stream(*, agent_id, output_type=..., json_schema=..., prompt=..., prompt_id=..., variables=..., version=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> ObjectStream`
+**Signature:** `object_stream(*, agent_id, output_type=..., json_schema=..., prompt=..., prompt_id=..., variables=..., version=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> ObjectStream[T] | ObjectStream[JsonValue]`
 
 Returns a one-owner stream of raw JSON text deltas. It never emits partial
 Pydantic models. `get_final_object()` drains unread data and validates only
@@ -288,8 +294,7 @@ Chat, completion, and object streams have exactly one consumer. A second
 iteration, iteration after close, a failed read, malformed Session location,
 or incomplete finalization raises `StreamError` or a more specific object
 error. Exhaustion closes automatically. A context manager is the safest way
-to close early; closing an active chat or generation stream propagates
-cancellation to the server.
+to close early; closing an active stream closes its HTTP connection.
 
 Pre-stream status, connection, and timeout failures use the client exception
 hierarchy. Stream objects expose status, headers, and `request_id` before
