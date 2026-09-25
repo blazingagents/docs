@@ -5,7 +5,7 @@ description: Configure Slack and Telegram connections with the TypeScript SDK.
 
 # Chat integrations
 
-Use `client.chatConnections` (SDK 0.9.0+) to connect an existing Agent to Slack or
+Use `client.chatConnections` (SDK 0.10.0+) to connect an existing Agent to Slack or
 Telegram. BA receives messages, maintains Sessions, and sends replies and approval
 buttons. Credentials are write-only.
 

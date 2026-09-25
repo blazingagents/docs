@@ -5,7 +5,7 @@ description: Configure Slack and Telegram connections with the Python SDK.
 
 # Chat integrations
 
-Use `client.chat_connections` (SDK 0.6.0+) to connect an existing Agent to Slack or
+Use `client.chat_connections` (SDK 0.7.0+) to connect an existing Agent to Slack or
 Telegram. BA receives messages, maintains Sessions, and sends replies and approval
 buttons. Credentials are write-only. Both `BlazingAgents` and `AsyncBlazingAgents`
 provide these methods; await calls on the asynchronous client.

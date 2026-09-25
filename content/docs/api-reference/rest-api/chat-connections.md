@@ -462,6 +462,8 @@ Disable intake.
 #### Request
 
 No body. Stops new messages and approval clicks; admitted work may finish.
+Signed Slack URL verification still returns its challenge while disabled;
+other verified events are acknowledged and dropped.
 
 #### Response
 

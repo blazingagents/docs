@@ -26,6 +26,8 @@ to manage connections, or call the
 4. Set **both** Event Subscriptions and Interactivity Request URLs to that URL.
    Enable both features. Subscribe to `app_mention`, `message.channels`,
    `message.groups`, `message.im`, and `message.mpim`.
+   BA answers signed Slack URL verification while the connection is disabled,
+   so you can save the Request URLs before enabling intake.
 5. Invite the bot to each intended public or private channel. Mention it in a
    thread, then send a follow-up; also test a DM and an approval button if your
    Agent uses human tool approvals.
@@ -77,7 +79,8 @@ fresh. `/reset` does not replace an active Session.
   installation. Sessions remain attached. Telegram requires only the new bot
   token; BA generates a new secret and re-registers the webhook when enabled.
 - **Disable:** stops new messages and approval clicks; admitted work may finish.
-  Enabling accepts future events without replaying missed messages.
+  Signed Slack URL verification still works, but other events are acknowledged
+  and dropped. Enabling accepts future events without replaying missed messages.
 - **Delete:** disconnects the bot from BA and preserves BA Sessions. BA clears a
   matching Telegram webhook; uninstalling a Slack app remains separate.
 - **Missing output after a completed Turn:** inspect deliveries. `confirmed` means
