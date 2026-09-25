@@ -11,7 +11,7 @@ You write the agent logic: instructions, the model it uses, and the tools it can
 
 ## See it work [#see-it-work]
 
-A typical integration is one chat route on your backend. Your frontend posts the user's message to it, and the route streams the agent's reply back. Set `BLAZING_AGENTS_API_KEY` from your [dashboard](https://www.blazingagents.com/app/keys) and `OPENAI_API_KEY` from OpenAI.
+A typical integration is one chat route on your backend. Your frontend posts the user's message to it, and the route streams the agent's reply back. Set `BLAZING_AGENTS_API_KEY` from your [dashboard](https://www.blazingagents.com/app/keys) and `OPENROUTER_API_KEY` from OpenRouter.
 
 ### Run once: create the agent [#create-the-agent]
 
@@ -25,17 +25,17 @@ const client = new BlazingAgents({
 });
 
 const provider = await client.providers.create({
-  name: "OpenAI",
-  providerType: "openai",
+  name: "OpenRouter",
+  providerType: "openrouter",
   baseUrl: null,
-  apiKey: process.env.OPENAI_API_KEY!,
+  apiKey: process.env.OPENROUTER_API_KEY!,
 });
 
 const agent = await client.agents.create({
   name: "Support agent",
   instructions: "Answer clearly and briefly.",
   providerId: provider.id,
-  model: "gpt-6-luna",
+  model: "openai/gpt-6-luna",
 });
 
 console.log(`BLAZING_AGENTS_AGENT_ID=${agent.id}`);
@@ -48,15 +48,15 @@ from blazing_agents import BlazingAgents
 
 with BlazingAgents() as client:
     provider = client.providers.create(
-        name="OpenAI",
-        provider_type="openai",
-        api_key=os.environ["OPENAI_API_KEY"],
+        name="OpenRouter",
+        provider_type="openrouter",
+        api_key=os.environ["OPENROUTER_API_KEY"],
     )
     agent = client.agents.create(
         name="Support agent",
         instructions="Answer clearly and briefly.",
         provider_id=provider.id,
-        model="gpt-6-luna",
+        model="openai/gpt-6-luna",
     )
     print(f"BLAZING_AGENTS_AGENT_ID={agent.id}")
 ```
