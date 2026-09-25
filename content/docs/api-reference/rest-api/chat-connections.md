@@ -13,7 +13,8 @@ an Agent can have several connections. Agent and platform identity are immutable
 See [setup](/platform/chat-integrations) for callbacks and permissions.
 
 A connection response contains `id`, `tenantId`, `agentId`, `name`, `platform`,
-`enabled`, `configuration` (including `platform`), verified `identity`, `health`,
+`enabled`, `configuration` (including `platform`), read-only `webhookUrl`,
+verified `identity`, `health`,
 `credentialFragment` (last four token characters), `credentialVersion`,
 `createdAt`, and `updatedAt`. Full credentials are write-only.
 Health includes `checkedAt`, `tokenValid`, `identityVerified`, and `checks` with
@@ -27,17 +28,18 @@ Create a connection.
 
 #### Request
 
-Create requires `name` (1–80 characters), `agentId`, `platform`, `configuration`,
-and `credentials`; `enabled` defaults to `true`.
+Create requires `name` (1–80 characters), `agentId`, `platform`, and
+`credentials`; `configuration` is optional and `enabled` defaults to `true`.
 
 | Platform | Configuration | Credentials |
 | --- | --- | --- |
-| `slack` | `teamId`, `appId`, `webhookUrl`, optional `channelIds` | `botToken`, `signingSecret` |
-| `telegram` | `botId`, `webhookUrl`, optional `chatIds` | `botToken`, `webhookSecret` |
+| `slack` | optional `channelIds` | `botToken`, `signingSecret` |
+| `telegram` | optional `businessMode` and `chatIds` | `botToken` |
 
-Use strings for Telegram IDs. Callback URLs must be HTTPS without credentials,
-query or fragment. Destination lists accept at most 20 IDs and select health
-probes, not access restrictions. Create does not register platform webhooks.
+Use strings for Telegram IDs. Destination lists accept at most 20 IDs and select
+health probes, not access restrictions. BA derives platform identity from the
+token and computes `webhookUrl` from its public API origin. Enabled Telegram
+creation registers that URL and a server-generated secret with Telegram.
 The [TypeScript](/sdk/typescript/chat-integrations) and
 [Python](/sdk/python/chat-integrations) examples show a complete create request.
 
@@ -57,10 +59,10 @@ Identity is verified before saving.
   "enabled": true,
   "configuration": {
     "platform": "telegram",
-    "botId": "123456789",
-    "webhookUrl": "https://example.com/chat",
+    "businessMode": false,
     "chatIds": []
   },
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
   "identity": {
     "botId": "123456789",
     "botUserId": "123456789",
@@ -91,7 +93,7 @@ Identity is verified before saving.
 curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"name":"Support","agentId":"ag_1234567890ABCDEF","platform":"telegram","configuration":{"botId":"123456789","webhookUrl":"https://example.com/chat"},"credentials":{"botToken":"123456789:REPLACE_WITH_BOT_TOKEN","webhookSecret":"REPLACE_WITH_WEBHOOK_SECRET"}}'
+  --data '{"name":"Support","agentId":"ag_1234567890ABCDEF","platform":"telegram","configuration":{"businessMode":false},"credentials":{"botToken":"123456789:REPLACE_WITH_BOT_TOKEN"}}'
 ```
 
 ### GET /v1/chat-connections [#list-chat-connections]
@@ -118,10 +120,10 @@ No body.
       "enabled": true,
       "configuration": {
         "platform": "telegram",
-        "botId": "123456789",
-        "webhookUrl": "https://example.com/chat",
+        "businessMode": false,
         "chatIds": []
       },
+      "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
       "identity": {
         "botId": "123456789",
         "botUserId": "123456789",
@@ -177,10 +179,10 @@ No body. Health is the last saved observation.
   "enabled": true,
   "configuration": {
     "platform": "telegram",
-    "botId": "123456789",
-    "webhookUrl": "https://example.com/chat",
+    "businessMode": false,
     "chatIds": []
   },
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
   "identity": {
     "botId": "123456789",
     "botUserId": "123456789",
@@ -218,10 +220,10 @@ Update a connection.
 
 #### Request
 
-Send `name`, top-level `webhookUrl`, or both; empty updates are rejected.
-Use `webhookUrl` to save the final connection-specific callback after creation
-or change the API hostname. Other configuration fields remain fixed. Updating
-the saved URL does not register a platform webhook or refresh saved health.
+Send `name`, `configuration`, or both; empty updates are rejected. Configuration
+may contain Slack `channelIds`, Telegram `chatIds`, or Telegram `businessMode`.
+Changing Business mode on an enabled Telegram connection re-registers its
+webhook. `webhookUrl` is read-only.
 
 #### Response
 
@@ -237,10 +239,10 @@ the saved URL does not register a platform webhook or refresh saved health.
   "enabled": true,
   "configuration": {
     "platform": "telegram",
-    "botId": "123456789",
-    "webhookUrl": "https://example.com/chat",
+    "businessMode": false,
     "chatIds": []
   },
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
   "identity": {
     "botId": "123456789",
     "botUserId": "123456789",
@@ -280,9 +282,10 @@ Rotate credentials.
 
 #### Request
 
-Send `platform` and the complete credentials for the same installation: Slack uses
-`botToken` and `signingSecret`; Telegram uses `botToken` and `webhookSecret`.
-Enabled state and Sessions are preserved.
+Send `platform` and the complete credentials for the same installation: Slack
+uses `botToken` and `signingSecret`; Telegram uses `botToken`. Enabled state and
+Sessions are preserved. Enabled Telegram rotation generates a new secret and
+re-registers the webhook.
 
 #### Response
 
@@ -298,10 +301,10 @@ Enabled state and Sessions are preserved.
   "enabled": true,
   "configuration": {
     "platform": "telegram",
-    "botId": "123456789",
-    "webhookUrl": "https://example.com/chat",
+    "businessMode": false,
     "chatIds": []
   },
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
   "identity": {
     "botId": "123456789",
     "botUserId": "123456789",
@@ -332,7 +335,7 @@ Enabled state and Sessions are preserved.
 curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/credentials" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"platform":"telegram","botToken":"123456789:REPLACE_WITH_BOT_TOKEN","webhookSecret":"REPLACE_WITH_WEBHOOK_SECRET"}'
+  --data '{"platform":"telegram","botToken":"123456789:REPLACE_WITH_BOT_TOKEN"}'
 ```
 
 ### POST /v1/chat-connections/:id/health [#check-chat-health]
@@ -357,10 +360,10 @@ No body. Runs fresh read-only platform probes and saves their results.
   "enabled": true,
   "configuration": {
     "platform": "telegram",
-    "botId": "123456789",
-    "webhookUrl": "https://example.com/chat",
+    "businessMode": false,
     "chatIds": []
   },
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
   "identity": {
     "botId": "123456789",
     "botUserId": "123456789",
@@ -398,7 +401,10 @@ Enable intake.
 
 #### Request
 
-No body. Accepts future events; does not replay missed messages.
+No body. Accepts future events; does not replay missed messages. For Telegram,
+BA registers the computed webhook first. A webhook registered elsewhere returns
+`409 chat_webhook_conflict`; other registration failures return
+`502 chat_webhook_registration_failed` and leave the connection disabled.
 
 #### Response
 
@@ -414,10 +420,10 @@ No body. Accepts future events; does not replay missed messages.
   "enabled": true,
   "configuration": {
     "platform": "telegram",
-    "botId": "123456789",
-    "webhookUrl": "https://example.com/chat",
+    "businessMode": false,
     "chatIds": []
   },
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
   "identity": {
     "botId": "123456789",
     "botUserId": "123456789",
@@ -456,6 +462,8 @@ Disable intake.
 #### Request
 
 No body. Stops new messages and approval clicks; admitted work may finish.
+Signed Slack URL verification still returns its challenge while disabled;
+other verified events are acknowledged and dropped.
 
 #### Response
 
@@ -471,10 +479,10 @@ No body. Stops new messages and approval clicks; admitted work may finish.
   "enabled": false,
   "configuration": {
     "platform": "telegram",
-    "botId": "123456789",
-    "webhookUrl": "https://example.com/chat",
+    "businessMode": false,
     "chatIds": []
   },
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
   "identity": {
     "botId": "123456789",
     "botUserId": "123456789",
@@ -512,7 +520,8 @@ Delete a connection.
 
 #### Request
 
-No body. Preserves BA Sessions; does not uninstall the bot or clear its platform webhook.
+No body. Preserves BA Sessions. BA clears a matching Telegram webhook on a
+best-effort basis; it does not uninstall a Slack app.
 
 #### Response
 
@@ -583,4 +592,3 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
   --header "Content-Type: application/json" \
   --data '{"expectedAttempt":1,"previousSenderStopped":true,"acceptDuplicateRisk":true}'
 ```
-
