@@ -260,7 +260,7 @@ describe("documentation runtime artifacts", () => {
       "/getting-started/quickstart.md"
     );
     expect(await getDocumentationMarkdown(quickstart)).toContain(
-      "# Run your first Agent"
+      "# Run your first agent"
     );
     expect(await getAllDocumentationMarkdown()).toContain("# Agents");
   });
@@ -361,7 +361,7 @@ describe("documentation runtime artifacts", () => {
       location: { search: {} },
       params: { _splat: "getting-started/quickstart" },
     });
-    expect(pageData.title).toBe("Run your first Agent");
+    expect(pageData.title).toBe("Run your first agent");
     expect(pageData.toc).toBeInstanceOf(Array);
     await expect(
       loadDocumentationPage({
@@ -455,10 +455,10 @@ describe("documentation runtime artifacts", () => {
     const renderedOperationPage = renderPage(operationPageData);
     expect(renderedPage).toContain('data-page-header="true"');
     expect(renderedPage).toContain(
-      "Create the smallest valid Agent and complete one streamed Turn."
+      "Connect a model, create an agent, and stream its first answer from one small program."
     );
     expect(renderedPage.match(/<h1/g)).toHaveLength(1);
-    expect(renderedPage.indexOf("Run your first Agent")).toBeLessThan(
+    expect(renderedPage.indexOf("Run your first agent")).toBeLessThan(
       renderedPage.indexOf("Copy Markdown")
     );
     expect(renderedOperationPage).toContain('data-page-header="true"');

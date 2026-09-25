@@ -8599,8 +8599,8 @@ export const documentationTree: SerializedPageTree = {
           {
             "$id": "getting-started/quickstart.mdx",
             "type": "page",
-            "name": "Run your first Agent",
-            "description": "Create the smallest valid Agent and complete one streamed Turn.",
+            "name": "Run your first agent",
+            "description": "Connect a model, create an agent, and stream its first answer from one small program.",
             "url": "/getting-started/quickstart",
             "$ref": "getting-started/quickstart.mdx"
           },
