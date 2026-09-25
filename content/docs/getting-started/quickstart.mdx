@@ -5,14 +5,14 @@ description: Connect a model, create an agent, and stream its first answer from 
 
 # Run your first agent
 
-Build one small program that connects your OpenAI key, creates an agent, and streams the agent's first answer to your terminal. You add to the same file in three steps and run it after each one, so you see every piece work before you move on.
+Build one small program that connects your OpenRouter key, creates an agent, and streams the agent's first answer to your terminal. You add to the same file in three steps and run it after each one, so you see every piece work before you move on.
 
 ## Before you begin [#before-you-begin]
 
-Finish [Set up Blazing Agents](/getting-started/setup) and work in the same project folder and terminal. You also need an OpenAI API key in that terminal:
+Finish [Set up Blazing Agents](/getting-started/setup) and work in the same project folder and terminal. You also need an OpenRouter API key in that terminal:
 
 ```bash
-export OPENAI_API_KEY="sk-..."
+export OPENROUTER_API_KEY="sk-or-..."
 ```
 
 The program is safe to run again and again. It looks up the provider and agent by name and creates them only the first time.
@@ -30,15 +30,15 @@ The program is safe to run again and again. It looks up the provider and agent b
       apiKey: process.env.BLAZING_AGENTS_API_KEY!,
     });
 
-    const providerName = "Quickstart OpenAI";
+    const providerName = "Quickstart OpenRouter";
     const { providers } = await client.providers.list();
     const provider =
       providers.find(({ name }) => name === providerName) ??
       (await client.providers.create({
         name: providerName,
-        providerType: "openai",
+        providerType: "openrouter",
         baseUrl: null,
-        apiKey: process.env.OPENAI_API_KEY!,
+        apiKey: process.env.OPENROUTER_API_KEY!,
       }));
     console.log(`Provider: ${provider.id}`);
     ```
@@ -52,14 +52,14 @@ The program is safe to run again and again. It looks up the provider and agent b
 
     client = BlazingAgents()
 
-    provider_name = "Quickstart OpenAI"
+    provider_name = "Quickstart OpenRouter"
     providers = client.providers.list().providers
     provider = next(
         (p for p in providers if p.name == provider_name), None
     ) or client.providers.create(
         name=provider_name,
-        provider_type="openai",
-        api_key=os.environ["OPENAI_API_KEY"],
+        provider_type="openrouter",
+        api_key=os.environ["OPENROUTER_API_KEY"],
     )
     print(f"Provider: {provider.id}")
     ```
@@ -80,7 +80,7 @@ The program is safe to run again and again. It looks up the provider and agent b
       (await client.agents.create({
         name: agentName,
         providerId: provider.id,
-        model: "gpt-6-luna",
+        model: "openai/gpt-6-luna",
       }));
     console.log(`Agent: ${agent.id}`);
     ```
@@ -91,7 +91,7 @@ The program is safe to run again and again. It looks up the provider and agent b
     agent = next((a for a in agents if a.name == agent_name), None) or client.agents.create(
         name=agent_name,
         provider_id=provider.id,
-        model="gpt-6-luna",
+        model="openai/gpt-6-luna",
     )
     print(f"Agent: {agent.id}")
     ```
