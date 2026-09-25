@@ -8592,7 +8592,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "getting-started/setup.mdx",
             "type": "page",
             "name": "Set up Blazing Agents",
-            "description": "Install the TypeScript SDK and verify an authenticated backend client.",
+            "description": "Get an API key, install the SDK, and confirm your backend can reach Blazing Agents.",
             "url": "/getting-started/setup",
             "$ref": "getting-started/setup.mdx"
           },

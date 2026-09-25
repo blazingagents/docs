@@ -92,7 +92,7 @@
       "callout": null,
       "componentCounts": {
         "Steps": 1,
-        "Step": 4,
+        "Step": 3,
         "Callout": 1
       },
       "fences": {
@@ -103,8 +103,32 @@
             "metadata": {}
           },
           {
+            "language": "bash",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "bash",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language",
+              "title": "check.ts"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python",
+              "title": "check.py"
+            }
           }
         ]
       },
@@ -128,10 +152,57 @@
         "endpointCurls": false,
         "items": [
           {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
             "language": "typescript",
             "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language",
               "title": "quickstart.ts"
             }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python",
+              "title": "quickstart.py"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language",
+              "title": "quickstart.ts"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python",
+              "title": "quickstart.py"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language",
+              "title": "quickstart.ts"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python",
+              "title": "quickstart.py"
+            }
+          },
+          {
+            "language": "text",
+            "metadata": {}
           }
         ]
       },
