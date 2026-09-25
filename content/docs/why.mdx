@@ -1,0 +1,84 @@
+---
+title: Why Blazing Agents
+description: See what Blazing Agents takes off your plate when you ship an agent to production, and when it is not the right fit.
+---
+
+# Why Blazing Agents
+
+Ship a production agent without building the platform underneath it. You write the agent's instructions and your product. Blazing Agents runs the agent and keeps its state.
+
+## The problem [#the-problem]
+
+A model call is the easy part. Putting an agent in front of real users means building and running everything around that call, and keeping it working as you grow.
+
+Here is what a team usually ends up building:
+
+- **Conversation state** that survives server restarts and deploys, with history you can reload and page through.
+- **Streaming** from the model to the browser, plus a way to reopen a conversation after a dropped connection without losing what was already saved.
+- **A sandbox per agent** with its own files and shell, where the agent can run commands without touching your servers or your model keys.
+- **Skills** the agent loads only when it needs them, so long instructions do not fill every prompt.
+- **Memory** that carries notes across conversations, for the whole agent or per end user.
+- **MCP tools** from remote servers, including OAuth sign-in and token refresh.
+- **Tool approvals** so a person, or a reviewing model, can allow or block a risky call before it runs.
+- **Background tasks and schedules** that run the agent with no user present, once, on an interval, or on a cron.
+- **Usage metering** per turn, per agent, and per end user, with monthly quotas as a safety ceiling.
+- **Billing your own users** for the model tokens they consume.
+- **Slack and Telegram** bots that talk to the same agent.
+- **Versioned agent config** so you can see what changed, pin a known-good version, and roll back.
+
+Blazing Agents ships each of these today.
+
+## What Blazing Agents handles and what stays yours [#what-blazing-agents-handles-and-what-stays-yours]
+
+| Blazing Agents handles | You keep |
+| --- | --- |
+| Running each turn against your chosen provider and model | Signing in your users and deciding what each one may access |
+| Saving sessions and their history | Your product UI and user experience |
+| Each agent's workspace: files, shell, and network rules | Your business rules and data |
+| Skills, memory, MCP connections, and tool approvals | Which agent, session, or resource belongs to which user |
+| Tasks, task runs, and schedules | When to start work, and what to do with the result |
+| Usage records, quotas, and token billing events | Your prices, plans, and invoices, through your own Polar or Dodo account |
+
+Your backend is the only thing that talks to Blazing Agents. It checks who the user is, then calls the API with your key. A `userId` you pass labels usage and resources for reporting. It does not grant access, so your backend stays the gatekeeper. See [tenancy and attribution](/platform/tenancy-and-attribution).
+
+## Build it yourself vs Blazing Agents [#build-it-yourself-vs-blazing-agents]
+
+This table compares building on a plain model SDK with your own database and sandbox against using Blazing Agents.
+
+| Capability | Build it yourself | With Blazing Agents |
+| --- | --- | --- |
+| [Conversation history](/platform/sessions-and-turns) | Design a message schema, save each exchange, handle failed and cancelled turns | Pass a `sessionId` to `client.chat()`. History is saved on the server. |
+| [Streaming to your UI](/agents/output/generation-and-streaming) | Relay model events to the browser and keep the format in sync with your client | `result.toResponse()` returns an AI SDK UI message stream |
+| [Files and shell](/agents/workspaces) | Provision isolated compute, persist files, keep secrets out, control network access | Every agent gets a workspace. Enable the `workspace` tool group. |
+| [Skills](/agents/skills) | Store instruction bundles and load them into context on demand | Upload a ZIP with a `SKILL.md`. The agent activates it when relevant. |
+| [Memory](/agents/memory) | Build storage, scoping per user, and recall into the prompt | Turn on the `memory` tools or automatic memory injection |
+| [MCP tools](/agents/tools/mcp-tools) | Run an MCP client, store credentials, implement OAuth and token refresh | Create a connection once and attach it to any agent |
+| [Tool approvals](/agents/tools/tool-approvals) | Pause the agent loop, persist the pending call, resume after a decision | Set a policy per tool: allow, deny, ask a person, or let the model review |
+| [Background work](/automation/tasks) | Run a job queue, retries, idempotency, and a scheduler | Create a task and a run, or attach a [schedule](/automation/schedules) |
+| [Usage and quotas](/platform/usage-and-quotas) | Record tokens per call and aggregate by user, agent, and model | Query `client.usage` grouped by day, agent, model, session, or user |
+| [Bill your users](/platform/monetization) | Meter tokens per user and deliver events to your billing provider reliably | Connect Polar or Dodo, bind each `userId` to a customer |
+| [Slack and Telegram](/platform/chat-integrations) | Handle webhooks, threads, history, and approval buttons for each platform | Create a chat connection with your bot credentials |
+| [Versions](/agents/versions-and-lifecycle) | Track config changes and keep old configs runnable | Every update creates a version you can pin or restore |
+
+## How it fits in your stack [#how-it-fits-in-your-stack]
+
+Blazing Agents sits behind your backend:
+
+1. **Your frontend** renders the chat and sends messages to your backend.
+2. **Your backend** signs in the user, checks access, and calls Blazing Agents through the [TypeScript SDK](/sdk/typescript) or [Python SDK](/sdk/python).
+3. **Blazing Agents** runs the turn and streams the answer back through your backend.
+
+The stream uses the Vercel AI SDK UI message format, so `useChat` from `@ai-sdk/react` renders it with no custom parsing. The [chatbot guide](/getting-started/chatbot) shows send, stop, edit, and regenerate end to end.
+
+## When Blazing Agents is not the right fit [#when-blazing-agents-is-not-the-right-fit]
+
+- **You make one stateless model call.** A plain model SDK is simpler if you need no history, tools, files, or metering.
+- **You need to call it from the browser.** The API is backend-only. You need a server to hold the API key.
+- **You need everything inside your own infrastructure.** Blazing Agents is a hosted service, so turns run on its platform, not on your servers.
+- **You want to write the agent loop yourself.** Blazing Agents runs the loop. You configure the agent, its tools, and its policies rather than each model step.
+- **Your MCP servers are local processes.** Connections reach remote servers over Streamable HTTP.
+
+## Next [#next]
+
+- [Run your first agent](/getting-started/quickstart)
+- [Browse the examples](https://github.com/blazingagents/examples): Next.js, TanStack Start, Vite with Express, FastAPI, or Hono, and a Cloudflare Worker relay

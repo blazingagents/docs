@@ -30,6 +30,23 @@
         "assignedIds": [],
         "kind": "h2"
       },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "why.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
       "cards": [
         "/getting-started/setup",
         "/getting-started/quickstart",
@@ -3568,6 +3585,13 @@
       "publishable": true,
       "title": "Blazing Agents",
       "url": "/"
+    },
+    {
+      "file": "why.mdx",
+      "name": "Why Blazing Agents",
+      "publishable": true,
+      "title": "Why Blazing Agents",
+      "url": "/why"
     },
     {
       "file": "getting-started/index.mdx",
