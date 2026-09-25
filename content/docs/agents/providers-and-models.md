@@ -51,7 +51,7 @@ assert.ok(!("apiKey" in provider));
 const { models } = await client.providers.listModels({
   providerId: provider.id,
 });
-const model = models.find(({ id }) => id === "anthropic/claude-sonnet-4.5");
+const model = models.find(({ id }) => id === "openai/gpt-6-luna");
 assert.ok(model, "Required Provider model is unavailable");
 
 await client.agents.update({

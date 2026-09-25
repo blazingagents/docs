@@ -160,7 +160,7 @@ Returns `200 OK` with the Provider-native model catalog.
 Response schema: [`providerModelsResponseSchema`](/api-reference/protocols/objects-and-schemas#provider-models-response).
 
 ```json
-{ "models": [{ "id": "gpt-4.1" }, { "id": "gpt-5-mini" }] }
+{ "models": [{ "id": "gpt-5-mini" }, { "id": "gpt-6-luna" }] }
 ```
 
 #### Errors
