@@ -392,6 +392,10 @@ export const documentationPages = [
   {
     "path": "sdk/typescript/workspaces.md",
     "url": "/sdk/typescript/workspaces"
+  },
+  {
+    "path": "why.mdx",
+    "url": "/why"
   }
 ] as const;
 export const restApiOperations = [
@@ -8563,6 +8567,14 @@ export const documentationTree: SerializedPageTree = {
         "description": "Understand how Blazing Agents runs production Agents and choose the right path through the documentation.",
         "url": "/",
         "$ref": "index.mdx"
+      },
+      {
+        "$id": "why.mdx",
+        "type": "page",
+        "name": "Why Blazing Agents",
+        "description": "See what Blazing Agents takes off your plate when you ship an agent to production, and when it is not the right fit.",
+        "url": "/why",
+        "$ref": "why.mdx"
       },
       {
         "type": "folder",
