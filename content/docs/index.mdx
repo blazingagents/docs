@@ -11,10 +11,14 @@ You write the agent logic: instructions, the model it uses, and the tools it can
 
 ## See it work [#see-it-work]
 
-Save a model provider, create an agent that uses it, and stream its first reply. Set `BLAZING_AGENTS_API_KEY` from your [dashboard](https://www.blazingagents.com/app/keys) and `OPENAI_API_KEY` from OpenAI, then run:
+A typical integration is one chat route on your backend. Your frontend posts the user's message to it, and the route streams the agent's reply back. Set `BLAZING_AGENTS_API_KEY` from your [dashboard](https://www.blazingagents.com/app/keys) and `OPENAI_API_KEY` from OpenAI.
+
+### Run once: create the agent [#create-the-agent]
+
+Save a model provider and an agent that uses it. Run this script one time and keep the printed agent ID. Agent names are unique, so a second run fails; reuse the agent you already have.
 
 ```typescript tab="TypeScript"
-import { BlazingAgents, type UIMessage } from "@blazingagents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,
@@ -34,24 +38,11 @@ const agent = await client.agents.create({
   model: "gpt-4.1",
 });
 
-const message = {
-  id: crypto.randomUUID(),
-  role: "user",
-  parts: [{ type: "text", text: "How can you help?" }],
-} satisfies UIMessage;
-
-const result = await client.chat({ agentId: agent.id, message });
-console.log(`Session: ${await result.sessionId}`);
-
-for await (const chunk of result.toStream()) {
-  process.stdout.write(chunk);
-}
+console.log(`BLAZING_AGENTS_AGENT_ID=${agent.id}`);
 ```
 
 ```python tab="Python"
 import os
-import sys
-import uuid
 
 from blazing_agents import BlazingAgents
 
@@ -61,27 +52,67 @@ with BlazingAgents() as client:
         provider_type="openai",
         api_key=os.environ["OPENAI_API_KEY"],
     )
-
     agent = client.agents.create(
         name="Support agent",
         instructions="Answer clearly and briefly.",
         provider_id=provider.id,
         model="gpt-4.1",
     )
-
-    message = {
-        "id": str(uuid.uuid4()),
-        "role": "user",
-        "parts": [{"type": "text", "text": "How can you help?"}],
-    }
-
-    with client.chat(agent_id=agent.id, message=message) as stream:
-        print(f"Session: {stream.session_id}")
-        for chunk in stream:
-            sys.stdout.buffer.write(chunk)
+    print(f"BLAZING_AGENTS_AGENT_ID={agent.id}")
 ```
 
-You create the provider and agent once and reuse them. Each chat call returns a session ID right away; pass it to the next call to continue the same conversation. The stream is standard AI SDK server-sent events, so in a route handler you can return `result.toResponse()` and hand it straight to a `useChat` frontend. Keep your API key on your backend. [Run your first agent](/getting-started/quickstart) walks through each step.
+### Add the chat route [#add-the-chat-route]
+
+Set `BLAZING_AGENTS_AGENT_ID` to the printed ID. The route starts a new conversation when the request has no `sessionId`, and continues that conversation when it does.
+
+```typescript tab="TypeScript"
+import { BlazingAgents, type UIMessage } from "@blazingagents/sdk";
+
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
+
+export async function POST(request: Request): Promise<Response> {
+  const { message, sessionId } = (await request.json()) as {
+    message: UIMessage;
+    sessionId?: string;
+  };
+  const result = await client.chat({
+    agentId: process.env.BLAZING_AGENTS_AGENT_ID!,
+    message,
+    ...(sessionId ? { sessionId } : {}),
+  });
+  return result.toResponse();
+}
+```
+
+```python tab="Python"
+import os
+
+from blazing_agents import AsyncBlazingAgents
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse
+
+app = FastAPI()
+client = AsyncBlazingAgents()
+
+
+@app.post("/api/chat")
+async def chat(request: Request) -> StreamingResponse:
+    body = await request.json()
+    session_id = body.get("sessionId")
+    stream = await client.chat(
+        agent_id=os.environ["BLAZING_AGENTS_AGENT_ID"],
+        message=body["message"],
+        **({"session_id": session_id} if session_id else {}),
+    )
+    headers = {"x-vercel-ai-ui-message-stream": "v1"}
+    if location := stream.headers.get("location"):
+        headers["location"] = location
+    return StreamingResponse(stream, headers=headers, media_type="text/event-stream")
+```
+
+On the frontend, `useChat` with `BlazingAgentsChatTransport` renders the streamed reply and sends the session ID back on the next message; see [Build a chatbot](/getting-started/chatbot). Keep your API key on the backend, and before you continue a session, check that it belongs to the signed-in user. [Connect Blazing Agents to your app](/getting-started/connect-your-app) covers that check.
 
 ## What you can build [#what-you-can-build]
 

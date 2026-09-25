@@ -31,6 +31,18 @@
             "metadata": {
               "tab": "Python"
             }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
