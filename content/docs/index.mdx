@@ -35,7 +35,7 @@ const agent = await client.agents.create({
   name: "Support agent",
   instructions: "Answer clearly and briefly.",
   providerId: provider.id,
-  model: "gpt-4.1",
+  model: "gpt-6-luna",
 });
 
 console.log(`BLAZING_AGENTS_AGENT_ID=${agent.id}`);
@@ -56,7 +56,7 @@ with BlazingAgents() as client:
         name="Support agent",
         instructions="Answer clearly and briefly.",
         provider_id=provider.id,
-        model="gpt-4.1",
+        model="gpt-6-luna",
     )
     print(f"BLAZING_AGENTS_AGENT_ID={agent.id}")
 ```
