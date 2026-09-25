@@ -80,7 +80,7 @@ The program is safe to run again and again. It looks up the provider and agent b
       (await client.agents.create({
         name: agentName,
         providerId: provider.id,
-        model: "gpt-4.1",
+        model: "gpt-6-luna",
       }));
     console.log(`Agent: ${agent.id}`);
     ```
@@ -91,7 +91,7 @@ The program is safe to run again and again. It looks up the provider and agent b
     agent = next((a for a in agents if a.name == agent_name), None) or client.agents.create(
         name=agent_name,
         provider_id=provider.id,
-        model="gpt-4.1",
+        model="gpt-6-luna",
     )
     print(f"Agent: {agent.id}")
     ```
