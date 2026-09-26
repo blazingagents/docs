@@ -1,42 +1,17 @@
 ---
 title: Agents
-description: Configure reusable Agent behavior, capabilities, attribution, and runtime resolution.
+description: Create an agent once, then reuse its model, instructions, and tools everywhere your app calls it.
 ---
 
 # Agents
 
-An Agent is a tenant-owned configuration record for reusable behavior. It is
-not a person, running process, [Session, or Turn](/platform/sessions-and-turns).
-Create one when multiple executions should share instructions, a model,
-capabilities, and durable resources.
+An agent is the reusable setup behind every answer your app gets: which model it runs, what instructions it follows, which tools it can call, and where its files live. You create it once and call it by ID from chat sessions, one-off generations, and background tasks. Change the agent and every new call picks up the change.
 
-## Tool approval policies [#tool-approval-policies]
+## Create an agent [#create-an-agent]
 
-`approvalInChat` and `approvalInTasks` are independent versioned Agent settings,
-initially full with no overrides. See [Tool approvals](/agents/tools/tool-approvals)
-for exact Tool matching, validation, and human/automatic review behavior. Restoring
-a Version must copy both policies along with its other configuration; older SDK
-restoration helpers may omit them. Use an SDK release with policy restoration
-support or include both saved policies explicitly in a REST update.
+This creates an agent on the provider from the [quickstart](/getting-started/quickstart) and asks it one question. Set `PROVIDER_ID` to that provider's `prv_...` ID.
 
-## What an Agent controls [#what-an-agent-controls]
-
-An Agent stores its name, optional [Provider and model](/agents/providers-and-models),
-instructions, selected [built-in Tools](/agents/tools/built-in-tools),
-[MCP Connection](/agents/tools/mcp-tools) attachments, current
-[Workspace](/agents/workspaces), automatic [Memory](/agents/memory) injection
-setting, Attribution fields, and avatar. Its current Version and lifecycle
-status describe configuration history and whether new Turns can begin.
-
-For each execution, Blazing Agents resolves the latest configuration or an
-explicit [Version Pin](/agents/versions-and-lifecycle), then loads the selected
-Provider credential, current MCP Connection state, Workspace, and visible
-Memories. The Agent stores resource IDs and selections; it does not copy those
-resources into itself.
-
-## Create an Agent [#create-an-agent]
-
-```typescript
+```typescript tab="TypeScript" tab-group="sdk-language"
 import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
@@ -45,104 +20,101 @@ const client = new BlazingAgents({
 
 const agent = await client.agents.create({
   name: "Support writer",
+  providerId: process.env.PROVIDER_ID!,
+  model: "openai/gpt-6-luna",
   instructions: "Answer clearly and briefly.",
 });
+console.log(`Agent: ${agent.id}`);
 
-if (!agent.id.startsWith("ag_")) throw new Error("Unexpected Agent ID");
-console.log(agent.id);
+const result = await client.completion({
+  agentId: agent.id,
+  prompt: "How do I reset my password?",
+});
+console.log(await result.text);
 ```
 
-The returned Agent is initially unconfigured: `providerId` and `model` are
-`null`. It has Version `1`, status `active`, and a new normal Workspace attached
-atomically. That Workspace is independent after creation and consumes no
-Container or compute until its first file or process operation.
+```python tab="Python"
+import os
 
-## Fields and updates [#fields-and-updates]
+from blazing_agents import BlazingAgents
 
-| Field | Create behavior | Update behavior |
-| --- | --- | --- |
-| `name` | Required; unique per Tenant | Mutable |
-| `providerId`, `model` | Both `null`, or both configured | Mutable as a valid pair |
-| `thinkingLevel` | `null` (Provider default) | Nonempty known choice or custom value when capabilities are unknown; null clears |
-| `instructions` | Defaults to `""` | Mutable |
-| `tools` | Defaults to `[]` | Supplied arrays replace the selection |
-| `mcpConnectionIds` | Defaults to `[]` | Supplied arrays replace attachments |
-| `workspaceId` | Omission creates a Workspace | Mutable to another same-Tenant Workspace |
-| `autoCompaction` | Defaults to `true` | Versioned; enables automatic context summaries |
-| `compactionReserveTokens` | Defaults to `16384` | Versioned; nonnegative safe integer in tokens |
-| `memoryInjectionEnabled` | Defaults to `false` | Mutable |
-| `userId` | Defaults to `""` | Immutable Attribution |
-| `metadata` | Defaults to `{}` | Replaced as a complete object |
-| `version`, `status` | Version `1`, status `active` | Changed by updates or lifecycle operations |
+client = BlazingAgents()
 
-Ordinary updates are partial merges, except replacing or clearing a Provider
-requires `providerId` and `model` together. Every accepted ordinary update
-creates a Version, including a same-value update. Avatar, enable, and disable
-operations do not create Versions.
+agent = client.agents.create(
+    name="Support writer",
+    provider_id=os.environ["PROVIDER_ID"],
+    model="openai/gpt-6-luna",
+    instructions="Answer clearly and briefly.",
+)
+print(f"Agent: {agent.id}")
 
-## Attach capabilities [#attach-capabilities]
+print(client.completion(agent_id=agent.id, prompt="How do I reset my password?"))
+```
 
-Attachment IDs must belong to the same Tenant. Tool selection, MCP
-attachments, Workspace attachment, and Memory injection are independent:
+You see `Agent: ag_...` followed by the answer. Agent names are unique in your account, so pick a new name or delete the agent before you run this again.
 
-- Built-in Tool groups decide which platform actions the Agent can call.
-- MCP Connections make remote-server Tools available.
-- The `memory` Tool group enables explicit Memory operations, while
-  `memoryInjectionEnabled` adds visible Memory to context automatically.
-- The current Workspace determines durable filesystem state for every Turn.
-- Skills are Agent-owned instructions discovered and loaded progressively.
+The new agent starts at version `1` with status `active`, and it comes with its own [workspace](/agents/workspaces) for files. The workspace costs nothing until the agent first reads, writes, or runs something in it.
 
-## Admin Agent [#admin-agent]
+## What an agent controls [#what-an-agent-controls]
 
-The platform-managed Admin Agent has one normal Workspace. A Tenant may set or
-rotate its Provider/model pair and Thinking level, inspect Versions, and create pinned
-Sessions. It cannot change the name, instructions, Tools, lifecycle, Workspace,
-avatar, MCP attachments, Task assignment, or deletion state. Rejected mutations
-return `admin_agent_managed`.
+- **Model.** A [provider and model](/agents/providers-and-models) pair, plus an optional thinking level. An agent without a model can be saved but cannot answer.
+- **Instructions.** The standing guidance the agent follows on every turn.
+- **Tools.** Built-in tool groups (`workspace`, `write_todos`, `memory`) in `tools`, and remote [MCP connections](/agents/tools/mcp-tools) in `mcpConnectionIds`. See [built-in tools](/agents/tools/built-in-tools).
+- **Approvals.** Separate [tool approval](/agents/tools/tool-approvals) policies for chat (`approvalInChat`) and for tasks (`approvalInTasks`). Both allow every call until you change them.
+- **Files.** The [workspace](/agents/workspaces) attached to the agent. Pass `workspaceId` to share an existing workspace instead of getting a new one.
+- **Memory.** Whether saved [memories](/agents/memory) are added to every turn automatically (`memoryInjectionEnabled`).
+- **Skills.** [Skills](/agents/skills) you add to the agent, which it loads when a task calls for them.
+- **Labels.** A `userId` and `metadata` that tag the agent for your own reporting, and an optional avatar.
 
-## Deletion and historical data [#deletion-and-historical-data]
+The agent stores references, not copies. It points to its provider, MCP connections, and workspace, and every turn uses their current state.
 
-Deleting a tenant-managed Agent requires choosing whether to delete or preserve
-its Artifacts. It permanently removes Agent-owned Versions, Sessions, Tasks,
-Memories, attachments, and avatar bytes. Providers, MCP Connections, and the
-attached Workspace remain independently manageable. Preserved Artifacts and
-historical Usage keep the deleted Agent ID as provenance.
+A `userId` labels the agent. It does not restrict who can call it: your API key can use every agent in your account, so your backend decides which user may reach which agent. See [tenancy and attribution](/platform/tenancy-and-attribution).
 
-Tenant credentials can access only their Tenant's Agents. Provider keys remain
-write-only, and avatar responses expose a short-lived signed URL rather than a
-private object key. See [Tenancy and Attribution](/platform/tenancy-and-attribution)
-and [Security and credentials](/platform/security-and-credentials).
+For every field, its default, and its limits, see `create()` in the [TypeScript](/sdk/typescript/agents#create) or [Python](/sdk/python/agents#create) SDK.
 
-## SDK, CLI, and API [#sdk-cli-and-api]
+## Change an agent [#change-an-agent]
 
-- SDK: [TypeScript Agents](/sdk/typescript/agents) and [Python Agents](/sdk/python/agents)
-- CLI: [Chat](/cli/chat) and [Run](/cli/run)
-- REST: [Agents API](/api-reference/rest-api/agents)
+Send only the fields you want to change:
+
+```typescript tab="TypeScript" tab-group="sdk-language"
+await client.agents.update({
+  agentId: agent.id,
+  tools: ["workspace", "memory"],
+});
+```
+
+```python tab="Python"
+client.agents.update(agent.id, tools=["workspace", "memory"])
+```
+
+Lists such as `tools` replace the old list rather than adding to it. To switch models, send `providerId` and `model` together. Each update saves a new [version](/agents/versions-and-lifecycle) you can pin or roll back to. To stop an agent without deleting it, [disable it](/agents/versions-and-lifecycle#enable-and-disable).
 
 ## Automatic context compaction [#automatic-context-compaction]
 
-`autoCompaction` defaults to `true`. Before each model request, BA can summarize
-older conversation content and retain recent messages. The stored Session
-transcript remains readable in full. Both settings belong to Agent Versions,
-so pinning and restoring a Version also selects its compaction policy.
+Long conversations eventually outgrow the model's context window. With `autoCompaction` on, which is the default, Blazing Agents summarizes older messages before a model call once the conversation nears that limit and keeps recent messages as they are. The session history you read back stays complete. Only what the model sees gets shorter.
 
-`compactionReserveTokens` defaults to `16384` and accepts a nonnegative safe
-integer (up to `9007199254740991`). Compaction starts when estimated current
-context exceeds the model context window minus this reserve. A larger reserve
-starts compaction earlier; it also changes Pi's summary-generation budget.
-This is a token count, not a percentage or a maximum conversation length.
+`compactionReserveTokens` sets how much room to keep free, and defaults to `16384`. Compaction starts when the estimated context passes the model's context window minus this reserve, so a larger reserve compacts sooner. It is a token count, not a percentage or a conversation length limit.
 
-BA uses Pi's model catalog and compaction method, including its recent-history
-budget of 20,000 tokens. Models absent from the catalog use Pi's custom-model
-fallback of 128,000 context tokens. This fallback is an estimate of capacity;
-a Provider can still reject a request. BA attempts one compaction and retry
-for a recognized context overflow before any generated content is streamed.
-An indivisible oversized input, summary failure, or failed retry surfaces as
-an execution error.
+When the model's context window is not known, Blazing Agents assumes 128,000 tokens. That is an estimate, so the provider can still reject a long request. If the provider rejects a request as too long before any answer streams, Blazing Agents compacts once and retries. When a single message is too large to summarize, or the retry fails, the turn ends with an error.
 
-Context size uses the latest usable model-call usage plus estimates for new
-content, rather than summing usage across the conversation. Summary calls use
-the Agent's configured Provider and model and are included in Turn token usage.
-Set `autoCompaction` to `false` to disable new automatic compaction; existing
-Session summaries remain part of the prepared context.
+Summaries run on the agent's own provider and model and count toward the turn's token usage. Both settings belong to each version, so pinning or restoring a version brings its compaction settings too. Set `autoCompaction` to `false` to stop new compaction. Summaries already in a session stay in place.
 
+## Delete an agent [#delete-an-agent]
+
+Deleting an agent is permanent. You choose whether its [artifacts](/agents/artifacts) go with it:
+
+```typescript tab="TypeScript" tab-group="sdk-language"
+await client.agents.delete({ agentId: agent.id, includeArtifacts: false });
+```
+
+```python tab="Python"
+client.agents.delete(agent.id, include_artifacts=False)
+```
+
+This removes the agent's versions, sessions, tasks, memories, skills, linked prompts, and avatar. Its workspace, provider, and MCP connections stay, so you can attach them to another agent. Artifacts you keep and past usage records still show the deleted agent's ID.
+
+## Next [#next]
+
+- [Providers and models](/agents/providers-and-models) to connect a model account and pick a model.
+- [Versions and lifecycle](/agents/versions-and-lifecycle) to pin, roll back, and disable agents.
+- [Sessions and turns](/platform/sessions-and-turns) to hold a conversation with your agent.
