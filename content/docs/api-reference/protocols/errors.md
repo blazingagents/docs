@@ -74,6 +74,10 @@ when two copies of the package are installed. It exposes `code`, `status`,
 response the SDK could not read, `responseBody` holds a size-limited copy for
 diagnosis, and `responseBodyTruncated` says whether it was cut short.
 
+`message` starts with the code in brackets, such as
+`[model_validation_unavailable] Provider model discovery is unavailable`.
+`error.code` holds the bare code, such as `model_validation_unavailable`.
+
 `error.code` has the type `BlazingAgentsErrorCode`: every code on this page,
 plus four codes the SDK raises itself, plus any other string. The known codes
 alone are `KnownBlazingAgentsErrorCode`. Treat the code as an open string so a
@@ -93,7 +97,8 @@ In Python, an error response raises `APIStatusError` with `code`,
 `status_code`, `details`, `param`, `request_id`, `headers`, and `retry_after`.
 A network failure raises `APIConnectionError` (or `APITimeoutError`), and a
 failure after a stream starts raises `StreamError`. All of them extend
-`BlazingAgentsError`.
+`BlazingAgentsError`. As in TypeScript, `str(error)` for an `APIStatusError`
+starts with the bracketed code, and `error.code` holds the bare code.
 
 ## Streaming boundary [#streaming-boundary]
 
