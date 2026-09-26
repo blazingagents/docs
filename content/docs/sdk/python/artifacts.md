@@ -1,123 +1,114 @@
 ---
 title: Artifacts
-description: List, inspect, create download URLs for, and delete published Artifacts with the Python SDK.
+description: List, inspect, download, and delete the files your agents publish, with the Python SDK.
 ---
 
 # Artifacts
 
-`client.artifacts` accesses immutable files an Agent deliberately published.
+`client.artifacts` gives you the files your agents chose to publish, such as reports or exports. Each artifact is a fixed copy of the file at publish time. It keeps the IDs of the agent and session that published it, even after those are deleted.
 
-## Overview [#overview]
+Examples assume `client = BlazingAgents()`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names and use `async for` with `iter()`.
 
-Artifacts belong to a Tenant and retain their Agent and Session IDs as
-historical provenance. Metadata reads do not create a download URL. Bytes are
-available only through an explicit five-minute R2 presigned URL. The
-synchronous and asynchronous resources expose the same operations.
+```python
+for artifact in client.artifacts.iter(agent_id="ag_0123456789abcdef"):
+    download = client.artifacts.create_download_url(artifact_id=artifact.artifact_id)
+    print(artifact.filename, download.url)
+```
 
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`list()`](#list) | Read one Artifact page | `ArtifactsPage` |
-| [`iter()`](#iter) | Lazily iterate Artifact pages | `Iterator[Artifact]` |
-| [`get()`](#get) | Read one Artifact's metadata | `Artifact` |
-| [`create_download_url()`](#create-download-url) | Create a five-minute direct R2 URL | `ArtifactDownloadUrl` |
-| [`delete()`](#delete) | Hard-delete an Artifact | `None` |
+| [`list()`](#list) | Get one page of artifacts | `ArtifactsPage` |
+| [`iter()`](#iter) | Iterate every artifact | `Iterator[Artifact]` |
+| [`get()`](#get) | Get one artifact's details | `Artifact` |
+| [`create_download_url()`](#create-download-url) | Get a five-minute download link | `ArtifactDownloadUrl` |
+| [`delete()`](#delete) | Delete an artifact | `None` |
 
 ## Methods [#methods]
 
 ### `list()` [#list]
 
-**Signature:** `list(*, agent_id: str = ..., session_id: str = ..., cursor: str = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> ArtifactsPage`
-
-Returns a newest-first Tenant page of 50 active Artifacts. Filter by Agent,
-Session, or both. Pass `next_cursor` unchanged for the next page.
+Gets one page of 50 artifacts, newest first.
 
 ```python
-page = client.artifacts.list(
-    agent_id=agent_id,
-    session_id=session_id,
-)
+page = client.artifacts.list(agent_id="ag_0123456789abcdef", session_id="ss_0123456789abcdef")
 ```
 
-Failures include `validation_failed` and `invalid_cursor`. See
-[`GET .../artifacts`](/api-reference/rest-api/artifacts#list-artifacts).
+**Signature:** `list(*, agent_id=..., session_id=..., cursor=...) -> ArtifactsPage`
+
+Filter by agent, session, or both. Pass the previous page's `next_cursor` as `cursor`. Returns `ArtifactsPage` with `data: list[Artifact]` and `next_cursor: str | None`. Raises `APIStatusError` with `validation_failed` or `invalid_cursor`.
 
 ### `iter()` [#iter]
 
-**Signature:** `iter(*, agent_id: str = ..., session_id: str = ..., cursor: str = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Iterator[Artifact]`
-
-Lazily yields Artifacts using the same filters as [`list()`](#list). The first
-page is fetched when iteration starts and later pages only as needed.
+Iterates every matching artifact, fetching pages as you go.
 
 ```python
-for artifact in client.artifacts.iter(agent_id=agent_id):
-    print(artifact.filename)
-
-async for artifact in async_client.artifacts.iter(agent_id=agent_id):
-    print(artifact.filename)
+for artifact in client.artifacts.iter(session_id="ss_0123456789abcdef"):
+    print(artifact.filename, artifact.size_bytes)
 ```
 
-The async return is `AsyncIterator[Artifact]`; do not await the iterator
-factory.
+**Signature:** `iter(*, agent_id=..., session_id=..., cursor=...) -> Iterator[Artifact]`
+
+Takes the same parameters as [`list()`](#list). No request is sent until you start iterating. On the async client, use `async for` directly on `iter(...)`; do not await it.
 
 ### `get()` [#get]
 
-**Signature:** `get(*, artifact_id: str, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Artifact`
-
-Returns one Tenant-owned Artifact's metadata without downloading its bytes.
+Gets one artifact's details without downloading it.
 
 ```python
-artifact = client.artifacts.get(artifact_id=artifact_id)
-print(artifact.filename, artifact.size_bytes)
+artifact = client.artifacts.get(artifact_id="at_0123456789abcdef")
+print(artifact.filename, artifact.media_type, artifact.size_bytes)
 ```
 
-The async resource uses `await async_client.artifacts.get(...)`. See
-[`GET /v1/artifacts/:artifactId`](/api-reference/rest-api/artifacts#get-artifact).
+**Signature:** `get(*, artifact_id: str) -> Artifact`
+
+Returns [`Artifact`](#artifact). Raises `not_found`.
 
 ### `create_download_url()` [#create-download-url]
 
-**Signature:** `create_download_url(*, artifact_id: str, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> ArtifactDownloadUrl`
-
-Creates a direct R2 presigned URL that expires after five minutes. Treat it as
-a bearer secret and keep it out of logs and referrers.
+Creates a direct download link that expires after five minutes.
 
 ```python
-download = client.artifacts.create_download_url(
-    artifact_id=artifact.artifact_id,
-)
+download = client.artifacts.create_download_url(artifact_id=artifact.artifact_id)
 print(download.url, download.expires_at)
 ```
 
-The async resource uses `await async_client.artifacts.create_download_url(...)`.
-See
-[`POST /v1/artifacts/:artifactId/download-url`](/api-reference/rest-api/artifacts#create-artifact-download-url).
+**Signature:** `create_download_url(*, artifact_id: str) -> ArtifactDownloadUrl`
+
+Anyone with the link can download the file until it expires, so keep it out of logs and share it only with the intended user. Returns `ArtifactDownloadUrl` with `url` and `expires_at`. Raises `not_found`, or `service_unavailable` when downloads are temporarily unavailable.
 
 ### `delete()` [#delete]
 
-**Signature:** `delete(*, artifact_id: str, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> None`
+Permanently deletes an artifact.
 
-Deletes the immutable R2 object and active database row without changing the
-Workspace source file. Repeated deletion returns `not_found`. See
-[`DELETE /v1/artifacts/:artifactId`](/api-reference/rest-api/artifacts#delete-artifact).
+```python
+client.artifacts.delete(artifact_id=artifact.artifact_id)
+```
 
-## Models, metadata, and errors [#models-metadata-and-errors]
+**Signature:** `delete(*, artifact_id: str) -> None`
 
-`Artifact` exposes `artifact_id`, `agent_id`, `tenant_id`, `session_id`,
-`filename`, `media_type`, `size_bytes`, `user_id`, `metadata`, `created_at`,
-and `updated_at`. `ArtifactsPage` contains `data` and `next_cursor`.
-`ArtifactDownloadUrl` contains `url` and `expires_at`. Pydantic response
-models preserve unknown fields and carry a non-serialized `_request_id`.
+The original file in the agent's workspace is not touched. Deleting the same artifact again raises `not_found`.
 
-Every operation accepts per-request headers and timeout configuration.
-`not_found` covers unavailable or foreign Artifacts, and
-`service_unavailable` covers an unavailable R2 service. API request failures
-carry request correlation.
-See [Python errors and request IDs](/sdk/python/client#errors).
+## Response models [#response-models]
 
-## Related [#related]
+### `Artifact` [#artifact]
 
-- [Artifacts](/agents/artifacts)
-- [Publish and download Artifacts](/agents/artifacts)
-- [REST Artifacts](/api-reference/rest-api/artifacts)
-- [TypeScript Artifacts](/sdk/typescript/artifacts)
+| Field | Type | Description |
+| --- | --- | --- |
+| `artifact_id` | `str` | Artifact ID (`at_...`) |
+| `tenant_id` | `str` | Your tenant ID |
+| `agent_id` | `str` | Agent that published it |
+| `session_id` | `str` | Session it was published in |
+| `filename` | `str` | File name |
+| `media_type` | `str` | MIME type |
+| `size_bytes` | `int` | Size in bytes |
+| `user_id` | `str` | End user, or `""` for tenant level |
+| `metadata` | `dict[str, object]` | Metadata |
+| `created_at`, `updated_at` | `datetime` | Timestamps |
+
+## Next [#next]
+
+- [Artifacts guide](/agents/artifacts)
+- [Sessions](/sdk/python/sessions)
+- [Client errors](/sdk/python/client#errors)

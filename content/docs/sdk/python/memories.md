@@ -1,135 +1,142 @@
 ---
 title: Memories
-description: Create, search, iterate, update, and delete Agent-owned Memories with the Python SDK.
+description: Create, search, update, and delete the notes an agent remembers, with the Python SDK.
 ---
 
 # Memories
 
-`client.memories` manages durable text notes owned by exactly one Agent. The
-asynchronous client uses the same method names; await request methods and use
-`async for` for lazy iteration.
+`client.memories` manages the short text notes an agent keeps across sessions. Your code can seed, correct, or remove them, and the agent can also write them itself with its `memory` tools. Each memory belongs to one agent and, optionally, one end user.
 
-## Overview [#overview]
+Examples assume `client = BlazingAgents()` and an `agent_id`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names and use `async for` with `iter()`.
 
-A Memory's `user_id` Attribution is fixed at creation. `""` means
-Agent-general; a non-empty value partitions the Memory to one End-user.
-Attribution is a filtering dimension, not access control. Memories are
-database rows, never files or cross-Agent storage.
+```python
+memory = client.memories.create(
+    agent_id=agent_id,
+    text="Prefers release notes under five lines.",
+    user_id="customer_123",
+).memory
+print(memory.id)
+```
 
-An Agent has one 500-row pool across all Attribution partitions. Creating at
-capacity may evict the least recently accessed row. Administrative `list()`
-and `get()` do not update access recency; `update()` does.
+## How memories are kept [#how-memories-are-kept]
+
+A memory's `user_id` is fixed when you create it. `""` means the memory applies to every user of the agent; any other value ties it to one end user. `user_id` filters memories; it is not an access control.
+
+An agent holds at most 500 memories in total. Creating one when the agent is full can remove the memory that was used least recently. Reading with `list()` or `get()` does not count as use; `update()` does.
 
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`create()`](#create) | Create an Agent-owned Memory | `MemoryResponse` |
-| [`list()`](#list) | Read one filtered page | `MemoriesPage` |
-| [`iter()`](#iter) | Lazily iterate filtered pages | `Iterator[Memory]` |
-| [`get()`](#get) | Retrieve one Memory | `MemoryResponse` |
-| [`update()`](#update) | Replace its complete text | `MemoryResponse` |
-| [`delete()`](#delete) | Permanently delete it | `None` |
+| [`create()`](#create) | Create a memory | `MemoryResponse` |
+| [`list()`](#list) | Get one page of memories | `MemoriesPage` |
+| [`iter()`](#iter) | Iterate every memory | `Iterator[Memory]` |
+| [`get()`](#get) | Get one memory | `MemoryResponse` |
+| [`update()`](#update) | Replace a memory's text | `MemoryResponse` |
+| [`delete()`](#delete) | Delete a memory | `None` |
 
 ## Methods [#methods]
 
 ### `create()` [#create]
 
-**Signature:** `create(*, agent_id: str, text: str, user_id: str = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> MemoryResponse`
-
-Creates a non-empty text Memory of at most 10 KiB. Omitted `user_id` becomes
-`""`; it cannot be changed later.
+Creates a memory for an agent.
 
 ```python
-created = client.memories.create(
-    agent_id=agent_id,
-    text="Prefers release notes under five lines.",
-    user_id="user-42",
-)
-memory = created.memory
+memory = client.memories.create(agent_id=agent_id, text="Works in UTC.").memory
 ```
 
-See [`POST .../memories`](/api-reference/rest-api/memories#create-memory).
+**Signature:** `create(*, agent_id: str, text: str, user_id=...) -> MemoryResponse`
+
+`text` is non-empty and at most 10 KiB. `user_id` defaults to `""`. Returns `MemoryResponse`, whose `memory` field is the new [`Memory`](#memory). Raises `APIStatusError` with `validation_failed` or `not_found`.
 
 ### `list()` [#list]
 
-**Signature:** `list(*, agent_id: str, user_id: str = ..., search: str = ..., cursor: str = ..., limit: int = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> MemoriesPage`
-
-Returns one page with `data: list[Memory]` and
-`next_cursor: str | None`. Omit `user_id` for every partition or pass an exact
-value. `search` is a non-empty lexical full-text query. `limit` defaults to 50
-and accepts 1 through 100.
+Gets one page of an agent's memories, optionally filtered or searched.
 
 ```python
-page = client.memories.list(
-    agent_id=agent_id,
-    user_id="user-42",
-    search="release",
-    limit=25,
-)
+page = client.memories.list(agent_id=agent_id, user_id="customer_123", search="release", limit=25)
 ```
 
-Failures include `validation_failed`, `invalid_cursor`, and `not_found`. See
-[`GET .../memories`](/api-reference/rest-api/memories#list-memories).
+**Signature:** `list(*, agent_id: str, user_id=..., search=..., cursor=..., limit=...) -> MemoriesPage`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `user_id` | `str` | Only memories with exactly this `user_id`; omit for all |
+| `search` | `str` | Non-empty full-text query over the memory text |
+| `cursor` | `str` | `next_cursor` from the previous page |
+| `limit` | `int` | 1 to 100, default 50 |
+
+Returns `MemoriesPage` with `data: list[Memory]` and `next_cursor: str | None`. Raises `validation_failed`, `invalid_cursor`, or `not_found`.
 
 ### `iter()` [#iter]
 
-**Signature:** `iter(*, agent_id: str, user_id: str = ..., search: str = ..., cursor: str = ..., limit: int = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Iterator[Memory]`
-
-Returns a lazy iterator using the same filters as [`list()`](#list). It fetches
-the first page only when iteration starts and later pages only as needed.
+Iterates every matching memory, fetching pages as you go.
 
 ```python
-for memory in client.memories.iter(agent_id=agent_id, user_id="user-42"):
-    print(memory.text)
-
-async for memory in async_client.memories.iter(
-    agent_id=agent_id,
-    user_id="user-42",
-):
+for memory in client.memories.iter(agent_id=agent_id, user_id="customer_123"):
     print(memory.text)
 ```
 
-The asynchronous return is `AsyncIterator[Memory]`; do not await the iterator
-factory. Page requests can raise the same errors as `list()`.
+**Signature:** `iter(*, agent_id: str, user_id=..., search=..., cursor=..., limit=...) -> Iterator[Memory]`
+
+Takes the same parameters as [`list()`](#list). No request is sent until you start iterating. On the async client, use `async for` directly on `iter(...)`; do not await it.
 
 ### `get()` [#get]
 
-**Signature:** `get(*, agent_id: str, memory_id: str, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> MemoryResponse`
+Gets one memory.
 
-Retrieves the Agent/Memory pair without changing `last_accessed_at`. Failures
-include `validation_failed` and `not_found`. See
-[`GET .../memories/:memoryId`](/api-reference/rest-api/memories#get-memory).
+```python
+memory = client.memories.get(agent_id=agent_id, memory_id=memory.id).memory
+```
+
+**Signature:** `get(*, agent_id: str, memory_id: str) -> MemoryResponse`
+
+Does not change `last_accessed_at`. Raises `validation_failed` or `not_found`.
 
 ### `update()` [#update]
 
-**Signature:** `update(*, agent_id: str, memory_id: str, text: str, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> MemoryResponse`
+Replaces a memory's whole text.
 
-Replaces the complete text and advances `updated_at` and
-`last_accessed_at`. Agent ownership and Attribution remain unchanged. See
-[`PATCH .../memories/:memoryId`](/api-reference/rest-api/memories#update-memory).
+```python
+memory = client.memories.update(
+    agent_id=agent_id,
+    memory_id=memory.id,
+    text="Prefers release notes under three lines.",
+).memory
+```
+
+**Signature:** `update(*, agent_id: str, memory_id: str, text: str) -> MemoryResponse`
+
+Updates `updated_at` and `last_accessed_at`. The agent and `user_id` stay the same. Raises `validation_failed` or `not_found`.
 
 ### `delete()` [#delete]
 
-**Signature:** `delete(*, agent_id: str, memory_id: str, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> None`
+Permanently deletes a memory.
 
-Permanently deletes the Memory and returns `None`. See
-[`DELETE .../memories/:memoryId`](/api-reference/rest-api/memories#delete-memory).
+```python
+client.memories.delete(agent_id=agent_id, memory_id=memory.id)
+```
 
-## Response models and errors [#response-models-and-errors]
+**Signature:** `delete(*, agent_id: str, memory_id: str) -> None`
 
-`MemoryResponse.memory` is a `Memory` with `id`, `tenant_id`, `agent_id`,
-`user_id`, `text`, `created_at`, `updated_at`, and `last_accessed_at`.
-`MemoriesPage` adds cursor pagination. These Pydantic v2 models preserve
-unknown fields and expose a non-serialized `_request_id`.
+Raises `validation_failed` or `not_found`.
 
-Every method accepts `extra_headers` and `timeout`. API failures raise
-`APIStatusError`; connection and timeout failures raise `APIConnectionError`
-and `APITimeoutError`. See [Python errors](/sdk/python/client#errors).
+## Response models [#response-models]
 
-## Related [#related]
+### `Memory` [#memory]
 
-- [Memory capability](/agents/memory)
-- [Add durable Memory](/agents/memory)
-- [REST Memories](/api-reference/rest-api/memories)
-- [TypeScript Memories](/sdk/typescript/memories)
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | `str` | Memory ID (`mem_...`) |
+| `tenant_id` | `str` | Your tenant ID |
+| `agent_id` | `str` | Owning agent |
+| `user_id` | `str` | End user, or `""` for every user |
+| `text` | `str` | The note |
+| `created_at`, `updated_at` | `datetime` | Timestamps |
+| `last_accessed_at` | `datetime` | Last time the memory was used |
+
+## Next [#next]
+
+- [Memory guide](/agents/memory)
+- [Agents](/sdk/python/agents)
+- [Client errors](/sdk/python/client#errors)
