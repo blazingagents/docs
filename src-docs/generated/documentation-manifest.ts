@@ -4474,7 +4474,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates a Session and runs its first Turn. Validation/admission failures leave no Session; execution failures leave an empty, usable Session.",
+        "description": "Starts a session and runs its first turn. A rejected request creates no session; a turn that fails while running still leaves a usable session.",
         "examples": [
           {
             "code": "curl --include --no-buffer --request POST \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"message\":{\"id\":\"msg_client_1\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"Hello\"}]}}'",
@@ -4576,7 +4576,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/create-session-turn"
       },
       {
-        "description": "Runs a Turn from the Session's accepted history. Missing or deleted Sessions return `404` and are never created.",
+        "description": "Continues a session with a new turn. A missing or deleted session returns `404` and is never created.",
         "examples": [
           {
             "code": "curl --no-buffer --request POST \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"message\":{\"id\":\"msg_client_2\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"Tell me more.\"}]}}'",
@@ -4678,7 +4678,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/resume-session-turn"
       },
       {
-        "description": "Lists Sessions by most recent update. Unknown or foreign Agent IDs return an empty page.",
+        "description": "Lists an agent's sessions, most recently updated first. An unknown agent ID, or one in another tenant, returns an empty page.",
         "examples": [
           {
             "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=50\"",
@@ -4762,7 +4762,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/list-sessions"
       },
       {
-        "description": "Lists the Tenant's most recently updated Sessions. Set `byAgent=true` for one latest Session per Agent.",
+        "description": "Lists your tenant's most recently updated sessions. Set `byAgent=true` to get only the latest session for each agent.",
         "examples": [
           {
             "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/sessions/latest\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=10\" \\\n  --data-urlencode \"byAgent=false\"",
@@ -4804,7 +4804,7 @@ export const restApiOperations = [
         "operation": "list-latest-sessions",
         "path": "/v1/sessions/latest",
         "responseMetadata": {
-          "description": "Returns 200 OK with cursor pagination. Items are ordered by updatedAt descending, then id ascending. Each item is a Session list item plus its agentId, nullable model, nullable thinkingLevel, and status (\"active\" or \"disabled\"). These are the Agent's current values, independently of the Session's pinned Version or previous Turns. Disabled Agents remain included.",
+          "description": "Returns 200 OK with cursor pagination. Items are ordered by updatedAt descending, then id ascending. Each item is a session list item plus its agentId, nullable model, nullable thinkingLevel, and status (\"active\" or \"disabled\"). These show the agent as it is now, not the session's pinned version or earlier turns. Disabled agents are included.",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#latest-sessions-list-response",
             "name": "latestSessionsListResponseSchema"
@@ -4846,7 +4846,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/list-latest-sessions"
       },
       {
-        "description": "Lists stored AI SDK `UIMessage` objects. Pages are newest-first, with messages chronological within each page.",
+        "description": "Lists a session's messages as AI SDK `UIMessage` objects. Pages run newest first, with messages in chronological order inside each page.",
         "examples": [
           {
             "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=50\"",
@@ -4936,7 +4936,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/list-session-messages"
       },
       {
-        "description": "Soft-deletes a Session. `deleteArtifacts=true` also hard-deletes its Artifacts; `deleteArtifacts=false` preserves them.",
+        "description": "Deletes a session so it can no longer be read. `deleteArtifacts=true` also deletes its artifacts permanently; `deleteArtifacts=false` keeps them.",
         "examples": [
           {
             "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF?deleteArtifacts=false\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -5019,7 +5019,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/delete-session"
       },
       {
-        "description": "Lists pending and decided Tool approvals for a Session.",
+        "description": "Lists a session's pending and decided tool approvals.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -5103,7 +5103,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/list-tool-approvals"
       },
       {
-        "description": "Approves or denies one pending Tool call. The decision applies only to that exact call.",
+        "description": "Approves or denies one pending tool call. The decision applies only to that exact call.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/apr_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"approved\":true,\"reason\":\"Reviewed\"}'",
@@ -5199,7 +5199,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/decide-tool-approval"
       },
       {
-        "description": "Streams a decided Tool approval continuation over SSE. Persisted chunks replay before live or terminal state.",
+        "description": "Streams the rest of the turn after a tool approval decision. Saved chunks replay first, then live output or the final state.",
         "examples": [
           {
             "code": "curl --no-buffer \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/cont_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -5644,7 +5644,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates one text Memory for an Agent. At the 500-Memory cap, the least recently accessed Memory may be evicted.",
+        "description": "Adds a memory to an agent. When the agent already has 500, the least recently used memory can be removed to make room.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"text\":\"Prefers concise answers.\",\"userId\":\"user-42\"}'",
@@ -5734,7 +5734,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/memories/create-memory"
       },
       {
-        "description": "Lists or searches an Agent's Memory without updating access recency.",
+        "description": "Lists or searches an agent's memories without changing when they were last used.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"userId=user-42\" \\\n  --data-urlencode \"search=concise\"",
@@ -5824,7 +5824,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/memories/list-memories"
       },
       {
-        "description": "Gets one Memory without updating its access recency.",
+        "description": "Gets one memory without changing when it was last used.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories/mem_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -5908,7 +5908,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/memories/get-memory"
       },
       {
-        "description": "Replaces one Memory's text and updates its access time.",
+        "description": "Replaces one memory's text and marks it as used now.",
         "examples": [
           {
             "code": "curl --request PATCH \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories/mem_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"text\":\"Prefers answers under five lines.\"}'",
@@ -5998,7 +5998,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/memories/update-memory"
       },
       {
-        "description": "Permanently deletes one Memory.",
+        "description": "Permanently deletes one memory.",
         "examples": [
           {
             "code": "curl --request DELETE \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories/mem_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -6082,7 +6082,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates a reusable Prompt and infers variables from its template.",
+        "description": "Creates a prompt and finds the variables in its template.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/prompts\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Welcome\",\"template\":\"Welcome, {{name}}!\"}'",
@@ -6172,7 +6172,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/prompts/create-prompt"
       },
       {
-        "description": "Lists Prompts by most recent update. Results are not paginated.",
+        "description": "Lists prompts, most recently updated first, in a single response.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/prompts\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"userId=\"",
@@ -6256,7 +6256,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/prompts/list-prompts"
       },
       {
-        "description": "Gets one Prompt.",
+        "description": "Gets one prompt.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/prompts/prompt_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -6346,7 +6346,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/prompts/get-prompt"
       },
       {
-        "description": "Updates a Prompt in place and re-infers variables when its template changes.",
+        "description": "Updates a prompt and finds its variables again when the template changes.",
         "examples": [
           {
             "code": "curl --request PATCH \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/prompts/prompt_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"template\":\"Hello, {{name}}!\"}'",
@@ -6442,7 +6442,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/prompts/update-prompt"
       },
       {
-        "description": "Permanently deletes a Prompt without changing previously rendered transcripts.",
+        "description": "Permanently deletes a prompt. Messages already sent with it stay in their transcripts.",
         "examples": [
           {
             "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/prompts/prompt_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -6532,7 +6532,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Returns the bounded usage data needed for an operational dashboard in one response.",
+        "description": "Returns everything a usage dashboard needs in one response: totals, a daily series, and top agents, users, and models.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/usage/overview\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"from=2026-07-10\" \\\n  --data-urlencode \"to=2026-07-10\" \\\n  --data-urlencode \"limit=5\"",
@@ -6616,7 +6616,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/usage/get-usage-overview"
       },
       {
-        "description": "Returns Tenant usage rollups for ranges of up to 31 days.",
+        "description": "Returns your tenant's usage totals and buckets for a range of up to 31 days.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/usage\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"from=2026-07-01\" \\\n  --data-urlencode \"to=2026-07-10\" \\\n  --data-urlencode \"groupBy=day\"",
@@ -6700,7 +6700,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/usage/get-usage"
       },
       {
-        "description": "Returns usage rollups for the Agent in the path; any query-string `agentId` is ignored.",
+        "description": "Returns usage for the agent in the path. An `agentId` in the query string is ignored.",
         "examples": [
           {
             "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/usage\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"groupBy=model\"",
@@ -6763,6 +6763,12 @@ export const restApiOperations = [
             "status": "400"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The request could not be completed.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "404"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -6791,7 +6797,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates a Task for on-demand or scheduled execution.",
+        "description": "Creates a task to run on demand or on a schedule.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/tasks\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"agentId\":\"ag_1234567890ABCDEF\",\"name\":\"Daily summary\",\"prompt\":\"Summarize open support cases.\",\"schedule\":{\"kind\":\"cron\",\"config\":{\"expression\":\"0 9 * * 1-5\",\"timezone\":\"Europe/London\"}}}'",
@@ -6887,7 +6893,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/tasks/create-task"
       },
       {
-        "description": "Lists non-deleted Tasks with latest run status and cursor pagination.",
+        "description": "Lists tasks with their latest run status, one page at a time.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/tasks\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"agentId=ag_1234567890ABCDEF\" \\\n  --data-urlencode \"limit=50\"",
@@ -6971,7 +6977,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/tasks/list-tasks"
       },
       {
-        "description": "Retrieves a non-deleted Task without triggering execution.",
+        "description": "Retrieves a task without running it.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -7061,7 +7067,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/tasks/get-task"
       },
       {
-        "description": "Updates mutable Task fields. Schedule and enabled-state changes synchronize durably.",
+        "description": "Updates a task. Schedule and enabled changes take effect for future runs.",
         "examples": [
           {
             "code": "curl --request PATCH \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"enabled\":false,\"metadata\":{\"pausedBy\":\"ops\"}}'",
@@ -7157,7 +7163,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/tasks/update-task"
       },
       {
-        "description": "Soft-deletes a Task while preserving existing runs and Sessions.",
+        "description": "Deletes a task. Its past runs and sessions are kept.",
         "examples": [
           {
             "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -7253,7 +7259,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Enqueues an immediate Task run. An optional idempotency key reuses the existing run.",
+        "description": "Queues a task run now. Send an idempotency key to get the same run back on a retry.",
         "examples": [
           {
             "code": "curl --request POST \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"idempotencyKey\":\"daily-summary-2026-07-10\"}'",
@@ -7349,7 +7355,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/task-runs/create-task-run"
       },
       {
-        "description": "Lists a Task's runs newest first with cursor pagination.",
+        "description": "Lists a task's runs newest first, one page at a time.",
         "examples": [
           {
             "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=50\"",
@@ -7439,7 +7445,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/task-runs/list-task-runs"
       },
       {
-        "description": "Retrieves durable Task run state without restarting execution.",
+        "description": "Retrieves a task run's current state.",
         "examples": [
           {
             "code": "curl \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs/tr_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -7481,7 +7487,7 @@ export const restApiOperations = [
         "operation": "get-task-run",
         "path": "/v1/tasks/:taskId/runs/:runId",
         "responseMetadata": {
-          "description": "Returns 200 OK with a complete Task run object. sessionId remains null until the worker attaches a fresh Session. error is populated for a failed run.",
+          "description": "Returns 200 OK with a complete Task run object. sessionId stays null until the run starts its session. error is populated for a failed run.",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#task-run-response",
             "name": "taskRunResponseSchema"
@@ -7529,7 +7535,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/task-runs/get-task-run"
       },
       {
-        "description": "Lists a Task run's Session transcript. It returns an empty page until a Session exists.",
+        "description": "Lists a task run's transcript. It returns an empty page until the run starts its session.",
         "examples": [
           {
             "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs/tr_1234567890ABCDEF/messages\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"after=eyJzZXEiOjF9\" \\\n  --data-urlencode \"limit=50\"",
@@ -7619,7 +7625,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/task-runs/list-task-run-messages"
       },
       {
-        "description": "Requests cooperative cancellation of an active Task run. The transition occurs asynchronously.",
+        "description": "Asks an active task run to stop. The run stops shortly after, not immediately.",
         "examples": [
           {
             "code": "curl --request POST \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs/tr_1234567890ABCDEF/cancel\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -7661,7 +7667,7 @@ export const restApiOperations = [
         "operation": "cancel-task-run",
         "path": "/v1/tasks/:taskId/runs/:runId/cancel",
         "responseMetadata": {
-          "description": "Returns 204 No Content with an empty body after an owned Task is found. A missing or foreign run, a run belonging to another Task, a non-active run, and a terminal run are deliberately non-enumerating no-ops."
+          "description": "Returns 204 No Content with an empty body once the task is found. If the run is missing, belongs to another task or tenant, or has already finished, nothing happens and you still get 204, so the response never reveals which runs exist."
         },
         "responses": [
           {
@@ -9354,7 +9360,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/sessions.md",
                 "type": "page",
                 "name": "Sessions",
-                "description": "Run stateful Turns and manage Session history and Tool approvals.",
+                "description": "Hold conversations with an agent, read their history, and decide tool approvals.",
                 "url": "/api-reference/rest-api/sessions",
                 "$ref": "api-reference/rest-api/sessions.md"
               },
@@ -9370,7 +9376,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/memories.md",
                 "type": "page",
                 "name": "Memories",
-                "description": "Create, search, update, and delete Agent-owned Memory.",
+                "description": "Create, search, update, and delete the notes an agent remembers between sessions.",
                 "url": "/api-reference/rest-api/memories",
                 "$ref": "api-reference/rest-api/memories.md"
               },
@@ -9378,7 +9384,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/prompts.md",
                 "type": "page",
                 "name": "Prompts",
-                "description": "Manage reusable Tenant Prompt templates.",
+                "description": "Save message templates once and reuse them in sessions and generation.",
                 "url": "/api-reference/rest-api/prompts",
                 "$ref": "api-reference/rest-api/prompts.md"
               },
@@ -9386,7 +9392,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/usage.md",
                 "type": "page",
                 "name": "Usage",
-                "description": "Query Tenant and Agent usage over bounded time ranges.",
+                "description": "See how many tokens, requests, and minutes your agents use, by day, agent, model, session, or user.",
                 "url": "/api-reference/rest-api/usage",
                 "$ref": "api-reference/rest-api/usage.md"
               },
@@ -9394,7 +9400,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/tasks.md",
                 "type": "page",
                 "name": "Tasks",
-                "description": "Create and manage asynchronous Task definitions and schedules.",
+                "description": "Run agent work in the background, on demand or on a schedule.",
                 "url": "/api-reference/rest-api/tasks",
                 "$ref": "api-reference/rest-api/tasks.md"
               },
@@ -9402,7 +9408,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/task-runs.md",
                 "type": "page",
                 "name": "Task runs",
-                "description": "Start, inspect, poll, and cancel Task runs.",
+                "description": "Start a task run, watch its progress and transcript, and cancel it.",
                 "url": "/api-reference/rest-api/task-runs",
                 "$ref": "api-reference/rest-api/task-runs.md"
               },

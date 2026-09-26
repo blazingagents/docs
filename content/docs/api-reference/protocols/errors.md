@@ -59,7 +59,7 @@ more than one status when the outcome is more specific.
 | `quota_exceeded` | 429 | A Tenant Quota ceiling has been reached. |
 | `subscription_required` | 402 | The Tenant does not have an active Subscription. |
 | `usage_credit_required` | 402 | The Tenant has no remaining Usage credit. |
-| `rate_limited` | 429 | Request admission is rate limited. |
+| `rate_limited` | 429 | Too many requests; retry later, after `Retry-After` when present. |
 | `internal` | 400 / 409 / 500 / 502 / 503 | The failure has no safe, caller-actionable public outcome. |
 | `service_unavailable` | 503 | The API is not admitting work. |
 | `checkout_evidence_mismatch` | 409 | The authoritative checkout evidence conflicts with the Tenant's stored checkout attempt or paid cycle. |

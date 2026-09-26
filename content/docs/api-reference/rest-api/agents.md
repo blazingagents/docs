@@ -61,7 +61,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and JSO
 
 | Body field               | Type           | Required | Default                      |
 | ------------------------ | -------------- | -------- | ---------------------------- |
-| `name`                   | string         | yes      | —                            |
+| `name`                   | string         | yes      | none                            |
 | `model`                  | string \| null | no       | `null`                       |
 | `providerId`             | string \| null | no       | `null`                       |
 | `tools`                  | string[]       | no       | `[]`                         |

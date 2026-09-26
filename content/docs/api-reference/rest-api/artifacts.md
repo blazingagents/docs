@@ -27,9 +27,9 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 | Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Query parameter | Type   | Default | Description                                 |
 | --------------- | ------ | ------- | ------------------------------------------- |
-| `agentId`       | string | —       | Restrict to one `ag_…` Agent                |
-| `sessionId`     | string | —       | Restrict to one `ss_…` Session              |
-| `cursor`        | string | —       | Opaque cursor                               |
+| `agentId`       | string | none       | Restrict to one `ag_…` Agent                |
+| `sessionId`     | string | none       | Restrict to one `ss_…` Session              |
+| `cursor`        | string | none       | Opaque cursor                               |
 
 Page size is 50.
 

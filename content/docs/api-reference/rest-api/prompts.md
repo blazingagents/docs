@@ -1,27 +1,27 @@
 ---
 title: Prompts
-description: Manage reusable Tenant Prompt templates.
+description: Save message templates once and reuse them in sessions and generation.
 ---
 
 # Prompts
 
 ## Overview [#overview]
 
-Prompts are reusable Tenant templates with inferred variables. Use them to centralize instructions that Generation, Sessions, or other callers render repeatedly.
+A prompt is a saved message template with `{{variable}}` placeholders. Store it once, then pass its `promptId` and values to generation or a session turn instead of building the message in your code. Blazing Agents finds the variables in the template for you.
 
 ## Endpoints [#endpoints]
 
 ### POST /v1/prompts [#create-prompt]
 
-Creates a reusable Prompt and infers variables from its template.
+Creates a prompt and finds the variables in its template.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. There are no path or query parameters. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. There are no path or query parameters. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 
 | Body field | Type   | Required | Description                                                  |
 | ---------- | ------ | -------- | ------------------------------------------------------------ |
@@ -31,8 +31,9 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and JSO
 | `userId`   | string | no       | Defaults to `""`                                             |
 | `metadata` | object | no       | Defaults to `{}`                                             |
 
-Deleting a linked Agent also deletes its Prompts. Unlinked Prompts remain.
-A missing or foreign Agent link returns `404 not_found`.
+Deleting a linked agent also deletes its prompts. Prompts without an agent
+stay. Linking an agent that is missing or in another tenant returns
+`404 not_found`.
 
 Variable names match `[A-Za-z_][A-Za-z0-9_]*`.
 
@@ -59,10 +60,10 @@ Response schema: [`promptResponseSchema`](/api-reference/protocols/objects-and-s
 
 #### Errors
 
-`400 validation_failed` for a parsed body that fails schema validation. Prompt
-expansion uses `prompt_variable_missing` or `prompt_variable_unknown`;
-duplicate names use `409 prompt_name_conflict`; and the Tenant cap uses
-`prompt_limit_reached`. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` for a parsed body that fails schema validation. Filling in
+variables can fail with `prompt_variable_missing` or `prompt_variable_unknown`;
+a duplicate name returns `409 prompt_name_conflict`; and reaching the tenant
+limit returns `prompt_limit_reached`. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -79,15 +80,15 @@ SDKs: [TypeScript](/sdk/typescript/prompts#create) / [Python](/sdk/python/prompt
 
 ### GET /v1/prompts [#list-prompts]
 
-Lists Prompts by most recent update. Results are not paginated.
+Lists prompts, most recently updated first, in a single response.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 
 | Query parameter | Type   | Required | Description                                           |
 | --------------- | ------ | -------- | ----------------------------------------------------- |
@@ -120,15 +121,15 @@ SDKs: [TypeScript](/sdk/typescript/prompts#list) / [Python](/sdk/python/prompts#
 
 ### GET /v1/prompts/:promptId [#get-prompt]
 
-Gets one Prompt.
+Gets one prompt.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a `prompt_…` `promptId` path parameter. There are no query or body parameters. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a `prompt_…` `promptId` path parameter. There are no query or body parameters. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `promptId`      | yes      | Prompt ID (`prompt_…`).                   |
 
 #### Response
@@ -169,15 +170,15 @@ SDKs: [TypeScript](/sdk/typescript/prompts#get) / [Python](/sdk/python/prompts#g
 
 ### PATCH /v1/prompts/:promptId [#update-prompt]
 
-Updates a Prompt in place and re-infers variables when its template changes.
+Updates a prompt and finds its variables again when the template changes.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, and a `prompt_…` `promptId`. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, and a `prompt_…` `promptId`. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `promptId`      | yes      | Prompt ID (`prompt_…`).                   |
 
 | Body field | Type   | Required | Description                           |
@@ -220,15 +221,15 @@ SDKs: [TypeScript](/sdk/typescript/prompts#update) / [Python](/sdk/python/prompt
 
 ### DELETE /v1/prompts/:promptId [#delete-prompt]
 
-Permanently deletes a Prompt without changing previously rendered transcripts.
+Permanently deletes a prompt. Messages already sent with it stay in their transcripts.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a `prompt_…` `promptId`. There are no query or body parameters. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a `prompt_…` `promptId`. There are no query or body parameters. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `promptId`      | yes      | Prompt ID (`prompt_…`).                   |
 
 #### Response
@@ -251,9 +252,7 @@ curl --request DELETE \
 
 SDKs: [TypeScript](/sdk/typescript/prompts#delete) / [Python](/sdk/python/prompts#delete). See [Prompts](/agents/prompts) and [Generate structured output](/agents/output/structured-output).
 
-## Related [#related]
+## Next [#next]
 
-- [TypeScript SDK](/sdk/typescript)
-- [Python SDK Prompts](/sdk/python/prompts)
-- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
-- [Errors](/api-reference/protocols/errors)
+- [Prompts](/agents/prompts) to write and use templates.
+- [Generation API](/api-reference/rest-api/generation) to run a prompt without a session.

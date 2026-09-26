@@ -31,8 +31,8 @@ Starting a new session returns its `ss_...` ID in the `Location` header, so
 session, it returns the ID you sent. Once the turn is accepted, the session and
 your message are saved before the model runs. If the turn fails later, the
 session keeps your message without an assistant reply. If you cancel, the saved
-session stays as it is. A request rejected by validation or admission creates
-no session.
+session stays as it is. A request rejected before the turn starts creates no
+session.
 
 You can claim the body of a chat or tool-approval continuation result once,
 through `toResponse()`; a second claim throws `stream_error`. Completion and
