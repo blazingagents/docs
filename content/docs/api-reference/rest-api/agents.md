@@ -5,53 +5,59 @@ description: Create, inspect, update, version, disable, and extend Agents.
 
 # Agents
 
-## Automatic context compaction [#automatic-context-compaction]
-
-`POST` and `PUT` accept `autoCompaction` (creation default `true`) and
-`compactionReserveTokens` (creation default `16384`, nonnegative safe integer).
-Omission on update preserves saved settings. Both are returned on Agents and Agent
-Versions. See [context compaction](/agents/agents#automatic-context-compaction)
-for the policy, summary usage, and failure behavior.
-
 ## Overview [#overview]
 
-Agents are Tenant-owned configuration records. Use these endpoints to configure execution, inspect immutable Versions, attach capabilities, or operate the reversible execution kill switch; Attribution remains immutable after creation.
+An agent holds the configuration Blazing Agents uses to run a turn: its
+provider and model, instructions, tools, workspace, and attachments. Use these
+endpoints to create and change agents, read their saved versions, attach MCP
+servers, and turn an agent off and on again. `userId` is fixed once the agent
+is created.
+
+## Automatic context compaction [#automatic-context-compaction]
+
+`POST` and `PUT` accept `autoCompaction` (default `true` on create) and
+`compactionReserveTokens` (default `16384` on create, a nonnegative safe
+integer). Leave them out of an update to keep the saved values. Agents and
+agent versions both return them. See
+[context compaction](/agents/agents#automatic-context-compaction) for how
+summaries work, what they cost, and what happens when they fail.
 
 ## Thinking configuration [#thinking-configuration]
 
-`POST` and `PUT` accept `thinkingLevel: string | null`. Creation defaults to
-null; update omission preserves it and explicit null clears it. Non-null
-values must be nonempty and require a configured Provider/Model pair. Agent
-and Version responses include this field. Known unsupported selections return
-`validation_failed` with choices, leaving state and Version history unchanged.
-The Admin Agent permits Thinking level edits alongside its Provider and Model;
-its other management and restoration restrictions remain in force.
+`POST` and `PUT` accept `thinkingLevel: string | null`. It defaults to `null`
+on create. Leave it out of an update to keep it, or send `null` to clear it. A
+non-null value must be non-empty and needs a configured provider and model.
+Agent and version responses include it. A level the model is known not to
+support returns `validation_failed` with the valid choices, and nothing is
+saved. On the platform-managed admin agent you can change the thinking level
+along with its provider and model, but nothing else.
 
 ## Tool approval configuration [#tool-approval-configuration]
 
-POST create and PUT update accept `approvalInChat` and `approvalInTasks`, each an
+`POST` and `PUT` accept `approvalInChat` and `approvalInTasks`, each an
 [ApprovalPolicy](/api-reference/protocols/objects-and-schemas#approval-policy).
-Agent and Agent Version responses include both fields. Creation defaults each to
-`{"default":"full","overrides":[]}`. Update omission preserves the policy;
-a supplied policy replaces it, and omitted or empty `overrides` clears the list.
-Neither accepts null. Built-in targets must be available; new/changed MCP targets
-require live discovery on an attached same-Tenant Connection. Duplicate targets
-are invalid. Configuration and attachment changes must leave rules consistent.
-See [policy examples and validation](/agents/tools/tool-approvals#approval-policies).
+Agent and version responses include both. Each defaults to
+`{"default":"full","overrides":[]}` on create. Leave a policy out of an update
+to keep it; send one to replace it, and a missing or empty `overrides` clears
+the list. Neither accepts `null`. Built-in tools you name must be available.
+New or changed MCP tools must be found on an MCP connection attached to the
+agent in your tenant. Naming the same tool twice is invalid, and later
+configuration or attachment changes must keep every rule valid. See
+[policy examples and validation](/agents/tools/tool-approvals#approval-policies).
 
 ## Endpoints [#endpoints]
 
 ### POST /v1/agents [#create-agent]
 
-Creates an Agent. Names are unique per Tenant.
+Creates an agent. Names are unique within your tenant.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. There are no path or query parameters. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. There are no path or query parameters. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 
 | Body field               | Type           | Required | Default                      |
 | ------------------------ | -------------- | -------- | ---------------------------- |
@@ -70,17 +76,17 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and JSO
 | `metadata`               | object         | no       | `{}`                         |
 | `mcpConnectionIds`       | string[]       | no       | `[]`                         |
 
-`providerId` and `model` form one optional pair: omit both or set both to `null`
-for an unconfigured Agent, and supply both to configure one. `model` is a
-trimmed, non-empty Provider-native ID when configured. Tool groups are
-`workspace`, `write_todos`, and `memory`. Tool-group selection
-is independent of `workspaceId`; the first Workspace operation freezes the
-Agent's current Tenant-owned Workspace ID for that Turn, while every operation
-refreshes its runtime state. Omitting `workspaceId` atomically creates and
-attaches a normal Workspace. Supplying an
-existing same-Tenant ID shares it. The implicit Workspace starts with the
-Agent's name and Attribution, then remains independent; Agent updates do not
-synchronize it. Neither path initializes Container compute.
+`providerId` and `model` go together: leave both out or send both as `null`
+for an agent without a model, or send both to configure one. `model` is the
+provider's own model ID, trimmed and non-empty. Tool groups are `workspace`,
+`write_todos`, and `memory`. Choosing tools does not depend on `workspaceId`.
+During a turn, the agent keeps using the workspace it had when it first
+touched its files, even if you reassign it mid-turn.
+
+Leave out `workspaceId` and Blazing Agents creates a new workspace for the
+agent. Send an existing workspace ID from your tenant to share it. A created
+workspace starts with the agent's name and `userId`, then stays independent:
+later agent changes do not update it. Neither choice starts the workspace.
 
 #### Response
 
@@ -130,19 +136,19 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents" \
 
 #### SDK and related guides
 
-SDK: [TypeScript](/sdk/typescript/agents#create) / [Python](/sdk/python/agents#create). See [Agents](/agents/agents) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDK: [TypeScript](/sdk/typescript/agents#create) / [Python](/sdk/python/agents#create). See [Agents](/agents/agents).
 
 ### GET /v1/agents [#list-agents]
 
-Lists Agents by most recent update.
+Lists agents, most recently updated first.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 
 | Query parameter | Type   | Required | Description                                                              |
 | --------------- | ------ | -------- | ------------------------------------------------------------------------ |
@@ -202,19 +208,19 @@ curl --get "$BLAZING_AGENTS_BASE_URL/v1/agents" \
 
 #### SDK and related guides
 
-SDK: [TypeScript](/sdk/typescript/agents#list) / [Python](/sdk/python/agents#list). See [Agents](/agents/agents) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDK: [TypeScript](/sdk/typescript/agents#list) / [Python](/sdk/python/agents#list). See [Agents](/agents/agents).
 
 ### GET /v1/agents/:agentId [#get-agent]
 
-Retrieves the current Agent configuration without creating a Version.
+Retrieves an agent's current configuration.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 
 | Path parameter | Type   | Description       |
@@ -269,19 +275,19 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
 
 #### SDK and related guides
 
-SDK: [TypeScript](/sdk/typescript/agents#get) / [Python](/sdk/python/agents#get). See [Agents](/agents/agents) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDK: [TypeScript](/sdk/typescript/agents#get) / [Python](/sdk/python/agents#get). See [Agents](/agents/agents).
 
 ### PUT /v1/agents/:agentId [#update-agent]
 
-Updates an Agent. Array fields replace their existing values.
+Updates an agent. Array fields replace their current values.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 
 | Parameter                     | Type           | Required | Description                          |
@@ -300,11 +306,12 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and JSO
 | Body `metadata`               | object         | no       | Replacement metadata                 |
 | Body `mcpConnectionIds`       | string[]       | no       | Complete replacement MCP list        |
 
-At least one field is required. Changing a Provider requires `model` in the same request. Send both fields as `null` to clear the configuration; every half-configured pair is rejected. There are no query parameters.
+Send at least one field. Changing the provider requires `model` in the same request. Send both as `null` to clear them; a provider without a model, or the reverse, is rejected. There are no query parameters.
 
-For the Admin Agent, only `providerId` and `model` are mutable. They use the
-same settled-pair rules and create the next ordinary Version. Any request that
-also supplies another field is rejected as platform-managed.
+On the platform-managed admin agent that `ba assist` uses, you can change only
+`providerId`, `model`, and `thinkingLevel`. The same pairing rules apply, and
+each change saves a new version. A request that includes any other field
+returns `409 admin_agent_managed`.
 
 #### Response
 
@@ -341,7 +348,7 @@ Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-sc
 
 #### Errors
 
-`400 validation_failed` for invalid/empty input. Specific configuration codes include `agent_name_conflict` and `provider_not_found`. `404 not_found` applies when the Agent is missing or foreign; `409 admin_agent_managed` protects every Admin Agent field except its Provider/model pair. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` for invalid/empty input. Specific configuration codes include `agent_name_conflict` and `provider_not_found`. `404 not_found` applies when the Agent is missing or foreign; `409 admin_agent_managed` rejects changes to the admin agent's other fields. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -355,13 +362,12 @@ curl --request PUT \
 
 #### SDK and related guides
 
-SDK: [TypeScript](/sdk/typescript/agents#update) / [Python](/sdk/python/agents#update). See [Agents](/agents/agents) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDK: [TypeScript](/sdk/typescript/agents#update) / [Python](/sdk/python/agents#update). See [Agents](/agents/agents).
 
 ### DELETE /v1/agents/:agentId [#delete-agent]
 
-Permanently deletes an Agent while preserving its Workspace.
-`includeArtifacts=true` also hard-deletes its Artifacts;
-`includeArtifacts=false` preserves them.
+Permanently deletes an agent and keeps its workspace. `includeArtifacts=true`
+also deletes its artifacts; `includeArtifacts=false` keeps them.
 
 #### Request
 
@@ -370,7 +376,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication), an
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 | Query    | `includeArtifacts` | yes   | Delete (`true`) or preserve (`false`) Artifacts. |
 
@@ -380,7 +386,7 @@ Returns `204 No Content` with an empty body.
 
 #### Errors
 
-`400 validation_failed` for a malformed ID. `404 not_found` when the Agent is missing or foreign. `409 admin_agent_managed` protects the Admin Agent. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` for a malformed ID. `404 not_found` when the Agent is missing or foreign. `409 admin_agent_managed` for the admin agent. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -392,17 +398,17 @@ curl --request DELETE \
 
 #### SDK and related guides
 
-SDK: [TypeScript](/sdk/typescript/agents#delete) / [Python](/sdk/python/agents#delete). See [Agents](/agents/agents) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDK: [TypeScript](/sdk/typescript/agents#delete) / [Python](/sdk/python/agents#delete). See [Agents](/agents/agents).
 
 ### POST /v1/agents/:agentId/disable [#disable-agent]
 
-Disables an Agent, rejecting future Turns while in-flight Turns finish.
+Turns an agent off. New turns are rejected, and turns already running finish.
 
 #### Authorizations
 
 | Field           | Type   | Location | Required | Description                               |
 | --------------- | ------ | -------- | -------- | ----------------------------------------- |
-| `Authorization` | string | header   | required | Tenant API key or dashboard Supabase JWT. |
+| `Authorization` | string | header   | required | Tenant API key or dashboard JWT. |
 
 #### Path parameters
 
@@ -420,7 +426,7 @@ Response schema: [`agentSchema`](/api-reference/protocols/objects-and-schemas#ag
 
 #### Errors
 
-`404 not_found` when the Agent is missing. `409 admin_agent_managed` for the Admin Agent. See [REST errors](/api-reference/protocols/errors).
+`404 not_found` when the Agent is missing. `409 admin_agent_managed` for the admin agent. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -431,19 +437,19 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/disa
 
 #### SDK and related guides
 
-SDK: [TypeScript](/sdk/typescript/agents#disable) / [Python](/sdk/python/agents#disable). See [Agents](/agents/agents) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDK: [TypeScript](/sdk/typescript/agents#disable) / [Python](/sdk/python/agents#disable). See [Agents](/agents/agents).
 
 ### POST /v1/agents/:agentId/enable [#enable-agent]
 
-Enables a disabled Agent. Skipped schedule fires are not replayed.
+Turns a disabled agent back on. Scheduled runs skipped while it was off do not run later.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 
 #### Response
@@ -467,19 +473,19 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/enab
 
 #### SDK and related guides
 
-SDK: [TypeScript](/sdk/typescript/agents#enable) / [Python](/sdk/python/agents#enable). See [Agents](/agents/agents) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDK: [TypeScript](/sdk/typescript/agents#enable) / [Python](/sdk/python/agents#enable). See [Agents](/agents/agents).
 
 ### POST /v1/agents/:agentId/avatar [#upload-agent-avatar]
 
-Uploads or replaces an Agent's private avatar. Responses contain a short-lived signed URL.
+Uploads or replaces an agent's avatar. Responses include a short-lived signed URL for it.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and `multipart/form-data`. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and `multipart/form-data`. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 
 | Parameter   | Type | Required | Description                         |
@@ -500,7 +506,7 @@ Response schema: [`agentSchema`](/api-reference/protocols/objects-and-schemas#ag
 not a PNG, JPEG, or WebP image of at most 512 KiB; `415 invalid_request` when
 the request body is not `multipart/form-data`. A malformed Agent
 ID uses `400 validation_failed`; `404 not_found` applies when the Agent is
-missing or foreign; and `409 admin_agent_managed` protects the Admin Agent. See
+missing or foreign; and `409 admin_agent_managed` for the admin agent. See
 [REST errors](/api-reference/protocols/errors).
 
 #### cURL
@@ -514,19 +520,19 @@ curl --request POST \
 
 #### SDK and related guides
 
-SDK: [TypeScript](/sdk/typescript/agents#upload-avatar) / [Python](/sdk/python/agents#upload-avatar). See [Agents](/agents/agents) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDK: [TypeScript](/sdk/typescript/agents#upload-avatar) / [Python](/sdk/python/agents#upload-avatar). See [Agents](/agents/agents).
 
 ### DELETE /v1/agents/:agentId/avatar [#delete-agent-avatar]
 
-Removes an Agent's avatar and returns the updated Agent.
+Removes an agent's avatar and returns the updated agent.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). `agentId` is a required `ag_…` path parameter. There are no query or body parameters. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). `agentId` is a required `ag_…` path parameter. There are no query or body parameters. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 
 #### Response
@@ -537,7 +543,7 @@ Response schema: [`agentSchema`](/api-reference/protocols/objects-and-schemas#ag
 
 #### Errors
 
-`400 validation_failed` for a malformed ID. `404 not_found` when the Agent is missing or foreign. `409 admin_agent_managed` protects the Admin Agent. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` for a malformed ID. `404 not_found` when the Agent is missing or foreign. `409 admin_agent_managed` for the admin agent. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -549,19 +555,19 @@ curl --request DELETE \
 
 #### SDK and related guides
 
-SDK: [TypeScript](/sdk/typescript/agents#remove-avatar) / [Python](/sdk/python/agents#remove-avatar). See [Agents](/agents/agents) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDK: [TypeScript](/sdk/typescript/agents#remove-avatar) / [Python](/sdk/python/agents#remove-avatar). See [Agents](/agents/agents).
 
 ### GET /v1/agents/:agentId/versions [#list-agent-versions]
 
-Lists an Agent's immutable Versions newest first.
+Lists an agent's saved versions, newest first.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 
 | Location | Field    | Required | Description                          |
@@ -593,19 +599,19 @@ curl --get "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/versions" \
 
 #### SDK and related guides
 
-SDK: [TypeScript](/sdk/typescript/agents#list-versions) / [Python](/sdk/python/agents#list-versions). See [Agents](/agents/agents) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDK: [TypeScript](/sdk/typescript/agents#list-versions) / [Python](/sdk/python/agents#list-versions). See [Agents](/agents/agents).
 
 ### GET /v1/agents/:agentId/versions/:version [#get-agent-version]
 
-Retrieves an immutable Agent Version without copying currently referenced resources.
+Retrieves one saved agent version. It references providers and connections by ID; it does not copy them.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 | Path     | `version`       | yes      | Positive Agent Version number.            |
 
@@ -632,19 +638,19 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/versions/1" \
 
 #### SDK and related guides
 
-SDK: [TypeScript](/sdk/typescript/agents#get-version) / [Python](/sdk/python/agents#get-version). See [Agents](/agents/agents) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDK: [TypeScript](/sdk/typescript/agents#get-version) / [Python](/sdk/python/agents#get-version). See [Agents](/agents/agents).
 
 ### GET /v1/agents/:agentId/mcp-attachments [#list-agent-mcp-attachments]
 
-Lists the MCP Attachments that select an Agent's MCP tools.
+Lists the MCP connections attached to an agent.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 
 #### Response
@@ -668,19 +674,19 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/mcp-attachments" \
 
 #### SDK and related guides
 
-SDK: [TypeScript](/sdk/typescript/agents#list-mcp-attachments) / [Python](/sdk/python/agents#list-mcp-attachments). See [Agents](/agents/agents) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDK: [TypeScript](/sdk/typescript/agents#list-mcp-attachments) / [Python](/sdk/python/agents#list-mcp-attachments). See [Agents](/agents/agents).
 
 ### PATCH /v1/agents/:agentId/mcp-attachments/:mcpConnectionId [#update-agent-mcp-attachment]
 
-Updates end-user forwarding fields for one MCP Attachment without changing access control.
+Changes which end-user details one attached MCP connection receives. Access is not affected.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field             | Required | Description                               |
 | -------- | ----------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization`   | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization`   | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`         | yes      | Agent ID (`ag_…`).                        |
 | Path     | `mcpConnectionId` | yes      | MCP Connection ID.                        |
 
@@ -713,11 +719,10 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/mcp
 
 #### SDK and related guides
 
-SDK: [TypeScript](/sdk/typescript/agents#update-mcp-attachment) / [Python](/sdk/python/agents#update-mcp-attachment). See [Agents](/agents/agents) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDK: [TypeScript](/sdk/typescript/agents#update-mcp-attachment) / [Python](/sdk/python/agents#update-mcp-attachment). See [Agents](/agents/agents).
 
-## Related [#related]
+## Next [#next]
 
-- [Agents TypeScript SDK](/sdk/typescript/agents)
-- [Agents Python SDK](/sdk/python/agents)
-- [Versions and lifecycle](/agents/versions-and-lifecycle)
-- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
+- [Agents](/agents/agents) to decide what each setting does.
+- [Versions and lifecycle](/agents/versions-and-lifecycle) to pin and restore versions.
+- [Sessions API](/api-reference/rest-api/sessions) to start a conversation with the agent.
