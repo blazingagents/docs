@@ -21,8 +21,8 @@ people who built it.
   persistent file system" before "A Workspace is a Tenant-owned durable
   mutable filesystem".
 - Second person, active voice, present tense. Short sentences.
-- Plain lowercase nouns in prose: agent, session, turn, workspace, skill,
-  tenant, provider. Keep code identifiers in backticks (`client.chat()`,
+- Plain lowercase nouns in prose: agent, admin agent, session, turn,
+  workspace, skill, tenant, provider. Keep code identifiers in backticks (`client.chat()`,
   `sessionId`). Page titles and nav labels use sentence case.
 - One idea per paragraph. Three to five sentences at most.
 - No spec phrasing ("materialized after admission", "atomically creates",
@@ -33,7 +33,7 @@ people who built it.
 ## Content rules
 
 - No internals. Never mention R2, Containers, Cloudflare, DBOS, Supabase,
-  the dispatcher, the Admin Agent, or other implementation details. Describe
+  the dispatcher, or other implementation details. Describe
   the behavior the tenant sees instead ("files survive between sessions").
 - No changelog notes in guides ("available starting in v0.8.0", "SDK 0.8.0 or
   later", "older SDK releases", "(SDK 0.7.0+)"). The SDK version pinned in
