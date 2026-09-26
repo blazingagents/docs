@@ -52,6 +52,7 @@ The development server runs at <http://localhost:3761>.
 | `npm test` | Run documentation tests and coverage checks |
 | `npm run check` | Run the required type-check and test gate |
 | `npm run lint:docs` | Check `content/docs/` against the style guide's mechanical rules |
+| `npm run sync:openapi` | Copy the platform's API contract into `openapi/openapi.json` |
 
 ## Repository structure
 
@@ -59,6 +60,7 @@ The development server runs at <http://localhost:3761>.
 | --- | --- |
 | `content/docs/` | Authored MDX and Markdown documentation |
 | `src-docs/` | Documentation application, components, routes, and validation |
+| `openapi/` | Committed copy of the platform's OpenAPI contract |
 | `public/` | Icons, social images, and other static assets |
 | `scripts/` | Manifest generation, coverage, and build verification |
 | `source.config.ts` | Fumadocs content configuration |
@@ -72,6 +74,27 @@ sync with its navigation order. Follow the [style guide](STYLE.md), and run
 
 The production build is written to `.output/public` for deployment to
 `docs.blazingagents.com`.
+
+## Updating the API contract
+
+`openapi/openapi.json` is a committed copy of the platform's public API
+contract, `servers/api/openapi.json` in the `ba-platform` repository. CI has no
+platform checkout, so it uses the committed copy.
+
+After the platform contract changes, refresh the copy from a sibling checkout
+and commit the result:
+
+```bash
+npm run sync:openapi
+```
+
+The script reads `../ba-platform/servers/api/openapi.json` by default. Set
+`BA_PLATFORM_OPENAPI` to use another path, and it fails if the source file is
+missing:
+
+```bash
+BA_PLATFORM_OPENAPI=/path/to/ba-platform/servers/api/openapi.json npm run sync:openapi
+```
 
 ## Deployment
 
