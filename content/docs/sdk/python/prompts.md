@@ -1,136 +1,141 @@
 ---
 title: Prompts
-description: Create, inspect, update, and delete reusable message Prompts with the Python SDK.
+description: Save reusable message templates and run them with variables, using the Python SDK.
 ---
 
 # Prompts
 
-`client.prompts` manages Tenant-owned named message templates. The asynchronous
-client exposes the same operation names; await each method.
+`client.prompts` saves message templates with `{{variable}}` placeholders, so your code sends a prompt ID and values instead of building the text each time. You can change a template without redeploying the code that uses it.
 
-## Overview [#overview]
-
-Prompt placeholders use `{{variable}}`. The server trims names inside braces,
-requires identifier-shaped names, de-duplicates them in first-seen order, and
-returns that inferred inventory as `variables`. At invocation, pass
-`prompt_id` and all and only the inferred `variables` to `chat()`,
-`completion()`, or an object-generation operation instead of literal input.
-Only rendered text enters a Session transcript, so later edits and deletion do
-not change history.
-
-Every resource method is keyword-only and accepts
-`extra_headers: Mapping[str, str] | None` and `timeout: Timeout`.
-
-## Available operations [#available-operations]
-
-| Method | Description | Returns |
-| --- | --- | --- |
-| [`create()`](#create) | Create a reusable Prompt | `Prompt` |
-| [`list()`](#list) | List Prompts, optionally by Attribution | `Prompts` |
-| [`get()`](#get) | Retrieve one Prompt | `Prompt` |
-| [`update()`](#update) | Change mutable Prompt fields | `Prompt` |
-| [`delete()`](#delete) | Permanently delete a Prompt | `None` |
-
-## Methods [#methods]
-
-### `create()` [#create]
-
-**Signature:** `create(*, name: str, template: str, agent_id: str | None = ..., user_id: str = ..., metadata: dict[str, object] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Prompt`
-
-Creates a Prompt. Omitted `user_id` becomes `""` (Tenant-level Attribution)
-and omitted metadata becomes `{}`. `user_id` is immutable. Optional `agent_id`
-links to an Agent in the same Tenant; omission or `None` leaves it unlinked.
-Deleting that Agent deletes its linked Prompts. A missing or foreign Agent
-returns `not_found`.
+Examples assume `client = BlazingAgents()` and an `agent_id`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names.
 
 ```python
 prompt = client.prompts.create(
     name="Release summary",
     template="Summarize {{version}} for {{audience}}.",
-    user_id="user-42",
 )
-print(prompt.variables)
+result = client.completion(
+    agent_id=agent_id,
+    prompt_id=prompt.id,
+    variables={"version": "2.4", "audience": "developers"},
+)
+print(prompt.variables, str(result))
 ```
 
-Server failures include `validation_failed`, `prompt_name_conflict`, and
-`prompt_limit_reached`. See
-[`POST /v1/prompts`](/api-reference/rest-api/prompts#create-prompt).
+## Templates and variables [#templates-and-variables]
+
+Write placeholders as `{{name}}`. Names are trimmed and must look like identifiers. The prompt's `variables` field lists each name once, in the order it first appears. A template holds up to 10 variables and 10 KiB of text.
+
+To run a prompt, pass `prompt_id` and `variables` to [`chat()`](/sdk/python/client#chat), [`completion()`](/sdk/python/client#completion), or [`object()`](/sdk/python/client#object) instead of a literal message or prompt. Supply exactly the names in `variables`: a missing one raises `prompt_variable_missing` and an extra one raises `prompt_variable_unknown`. Only the filled-in text is stored in the session, so editing or deleting the prompt later does not change past transcripts.
+
+## Available operations [#available-operations]
+
+| Method | Description | Returns |
+| --- | --- | --- |
+| [`create()`](#create) | Save a prompt | `Prompt` |
+| [`list()`](#list) | List prompts | `Prompts` |
+| [`get()`](#get) | Get one prompt | `Prompt` |
+| [`update()`](#update) | Change a prompt | `Prompt` |
+| [`delete()`](#delete) | Delete a prompt | `None` |
+
+## Methods [#methods]
+
+### `create()` [#create]
+
+Saves a prompt template.
+
+```python
+prompt = client.prompts.create(
+    name="Onboarding welcome",
+    template="Welcome {{customer}} and explain {{feature}}.",
+    agent_id=agent_id,
+    user_id="customer_123",
+)
+```
+
+**Signature:** `create(*, name: str, template: str, agent_id=..., user_id=..., metadata=...) -> Prompt`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | `str` | required | 1 to 80 characters, unique in your tenant |
+| `template` | `str` | required | Text with `{{variable}}` placeholders |
+| `agent_id` | `str \| None` | `None` | Link the prompt to one agent. Deleting that agent deletes the prompt |
+| `user_id` | `str` | `""` | End user; `""` means tenant level. Fixed after creation |
+| `metadata` | `dict[str, object]` | `{}` | Your own data |
+
+Returns [`Prompt`](#prompt). Raises `APIStatusError` with `validation_failed`, `prompt_name_conflict`, `prompt_limit_reached` (100 prompts per tenant), or `not_found` for an unknown `agent_id`.
 
 ### `list()` [#list]
 
-**Signature:** `list(*, agent_id: str = ..., user_id: str = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Prompts`
+Lists your prompts.
 
-Returns the unpaginated `Prompts` model with `prompts: list[Prompt]`. Omit
-both `user_id` and `agent_id` for every Prompt or pass exact values; `""` selects Tenant-level
-Prompts. Both filters together return their intersection. See [`GET /v1/prompts`](/api-reference/rest-api/prompts#list-prompts).
+```python
+prompts = client.prompts.list(agent_id=agent_id).prompts
+```
+
+**Signature:** `list(*, agent_id=..., user_id=...) -> Prompts`
+
+Omit both filters for every prompt. `user_id=""` returns tenant-level prompts. With both filters you get prompts that match both. Returns `Prompts`, whose `prompts` field is `list[Prompt]`. The list is not paginated.
 
 ### `get()` [#get]
 
-**Signature:** `get(*, prompt_id: str, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Prompt`
+Gets one prompt.
 
-Retrieves one Prompt by its `prompt_…` ID. Failures include
-`validation_failed` and `not_found`. See
-[`GET /v1/prompts/:promptId`](/api-reference/rest-api/prompts#get-prompt).
+```python
+prompt = client.prompts.get(prompt_id=prompt.id)
+```
+
+**Signature:** `get(*, prompt_id: str) -> Prompt`
+
+Returns [`Prompt`](#prompt). Raises `validation_failed` or `not_found`.
 
 ### `update()` [#update]
 
-**Signature:** `update(*, prompt_id: str, agent_id: str | None = ..., name: str = ..., template: str = ..., metadata: dict[str, object] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Prompt`
-
-Changes any supplied mutable field. Omission leaves a field unchanged;
-metadata is a complete replacement, and changing `template` recomputes
-`variables`. Set `agent_id` to change the link or `None` to clear it.
-Supplying no mutable field raises `ValueError` locally.
+Changes a prompt's name, template, agent link, or metadata.
 
 ```python
 prompt = client.prompts.update(
     prompt_id=prompt.id,
-    template="Summarize {{version}} for {{audience}} in {{tone}} tone.",
-    metadata={"purpose": "release"},
+    template="Summarize {{version}} for {{audience}} in a {{tone}} tone.",
 )
 ```
 
-Server failures include `validation_failed`, `prompt_name_conflict`, and
-`not_found`. See
-[`PATCH /v1/prompts/:promptId`](/api-reference/rest-api/prompts#update-prompt).
+**Signature:** `update(*, prompt_id: str, agent_id=..., name=..., template=..., metadata=...) -> Prompt`
+
+Omitted parameters keep their current value. A new `template` recomputes `variables`. `agent_id=None` removes the agent link. `metadata` replaces the current value completely. Calling `update()` with nothing to change raises `ValueError` before any request.
+
+Returns [`Prompt`](#prompt). Raises `validation_failed`, `prompt_name_conflict`, or `not_found`.
 
 ### `delete()` [#delete]
 
-**Signature:** `delete(*, prompt_id: str, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> None`
-
-Permanently deletes the Prompt and returns `None`. Previously rendered
-transcripts remain unchanged. See
-[`DELETE /v1/prompts/:promptId`](/api-reference/rest-api/prompts#delete-prompt).
-
-## Invocation [#invocation]
+Permanently deletes a prompt. Past transcripts keep the text it produced.
 
 ```python
-result = client.completion(
-    agent_id="ag_0123456789abcdef",
-    prompt_id=prompt.id,
-    variables={"version": "2.4", "audience": "developers", "tone": "direct"},
-)
-print(str(result))
+client.prompts.delete(prompt_id=prompt.id)
 ```
 
-Literal input and Prompt invocation are mutually exclusive. Missing variables
-produce `prompt_variable_missing`; unknown variables produce
-`prompt_variable_unknown`.
+**Signature:** `delete(*, prompt_id: str) -> None`
 
-## Response model and errors [#response-model-and-errors]
+Raises `validation_failed` or `not_found`.
 
-`Prompt` exposes `id`, `tenant_id`, `name`, `template`, `variables`,
-`agent_id` (an Agent ID or `None`), `user_id`, `metadata`, `created_at`, and `updated_at`. It is a Pydantic v2
-model that preserves unknown server fields and carries a non-serialized
-`_request_id`.
+## Response models [#response-models]
 
-API failures raise `APIStatusError`; connection and timeout failures raise
-`APIConnectionError` and `APITimeoutError`. Inspect the exception or response
-model request ID for correlation. See [Client errors and response
-observation](/sdk/python/client#errors).
+### `Prompt` [#prompt]
 
-## Related [#related]
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | `str` | Prompt ID (`prompt_...`) |
+| `tenant_id` | `str` | Your tenant ID |
+| `name` | `str` | Name |
+| `template` | `str` | Template text |
+| `variables` | `list[str]` | Placeholder names, in first-seen order |
+| `agent_id` | `str \| None` | Linked agent, or `None` |
+| `user_id` | `str` | End user, or `""` for tenant level |
+| `metadata` | `dict[str, object]` | Your own data |
+| `created_at`, `updated_at` | `datetime` | Timestamps |
 
-- [Prompt capability](/agents/prompts)
-- [Python generation](/sdk/python/client)
-- [REST Prompts](/api-reference/rest-api/prompts)
-- [TypeScript Prompts](/sdk/typescript/prompts)
+## Next [#next]
+
+- [Prompts guide](/agents/prompts)
+- [Client generation methods](/sdk/python/client#generation-methods)
+- [Agents](/sdk/python/agents)
