@@ -62,7 +62,7 @@ Pass at least one field; the ones you leave out stay as they are. A `quota` repl
 | `monthlyRequestLimit` | `number \| null` | Turns per month; `null` for no turn limit |
 | `resetDay` | `number` | Day of the month, 1 to 28, when the count starts over |
 
-At least one limit must be a positive number. Once usage passes a limit, new turns fail with `quota_exceeded` and task runs end as `blocked`; turns already running finish. See [Usage and quotas](/platform/usage-and-quotas#quota-outcomes).
+At least one limit must be a positive number. Once usage passes a limit, new turns fail with `quota_exceeded` and task runs end as `blocked`; turns already running finish. See [Usage and quotas](/platform/usage-and-quotas#quota-and-capacity-outcomes).
 
 Turning `monetizationEnabled` off drops usage events your merchant has not yet accepted. See [Monetization](/platform/monetization) before you change it.
 
