@@ -8958,7 +8958,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/workspaces.md",
                 "type": "page",
                 "name": "Workspaces",
-                "description": "Create, inspect, update, filter, and delete durable private Workspaces.",
+                "description": "Create, list, update, and delete workspaces with the TypeScript SDK.",
                 "url": "/sdk/typescript/workspaces",
                 "$ref": "sdk/typescript/workspaces.md"
               },
@@ -8966,7 +8966,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/skills.md",
                 "type": "page",
                 "name": "Skills",
-                "description": "Create, upload, inspect, copy, and edit Agent-owned Skills.",
+                "description": "Create, upload, read, edit, copy, and delete an agent's skills with the TypeScript SDK.",
                 "url": "/sdk/typescript/skills",
                 "$ref": "sdk/typescript/skills.md"
               },

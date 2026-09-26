@@ -1,149 +1,133 @@
 ---
 title: Workspaces
-description: Create, inspect, update, filter, and delete durable private Workspaces.
+description: Create, list, update, and delete workspaces with the TypeScript SDK.
 ---
 
 # Workspaces
 
-`client.workspaces` manages Tenant-owned durable private files. Creating a
-Workspace stores only its product record; its Cloudflare Sandbox Container
-starts lazily on the first actual file or process operation.
+`client.workspaces` manages the private file systems your agents work in. Every agent already gets a workspace when you create it, so use these methods when you want to share one workspace between agents, set its network rules, or clean it up. To learn how workspaces behave, read [Workspaces](/agents/workspaces).
 
-Every network method accepts one input object with optional `abortSignal`.
-`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
-types include that field too.
+```typescript
+const workspace = await client.workspaces.create({
+  name: "Release files",
+  networkPolicy: { mode: "allowlist", allowedHosts: ["registry.npmjs.org"] },
+});
 
-## Overview [#overview]
+await client.agents.update({ agentId, workspaceId: workspace.id });
+```
 
-Every Workspace is fenced to the authenticated Tenant. `userId` is immutable End-user Attribution: omit it or pass `""` for a tenant-level Workspace. `metadata` and `networkPolicy` remain mutable. The policy applies to every Agent sharing the Workspace. An attached Agent blocks deletion.
-
-Workspace lists use opaque cursor pagination, are ordered newest first, and
-exclude the reserved Admin Workspace. Deletion can finish immediately or
-continue asynchronously while the Cloudflare Container and R2 backup are
-cleaned up.
+Every method takes one input object and accepts an optional `abortSignal`. Reading or changing a workspace record does not touch its files.
 
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`create()`](#create) | Create a Workspace record | `Workspace` |
-| [`list()`](#list) | List and filter Workspaces | `WorkspacesListResponse` |
-| [`get()`](#get) | Retrieve one Workspace | `Workspace` |
-| [`update()`](#update) | Change its name or metadata | `Workspace` |
-| [`delete()`](#delete) | Start fenced deletion | `"completed" \| "pending"` |
+| [`create()`](#create) | Create a workspace | `Workspace` |
+| [`list()`](#list) | List workspaces | `WorkspacesListResponse` |
+| [`get()`](#get) | Read one workspace | `Workspace` |
+| [`update()`](#update) | Change its name, metadata, or network rules | `Workspace` |
+| [`delete()`](#delete) | Delete a workspace and its files | `"completed" \| "pending"` |
 
 ## Methods [#methods]
 
 ### `create()` [#create]
 
-Creates a Workspace without starting its Cloudflare Sandbox container.
+Creates an empty workspace.
 
 **Signature:** `create(input?: CreateWorkspaceBody & ResourceRequestOptions): Promise<Workspace>`
-
-| Body field | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `name` | `string` | no | — | Display name, 1–80 characters |
-| `userId` | `string` | no | `""` | Immutable End-user Attribution |
-| `metadata` | `Record<string, unknown>` | no | `{}` | Application-defined metadata |
-| `networkPolicy` | `WorkspaceNetworkPolicy` | no | `{ mode: "unrestricted" }` | Workspace-wide outbound network policy |
 
 ```typescript
 const workspace = await client.workspaces.create({
   name: "Release files",
   userId: "user_42",
-  metadata: { project: "docs" },
-  networkPolicy: {
-    mode: "allowlist",
-    allowedHosts: ["registry.npmjs.org"],
-  },
 });
 ```
 
-Returns [`Workspace`](#workspace). Raises `validation_failed` for invalid input. See [`POST /v1/workspaces`](/api-reference/rest-api/workspaces#create-workspace).
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `name` | `string` | no | none | Display name, 1 to 80 characters |
+| `userId` | `string` | no | `""` | The end user this workspace belongs to; cannot change later |
+| `metadata` | `Record<string, unknown>` | no | `{}` | Your own labels |
+| `networkPolicy` | `WorkspaceNetworkPolicy` | no | `{ mode: "unrestricted" }` | Outbound network rules |
+
+`WorkspaceNetworkPolicy` is one of:
+
+- `{ mode: "unrestricted" }`: commands can reach any host.
+- `{ mode: "allowlist", allowedHosts: string[] }`: only the listed hosts, at least one.
+- `{ mode: "offline" }`: no outbound network.
+
+The policy applies to every agent that uses the workspace. Returns [`Workspace`](#workspace). Errors: `validation_failed`.
 
 ### `list()` [#list]
 
-Lists Workspaces newest first, optionally filtered by exact Attribution.
+Lists workspaces, newest first.
 
 **Signature:** `list(input?: WorkspacesListOptions): Promise<WorkspacesListResponse>`
 
-| Option | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `cursor` | `string` | no | — | Opaque cursor returned by the previous page |
-| `limit` | `number` | no | `50` | Page size from 1 through 200 |
-| `userId` | `string` | no | — | Exact Attribution filter; use `""` for tenant-level Workspaces |
-
 ```typescript
-const page = await client.workspaces.list({
-  userId: "user_42",
-  limit: 50,
-});
+const { data, nextCursor } = await client.workspaces.list({ userId: "user_42" });
 ```
 
-Returns [`WorkspacesListResponse`](#workspaceslistresponse). Raises `validation_failed` for invalid options or `invalid_cursor` for an unusable cursor. See [`GET /v1/workspaces`](/api-reference/rest-api/workspaces#list-workspaces).
+| Option | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `userId` | `string` | no | — | Only this end user's workspaces; `""` for tenant-level ones |
+| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+
+Returns [`WorkspacesListResponse`](#workspaceslistresponse). Errors: `validation_failed`, `invalid_cursor`.
 
 ### `get()` [#get]
 
-Retrieves one Workspace without starting its Cloudflare Sandbox container.
+Reads one workspace.
 
 **Signature:** `get(input: { workspaceId: string } & ResourceRequestOptions): Promise<Workspace>`
-
-| Input field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `workspaceId` | `string` | yes | Workspace ID (`ws_…`) |
 
 ```typescript
 const workspace = await client.workspaces.get({ workspaceId });
 ```
 
-Returns [`Workspace`](#workspace). Raises `validation_failed` for a malformed ID or `workspace_not_found` when the Workspace is unavailable. See [`GET /v1/workspaces/:workspaceId`](/api-reference/rest-api/workspaces#get-workspace).
+Returns [`Workspace`](#workspace). Errors: `validation_failed`, `workspace_not_found`.
 
 ### `update()` [#update]
 
-Replaces supplied mutable fields without starting the Cloudflare Sandbox container. Attribution cannot be changed.
+Changes a workspace's name, metadata, or network rules.
 
 **Signature:** `update(input: UpdateWorkspaceBody & { workspaceId: string } & ResourceRequestOptions): Promise<Workspace>`
-
-| Input field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `workspaceId` | `string` | yes | Workspace ID (`ws_…`) |
-| `name` | `string \| null` | no | New display name; `null` clears it |
-| `metadata` | `Record<string, unknown>` | no | Complete replacement metadata |
-| `networkPolicy` | `WorkspaceNetworkPolicy` | no | Complete replacement outbound policy |
-
-At least one mutable field is required.
 
 ```typescript
 const workspace = await client.workspaces.update({
   workspaceId,
-  name: "Published files",
-  metadata: { project: "docs", stage: "release" },
   networkPolicy: { mode: "offline" },
 });
 ```
 
-Returns [`Workspace`](#workspace). Raises `validation_failed` for invalid or empty input or `workspace_not_found` when unavailable. See [`PUT /v1/workspaces/:workspaceId`](/api-reference/rest-api/workspaces#update-workspace).
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `workspaceId` | `string` | yes | Workspace ID (`ws_…`) |
+| `name` | `string \| null` | no | New name; `null` removes it |
+| `metadata` | `Record<string, unknown>` | no | Replaces all metadata |
+| `networkPolicy` | `WorkspaceNetworkPolicy` | no | Replaces the network rules |
+
+Pass at least one field. Fields you leave out stay as they are, and `userId` cannot change. Returns [`Workspace`](#workspace). Errors: `validation_failed`, `workspace_not_found`.
 
 ### `delete()` [#delete]
 
-Deletes a Workspace, its Cloudflare Sandbox container, and its R2 backup.
-Reassign all attached Agents first.
+Deletes a workspace and all its files.
 
 **Signature:** `delete(input: { workspaceId: string } & ResourceRequestOptions): Promise<"completed" | "pending">`
-
-| Input field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `workspaceId` | `string` | yes | Workspace ID (`ws_…`) |
 
 ```typescript
 const status = await client.workspaces.delete({ workspaceId });
 ```
 
-Returns `"completed"` after an immediate `204` response or `"pending"` after a
-`202` response queues durable Container or R2 cleanup. Raises
-`workspace_in_use` with `details.agentIds`, `workspace_busy`,
-`workspace_not_found`, or `service_unavailable`. See
-[`DELETE /v1/workspaces/:workspaceId`](/api-reference/rest-api/workspaces#delete-workspace).
+Move every agent that uses the workspace to another one first. Returns `"completed"` when the workspace is fully deleted, or `"pending"` when the rest of the cleanup finishes in the background.
+
+Errors:
+
+- `workspace_in_use`: agents still use it. `details.agentIds` lists them.
+- `workspace_busy`: the workspace is running a command. Try again shortly.
+- `workspace_not_found`: no such workspace in your tenant.
+- `service_unavailable`: try again with backoff.
 
 ## Response types [#response-types]
 
@@ -152,13 +136,13 @@ Returns `"completed"` after an immediate `204` response or `"pending"` after a
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `string` | Workspace ID (`ws_…`) |
-| `tenantId` | `string` | Owning Tenant ID |
-| `name` | `string \| null` | Optional display name |
-| `userId` | `string` | Immutable End-user Attribution |
-| `metadata` | `Record<string, unknown>` | Mutable application metadata |
-| `networkPolicy` | `{ mode: "unrestricted" } \| { mode: "allowlist"; allowedHosts: string[] } \| { mode: "offline" }` | Workspace-wide outbound network policy |
-| `createdAt` | `string` | ISO 8601 creation timestamp |
-| `updatedAt` | `string` | ISO 8601 update timestamp |
+| `tenantId` | `string` | Your tenant ID |
+| `name` | `string \| null` | Display name, or `null` |
+| `userId` | `string` | The end user it belongs to, or `""` |
+| `metadata` | `Record<string, unknown>` | Your labels |
+| `networkPolicy` | `WorkspaceNetworkPolicy` | Outbound network rules |
+| `createdAt` | `string` | ISO 8601 timestamp |
+| `updatedAt` | `string` | ISO 8601 timestamp |
 
 ### `WorkspacesListResponse` [#workspaceslistresponse]
 
@@ -169,59 +153,10 @@ interface WorkspacesListResponse {
 }
 ```
 
-Pass a non-null `nextCursor` to the next `list()` call. See the canonical [Workspace schemas](/api-reference/protocols/objects-and-schemas#workspace).
+Pass `nextCursor` to the next `list()` call until it is `null`.
 
-## Errors [#errors]
+## Next [#next]
 
-SDK request failures throw `BlazingAgentsError`. Branch on its stable `code`, not its message.
-
-| Code | Applies to | Action |
-| --- | --- | --- |
-| `validation_failed` | All methods | Correct the indicated input |
-| `invalid_cursor` | `list()` | Restart pagination without the rejected cursor |
-| `workspace_not_found` | ID-based methods | Check the Workspace and Tenant |
-| `workspace_in_use` | `delete()` | Reassign the Agents in `details.agentIds` |
-| `workspace_busy` | `delete()` | Retry after active Workspace work finishes |
-| `service_unavailable` | `delete()` | Retry with backoff |
-
-See [SDK errors](/api-reference/protocols/errors).
-
-## End-to-end workflow [#end-to-end-workflow]
-
-Create, update, find, and delete a Workspace:
-
-```typescript
-import { BlazingAgents } from "@blazingagents/sdk";
-
-const client = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-});
-
-const workspace = await client.workspaces.create({
-  name: "Release files",
-  userId: "user_42",
-});
-
-await client.workspaces.update({
-  workspaceId: workspace.id,
-  metadata: { project: "docs" },
-});
-
-const { data, nextCursor } = await client.workspaces.list({
-  userId: "user_42",
-  limit: 50,
-});
-const current = await client.workspaces.get({ workspaceId: data[0].id });
-console.log(current.name, nextCursor);
-
-const deletion = await client.workspaces.delete({
-  workspaceId: workspace.id,
-});
-console.log(deletion);
-```
-
-## Related [#related]
-
-- [REST Workspaces](/api-reference/rest-api/workspaces)
-- [Workspace object](/api-reference/protocols/objects-and-schemas#workspace)
 - [Workspaces](/agents/workspaces)
+- [Agents reference](/sdk/typescript/agents)
+- [Skills reference](/sdk/typescript/skills)
