@@ -1,51 +1,24 @@
 ---
 title: TypeScript SDK
-description: Install, configure, and navigate the typed server client for Blazing Agents.
+description: Install the TypeScript client and find the method for every Blazing Agents operation.
 ---
 
 # TypeScript SDK
 
-`@blazingagents/sdk` is the typed Node.js client for the Blazing Agents `/v1`
-API. Use its resource methods to manage configuration and data, and its
-generation helpers to stream Agent output.
+`@blazingagents/sdk` gives your Node.js backend a typed client for every Blazing Agents operation. You configure agents and their resources through methods like `client.agents.create()`, and you run turns with `client.chat()`, which streams in the format the AI SDK `useChat` hook reads.
 
 <Callout type="warn" title="Server-side only">
-  A Tenant API key can access every resource in its Tenant. Never expose it to
-  browser, mobile, or End-user code. Call the SDK from your authenticated backend.
+  Your API key can reach every resource in your tenant. Keep it in backend code
+  and never send it to a browser or mobile app.
 </Callout>
 
 ## Install [#install]
 
-The SDK requires Node.js 24 or newer and `ai` 7.0.84 or a compatible newer 7.x release as a peer dependency.
+The SDK needs Node.js 24 or later and the `ai` package version 7 alongside it.
 
 ```bash
-npm install @blazingagents/sdk ai@7.0.84
+npm install @blazingagents/sdk ai
 ```
-
-## Migrating to 0.3.0 [#migrating-to-0-3-0]
-
-Version 0.3.0 uses one flat input object for every network method. Put resource
-IDs, payload fields, and optional `abortSignal` together; do not nest payloads
-under `body` or cancellation under `options`. Methods with no required fields
-still allow an omitted input.
-
-```typescript
-// Before 0.3.0:
-await client.agents.update(agentId, { name: "Writer" });
-const skillsBefore = client.agent(agentId).skills;
-
-// 0.3.0:
-await client.agents.update({
-  agentId,
-  name: "Writer",
-  abortSignal: controller.signal,
-});
-const skills = client.agent({ agentId }).skills;
-```
-
-Rename SDK `signal` inputs to `abortSignal`, including chat and other generation
-calls. Native Fetch still uses `signal`. Every resource method now supports
-cancellation; see [Client cancellation](/sdk/typescript/client#cancellation).
 
 ## Initialize the client [#initialize-the-client]
 
@@ -57,71 +30,75 @@ export const client = new BlazingAgents({
 });
 ```
 
-The client uses `http://localhost:8787` by default. Set `baseUrl` for another
-deployment or provide a custom `fetch` implementation. See [Client
-configuration](/sdk/typescript/client).
-
-## Client objects [#client-objects]
-
-| Object | What it provides |
-| --- | --- |
-| [`BlazingAgents`](/sdk/typescript/client) | Client configuration plus root `chat()`, `completion()`, and `object()` methods |
-| [`agents`](/sdk/typescript/agents) | Agent configuration, Versions, lifecycle, avatars, and MCP Attachments |
-| [`artifacts`](/sdk/typescript/artifacts) | Published Artifact metadata and downloads |
-| [`providers`](/sdk/typescript/providers) | Provider credentials and model discovery |
-| [`chatConnections`](/sdk/typescript/chat-integrations) | Slack and Telegram connection configuration and health |
-| [`mcpConnections`](/sdk/typescript/mcp-connections) | External MCP server configuration and authorization |
-| [`memories`](/sdk/typescript/memories) | Durable Agent Memory |
-| [`prompts`](/sdk/typescript/prompts) | Reusable Prompt templates |
-| [`sessions`](/sdk/typescript/sessions) | Session transcripts and Tool approvals |
-| [`agent({ agentId }).skills`](/sdk/typescript/skills) | Agent-owned Skill archives and files |
-| [`tasks`](/sdk/typescript/tasks) | Durable Tasks and Task Runs |
-| [`workspaces`](/sdk/typescript/workspaces) | Secure execution Workspaces |
-| [`tenant`](/sdk/typescript/tenant) | Tenant identity and settings |
-| [`usage`](/sdk/typescript/usage) | Tenant and Agent usage rollups |
+The client talks to `https://api.blazingagents.com`, so you only pass your key. Creating it makes no network request. See [Client](/sdk/typescript/client) for request correlation, a custom `fetch`, and response logging.
 
 ## Common workflow [#common-workflow]
 
-Create an Agent, start a Session with `chat()`, retain its ID, and consume the
-decoded UI message stream:
+Connect a model provider, create an agent, and run a first turn:
 
 ```typescript
-import { BlazingAgents, type UIMessage } from "@blazingagents/sdk";
+import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,
 });
 
-const agent = await client.agents.create({ name: "Support Agent" });
-const message = {
-  id: crypto.randomUUID(),
-  role: "user",
-  parts: [{ type: "text", text: "How can I reset my password?" }],
-} satisfies UIMessage;
+const provider = await client.providers.create({
+  name: "OpenRouter",
+  providerType: "openrouter",
+  baseUrl: null,
+  apiKey: process.env.OPENROUTER_API_KEY!,
+});
 
-const result = await client.chat({ agentId: agent.id, message });
-const sessionId = await result.sessionId;
+const agent = await client.agents.create({
+  name: "Support agent",
+  providerId: provider.id,
+  model: "openai/gpt-6-luna",
+});
 
-await result.toResponse().text();
+const result = await client.chat({
+  agentId: agent.id,
+  message: {
+    id: crypto.randomUUID(),
+    role: "user",
+    parts: [{ type: "text", text: "How can I reset my password?" }],
+  },
+});
 
-console.log(`\nSession: ${sessionId}`);
+console.log(`Session: ${await result.sessionId}`);
+console.log(await result.toResponse().text());
 ```
 
-Pass `sessionId` to a later `chat()` call to continue the same Session. Use
-`completion()` for stateless text or `object()` for stateless structured output.
-See the root [generation methods](/sdk/typescript/client#generation-methods) for all three result
-interfaces and streaming patterns.
+The last line prints the raw stream events, including the answer in `text-delta` events. Save the session ID and pass it as `sessionId` on the next `chat()` call to continue the conversation. In a web app, return `result.toResponse()` from your route instead of reading it. For one-off text or JSON without a session, use [`completion()`](/sdk/typescript/client#completion) or [`object()`](/sdk/typescript/client#object).
 
-## Errors and response validation [#errors-and-response-validation]
+## Client objects [#client-objects]
 
-Request, transport, and stream failures throw `BlazingAgentsError`. Branch on
-its stable `code`; optional fields include `status`, `requestId`, `details`, and
-the underlying `cause`. Successful JSON resource responses are validated against
-the shared Zod contracts. See [Client errors](/sdk/typescript/client#errors)
-and [protocol errors](/api-reference/protocols/errors).
+| Object | What it manages |
+| --- | --- |
+| [`BlazingAgents`](/sdk/typescript/client) | Client options plus `chat()`, `completion()`, and `object()` |
+| [`agents`](/sdk/typescript/agents) | Agents, their versions, avatars, and MCP settings |
+| [`workspaces`](/sdk/typescript/workspaces) | Workspaces and their network rules |
+| [`agent({ agentId }).skills`](/sdk/typescript/skills) | One agent's skills and skill files |
+| [`sessions`](/sdk/typescript/sessions) | Conversation history and tool approvals |
+| [`providers`](/sdk/typescript/providers) | Model provider keys and model lists |
+| [`mcpConnections`](/sdk/typescript/mcp-connections) | Remote MCP servers and their sign-in |
+| [`memories`](/sdk/typescript/memories) | Notes an agent keeps across sessions |
+| [`artifacts`](/sdk/typescript/artifacts) | Files agents publish, and their downloads |
+| [`tasks`](/sdk/typescript/tasks) | Background tasks, runs, and schedules |
+| [`prompts`](/sdk/typescript/prompts) | Reusable prompt templates |
+| [`usage`](/sdk/typescript/usage) | Token and request usage |
+| [`tenant`](/sdk/typescript/tenant) | Tenant name and settings |
+| [`chatConnections`](/sdk/typescript/chat-integrations) | Slack and Telegram bots |
+| `merchantConnection`, `merchantBindings`, `merchantUsageEvents` | [Billing your users](/platform/monetization) |
 
-## Next steps [#next-steps]
+Every method takes one input object. Put IDs, fields, and an optional `abortSignal` side by side in it. See [Cancellation](/sdk/typescript/client#cancellation).
 
-- Follow the [Quickstart](/getting-started/quickstart) to run a complete first Turn.
-- Build a protected endpoint with [Build a chat endpoint](/platform/sessions-and-turns).
-- Use the [REST API](/api-reference/rest-api) when you do not need the TypeScript client.
+## Errors [#errors]
+
+Every failed request throws `BlazingAgentsError`. Branch on its `code`, and log its `requestId` if you contact support. See [Client errors](/sdk/typescript/client#errors) for the full list of fields and SDK codes.
+
+## Next [#next]
+
+- [Run your first agent](/getting-started/quickstart)
+- [Connect Blazing Agents to your app](/getting-started/connect-your-app)
+- [Client](/sdk/typescript/client)

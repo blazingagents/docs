@@ -8922,7 +8922,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "sdk/index.mdx",
             "type": "page",
             "name": "SDK",
-            "description": "Choose a first-party SDK for operating Blazing Agents from backend application code.",
+            "description": "Call Blazing Agents from your backend with a typed TypeScript or Python client.",
             "url": "/sdk",
             "$ref": "sdk/index.mdx"
           },
@@ -8934,7 +8934,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/index.mdx",
                 "type": "page",
                 "name": "TypeScript SDK",
-                "description": "Install, configure, and navigate the typed server client for Blazing Agents.",
+                "description": "Install the TypeScript client and find the method for every Blazing Agents operation.",
                 "url": "/sdk/typescript",
                 "$ref": "sdk/typescript/index.mdx"
               },
@@ -8942,7 +8942,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/client.md",
                 "type": "page",
                 "name": "Client",
-                "description": "Configure the TypeScript client and use its root chat, completion, and structured-output methods.",
+                "description": "Configure the TypeScript client and run turns with chat, completion, and structured output.",
                 "url": "/sdk/typescript/client",
                 "$ref": "sdk/typescript/client.md"
               },
@@ -8950,7 +8950,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/agents.md",
                 "type": "page",
                 "name": "Agents",
-                "description": "Create, configure, version, disable, and extend Agents with the TypeScript SDK.",
+                "description": "Create, configure, version, pause, and delete agents with the TypeScript SDK.",
                 "url": "/sdk/typescript/agents",
                 "$ref": "sdk/typescript/agents.md"
               },
@@ -8958,7 +8958,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/workspaces.md",
                 "type": "page",
                 "name": "Workspaces",
-                "description": "Create, inspect, update, filter, and delete durable private Workspaces.",
+                "description": "Create, list, update, and delete workspaces with the TypeScript SDK.",
                 "url": "/sdk/typescript/workspaces",
                 "$ref": "sdk/typescript/workspaces.md"
               },
@@ -8966,7 +8966,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/skills.md",
                 "type": "page",
                 "name": "Skills",
-                "description": "Create, upload, inspect, copy, and edit Agent-owned Skills.",
+                "description": "Create, upload, read, edit, copy, and delete an agent's skills with the TypeScript SDK.",
                 "url": "/sdk/typescript/skills",
                 "$ref": "sdk/typescript/skills.md"
               },
@@ -8974,7 +8974,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/sessions.md",
                 "type": "page",
                 "name": "Sessions",
-                "description": "List Sessions, page transcripts, and complete Tool approval continuations.",
+                "description": "List sessions, load their messages, delete them, and answer tool approvals with the TypeScript SDK.",
                 "url": "/sdk/typescript/sessions",
                 "$ref": "sdk/typescript/sessions.md"
               },
@@ -8982,7 +8982,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/providers.md",
                 "type": "page",
                 "name": "Providers",
-                "description": "TypeScript SDK Provider CRUD and cost-free model discovery.",
+                "description": "Store model provider keys, list their models, and check reasoning levels with the TypeScript SDK.",
                 "url": "/sdk/typescript/providers",
                 "$ref": "sdk/typescript/providers.md"
               },
@@ -8990,7 +8990,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/mcp-connections.md",
                 "type": "page",
                 "name": "MCP connections",
-                "description": "Manage, test, authorize, and reconnect tenant MCP Connections.",
+                "description": "Save, test, authorize, and replace remote MCP server connections with the TypeScript SDK.",
                 "url": "/sdk/typescript/mcp-connections",
                 "$ref": "sdk/typescript/mcp-connections.md"
               },
@@ -8998,7 +8998,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/memories.md",
                 "type": "page",
                 "name": "Memories",
-                "description": "Create, search, update, and delete Agent-owned persistent Memories.",
+                "description": "Add, search, edit, and delete an agent's memories with the TypeScript SDK.",
                 "url": "/sdk/typescript/memories",
                 "$ref": "sdk/typescript/memories.md"
               },
@@ -9006,7 +9006,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/artifacts.md",
                 "type": "page",
                 "name": "Artifacts",
-                "description": "List, inspect, create download URLs for, and delete files deliberately published by Agents.",
+                "description": "List, inspect, download, and delete the files your agents publish, with the TypeScript SDK.",
                 "url": "/sdk/typescript/artifacts",
                 "$ref": "sdk/typescript/artifacts.md"
               },
@@ -9014,7 +9014,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/tasks.md",
                 "type": "page",
                 "name": "Tasks",
-                "description": "Manage asynchronous Tasks, schedules, Task runs, transcripts, and cancellation.",
+                "description": "Create background tasks and schedules, start runs, read their results, and cancel them with the TypeScript SDK.",
                 "url": "/sdk/typescript/tasks",
                 "$ref": "sdk/typescript/tasks.md"
               },
@@ -9022,7 +9022,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/prompts.md",
                 "type": "page",
                 "name": "Prompts",
-                "description": "Manage reusable Prompt templates and invoke them from generation helpers.",
+                "description": "Save reusable prompt templates with variables and manage them with the TypeScript SDK.",
                 "url": "/sdk/typescript/prompts",
                 "$ref": "sdk/typescript/prompts.md"
               },
@@ -9030,7 +9030,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/usage.md",
                 "type": "page",
                 "name": "Usage",
-                "description": "Query bounded Tenant-wide and per-Agent token, request, and duration rollups.",
+                "description": "Read token, request, and duration usage by day, agent, model, session, or end user with the TypeScript SDK.",
                 "url": "/sdk/typescript/usage",
                 "$ref": "sdk/typescript/usage.md"
               },
@@ -9038,7 +9038,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/tenant.md",
                 "type": "page",
                 "name": "Tenant",
-                "description": "Read and update Tenant display settings and soft quota configuration.",
+                "description": "Read and change your tenant's name, monthly quota, and billing switch with the TypeScript SDK.",
                 "url": "/sdk/typescript/tenant",
                 "$ref": "sdk/typescript/tenant.md"
               },
@@ -9046,7 +9046,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/chat-integrations.md",
                 "type": "page",
                 "name": "Chat integrations",
-                "description": "Configure Slack and Telegram connections with the TypeScript SDK.",
+                "description": "Connect an agent to a Slack or Telegram bot and manage the connection with the TypeScript SDK.",
                 "url": "/sdk/typescript/chat-integrations",
                 "$ref": "sdk/typescript/chat-integrations.md"
               }

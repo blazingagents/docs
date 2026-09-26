@@ -1115,7 +1115,21 @@
       },
       "fences": {
         "endpointCurls": false,
-        "items": []
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          }
+        ]
       },
       "file": "sdk/index.mdx",
       "filesTree": [],
@@ -1210,10 +1224,6 @@
           {
             "language": "typescript",
             "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
           }
         ]
       },
@@ -1248,6 +1258,10 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
           {
             "language": "typescript",
             "metadata": {}
@@ -1445,6 +1459,7 @@
       "anchors": {
         "assignedIds": [
           "list",
+          "list-latest",
           "messages",
           "delete",
           "tool-approvals",
@@ -1459,6 +1474,14 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
           {
             "language": "typescript",
             "metadata": {}
@@ -1521,6 +1544,7 @@
           "list",
           "get",
           "list-models",
+          "get-thinking-levels",
           "update",
           "delete"
         ],
@@ -1532,6 +1556,30 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
           {
             "language": "typescript",
             "metadata": {}
@@ -1567,10 +1615,6 @@
       "fences": {
         "endpointCurls": false,
         "items": [
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
           {
             "language": "typescript",
             "metadata": {}
@@ -1803,10 +1847,6 @@
           {
             "language": "typescript",
             "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
           }
         ]
       },
@@ -1887,6 +1927,10 @@
           {
             "language": "typescript",
             "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
           }
         ]
       },
@@ -1906,14 +1950,6 @@
       "fences": {
         "endpointCurls": false,
         "items": [
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
           {
             "language": "typescript",
             "metadata": {}
