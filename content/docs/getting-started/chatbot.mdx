@@ -1,11 +1,11 @@
 ---
 title: Build a chatbot
-description: Put a React chat UI with send, stop, resend, and regenerate on top of your chat endpoint.
+description: Put a React chat UI on top of your chat endpoint.
 ---
 
 # Build a chatbot
 
-Put a chat UI in front of your agent with the AI SDK `useChat` hook. Users can send, stop, edit and resend, regenerate the last answer, and start a new conversation. Blazing Agents keeps the history, so the page only tracks the session ID and the text being typed.
+Put a chat UI in front of your agent with the AI SDK `useChat` hook. Blazing Agents keeps the history, so the page only remembers the session ID.
 
 ## Before you begin [#before-you-begin]
 
@@ -24,115 +24,39 @@ npm install @blazingagents/sdk ai @ai-sdk/react
 ```tsx title="Chat.tsx"
 import { useChat } from "@ai-sdk/react";
 import { BlazingAgentsChatTransport } from "@blazingagents/sdk";
-import { generateId, type UIMessage } from "ai";
-import { type FormEvent, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 
 export function Chat({ token }: { token: string }) {
   const [input, setInput] = useState("");
-  const [sessionId, setSessionId] = useState(
-    () => localStorage.getItem("chat-session") ?? undefined,
-  );
-  const sending = useRef(false);
-  const regenerating = useRef(false);
-  const saved = useRef<UIMessage[]>([]);
-
-  const transport = useMemo(
+  const [transport] = useState(
     () =>
       new BlazingAgentsChatTransport({
         api: "/api/chat",
         headers: { authorization: `Bearer ${token}` },
-        sessionId,
-        onSessionId(id) {
-          localStorage.setItem("chat-session", id);
-          setSessionId(id);
-        },
+        sessionId: localStorage.getItem("chat-session") ?? undefined,
+        onSessionId: (id) => localStorage.setItem("chat-session", id),
       }),
-    [token, sessionId],
   );
-
-  const chat = useChat({
-    transport,
-    onError() {
-      sending.current = false;
-      chat.setMessages(saved.current);
-    },
-    onFinish({ messages, finishReason, isAbort, isError, isDisconnect }) {
-      sending.current = false;
-      if (isAbort || isError || isDisconnect || !finishReason || finishReason === "error") {
-        chat.setMessages(saved.current);
-        return;
-      }
-      saved.current = messages;
-      if (!regenerating.current) setInput("");
-    },
-  });
-  const busy = chat.status === "submitted" || chat.status === "streaming";
-  const hasAnswer = saved.current.some((message) => message.role === "assistant");
-
-  function send(event: FormEvent) {
-    event.preventDefault();
-    if (sending.current || !input.trim()) return;
-    sending.current = true;
-    regenerating.current = false;
-    chat.clearError();
-    void chat.sendMessage({
-      id: generateId(),
-      role: "user",
-      parts: [{ type: "text", text: input }],
-    });
-  }
-
-  async function stop() {
-    await chat.stop();
-    sending.current = false;
-    chat.setMessages(saved.current);
-  }
-
-  function regenerate() {
-    if (sending.current || !hasAnswer) return;
-    sending.current = true;
-    regenerating.current = true;
-    chat.clearError();
-    void chat.regenerate();
-  }
-
-  function newConversation() {
-    localStorage.removeItem("chat-session");
-    setSessionId(undefined);
-    saved.current = [];
-    chat.setMessages([]);
-    chat.clearError();
-    setInput("");
-  }
+  const { messages, sendMessage, status } = useChat({ transport });
 
   return (
     <main>
-      {chat.messages.map((message) => (
+      {messages.map((message) => (
         <p key={message.id}>
           <strong>{message.role}:</strong>{" "}
-          {message.parts
-            .filter((part) => part.type === "text")
-            .map((part) => part.text)
-            .join("")}
+          {message.parts.map((part) => (part.type === "text" ? part.text : ""))}
         </p>
       ))}
-      <form onSubmit={send}>
-        <input
-          aria-label="Message"
-          value={input}
-          disabled={busy}
-          onChange={(event) => setInput(event.target.value)}
-        />
-        <button type="submit" disabled={busy || !input.trim()}>Send</button>
-        <button type="button" onClick={stop} disabled={!busy}>Stop</button>
-        <button type="button" onClick={regenerate} disabled={busy || !hasAnswer}>
-          Regenerate
-        </button>
-        <button type="button" onClick={newConversation} disabled={busy}>
-          New conversation
-        </button>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void sendMessage({ text: input });
+          setInput("");
+        }}
+      >
+        <input value={input} onChange={(event) => setInput(event.target.value)} />
+        <button type="submit" disabled={status !== "ready"}>Send</button>
       </form>
-      {chat.error && <p role="alert">{chat.error.message}</p>}
     </main>
   );
 }
@@ -140,23 +64,20 @@ export function Chat({ token }: { token: string }) {
 
 Render `<Chat token={...} />` with your user's sign-in token. With the demo endpoint from the previous page, that is the value of `DEMO_USER_TOKEN`. Send a message and the answer streams in. Reload the page and your next message continues the same conversation, because the session ID is in `localStorage`.
 
-## How it behaves [#ownership-and-behavior]
+## What to add next [#chatbot-faq]
 
-The component keeps a copy of the last conversation that finished successfully. When a turn fails or the user presses Stop, it goes back to that copy and leaves the typed text in the input, so the user can edit it and send again. Blazing Agents does the same on its side: a turn that fails or is cancelled adds nothing to the saved history.
+The component above is the smallest chat that works. Add the pieces your product needs, by hand or by asking your coding agent.
 
-- **Send** always makes a new attempt with a new message ID. There is no separate retry call.
-- **Stop** cancels the turn. It cannot undo a tool call that already ran, and a resend can run that tool again.
-- **Regenerate** replaces the last saved answer. If regenerating fails or is stopped, the old answer stays. The button is only enabled after a successful answer, because a prompt that failed was never saved.
-- **New conversation** forgets the session ID. The next message starts a new session.
-
-This component shows only the messages from the current page visit. To show earlier messages after a reload, have your backend read them with `client.sessions.messages()` and pass them to `useChat` as `messages`. See [reading the transcript](/platform/sessions-and-turns#read-the-history).
-
-## Things to know [#chatbot-faq]
-
-- **A dropped connection is not a failure.** If the network drops after the agent finished, the answer may already be saved. Reload history before assuming it was lost.
+- **Stop.** Call `stop()` from `useChat` to cancel a turn. A cancelled turn adds nothing to the saved history. It cannot undo a tool call that already ran, and a resend can run that tool again.
+- **Roll back failed turns.** A turn that fails or is stopped is not saved by Blazing Agents, but `useChat` still shows it. Keep the messages from the last successful `onFinish` and restore them with `setMessages()` on error or stop. Leave the typed text in the input so the user can edit it and send again. Each send is a new attempt with a new message ID. There is no separate retry call.
+- **Show errors.** Render `error` from `useChat` and call `clearError()` before the next send.
+- **Regenerate.** Call `regenerate()` to replace the last saved answer. If it fails or is stopped, the old answer stays. Enable it only after a successful answer, because a prompt that failed was never saved.
+- **New conversation.** Remove `chat-session` from `localStorage`, create a new transport without a `sessionId`, and clear the messages. The next message starts a new session.
+- **History after a reload.** The component shows only the messages from the current page visit. Have your backend read earlier messages with `client.sessions.messages()` and pass them to `useChat` as `messages`. See [reading the transcript](/platform/sessions-and-turns#read-the-history).
+- **Dropped connections.** If the network drops after the agent finished, the answer may already be saved. Reload history before assuming it was lost.
 - **Busy sessions.** While a tool call in the session waits for approval, new messages return a [`session_busy`](/api-reference/protocols/errors#session_busy) error. Show it and let the user send again later. If two messages race in the same session, one of them fails rather than mixing the histories.
-- **Images** go in the same message as extra file parts. See [send an image](/agents/output/generation-and-streaming#send-an-image).
-- **Tool approvals** arrive in the same stream when an agent needs a person to allow a tool call. Send the decision through your backend, not only with `addToolApprovalResponse`. See [render the resumed answer](/agents/tools/tool-approvals#render-the-resumed-answer).
+- **Images.** Send them in the same message as extra file parts. See [send an image](/agents/output/generation-and-streaming#send-an-image).
+- **Tool approvals.** They arrive in the same stream when an agent needs a person to allow a tool call. Send the decision through your backend, not only with `addToolApprovalResponse`. See [render the resumed answer](/agents/tools/tool-approvals#render-the-resumed-answer).
 
 ## Next [#next]
 
