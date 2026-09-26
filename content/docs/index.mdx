@@ -73,14 +73,11 @@ const client = new BlazingAgents({
 });
 
 export async function POST(request: Request): Promise<Response> {
-  const { message, sessionId } = (await request.json()) as {
-    message: UIMessage;
-    sessionId?: string;
-  };
+  const { message, sessionId } = await request.json();
   const result = await client.chat({
     agentId: process.env.BLAZING_AGENTS_AGENT_ID!,
     message,
-    ...(sessionId ? { sessionId } : {}),
+    sessionId,
   });
   return result.toResponse();
 }
