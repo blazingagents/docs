@@ -33,8 +33,8 @@ Response schema: [`providerResponseSchema`](/api-reference/protocols/objects-and
 ```json
 {
   "id": "prv_1234567890ABCDEF",
-  "name": "Production OpenAI",
-  "providerType": "openai",
+  "name": "Production OpenRouter",
+  "providerType": "openrouter",
   "baseUrl": null,
   "keyFragment": "wxyz",
   "createdAt": "2026-07-10T10:00:00Z",
@@ -52,7 +52,7 @@ Errors include `validation_failed`, `provider_name_conflict`, and `provider_limi
 curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/providers" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"name":"Production OpenAI","providerType":"openai","baseUrl":null,"apiKey":"'"$PROVIDER_API_KEY"'"}'
+  --data '{"name":"Production OpenRouter","providerType":"openrouter","baseUrl":null,"apiKey":"'"$OPENROUTER_API_KEY"'"}'
 ```
 
 #### SDK and related guides
@@ -78,8 +78,8 @@ Response schema: [`providersResponseSchema`](/api-reference/protocols/objects-an
   "providers": [
     {
       "id": "prv_1234567890ABCDEF",
-      "name": "Production OpenAI",
-      "providerType": "openai",
+      "name": "Production OpenRouter",
+      "providerType": "openrouter",
       "createdAt": "2026-07-10T10:00:00Z",
       "updatedAt": "2026-07-10T10:00:00Z"
     }
@@ -119,8 +119,8 @@ Response schema: [`providerResponseSchema`](/api-reference/protocols/objects-and
 ```json
 {
   "id": "prv_1234567890ABCDEF",
-  "name": "Production OpenAI",
-  "providerType": "openai",
+  "name": "Production OpenRouter",
+  "providerType": "openrouter",
   "baseUrl": null,
   "keyFragment": "wxyz",
   "createdAt": "2026-07-10T10:00:00Z",
@@ -160,7 +160,7 @@ Returns `200 OK` with the Provider-native model catalog.
 Response schema: [`providerModelsResponseSchema`](/api-reference/protocols/objects-and-schemas#provider-models-response).
 
 ```json
-{ "models": [{ "id": "gpt-4.1" }, { "id": "gpt-5-mini" }] }
+{ "models": [{ "id": "openai/gpt-5-mini" }, { "id": "openai/gpt-6-luna" }] }
 ```
 
 #### Errors
@@ -197,8 +197,8 @@ Response schema: [`providerResponseSchema`](/api-reference/protocols/objects-and
 ```json
 {
   "id": "prv_1234567890ABCDEF",
-  "name": "Primary OpenAI",
-  "providerType": "openai",
+  "name": "Primary OpenRouter",
+  "providerType": "openrouter",
   "baseUrl": null,
   "keyFragment": "wxyz",
   "createdAt": "2026-07-10T10:00:00Z",
@@ -217,7 +217,7 @@ curl --request PATCH \
   "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"name":"Primary OpenAI"}'
+  --data '{"name":"Primary OpenRouter"}'
 ```
 
 #### SDK and related guides

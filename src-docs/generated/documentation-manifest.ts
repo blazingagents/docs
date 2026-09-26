@@ -392,6 +392,10 @@ export const documentationPages = [
   {
     "path": "sdk/typescript/workspaces.md",
     "url": "/sdk/typescript/workspaces"
+  },
+  {
+    "path": "why.mdx",
+    "url": "/why"
   }
 ] as const;
 export const restApiOperations = [
@@ -532,7 +536,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"agents\": [\n    {\n      \"id\": \"ag_1234567890ABCDEF\",\n      \"tenantId\": \"ten_1234567890ABCDEF\",\n      \"name\": \"Support Agent\",\n      \"model\": \"gpt-4.1\",\n      \"thinkingLevel\": null,\n      \"approvalInChat\": {\"default\":\"full\",\"overrides\":[]},\n      \"approvalInTasks\": {\"default\":\"full\",\"overrides\":[]},\n      \"autoCompaction\": true,\n      \"compactionReserveTokens\": 16384,\n      \"providerId\": \"prv_1234567890ABCDEF\",\n      \"workspaceId\": \"ws_1234567890ABCDEF\",\n      \"memoryInjectionEnabled\": false,\n      \"tools\": [],\n      \"instructions\": \"Answer clearly.\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"mcpConnectionIds\": [],\n      \"avatarUrl\": null,\n      \"version\": 1,\n      \"status\": \"active\",\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00Z\"\n    }\n  ]\n}",
+            "code": "{\n  \"agents\": [\n    {\n      \"id\": \"ag_1234567890ABCDEF\",\n      \"tenantId\": \"ten_1234567890ABCDEF\",\n      \"name\": \"Support Agent\",\n      \"model\": \"openai/gpt-6-luna\",\n      \"thinkingLevel\": null,\n      \"approvalInChat\": {\"default\":\"full\",\"overrides\":[]},\n      \"approvalInTasks\": {\"default\":\"full\",\"overrides\":[]},\n      \"autoCompaction\": true,\n      \"compactionReserveTokens\": 16384,\n      \"providerId\": \"prv_1234567890ABCDEF\",\n      \"workspaceId\": \"ws_1234567890ABCDEF\",\n      \"memoryInjectionEnabled\": false,\n      \"tools\": [],\n      \"instructions\": \"Answer clearly.\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"mcpConnectionIds\": [],\n      \"avatarUrl\": null,\n      \"version\": 1,\n      \"status\": \"active\",\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00Z\"\n    }\n  ]\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "Agent objects",
@@ -706,7 +710,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": \"gpt-4.1\",\n  \"thinkingLevel\": null,\n  \"approvalInChat\": {\"default\":\"full\",\"overrides\":[]},\n  \"approvalInTasks\": {\"default\":\"full\",\"overrides\":[]},\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"providerId\": \"prv_1234567890ABCDEF\",\n  \"tools\": [\"workspace\"],\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"memoryInjectionEnabled\": true,\n  \"userId\": \"\",\n  \"metadata\": { \"team\": \"support\" },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 2,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00Z\"\n}",
+            "code": "{\n  \"id\": \"ag_1234567890ABCDEF\",\n  \"tenantId\": \"ten_1234567890ABCDEF\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"approvalInChat\": {\"default\":\"full\",\"overrides\":[]},\n  \"approvalInTasks\": {\"default\":\"full\",\"overrides\":[]},\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"providerId\": \"prv_1234567890ABCDEF\",\n  \"tools\": [\"workspace\"],\n  \"workspaceId\": \"ws_1234567890ABCDEF\",\n  \"instructions\": \"Answer clearly.\",\n  \"memoryInjectionEnabled\": true,\n  \"userId\": \"\",\n  \"metadata\": { \"team\": \"support\" },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"version\": 2,\n  \"status\": \"active\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00Z\"\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "Agent object",
@@ -3071,37 +3075,37 @@ export const restApiOperations = [
         "description": "Creates a Provider. The authenticated credential selects the Tenant boundary.",
         "examples": [
           {
-            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/providers\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Production OpenAI\",\"providerType\":\"openai\",\"baseUrl\":null,\"apiKey\":\"'\"$PROVIDER_API_KEY\"'\"}'",
+            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/providers\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Production OpenRouter\",\"providerType\":\"openrouter\",\"baseUrl\":null,\"apiKey\":\"'\"$OPENROUTER_API_KEY\"'\"}'",
             "label": "cURL",
             "language": "bash"
           },
           {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/providers\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"name\\\":\\\"Production OpenAI\\\",\\\"providerType\\\":\\\"openai\\\",\\\"baseUrl\\\":null,\\\"apiKey\\\":\\\"\" + os.environ[\"PROVIDER_API_KEY\"] + \"\\\"}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body)\nprint(response.text)",
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/providers\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"name\\\":\\\"Production OpenRouter\\\",\\\"providerType\\\":\\\"openrouter\\\",\\\"baseUrl\\\":null,\\\"apiKey\\\":\\\"\" + os.environ[\"OPENROUTER_API_KEY\"] + \"\\\"}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body)\nprint(response.text)",
             "label": "Python",
             "language": "python"
           },
           {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/providers\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"name\\\":\\\"Production OpenAI\\\",\\\"providerType\\\":\\\"openai\\\",\\\"baseUrl\\\":null,\\\"apiKey\\\":\\\"\" + process.env.PROVIDER_API_KEY + \"\\\"}\" });\nconsole.log(await response.text());",
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/providers\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"name\\\":\\\"Production OpenRouter\\\",\\\"providerType\\\":\\\"openrouter\\\",\\\"baseUrl\\\":null,\\\"apiKey\\\":\\\"\" + process.env.OPENROUTER_API_KEY + \"\\\"}\" });\nconsole.log(await response.text());",
             "label": "JavaScript",
             "language": "javascript"
           },
           {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/providers\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"name\\\":\\\"Production OpenAI\\\",\\\"providerType\\\":\\\"openai\\\",\\\"baseUrl\\\":null,\\\"apiKey\\\":\\\"\" . getenv(\"PROVIDER_API_KEY\") . \"\\\"}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/providers\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"name\\\":\\\"Production OpenRouter\\\",\\\"providerType\\\":\\\"openrouter\\\",\\\"baseUrl\\\":null,\\\"apiKey\\\":\\\"\" . getenv(\"OPENROUTER_API_KEY\") . \"\\\"}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
             "label": "PHP",
             "language": "php"
           },
           {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/providers\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"name\\\":\\\"Production OpenAI\\\",\\\"providerType\\\":\\\"openai\\\",\\\"baseUrl\\\":null,\\\"apiKey\\\":\\\"\" + os.Getenv(\"PROVIDER_API_KEY\") + \"\\\"}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/providers\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"name\\\":\\\"Production OpenRouter\\\",\\\"providerType\\\":\\\"openrouter\\\",\\\"baseUrl\\\":null,\\\"apiKey\\\":\\\"\" + os.Getenv(\"OPENROUTER_API_KEY\") + \"\\\"}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
             "label": "Go",
             "language": "go"
           },
           {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/providers\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"name\\\":\\\"Production OpenAI\\\",\\\"providerType\\\":\\\"openai\\\",\\\"baseUrl\\\":null,\\\"apiKey\\\":\\\"\" + System.getenv(\"PROVIDER_API_KEY\") + \"\\\"}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/providers\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"name\\\":\\\"Production OpenRouter\\\",\\\"providerType\\\":\\\"openrouter\\\",\\\"baseUrl\\\":null,\\\"apiKey\\\":\\\"\" + System.getenv(\"OPENROUTER_API_KEY\") + \"\\\"}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
             "label": "Java",
             "language": "java"
           },
           {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/providers\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"name\\\":\\\"Production OpenAI\\\",\\\"providerType\\\":\\\"openai\\\",\\\"baseUrl\\\":null,\\\"apiKey\\\":\\\"\" + ENV.fetch(\"PROVIDER_API_KEY\") + \"\\\"}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/providers\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"name\\\":\\\"Production OpenRouter\\\",\\\"providerType\\\":\\\"openrouter\\\",\\\"baseUrl\\\":null,\\\"apiKey\\\":\\\"\" + ENV.fetch(\"OPENROUTER_API_KEY\") + \"\\\"}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
             "label": "Ruby",
             "language": "ruby"
           }
@@ -3118,7 +3122,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"prv_1234567890ABCDEF\",\n  \"name\": \"Production OpenAI\",\n  \"providerType\": \"openai\",\n  \"baseUrl\": null,\n  \"keyFragment\": \"wxyz\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
+            "code": "{\n  \"id\": \"prv_1234567890ABCDEF\",\n  \"name\": \"Production OpenRouter\",\n  \"providerType\": \"openrouter\",\n  \"baseUrl\": null,\n  \"keyFragment\": \"wxyz\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "providerResponseSchema",
@@ -3202,7 +3206,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"providers\": [\n    {\n      \"id\": \"prv_1234567890ABCDEF\",\n      \"name\": \"Production OpenAI\",\n      \"providerType\": \"openai\",\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00Z\"\n    }\n  ]\n}",
+            "code": "{\n  \"providers\": [\n    {\n      \"id\": \"prv_1234567890ABCDEF\",\n      \"name\": \"Production OpenRouter\",\n      \"providerType\": \"openrouter\",\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00Z\"\n    }\n  ]\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "providersResponseSchema",
@@ -3280,7 +3284,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"prv_1234567890ABCDEF\",\n  \"name\": \"Production OpenAI\",\n  \"providerType\": \"openai\",\n  \"baseUrl\": null,\n  \"keyFragment\": \"wxyz\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
+            "code": "{\n  \"id\": \"prv_1234567890ABCDEF\",\n  \"name\": \"Production OpenRouter\",\n  \"providerType\": \"openrouter\",\n  \"baseUrl\": null,\n  \"keyFragment\": \"wxyz\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00Z\"\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "providerResponseSchema",
@@ -3358,7 +3362,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{ \"models\": [{ \"id\": \"gpt-4.1\" }, { \"id\": \"gpt-5-mini\" }] }",
+            "code": "{ \"models\": [{ \"id\": \"openai/gpt-5-mini\" }, { \"id\": \"openai/gpt-6-luna\" }] }",
             "language": "json",
             "contentType": "application/json",
             "note": "providerModelsResponseSchema",
@@ -3395,37 +3399,37 @@ export const restApiOperations = [
         "description": "Renames a Provider. Only `name` is mutable; replace the Provider to change its type, API key, or base URL.",
         "examples": [
           {
-            "code": "curl --request PATCH \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Primary OpenAI\"}'",
+            "code": "curl --request PATCH \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Primary OpenRouter\"}'",
             "label": "cURL",
             "language": "bash"
           },
           {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/providers/prv_1234567890ABCDEF\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"name\\\":\\\"Primary OpenAI\\\"}\"\n\nresponse = requests.request(method=\"PATCH\", url=url, headers=headers, data=body)\nprint(response.text)",
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/providers/prv_1234567890ABCDEF\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"name\\\":\\\"Primary OpenRouter\\\"}\"\n\nresponse = requests.request(method=\"PATCH\", url=url, headers=headers, data=body)\nprint(response.text)",
             "label": "Python",
             "language": "python"
           },
           {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/providers/prv_1234567890ABCDEF\";\n\nconst response = await fetch(url, { method: \"PATCH\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"name\\\":\\\"Primary OpenAI\\\"}\" });\nconsole.log(await response.text());",
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/providers/prv_1234567890ABCDEF\";\n\nconst response = await fetch(url, { method: \"PATCH\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"name\\\":\\\"Primary OpenRouter\\\"}\" });\nconsole.log(await response.text());",
             "label": "JavaScript",
             "language": "javascript"
           },
           {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/providers/prv_1234567890ABCDEF\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"PATCH\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"name\\\":\\\"Primary OpenAI\\\"}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/providers/prv_1234567890ABCDEF\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"PATCH\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"name\\\":\\\"Primary OpenRouter\\\"}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
             "label": "PHP",
             "language": "php"
           },
           {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/providers/prv_1234567890ABCDEF\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"name\\\":\\\"Primary OpenAI\\\"}\")\n\trequest, err := http.NewRequest(\"PATCH\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/providers/prv_1234567890ABCDEF\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"name\\\":\\\"Primary OpenRouter\\\"}\")\n\trequest, err := http.NewRequest(\"PATCH\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
             "label": "Go",
             "language": "go"
           },
           {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/providers/prv_1234567890ABCDEF\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"PATCH\", HttpRequest.BodyPublishers.ofString(\"{\\\"name\\\":\\\"Primary OpenAI\\\"}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/providers/prv_1234567890ABCDEF\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"PATCH\", HttpRequest.BodyPublishers.ofString(\"{\\\"name\\\":\\\"Primary OpenRouter\\\"}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
             "label": "Java",
             "language": "java"
           },
           {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/providers/prv_1234567890ABCDEF\")\nrequest = Net::HTTPGenericRequest.new(\"PATCH\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"name\\\":\\\"Primary OpenAI\\\"}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/providers/prv_1234567890ABCDEF\")\nrequest = Net::HTTPGenericRequest.new(\"PATCH\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"name\\\":\\\"Primary OpenRouter\\\"}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
             "label": "Ruby",
             "language": "ruby"
           }
@@ -3442,7 +3446,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"prv_1234567890ABCDEF\",\n  \"name\": \"Primary OpenAI\",\n  \"providerType\": \"openai\",\n  \"baseUrl\": null,\n  \"keyFragment\": \"wxyz\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:05:00Z\"\n}",
+            "code": "{\n  \"id\": \"prv_1234567890ABCDEF\",\n  \"name\": \"Primary OpenRouter\",\n  \"providerType\": \"openrouter\",\n  \"baseUrl\": null,\n  \"keyFragment\": \"wxyz\",\n  \"createdAt\": \"2026-07-10T10:00:00Z\",\n  \"updatedAt\": \"2026-07-10T10:05:00Z\"\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "providerResponseSchema",
@@ -4808,7 +4812,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"data\": [\n    {\n      \"id\": \"ss_1234567890ABCDEF\",\n      \"agentId\": \"ag_1234567890ABCDEF\",\n      \"model\": \"gpt-5\",\n      \"thinkingLevel\": \"high\",\n      \"status\": \"disabled\",\n      \"agentVersion\": 3,\n      \"messageCount\": 4,\n      \"lastMessagePreview\": \"Tell me more.\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:05:00Z\"\n    },\n    {\n      \"id\": \"ss_0987654321FEDCBA\",\n      \"agentId\": \"ag_0987654321FEDCBA\",\n      \"agentVersion\": null,\n      \"messageCount\": 2,\n      \"lastMessagePreview\": \"Thanks!\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"createdAt\": \"2026-07-09T08:00:00Z\",\n      \"updatedAt\": \"2026-07-09T08:02:00Z\"\n    }\n  ],\n  \"nextCursor\": null\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"ss_1234567890ABCDEF\",\n      \"agentId\": \"ag_1234567890ABCDEF\",\n      \"model\": \"openai/gpt-6-luna\",\n      \"thinkingLevel\": \"high\",\n      \"status\": \"disabled\",\n      \"agentVersion\": 3,\n      \"messageCount\": 4,\n      \"lastMessagePreview\": \"Tell me more.\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"createdAt\": \"2026-07-10T10:00:00Z\",\n      \"updatedAt\": \"2026-07-10T10:05:00Z\"\n    },\n    {\n      \"id\": \"ss_0987654321FEDCBA\",\n      \"agentId\": \"ag_0987654321FEDCBA\",\n      \"agentVersion\": null,\n      \"messageCount\": 2,\n      \"lastMessagePreview\": \"Thanks!\",\n      \"userId\": \"\",\n      \"metadata\": {},\n      \"createdAt\": \"2026-07-09T08:00:00Z\",\n      \"updatedAt\": \"2026-07-09T08:02:00Z\"\n    }\n  ],\n  \"nextCursor\": null\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "cursor pagination",
@@ -8560,9 +8564,17 @@ export const documentationTree: SerializedPageTree = {
         "$id": "index.mdx",
         "type": "page",
         "name": "Blazing Agents",
-        "description": "Understand how Blazing Agents runs production Agents and choose the right path through the documentation.",
+        "description": "Ship production agents without building the infrastructure behind them.",
         "url": "/",
         "$ref": "index.mdx"
+      },
+      {
+        "$id": "why.mdx",
+        "type": "page",
+        "name": "Why Blazing Agents",
+        "description": "See what Blazing Agents takes off your plate when you ship an agent to production, and when it is not the right fit.",
+        "url": "/why",
+        "$ref": "why.mdx"
       },
       {
         "type": "folder",
@@ -8580,15 +8592,15 @@ export const documentationTree: SerializedPageTree = {
             "$id": "getting-started/setup.mdx",
             "type": "page",
             "name": "Set up Blazing Agents",
-            "description": "Install the TypeScript SDK and verify an authenticated backend client.",
+            "description": "Get an API key, install the SDK, and confirm your backend can reach Blazing Agents.",
             "url": "/getting-started/setup",
             "$ref": "getting-started/setup.mdx"
           },
           {
             "$id": "getting-started/quickstart.mdx",
             "type": "page",
-            "name": "Run your first Agent",
-            "description": "Create the smallest valid Agent and complete one streamed Turn.",
+            "name": "Run your first agent",
+            "description": "Connect a model, create an agent, and stream its first answer from one small program.",
             "url": "/getting-started/quickstart",
             "$ref": "getting-started/quickstart.mdx"
           },

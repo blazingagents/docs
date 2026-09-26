@@ -11,7 +11,7 @@ description: Configure the TypeScript client and use its root chat, completion, 
 
 The client sends the API key as a bearer token, serializes JSON request bodies, and validates successful JSON resource responses. It also converts API, transport, response, and streaming failures into `BlazingAgentsError`.
 
-The default base URL is the local API development server. Set `baseUrl` when connecting to another deployment.
+The client connects to `https://api.blazingagents.com` by default, so most applications omit `baseUrl`.
 
 ## Available capabilities [#available-capabilities]
 
@@ -29,6 +29,10 @@ The default base URL is the local API development server. Set `baseUrl` when con
 | `tasks` | Inspect durable Tasks | [Tasks](/sdk/typescript/tasks) |
 | `tenant` | Read and update Tenant configuration | [Tenant](/sdk/typescript/tenant) |
 | `workspaces` | Manage secure execution Workspaces | [Workspaces](/sdk/typescript/workspaces) |
+| `chatConnections` | Connect Agents to chat platforms | [Chat integrations](/sdk/typescript/chat-integrations) |
+| `merchantConnection` | Connect your merchant account for monetization | [Monetization](/platform/monetization) |
+| `merchantBindings` | Map your end users to merchant customers | [Monetization](/platform/monetization) |
+| `merchantUsageEvents` | Inspect usage events delivered to your merchant | [Monetization](/platform/monetization) |
 | `chat()` | Run a stateful Session Turn | [Generation](/sdk/typescript/client#chat) |
 | `completion()` | Stream stateless text | [Generation](/sdk/typescript/client#completion) |
 | `object()` | Stream stateless structured output | [Generation](/sdk/typescript/client#object) |
@@ -40,7 +44,8 @@ The default base URL is the local API development server. Set `baseUrl` when con
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `apiKey` | `string` | yes | — | Tenant API key sent on every request |
-| `baseUrl` | `string` | no | `http://localhost:8787` | API origin; trailing slashes are removed |
+| `baseUrl` | `string` | no | `https://api.blazingagents.com` | API origin; trailing slashes are removed |
+| `clientRequestId` | `string` | no | — | Caller-owned correlation sent as `X-Client-Request-Id` on every request |
 | `fetch` | `BlazingAgentsFetch` | no | `globalThis.fetch` | Replacement transport for instrumentation, tests, or runtime integration |
 | `onResponse` | `(response: ResponseObservation) => void` | no | — | Observes every received response before body decoding |
 
@@ -49,7 +54,6 @@ import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-  baseUrl: "https://api.example.com/",
   onResponse(response) {
     console.log(response.requestId, response.status);
   },
@@ -185,7 +189,6 @@ import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-  baseUrl: process.env.BLAZING_AGENTS_BASE_URL,
 });
 
 const agent = await client.agents.get({ agentId: "ag_0123456789abcdef" });
@@ -200,14 +203,13 @@ console.log(await result.text);
 
 ## Generation methods [#generation-methods]
 
-The client exposes three generation methods. After admission, `chat()` creates
-the Session before the model loop and persists the submitted user message even
-when execution later fails; only a successful Turn adds the assistant response.
-Earlier validation or admission failures leave no Session. `completion()` and
-`object()` are stateless.
-Every generation call still creates a metered Turn.
+The client exposes three generation methods. Once the server accepts a
+`chat()` request, the Session exists and keeps your message even if the Turn
+later fails; only a successful Turn adds the assistant response. A request
+rejected up front creates no Session. `completion()` and `object()` are
+stateless. Every generation call creates a metered Turn.
 
-## Overview [#overview]
+## Generation inputs [#generation-inputs]
 
 Every generation input requires `agentId`. Optional `userId` and `metadata` add End-user Attribution; omit them for tenant-level Attribution. Pass `abortSignal` to cancel the request. Pass `clientRequestId` to correlate this attempt with caller-owned logs without manipulating headers.
 
@@ -264,7 +266,7 @@ console.log(await chat.sessionId);
 
 Omitting `sessionId` calls [`POST /v1/agents/:agentId/sessions`](/api-reference/rest-api/sessions#create-session-turn). Passing it calls [`POST /v1/agents/:agentId/sessions/:sessionId`](/api-reference/rest-api/sessions#resume-session-turn).
 
-Returns [`ChatResult`](#types). `toResponse()` exposes the one-shot AI SDK UI-message SSE response for relay. The Session ID promise is independent of consuming the body.
+Returns [`ChatResult`](#types). `toResponse()` wraps the AI SDK UI-message SSE body in a `Response` for relay; `toStream()` returns the same bytes as a `ReadableStream`. The body can be claimed once through either method. The Session ID promise is independent of consuming the body.
 
 Pre-stream API and transport failures throw before a result is returned. A missing or malformed Session `Location` header or a second body claim raises `stream_error`.
 
@@ -346,6 +348,7 @@ interface ChatResult {
   requestId?: string;
   sessionId: Promise<string>;
   toResponse: () => Response;
+  toStream: () => ReadableStream<Uint8Array>;
 }
 
 interface CompletionResult {
@@ -364,10 +367,10 @@ interface ObjectResult {
 ```
 
 `requestId` comes only from the server's `x-request-id` response header and
-identifies that HTTP attempt. Successful terminal message metadata separately
-exposes the metered `turnId`. `BlazingAgentsUIMessageChunk` is the AI SDK v7
-`UIMessageChunk` contract with Blazing Agents message metadata. The package
-also re-exports `UIMessage`.
+identifies that HTTP attempt. The metered `turnId` arrives separately in the
+final message metadata at `metadata.blazingAgents.usage.turnId`.
+`BlazingAgentsUIMessageChunk` is the AI SDK v7 `UIMessageChunk` contract with
+Blazing Agents message metadata. The package also re-exports `UIMessage`.
 
 See [streaming contracts](/api-reference/protocols/streaming) and [objects and schemas](/api-reference/protocols/objects-and-schemas).
 
@@ -385,6 +388,7 @@ type CompletionInput =
       version?: number;
       userId?: string;
       metadata?: Record<string, unknown>;
+      clientRequestId?: string;
       abortSignal?: AbortSignal;
     }
   | {
@@ -395,6 +399,7 @@ type CompletionInput =
       version?: number;
       userId?: string;
       metadata?: Record<string, unknown>;
+      clientRequestId?: string;
       abortSignal?: AbortSignal;
     };
 ```
@@ -407,15 +412,15 @@ type CompletionInput =
 | `ChatTrigger` | Either `"submit-message"` or `"regenerate-message"` |
 | `ChatMessageInput` / `ChatPromptInput` | `agentId` plus exactly one message source; create accepts only `submit-message`, while resume also accepts `regenerate-message` |
 | `ChatInput` | Union of the two chat inputs |
-| `ChatResult` | Optional request ID, Session ID promise, and terminal UI-message stream/response helpers |
-| `CompletionPromptInput` / `CompletionPromptIdInput` | `agentId`, exactly one Prompt source; optional Version Pin, Attribution, and `abortSignal` |
+| `ChatResult` | Optional request ID, Session ID promise, and one-shot `toStream()`/`toResponse()` helpers |
+| `CompletionPromptInput` / `CompletionPromptIdInput` | `agentId`, exactly one Prompt source; optional Version Pin, Attribution, `clientRequestId`, and `abortSignal` |
 | `CompletionInput` | Union of the two completion inputs |
 | `CompletionResult` | Optional request ID, text stream, final text promise, and response helper |
 | `ObjectPromptInput` / `ObjectPromptIdInput` | Completion fields plus required JSON `schema` |
 | `ObjectInput` | Union of the two object inputs |
 | `ObjectResult` | Optional request ID, partial-object stream, final object promise, and response helper |
 | `BlazingAgentsUIMessage` / `BlazingAgentsUIMessageChunk` | AI SDK message contracts with Blazing Agents metadata |
-| `TerminalStreamResult` | Optional request ID and one-shot UI-message stream/response helpers, also used by Tool approval continuation |
+| `TerminalStreamResult` | Optional request ID and one-shot `toStream()`/`toResponse()` helpers, also used by Tool approval continuation |
 | `UIMessage` | Public re-export of AI SDK v7's `UIMessage` type |
 
 ## Generation errors [#generation-errors]
