@@ -5,20 +5,21 @@ description: Look up public resource shapes, status values, mutability, timestam
 
 # Objects and schemas
 
-Public objects are validated by shared Zod schemas used by the REST API and
-TypeScript SDK. Use this catalog to understand lifecycle fields and update
-semantics; use the linked resource references for complete operation inputs.
+Look up what each object contains, which fields you can change, and when a
+field can be `null`. The REST API and the TypeScript SDK validate these shapes
+with the same schemas, exported from `@blazingagents/sdk/contracts`. For the
+full input of one operation, follow the link to its SDK or REST page.
 
 ## Contract [#contract]
 
-Timestamps are ISO 8601 strings with an offset. Strict request schemas reject
-unknown fields. In an update, omission means “leave unchanged”; `null` clears a
-value only where that update schema accepts `null`. Read-only response fields
-do not belong in request bodies.
+Timestamps are ISO 8601 strings with an offset. Requests with unknown fields
+are rejected. In an update, leaving a field out keeps its value, and `null`
+clears it only where that update accepts `null`. Do not send read-only
+response fields in a request.
 
-Attribution follows one rule across resources: `userId` is set at creation and
-immutable, while `metadata` is mutable only when the resource's update body
-accepts it. See [Attribution](#attribution).
+Attribution works the same way everywhere: you set `userId` at creation and
+cannot change it, and you can change `metadata` only where the update accepts
+it. See [Attribution](#attribution).
 
 | Schema                                                                | Fields and state                                         | Mutable                                            | Timestamps                                                                                                             | Nullability and omission                                                   |
 | --------------------------------------------------------------------- | -------------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
@@ -104,8 +105,7 @@ See [SDK Agents](/sdk/typescript/agents),
 
 `workspaceSchema` / `Workspace` identifies durable private files that may be
 attached to Agents. Public fields are `id`, `tenantId`, nullable `name`,
-immutable Attribution `userId`, mutable `metadata`, and timestamps. Runtime
-Container and R2 cleanup bookkeeping are private implementation details.
+immutable Attribution `userId`, mutable `metadata`, and timestamps.
 
 See [SDK Workspaces](/sdk/typescript/workspaces),
 [REST Workspaces](/api-reference/rest-api/workspaces), and
@@ -131,13 +131,13 @@ See [SDK Agent Versions](/sdk/typescript/agents#list-versions),
 
 `sessionListItemSchema` / `SessionListItem` contains `id`, nullable configured
 `agentVersion` Pin, message count, nullable last-message preview, Attribution, and
-timestamps. An admitted Session materializes before model execution. A failed
-first Turn retains its user message; cancellation can leave an empty Session.
-It has no update operation; deletion makes it inaccessible. This rule describes
-interactive Session creation. A durable Task attaches a fresh Session and
-persists the user message before generation. The terminal assistant message,
-including failure metadata, is persisted during final usage settlement, so a
-failed Task run can retain transcript and failure history.
+timestamps. A session is saved as soon as its first turn is accepted, before
+the model runs. If that turn fails, the session keeps your message; if you
+cancel it, the session can be empty. Sessions have no update operation, and
+deleting one makes it inaccessible. A task run starts a fresh session and
+saves the user message before generation, then saves the final assistant
+message, including any failure, when the run ends. A failed task run can
+therefore keep its transcript and failure details.
 
 See [SDK Sessions](/sdk/typescript/sessions),
 [REST Sessions](/api-reference/rest-api/sessions), and
@@ -201,7 +201,7 @@ See [SDK chat generation](/sdk/typescript/client#chat),
 
 ### Tool approval metadata [#tool-approval-metadata]
 
-Each list response record has the following backend fields:
+Each record in a list response has these fields:
 
 | Field | Type | Presence |
 | --- | --- | --- |
@@ -209,7 +209,7 @@ Each list response record has the following backend fields:
 | `input` | JSON value | Required |
 | `decision` | `pending` \| `approved` \| `denied` | Required; distinct from policy modes |
 | `reason` | string \| null | Required |
-| `tool` | [ToolReference](#approval-policy) \| null | Optional; null for Admin ordinary-policy reference |
+| `tool` | [ToolReference](#approval-policy) \| null | Optional; may be `null` |
 | `assistantMessageId` | string | Optional, nonempty when present; not nullable |
 | `createdAt` | ISO datetime string | Optional; not nullable |
 | `decidedAt` | ISO datetime string \| null | Optional |
@@ -236,8 +236,8 @@ See [SDK Tool approvals](/sdk/typescript/sessions#tool-approvals),
 <span id="provider"></span><span id="provider-response"></span><span id="providers-response"></span><span id="provider-models-response"></span>
 
 `providerResponseSchema` / `ProviderResponse` uses provider type `openai`,
-`anthropic`, `openrouter`, `google`, `vercel_ai_gateway`, or `custom`. The API key and Vault pointer
-are never returned. Ordinary update accepts only `name`. Provider type,
+`anthropic`, `openrouter`, `google`, `vercel_ai_gateway`, or `custom`. The API key is never
+returned. Ordinary update accepts only `name`. Provider type,
 credential, and base URL are immutable; create a replacement Provider to
 change them.
 `providersResponseSchema` returns `{ providers: ProviderListItem[] }`; each list item contains only
@@ -345,8 +345,8 @@ See [SDK Task listing](/sdk/typescript/tasks#list),
 `taskRunSchema` / `TaskRun` status is `queued`, `running`, `blocked`,
 `succeeded`, `failed`, or `canceled`. Session, error, start, finish, and cancel
 timestamps are nullable according to lifecycle. Attribution and the resolved
-Agent Version are fixed at enqueue. `turnId` is `null` until the run
-passes Turn admission; blocked runs therefore retain `turnId: null`. Cancel is
+Agent Version are fixed when the run is queued. `turnId` is `null` until the
+run's turn starts, so a blocked run keeps `turnId: null`. Cancel is
 the only caller-driven mutation.
 
 See [SDK Task runs](/sdk/typescript/tasks#list-runs),
@@ -456,86 +456,8 @@ Version Pin and schedule:
 }
 ```
 
-## Used by [#used-by]
+## Next [#next]
 
-- [Agents](/agents/agents)
-- [Versions and lifecycle](/agents/versions-and-lifecycle)
-- [Sessions and Turns](/platform/sessions-and-turns)
-- [Tasks and schedules](/automation/tasks)
-- [MCP connections](/agents/tools/mcp-tools)
-- [Connect an MCP server](/agents/tools/mcp-tools)
-- [Memory](/agents/memory)
-- [Add durable Memory](/agents/memory)
-- [Artifacts](/agents/artifacts)
-- [Publish and download Artifacts](/agents/artifacts)
-- [Usage and quotas](/platform/usage-and-quotas)
-- [Monitor usage and quotas](/platform/usage-and-quotas)
-- [Generate structured output](/agents/output/structured-output)
-- [Run a background Task](/automation/tasks)
-
-## Source of truth [#source-of-truth]
-
-- `packages/core/src/entities/agents.ts`
-- `packages/core/src/entities/agents.test.ts`
-- `packages/core/src/entities/agent-tools.ts`
-- `packages/core/src/entities/agent-tools.test.ts`
-- `packages/core/src/entities/chat.ts`
-- `packages/core/src/entities/chat.test.ts`
-- `packages/core/src/entities/sessions.ts`
-- `packages/core/src/entities/sessions.test.ts`
-- `packages/core/src/entities/providers.ts`
-- `packages/core/src/entities/providers.test.ts`
-- `packages/core/src/entities/mcp-connections.ts`
-- `packages/core/src/entities/mcp-connections.test.ts`
-- `packages/core/src/entities/memories.ts`
-- `packages/core/src/entities/memories.test.ts`
-- `packages/core/src/entities/artifacts.ts`
-- `packages/core/src/entities/artifacts.test.ts`
-- `packages/core/src/entities/tasks.ts`
-- `packages/core/src/entities/tasks-inputs.test.ts`
-- `packages/core/src/entities/tasks-responses.test.ts`
-- `packages/core/src/entities/tasks-schedules.test.ts`
-- `packages/core/src/entities/prompts.ts`
-- `packages/core/src/entities/prompts.test.ts`
-- `packages/core/src/entities/usage.ts`
-- `packages/core/src/entities/usage.test.ts`
-- `packages/core/src/entities/tenants.ts`
-- `packages/core/src/entities/tenants.test.ts`
-- `packages/core/src/entities/attribution.ts`
-- `packages/core/src/entities/attribution.test.ts`
-- `packages/core/src/db/database.types.ts` for storage alignment only
-- `servers/task-worker/src/task-run-execution.ts`
-- `servers/task-worker/src/run-workflow-lifecycle.test.ts`
-- `servers/task-worker/src/run-workflow-persistence.test.ts`
-
-## Related guides [#related-guides]
-
-See the capability and guide links under [Used by](#used-by).
-
-## Reference [#reference]
-
-See the implementation inventory under [Source of truth](#source-of-truth).
-
-Python resource contracts are documented under
-[Agents](/sdk/python/agents),
-[Workspaces](/sdk/python/workspaces),
-[Sessions](/sdk/python/sessions),
-[Generation](/sdk/python/client),
-[Providers](/sdk/python/providers),
-[MCP Connections](/sdk/python/mcp-connections),
-[Memories](/sdk/python/memories),
-[Artifacts](/sdk/python/artifacts),
-[Tasks](/sdk/python/tasks),
-[Prompts](/sdk/python/prompts),
-[Usage](/sdk/python/usage), and
-[Tenant settings](/sdk/python/tenant). Exact operation anchors
-include [`agents.list_versions()`](/sdk/python/agents#list-versions),
-[`agents.list_mcp_attachments()`](/sdk/python/agents#list-mcp-attachments),
-[`sessions.messages()`](/sdk/python/sessions#messages),
-[`sessions.tool_approvals()`](/sdk/python/sessions#tool-approvals),
-[`chat()`](/sdk/python/client#chat),
-[`artifacts.create_download_url()`](/sdk/python/artifacts#create-download-url),
-[`tasks.list()`](/sdk/python/tasks#list),
-[`tasks.list_runs()`](/sdk/python/tasks#list-runs), and
-[`tenant.update()`](/sdk/python/tenant#update). Start at the [Python
-SDK overview](/sdk/python) for shared response behavior.
+- [REST API](/api-reference/rest-api) for the operations that return these objects.
+- [TypeScript SDK](/sdk/typescript) or [Python SDK](/sdk/python) for typed clients.
+- [Pagination and filtering](/api-reference/protocols/pagination-and-filtering) for list envelopes.

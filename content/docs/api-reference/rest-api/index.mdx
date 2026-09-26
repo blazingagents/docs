@@ -7,83 +7,69 @@ description: Call Blazing Agents from a trusted backend over HTTP.
 
 ## Overview [#overview]
 
-The REST API exposes Tenant configuration, Agent execution, durable resources,
-and usage under `/v1`. The hosted production API origin is
-`https://api.blazingagents.com`; set `BLAZING_AGENTS_BASE_URL` when targeting a
-different deployment.
-Use it from a trusted backend when the TypeScript SDK is not the right integration surface.
+Every Blazing Agents feature is available over HTTP under `/v1` at
+`https://api.blazingagents.com`. Use the REST API from a backend written in a
+language without an SDK, or when you want direct control of headers and
+streams. Set `BLAZING_AGENTS_BASE_URL` to that origin to run the cURL examples
+on these pages.
 
 <Callout type="warn" title="Keep bearer credentials on the backend">
-  A Blazing Agents API key grants access to the whole Tenant. Never put it in
+  A Blazing Agents API key grants access to your whole tenant. Never put it in
   browser or mobile code; route end-user requests through your backend.
 </Callout>
 
 ```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/me" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_DASHBOARD_JWT"
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
 ## Conventions [#conventions]
 
-JSON endpoints use `application/json`; avatar uploads use multipart form data.
-Generation and Session Turns can return AI SDK-native streams. Artifact
-metadata operations return JSON, including creation of a five-minute presigned
-R2 download URL. Every authenticated operation is scoped to the credential's
-Tenant. Most product operations accept either a `ba_` API key or a dashboard
-JWT; [`GET /v1/me`](/api-reference/rest-api/tenant#get-current-identity)
-requires the JWT. Tenant credential lifecycle is a dashboard-only exception
-and is intentionally omitted from this tenant-facing REST operation catalogue.
+Requests and responses use JSON, except avatar uploads, which use multipart
+form data. Generation and session turns stream their output. Every request is
+scoped to the tenant that owns the credential.
 
-Every response includes a Blazing Agents-owned `X-Request-Id` in `req_…`
-format. Retain it with application logs and include it when contacting
-support. It identifies one HTTP attempt, so retries receive new values and an
-incoming `X-Request-Id` cannot override it.
+Most endpoints accept either a `ba_` API key or a dashboard JWT.
+[`GET /v1/me`](/api-reference/rest-api/tenant#get-current-identity) accepts
+only the dashboard JWT. API key management happens in the dashboard and is not
+part of this API.
 
-For caller-owned correlation, optionally send `X-Client-Request-Id` with 1–128
-characters from letters, digits, `.`, `_`, `:`, or `-`. It is logged
-separately and is not an idempotency key, resource ID, or the returned
-`X-Request-Id`. Errors use the canonical
-[error envelope](/api-reference/protocols/errors), while streams can report later
-failures in protocol-native error chunks.
+Every response carries an `X-Request-Id` header in `req_…` format. Log it with
+your application logs and include it when you contact support. Each HTTP
+attempt gets a new value, so a retry has a different ID, and you cannot set it
+yourself.
+
+To attach your own correlation ID, send `X-Client-Request-Id` with 1–128
+letters, digits, `.`, `_`, `:`, or `-`. Blazing Agents logs it next to the
+request ID. It is not an idempotency key.
+
+Errors use the standard [error envelope](/api-reference/protocols/errors). A
+stream that has already started reports later failures inside the stream.
 
 ## Resources [#resources]
 
 | Resource                                               | Operations                                                       |
 | ------------------------------------------------------ | ---------------------------------------------------------------- |
-| [Agents](/api-reference/rest-api/agents)                   | Configuration, Versions, lifecycle, avatars, and MCP Attachments |
-| [Workspaces](/api-reference/rest-api/workspaces)           | Tenant-scoped workspace lifecycle and file boundaries            |
-| [Skills](/api-reference/rest-api/skills)                   | Agent-owned Skill creation, archives, files, and copies          |
-| [Tenant](/api-reference/rest-api/tenant)                   | Current identity and mutable settings                            |
-| [Providers](/api-reference/rest-api/providers)             | BYOK configuration and model discovery                           |
+| [Agents](/api-reference/rest-api/agents)                   | Configuration, versions, lifecycle, avatars, and MCP attachments |
+| [Workspaces](/api-reference/rest-api/workspaces)           | Workspace lifecycle and network policy                           |
+| [Skills](/api-reference/rest-api/skills)                   | Skill creation, archives, files, and copies                      |
+| [Tenant](/api-reference/rest-api/tenant)                   | Current identity and settings                                    |
+| [Providers](/api-reference/rest-api/providers)             | Model provider keys and model discovery                          |
 | [MCP connections](/api-reference/rest-api/mcp-connections) | Connection lifecycle, testing, and OAuth                         |
 | [MCP OAuth](/api-reference/rest-api/mcp-oauth)             | Dashboard approval continuation                                  |
 | [Generation](/api-reference/rest-api/generation)           | Stateless text and structured output                             |
-| [Sessions](/api-reference/rest-api/sessions)               | Stateful Turns, transcripts, and Tool approvals                  |
-| [Artifacts](/api-reference/rest-api/artifacts)             | Listing, byte download, and deletion                             |
-| [Memories](/api-reference/rest-api/memories)               | Agent-owned durable notes                                        |
+| [Sessions](/api-reference/rest-api/sessions)               | Turns, transcripts, and tool approvals                           |
+| [Artifacts](/api-reference/rest-api/artifacts)             | Listing, download, and deletion                                  |
+| [Memories](/api-reference/rest-api/memories)               | Notes an agent keeps between sessions                            |
 | [Prompts](/api-reference/rest-api/prompts)                 | Reusable message templates                                       |
-| [Usage](/api-reference/rest-api/usage)                     | Tenant and Agent usage queries                                   |
-| [Tasks](/api-reference/rest-api/tasks)                     | Asynchronous definitions and schedules                           |
+| [Usage](/api-reference/rest-api/usage)                     | Tenant and agent usage queries                                   |
+| [Tasks](/api-reference/rest-api/tasks)                     | Background task definitions and schedules                        |
 | [Task runs](/api-reference/rest-api/task-runs)             | Execution, polling, and cancellation                             |
+| [Chat connections](/api-reference/rest-api/chat-connections) | Slack and Telegram connections and delivery outcomes           |
 
-## Shared contracts [#shared-contracts]
+## Next [#next]
 
-- [Authentication](/api-reference/rest-api/authentication)
-- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
-- [Streaming](/api-reference/protocols/streaming)
-- [Errors](/api-reference/protocols/errors)
-- [Resource IDs](/api-reference/protocols/resource-ids)
-- [Pagination and filtering](/api-reference/protocols/pagination-and-filtering)
-
-## SDK relationship [#sdk-relationship]
-
-The [TypeScript SDK](/sdk/typescript) and [Python
-SDK](/sdk/python) wrap this same `/v1` surface. Use raw REST from
-another backend language or when you need direct control of headers and
-streams. SDK-only compositions, such as restoring an Agent Version, can make
-more than one REST request and are labeled as such.
-
-## Related [#related]
-
-- [Quickstart](/getting-started/quickstart)
-- [Connect your app](/getting-started/connect-your-app)
+- [Authentication](/api-reference/rest-api/authentication) to choose a credential.
+- [Errors](/api-reference/protocols/errors) to handle failures.
+- [Streaming](/api-reference/protocols/streaming) to read turn output.
+- [TypeScript SDK](/sdk/typescript) or [Python SDK](/sdk/python) to skip raw HTTP.

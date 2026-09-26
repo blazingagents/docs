@@ -1,21 +1,20 @@
 ---
 title: Resource IDs
-description: Recognize opaque public resource identifiers and the separate server-owned HTTP request-attempt format.
+description: Recognize the ID formats Blazing Agents returns and treat them as opaque values.
 ---
 
 # Resource IDs
 
-Blazing Agents mints identifiers for public resources and HTTP request
-attempts. Resource identity and transport correlation are distinct. Use each
-format for basic boundary validation, but store and transmit the complete
-value without parsing meaning from it.
+Every object Blazing Agents creates gets an ID with a readable prefix, such as
+`ag_` for an agent. Use the formats below to reject obviously malformed input
+early. Store and send the full value, and never read meaning from its body.
 
 ## Resource contract [#resource-contract]
 
-Resource IDs are case-sensitive opaque strings. Base62 means
-`[0-9A-Za-z]`; each random body below is exactly 16 characters. A well-formed
-ID may still be missing, deleted, or outside the authenticated Tenant, and an
-ID never grants authorization.
+IDs are case-sensitive. Base62 means `[0-9A-Za-z]`, and each random body is
+exactly 16 characters. A well-formed ID can still point to something that is
+missing, deleted, or owned by another tenant, and holding an ID never grants
+access.
 
 | Anchor            | Resource                                        | Public shape                                               |
 | ----------------- | ----------------------------------------------- | ---------------------------------------------------------- |
@@ -34,27 +33,27 @@ ID never grants authorization.
 | `#mem`            | <span id="mem">Memory</span>                    | `mem_` + 16 Base62 characters                              |
 | `#prompt`         | <span id="prompt">Prompt</span>                 | `prompt_` + 16 Base62 characters                           |
 | `#skill`          | <span id="skill">Agent-owned Skill</span>       | `skill_` + 16 Base62 characters                            |
-API keys are credentials, not resource IDs. An API key is `ba_` plus 40
-Base62 characters and is shown only once; its `ak_...` record ID is used for
-list/delete operations and cannot authenticate a request. Display fragments
-such as `ba_ab` are neither IDs nor credentials.
+| `#cc`             | <span id="cc">Chat connection</span>            | `cc_` + 16 Base62 characters                               |
 
-The Session create path mints its `ss_...` ID and returns it in `Location`.
-Other create operations also mint their own IDs. The SDK exports no public
-resource-ID generator.
+An API key is a credential, not an ID. It is `ba_` plus 40 Base62 characters
+and is shown only once, when you create it. Its `ak_...` record ID lets you list
+and delete keys but cannot authenticate a request. Display fragments such as
+`ba_ab` are neither IDs nor credentials.
 
-BA-owned UI messages use independent `msg_` IDs. Tool approval, continuation,
-Tool-call, and caller-supplied Task-run idempotency values retain their native
-opaque formats. Internal DBOS workflow IDs are not public contracts.
+Blazing Agents creates every ID for you; the SDKs have no ID generator. When
+you start a session, its `ss_...` ID comes back in the `Location` header.
 
-A `turn_...` value identifies one admitted, metered Turn. It is distinct from
-the assistant message, Task run, HTTP request, trace, and Provider request.
-Successful Turn usage metadata exposes it as `turnId`; pre-Turn failures do
-not mint one. A Tool-approval continuation can reuse its assistant message ID
-while receiving a new Turn ID.
+Message IDs in the UI stream use a separate `msg_` prefix. Tool approval,
+continuation, tool-call, and your own task-run idempotency keys keep their
+native formats.
 
-Admin Agent IDs still validate as ordinary `ag_...` IDs. Do not infer Admin
-status, ownership, or permission from an ID prefix or body.
+A `turn_...` ID identifies one metered turn. It is not the assistant message,
+task run, HTTP request, trace, or provider request. A successful turn reports
+it as `turnId` in its usage metadata; a request that fails before the turn
+starts has none. A tool-approval continuation can keep its assistant message ID
+and still get a new turn ID.
+
+Do not infer status, ownership, or permission from an ID's prefix or body.
 
 ## Transport identity [#transport-identity]
 
@@ -62,17 +61,16 @@ status, ownership, or permission from an ID prefix or body.
 | ------ | ----------------------------------------------- | ----------------------------- |
 | `#req` | <span id="req">HTTP request attempt</span>      | `req_` + 16 Base62 characters |
 
-An `req_...` ID is transport correlation, never resource identity. The API
-returns it in `X-Request-Id`; callers cannot choose or reuse it. Use
-`X-Client-Request-Id` for caller-owned correlation.
+A `req_...` ID labels one HTTP attempt, not a resource. It arrives in the
+`X-Request-Id` response header, and you cannot choose or reuse it. Send
+`X-Client-Request-Id` to attach your own correlation ID.
 
-Trace IDs retain their W3C 32-lowercase-hex shape. Provider-native request
-identity, when available, is named `providerRequestId`; neither is a generic
-`requestId`.
+Trace IDs keep the W3C shape of 32 lowercase hex characters. When a provider
+returns its own request ID, it appears as `providerRequestId`.
 
 ## Examples [#examples]
 
-These are valid-looking placeholders, not existing resources or usable
+These are placeholders that match the formats, not real resources or usable
 credentials:
 
 ```text
@@ -91,54 +89,26 @@ turn_0123456789abcdef
 mem_0123456789abcdef
 prompt_0123456789abcdef
 skill_0123456789abcdef
+cc_0123456789abcdef
 req_0123456789abcdef
 ```
 
-Redacted API key (not a valid-looking credential): `ba_REDACTED`.
+A redacted API key looks like `ba_REDACTED`.
 
-Validate untrusted input locally, then let the authenticated API enforce
-Tenant ownership:
+Check untrusted input locally, then let the API enforce ownership:
 
 ```typescript
 import { agentIdSchema } from "@blazingagents/sdk/contracts";
 
 const parsed = agentIdSchema.safeParse(input.agentId);
 if (!parsed.success) {
-  throw new Error("Malformed Agent ID");
+  throw new Error("Malformed agent ID");
 }
 
 const agent = await client.agents.get({ agentId: parsed.data });
 ```
 
-## Used by [#used-by]
+## Next [#next]
 
-- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
-- [REST API](/api-reference/rest-api)
-- [Tenancy and attribution](/platform/tenancy-and-attribution)
-- [Security and credentials](/platform/security-and-credentials)
-
-## Source of truth [#source-of-truth]
-
-- `packages/core/src/ids.ts`
-- `packages/core/src/ids.test.ts`
-- `packages/server-core/src/ids.ts`
-- `packages/server-core/src/ids.test.ts`
-- `supabase/migrations/20260705031901_tables_tenants.sql`
-- `supabase/migrations/20260705031902_tables_apikeys.sql`
-- `supabase/migrations/20260705031903_tables_providers.sql`
-- `supabase/migrations/20260705031904_tables_skills.sql`
-- `supabase/migrations/20260705031905_tables_agents.sql`
-- `supabase/migrations/20260705031906_tables_sessions.sql`
-- `supabase/migrations/20260705031909_tables_artifacts.sql`
-- `supabase/migrations/20260705031910_tables_tasks.sql`
-- `supabase/migrations/20260705163109_tables_prompts.sql`
-- `supabase/migrations/20260705163122_tables_mcp_connections.sql`
-- `supabase/migrations/20260719000000_tables_memories.sql`
-
-## Related guides [#related-guides]
-
-See the capability and guide links under [Used by](#used-by).
-
-## Reference [#reference]
-
-See the implementation inventory under [Source of truth](#source-of-truth).
+- [Objects and schemas](/api-reference/protocols/objects-and-schemas) for the objects these IDs identify.
+- [Tenancy and attribution](/platform/tenancy-and-attribution) for how ownership works.

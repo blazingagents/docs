@@ -5,12 +5,14 @@ description: Handle REST error envelopes, typed SDK failures, and errors that oc
 
 # Errors
 
-Use the stable lower-snake-case `code` and HTTP status for control flow.
-`message` is safe human-readable context and can change.
+When a request fails, you get an HTTP status and a stable `code` to branch on,
+plus a readable `message` for logs. Codes do not change; messages can. This
+page covers the REST error body, the SDK error types, and failures that happen
+after a stream has started.
 
 ## Contract [#contract]
 
-Before a stream starts, every `/v1` failure uses this envelope:
+Every `/v1` failure before a stream starts returns this body:
 
 ```json
 {
@@ -25,32 +27,28 @@ Before a stream starts, every `/v1` failure uses this envelope:
 }
 ```
 
-`code` and `message` are required. `param` is an optional JSON Pointer to one
-relevant request value. `details` is an optional object whose shape depends on
-the code. The server omits optional fields when they add no value; it does not
-emit them as `null` or an empty object. Additional fields and unknown future
-codes may appear, so REST consumers should preserve them.
+`code` and `message` are always present. `param` is an optional JSON Pointer to
+the request value at fault. `details` is an optional object whose shape depends
+on the code. Optional fields are left out rather than sent as `null` or `{}`.
+New fields and new codes can appear, so keep anything you do not recognize.
 
-Validation failures use `validation_failed` and
-`details.issues: ApiErrorIssue[]`. Each issue contains a string `code`, a
+Validation failures use `validation_failed` with
+`details.issues: ApiErrorIssue[]`. Each issue has a string `code`, a
 `location` of `body`, `path`, `query`, or `header`, an RFC 6901 JSON Pointer
-`path`, and a human-readable `message`. An empty path refers to the complete
-validated target.
+`path`, and a readable `message`. An empty `path` means the whole body, path,
+query, or header set.
 
-The `provider_in_use` and `workspace_in_use` errors can include
-`details.agentIds: string[]`, listing the referencing Agents. Treat documented
-details as public diagnostic data, but still avoid logging tenant-supplied
-values without redaction.
-
-`provider_historical_use` includes `details.agentVersions` entries with
-`agentId` and `version`, plus `details.sessionIds` and `details.taskIds` for
-explicit Pins. All impact details are Tenant-scoped.
+`provider_in_use` and `workspace_in_use` can include `details.agentIds`, the
+agents that still reference the resource. `provider_historical_use` includes
+`details.agentVersions` entries with `agentId` and `version`, plus
+`details.sessionIds` and `details.taskIds` for pinned versions. Details only
+ever list your own tenant's resources, but redact any values your users
+supplied before you log them.
 
 ### ApiErrorCode [#apierrorcode]
 
-The producer's `ApiErrorCode` is closed. These are the known codes and statuses
-currently used by the server; a code can appear with more than one status where
-the underlying outcome is more specific.
+These are the common codes and their usual statuses. A code can appear with
+more than one status when the outcome is more specific.
 
 | Code | Usual status | Meaning |
 | --- | ---: | --- |
@@ -66,7 +64,7 @@ the underlying outcome is more specific.
 | `service_unavailable` | 503 | The API is not admitting work. |
 | `checkout_evidence_mismatch` | 409 | The authoritative checkout evidence conflicts with the Tenant's stored checkout attempt or paid cycle. |
 | `agent_disabled` | 409 | Enable the Agent before starting a new Turn. |
-| `admin_agent_managed` | 409 | The requested Admin Agent operation is platform-managed. |
+| `admin_agent_managed` | 409 | The platform manages this setting on the admin agent that `ba assist` uses. |
 | `agent_version_not_found` | 404 | Choose an existing Agent Version. |
 | `agent_mcp_connection_not_found` | 400 | An Agent references an unavailable MCP Connection. |
 | `agent_mcp_connections_invalid` | 400 | The Agent's MCP Connection selection is invalid. |
@@ -114,29 +112,29 @@ the underlying outcome is more specific.
 
 ### Quota errors [#quota]
 
-`quota_exceeded` is returned by Turn-producing calls when the Tenant's
-self-set token or request ceiling is exhausted. See
-[Quota limits](/api-reference/protocols/service-limits#quota-ceilings).
+Turn-producing calls return `quota_exceeded` when your tenant reaches its own
+token or request ceiling. See
+[quota limits](/api-reference/protocols/service-limits#quota-ceilings).
 
-Billable execution can also return `subscription_required` or
-`usage_credit_required`. A `service_unavailable` response from this gate is
-retryable because the authoritative Customer State could not be read.
+Billable calls can also return `subscription_required` or
+`usage_credit_required`. A `service_unavailable` from this check is safe to
+retry: it means your billing status could not be read at that moment.
 
 #### ReceivedApiErrorCode [#receivedapierrorcode]
 
-REST producers emit `ApiErrorCode`, while tolerant consumers model a received
-server discriminator as any non-empty string. This preserves a future server
-code instead of reclassifying it from HTTP status.
+When you read a code from a response, treat it as any non-empty string rather
+than a closed list. That way a code added after you wrote your client still
+reaches your handler instead of being guessed from the HTTP status.
 
 ### BlazingAgentsErrorCode [#blazingagentserrorcode]
 
-`BlazingAgentsErrorCode` is the known union plus an open string branch.
+The TypeScript SDK types `error.code` as `BlazingAgentsErrorCode`: every known
+code plus any other string.
 
 #### KnownBlazingAgentsErrorCode [#knownblazingagentserrorcode]
 
-The SDK accepts any non-empty server code so an older client can preserve a
-newer API outcome. `KnownBlazingAgentsErrorCode` provides completion for every
-`ApiErrorCode` plus these SDK-local codes:
+`KnownBlazingAgentsErrorCode` gives you completion for every API code above
+plus these codes the SDK raises itself:
 
 | Code | `status` | Meaning |
 | --- | ---: | --- |
@@ -147,47 +145,53 @@ newer API outcome. `KnownBlazingAgentsErrorCode` provides completion for every
 
 `BlazingAgentsError` extends `Error` and exposes `code`, optional `details`,
 `headers`, `param`, `requestId`, `responseBody`, `responseBodyTruncated`,
-`status`, and `cause`. `responseBody` is size-bounded diagnostic text used for
-an invalid response; it is not used as the exception message. Prefer
-`BlazingAgentsError.isInstance(error)` to `instanceof` across package copies.
+`status`, and `cause`. `responseBody` is a size-limited copy of an invalid
+response for diagnosis; it is never the error message. Use
+`BlazingAgentsError.isInstance(error)` rather than `instanceof`, which fails
+when two copies of the package are installed.
 
-A valid error envelope retains its exact server code, even when a newer server
-returns a code unknown to the installed SDK. A malformed error envelope or
-malformed successful JSON becomes `invalid_response`; the SDK does not infer a
-domain code from the status. Response-backed errors preserve a copy of the
-headers and `X-Request-Id` as `requestId`.
+A valid error body keeps its exact code, even one the installed SDK does not
+know. A malformed error body or malformed success JSON becomes
+`invalid_response`; the SDK never guesses a code from the status. Errors from a
+response keep a copy of its headers and its `X-Request-Id` as `requestId`.
+
+In Python, a non-2xx response raises `APIStatusError` with `code`,
+`status_code`, `details`, `param`, `request_id`, `headers`, and `retry_after`.
+Network failures raise `APIConnectionError` (or `APITimeoutError`), and
+failures after a stream starts raise `StreamError`. All of them extend
+`BlazingAgentsError`.
 
 ## Streaming boundary [#streaming-boundary]
 
-A non-2xx failure before streaming begins uses the JSON envelope. After a
-successful response starts, its status and headers are already committed:
-Session streams emit a native AI SDK error chunk, while completion/object
-terminal consumption rejects with `stream_error`. SDK-created relay responses
-preserve the originating request ID. Precise post-start domain codes are not
-part of the current stream protocols.
+A failure before a stream starts returns a non-2xx status with the JSON body
+above. Once a stream starts, its status and headers are already sent. Session
+streams then report the failure as an AI SDK error chunk, and completion or
+object results raise `stream_error` when you await the final value. Relay
+responses built by the SDK keep the original request ID. Streams do not carry
+a specific error code after they start.
 
-Retry safety is operation-specific. Exposed headers allow callers to read an
-authoritative `Retry-After` if one is present, but the SDK does not retry
-automatically and the contract does not promise that replaying a mutation is
-safe.
+Whether a retry is safe depends on the operation. You can read a
+`Retry-After` header when one is present, but the SDK never retries for you,
+and replaying a write is not guaranteed to be safe.
 
 ## Request correlation [#request-correlation]
 
-`X-Request-Id` is the wire source of truth and is not duplicated in the JSON
-body. With raw REST, capture that response header. With the SDK, record
-`error.requestId`; `error.headers` is also available when other response
-metadata is needed. Record status, code, request ID, and non-sensitive resource
-IDs. Never log credentials, authorization headers, raw prompts, or Tool data.
+The request ID lives only in the `X-Request-Id` response header, not in the
+JSON body. With raw REST, read that header. With the SDK, log
+`error.requestId` (`error.request_id` in Python), and use `error.headers` for
+other response metadata. Log the status, code, request ID, and resource IDs
+that are not sensitive. Never log credentials, authorization headers, raw
+prompts, or tool data.
 
 ## Examples [#examples]
 
-A `validation_failed` response sets `details.issues` to normalized
-`ApiErrorIssue` objects, for example `{ code: "invalid_type", location:
-"body", path: "/output/schema", message: "Expected an object." }`.
+A `validation_failed` response puts entries like this in `details.issues`:
+`{ code: "invalid_type", location: "body", path: "/output/schema", message:
+"Expected an object." }`.
 
-Branch on known SDK codes while preserving unknown future codes:
+Branch on the codes you handle and rethrow the rest:
 
-```typescript
+```typescript tab="TypeScript"
 import { BlazingAgentsError } from "@blazingagents/sdk";
 
 async function inspectTaskError() {
@@ -209,9 +213,28 @@ async function inspectTaskError() {
 }
 ```
 
-Await the terminal value to observe a failure after a response starts:
+```python tab="Python"
+from blazing_agents import APIStatusError
 
-```typescript
+
+def inspect_task_error() -> None:
+    try:
+        client.tasks.get(task_id)
+    except APIStatusError as error:
+        print(
+            {
+                "code": error.code,
+                "request_id": error.request_id,
+                "status": error.status_code,
+            }
+        )
+        if error.code != "quota_exceeded":
+            raise
+```
+
+Await the final value to catch a failure after the response starts:
+
+```typescript tab="TypeScript"
 const result = await client.completion(input);
 
 try {
@@ -225,36 +248,18 @@ try {
 }
 ```
 
-## Used by [#used-by]
+```python tab="Python"
+from blazing_agents import StreamError
 
-- [SDK client](/sdk/typescript/client)
-- [SDK generation](/sdk/typescript/client)
-- [REST authentication](/api-reference/rest-api/authentication)
-- [REST generation](/api-reference/rest-api/generation)
-- [REST Sessions](/api-reference/rest-api/sessions)
-- [Limits and reliability](/platform/limits-and-reliability)
-- [Troubleshoot a failed integration](/platform/limits-and-reliability)
+try:
+    with client.completion_stream(agent_id=agent_id, prompt=prompt) as stream:
+        print(stream.get_final_text())
+except StreamError as error:
+    print({"request_id": error.request_id})
+```
 
-Every SDK resource and REST endpoint page uses this error contract.
+## Next [#next]
 
-## Source of truth [#source-of-truth]
-
-- `packages/core/src/api.ts`
-- `packages/server-core/src/http.ts`
-- `packages/server-core/src/http-validation.ts`
-- `servers/api/src/utils/error-envelope.ts`
-- `../typescript-sdk/src/errors.ts`
-- `../typescript-sdk/src/http.ts`
-- `../typescript-sdk/src/generation.ts`
-
-## Related guides [#related-guides]
-
-See the capability and guide links under [Used by](#used-by).
-
-## Reference [#reference]
-
-See the implementation inventory under [Source of truth](#source-of-truth).
-
-Python error handling is documented in the [client
-reference](/sdk/python/client) and [generation
-reference](/sdk/python/client).
+- [Streaming protocol](/api-reference/protocols/streaming) for failures inside a stream.
+- [Limits and reliability](/platform/limits-and-reliability) for retries and timeouts.
+- [TypeScript client](/sdk/typescript/client) and [Python client](/sdk/python/client) for SDK error handling.
