@@ -1,165 +1,73 @@
 ---
-title: Built-in Tools
-description: Enable BA-provided planning, Memory, and Workspace actions and verify their effects.
+title: Built-in tools
+description: Switch on files and a shell, a to-do list, or memory for your agent, and check what it did.
 ---
 
-# Built-in Tools
+# Built-in tools
 
-Built-in Tools are platform-supplied actions available during a Turn. Select
-only the Tool groups an Agent needs; all groups are disabled by default.
+Give your agent ready-made abilities without writing any tool code. Blazing Agents groups its tools into three sets you switch on per agent. A new agent starts with none, so it can only do what you turn on.
 
 ## Tool groups [#tool-groups]
 
-The Agent-level `tools` array contains group IDs. At Turn resolution, each group
-expands to its declared Tool names.
-
-| Group | Expanded Tools | Boundary |
+| Group | Tools | What the agent can do |
 | --- | --- | --- |
-| `workspace` | `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts` | Operates on the Agent's current durable Workspace; publication is deliberate. |
-| `write_todos` | `write_todos` | Maintains structured planning state for the current Turn. |
-| `memory` | `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory` | Reads and changes the Agent-owned Memory store. |
+| `workspace` | `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts` | Work with files and run commands in its [workspace](/agents/workspaces), and publish finished files as [artifacts](/agents/artifacts). |
+| `write_todos` | `write_todos` | Keep a to-do list to plan the current turn. |
+| `memory` | `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory` | Save and recall notes in the agent's [memory](/agents/memory). |
 
-Selecting a group does not provision a backing resource. Every Agent already
-has a [Workspace](/agents/workspaces), while the Memory group uses the Agent's
-[Memory](/agents/memory). [MCP Tools](/agents/tools/mcp-tools) arrive through
-attached connections rather than this array.
-
-An Agent with [Skills](/agents/skills) receives `activate_skill` and Skill-aware
-`read` without enabling `workspace`. That restricted `read` accepts only the
-virtual Skill resources advertised to the current Agent; it does not grant
-ordinary Workspace access. To execute a Skill script, the Agent must read it,
-write a copy into its Workspace, and run that copy with `bash`.
+[MCP tools](/agents/tools/mcp-tools) are added through connections, not through these groups.
 
 ## Enable a group [#enable-a-group]
 
-Agent updates replace the complete `tools` array. Read the current Agent and
-merge the group to preserve unrelated selections.
+The `tools` list you send replaces the agent's whole selection, so read the current list and add to it:
 
-```typescript
+```typescript tab="TypeScript"
 const agent = await client.agents.get({ agentId });
-await client.agents.update({
-  agentId,
-  tools: agent.tools.includes("workspace")
-    ? agent.tools
-    : [...agent.tools, "workspace" as const],
-});
+if (!agent.tools.includes("workspace")) {
+  await client.agents.update({
+    agentId,
+    tools: [...agent.tools, "workspace"],
+  });
+}
 ```
 
-See the `agents` object in the [TypeScript SDK](/sdk/typescript/agents) or
-[Python SDK](/sdk/python/agents) for the exact create and update contracts.
+```python tab="Python"
+agent = client.agents.get(agent_id)
+if "workspace" not in agent.tools:
+    client.agents.update(agent_id, tools=[*agent.tools, "workspace"])
+```
 
-## Workspace operations [#workspace-operations]
+Like any agent update, this creates a new [version](/agents/versions-and-lifecycle).
 
-Workspace Tools support coding, document generation, data processing, and
-other work that needs durable mutable files.
+## Workspace tools [#workspace-tools]
 
-| Tool | Purpose |
+| Tool | What it does |
 | --- | --- |
-| `read` | Read a Workspace file or an authorized Skill resource. |
-| `write` | Write text and create parent directories when needed. |
+| `read` | Read a file. |
+| `write` | Write a text file, creating folders as needed. |
 | `edit` | Replace exact text in an existing file. |
-| `grep` | Search text recursively and return bounded matches. |
-| `glob` | List paths matching a shell-style pattern. |
-| `bash` | Run a command from `/workspace` and return its exit code and output. |
-| `publish_artifacts` | Publish one to ten readable files as append-only Artifacts. |
+| `grep` | Search file contents. |
+| `glob` | List paths that match a pattern such as `src/**/*.ts`. |
+| `bash` | Run a shell command and return its exit code and output. |
+| `publish_artifacts` | Publish one to ten files as [artifacts](/agents/artifacts). |
 
-Relative paths resolve beneath `/workspace`; absolute paths must already be
-inside that root. Normalized paths that escape the Workspace are rejected.
-`bash` starts in `/workspace`. The sandbox receives neither Provider
-credentials nor application environment variables, and guest network access is
-denied.
+The agent works under `/workspace`. Relative paths resolve there, `bash` starts there, and paths that would leave it are rejected. Commands get no provider keys or application environment variables, and they can reach only the hosts the workspace's [network policy](/agents/workspaces#control-network-access) allows.
 
-The first Workspace operation freezes the Agent's current Workspace ID for the
-Turn. Each operation refreshes the Workspace backup and network policy before
-execution. The model loop remains in the trusted dispatcher rather than inside
-the Workspace.
+Writing a file does not deliver it anywhere. The agent must call `publish_artifacts` to hand a file to your application, and it can do that only in a chat session or task run, not in stateless generation.
+
+### Tools that come with skills [#tools-that-come-with-skills]
+
+An agent with [skills](/agents/skills) also gets `activate_skill` and a `read` that can open its skill files, even without the `workspace` group. That `read` does not open workspace files. To run a script from a skill, the agent needs the `workspace` group: it reads the script, writes a copy into the workspace, and runs the copy with `bash`.
 
 ## Verify durable file operations [#verify-durable-file-operations]
 
-This procedure writes an exact sentinel in one Session and reads it from a
-different Session. Persistence follows the Workspace attachment, not the
-Session.
+Check that files survive between sessions: write a value in one session, then read it back in a new one. Check the saved tool result rather than the agent's reply, because the model can paraphrase.
 
-<Steps>
-  <Step>
-    ## Enable Workspace Tools
+First, ask the agent to write the file:
 
-    Apply the merge shown above so existing Tool groups remain selected.
-
-  </Step>
-  <Step>
-    ## Write the sentinel
-
-    ```typescript
-    const sentinel = "BA_DURABLE_42";
-    const writeTurn = await client.chat({
-      agentId,
-      message: {
-        id: crypto.randomUUID(),
-        role: "user",
-        parts: [
-          {
-            type: "text",
-            text: `Use write to create durable.txt containing exactly ${sentinel}. Do not publish it.`,
-          },
-        ],
-      },
-    });
-    await writeTurn.toResponse().text();
-    ```
-
-    Draining the stream lets the Turn finish its Tool work.
-
-  </Step>
-  <Step>
-    ## Read it in another Session
-
-    ```typescript
-    const readTurn = await client.chat({
-      agentId,
-      message: {
-        id: crypto.randomUUID(),
-        role: "user",
-        parts: [
-          { type: "text", text: "Use read to read durable.txt, then summarize." },
-        ],
-      },
-    });
-    const sessionId = await readTurn.sessionId;
-    await readTurn.toResponse().text();
-
-    const { data } = await client.sessions.messages({ agentId, sessionId });
-    const result = data
-      .flatMap((message) => message.parts)
-      .find(
-        (part) => part.type === "tool-read" && part.state === "output-available",
-      )?.output;
-    if (
-      typeof result !== "object" ||
-      result === null ||
-      !("path" in result) ||
-      !("content" in result) ||
-      result.path !== "/workspace/durable.txt" ||
-      result.content !== sentinel
-    ) {
-      throw new Error("Persistence check failed");
-    }
-    ```
-
-    The successful persisted Tool result verifies the bytes; do not use the
-    model-authored summary as the assertion.
-
-  </Step>
-</Steps>
-
-## Build a bounded coding Agent [#build-a-bounded-coding-agent]
-
-For coding work, name the exact files, changes, searches, commands, and expected
-results. The following prompt exercises every private Workspace operation
-without publishing an Artifact:
-
-```typescript
-const turn = await client.chat({
+```typescript tab="TypeScript"
+const sentinel = "BA_DURABLE_42";
+const writeTurn = await client.chat({
   agentId,
   message: {
     id: crypto.randomUUID(),
@@ -167,44 +75,93 @@ const turn = await client.chat({
     parts: [
       {
         type: "text",
-        text:
-          "Use write to create status.txt containing PENDING plus a newline. " +
-          "Use edit to replace PENDING with READY. Verify it with read, grep for READY, " +
-          "and glob for status.txt. Run `wc -c < status.txt` with bash. Then summarize.",
+        text: `Use write to create durable.txt containing exactly ${sentinel}.`,
       },
     ],
   },
 });
-await turn.toResponse().text();
+await writeTurn.toResponse().text();
 ```
 
-Inspect the Session message parts to verify each Tool result. Treat generated
-commands, files, and summaries as untrusted until your application validates
-them.
+```python tab="Python"
+import uuid
 
-## Publishing and failures [#publishing-and-failures]
+sentinel = "BA_DURABLE_42"
 
-Writing a file does not make it an application output. `publish_artifacts`
-explicitly turns selected Workspace files into [Artifacts](/agents/artifacts)
-owned by a stateful Session. Stateless generation can use the other Workspace
-Tools but cannot publish because no Session can own the output.
 
-Filesystem changes are not transactional. Completed writes and edits remain
-after cancellation or a later Tool failure, even though a failed Turn does not
-commit new Session transcript events. Concurrent Turns sharing a Workspace may
-also overlap, so coordinate writes where needed.
+def ask(text: str) -> str:
+    message = {
+        "id": str(uuid.uuid4()),
+        "role": "user",
+        "parts": [{"type": "text", "text": text}],
+    }
+    with client.chat(agent_id=agent_id, message=message) as stream:
+        for _ in stream:
+            pass
+        return stream.session_id
+
+
+ask(f"Use write to create durable.txt containing exactly {sentinel}.")
+```
+
+Then read it from a new session and check the `read` result:
+
+```typescript tab="TypeScript"
+const readTurn = await client.chat({
+  agentId,
+  message: {
+    id: crypto.randomUUID(),
+    role: "user",
+    parts: [{ type: "text", text: "Use read to read durable.txt." }],
+  },
+});
+const sessionId = await readTurn.sessionId;
+await readTurn.toResponse().text();
+
+const { data } = await client.sessions.messages({ agentId, sessionId });
+const output = data
+  .flatMap((message) => message.parts)
+  .find((part) => part.type === "tool-read" && part.state === "output-available")?.output;
+if (
+  typeof output !== "object" ||
+  output === null ||
+  !("content" in output) ||
+  output.content !== sentinel
+) {
+  throw new Error("Persistence check failed");
+}
+```
+
+```python tab="Python"
+session_id = ask("Use read to read durable.txt.")
+
+page = client.sessions.messages(agent_id=agent_id, session_id=session_id)
+outputs = [
+    part.model_dump().get("output")
+    for message in page.data
+    for part in message.parts
+    if part.type == "tool-read"
+]
+if not any(isinstance(o, dict) and o.get("content") == sentinel for o in outputs):
+    raise RuntimeError("Persistence check failed")
+```
+
+Always read the whole stream, as these examples do. The turn finishes its tool work and saves the session only when the stream ends.
+
+## Failures and shared files [#failures-and-shared-files]
+
+File changes are not undone when a turn fails or is stopped. Writes and edits that finished stay in the workspace, even though a failed turn saves nothing to the session. Turns that share a workspace can also change the same files at once, so coordinate writes when that matters.
 
 ## Production checklist [#production-checklist]
 
-- Enable only the groups the Agent needs; selection is capability exposure, not authorization.
-- Keep secrets out of prompts, commands, Workspace files, Tool arguments, and logs.
-- Expect bounded inputs and outputs plus filesystem, process, memory, and compute limits.
-- Validate files before consuming or publishing them in another system.
-- Use [Tool approvals](/agents/tools/tool-approvals) for calls that require a human decision.
-- Review [security and credentials](/platform/security-and-credentials) and [limits and reliability](/platform/limits-and-reliability).
+- Turn on only the groups the agent needs. Selecting a group gives the agent that ability; it does not check who the user is.
+- Keep secrets out of prompts, commands, files, and tool arguments.
+- Treat files, commands, and summaries the agent produces as untrusted until your application checks them.
+- Put a person in front of risky calls such as `bash` with [tool approvals](/agents/tools/tool-approvals).
+- Expect limits on input and output size, file operations, and compute. See [limits and reliability](/platform/limits-and-reliability).
 
-## Related reference [#related-reference]
+## Next [#next]
 
-- TypeScript: [Agents](/sdk/typescript/agents), [Sessions](/sdk/typescript/sessions), and [client generation methods](/sdk/typescript/client#chat)
-- Python: [Agents](/sdk/python/agents), [Workspaces](/sdk/python/workspaces), [Sessions](/sdk/python/sessions), and [client generation methods](/sdk/python/client#chat)
-- HTTP contracts: [API reference](/api-reference)
+- [Workspaces](/agents/workspaces) for how files persist and who can reach the network.
+- [Tool approvals](/agents/tools/tool-approvals) to review calls before they run.
+- `agents.update()` in the [TypeScript SDK](/sdk/typescript/agents#update) and [Python SDK](/sdk/python/agents#update).

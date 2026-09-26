@@ -58,7 +58,7 @@ export const documentationPages = [
     "url": "/agents/tools/mcp-tools"
   },
   {
-    "path": "agents/tools/tool-approvals.md",
+    "path": "agents/tools/tool-approvals.mdx",
     "url": "/agents/tools/tool-approvals"
   },
   {
@@ -8754,33 +8754,33 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "agents/tools/index.mdx",
                 "type": "page",
                 "name": "Tools",
-                "description": "Give Agents narrowly scoped actions through built-in Tools, remote MCP Tools, and durable human approval.",
+                "description": "Let your agent take actions, from editing files to calling your own services, with a person in the loop when it matters.",
                 "url": "/agents/tools",
                 "$ref": "agents/tools/index.mdx"
               },
               {
                 "$id": "agents/tools/built-in-tools.mdx",
                 "type": "page",
-                "name": "Built-in Tools",
-                "description": "Enable BA-provided planning, Memory, and Workspace actions and verify their effects.",
+                "name": "Built-in tools",
+                "description": "Switch on files and a shell, a to-do list, or memory for your agent, and check what it did.",
                 "url": "/agents/tools/built-in-tools",
                 "$ref": "agents/tools/built-in-tools.mdx"
               },
               {
                 "$id": "agents/tools/mcp-tools.mdx",
                 "type": "page",
-                "name": "MCP Tools",
-                "description": "Connect a remote MCP server, authenticate it safely, and expose its discovered Tools to an Agent.",
+                "name": "MCP tools",
+                "description": "Connect a remote MCP server once and give its tools to any of your agents.",
                 "url": "/agents/tools/mcp-tools",
                 "$ref": "agents/tools/mcp-tools.mdx"
               },
               {
-                "$id": "agents/tools/tool-approvals.md",
+                "$id": "agents/tools/tool-approvals.mdx",
                 "type": "page",
                 "name": "Tool approvals",
-                "description": "Configure Tool approval policies and let people approve or deny calls in chat.",
+                "description": "Decide which tool calls run freely, which are blocked, and which wait for a person or the model to approve.",
                 "url": "/agents/tools/tool-approvals",
-                "$ref": "agents/tools/tool-approvals.md"
+                "$ref": "agents/tools/tool-approvals.mdx"
               }
             ],
             "$id": "agents/tools",

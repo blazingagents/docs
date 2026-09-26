@@ -1,179 +1,124 @@
 ---
-title: MCP Tools
-description: Connect a remote MCP server, authenticate it safely, and expose its discovered Tools to an Agent.
+title: MCP tools
+description: Connect a remote MCP server once and give its tools to any of your agents.
 ---
 
-# MCP Tools
+# MCP tools
 
-An MCP Connection is a tenant-level binding to a remote Streamable HTTP MCP
-server and its managed credential. An MCP Attachment selects that connection
-for an Agent, making the server's discovered Tools available during Turns.
+Give your agent the tools from any remote MCP server, such as your own internal API or a third-party service. You create a connection once, with its URL and credentials, then attach it to every agent that should use it. Blazing Agents stores the credentials, refreshes OAuth tokens, and discovers the server's tools at the start of every turn.
 
-Connections are reusable across Agents and carry no Attribution. Attachment
-settings independently decide whether a Turn's `userId` and named metadata keys
-are forwarded. Forwarded Attribution is context for the remote server, not
-authorization.
+## Connect and attach a server [#connect-and-attach-a-server]
 
-## Authentication and status [#authentication-and-status]
+This example connects a server that needs a bearer token, checks that it exposes a `lookup_customer` tool, and attaches it to an agent:
 
-| Authentication | Create-time behavior |
-| --- | --- |
-| `none` | Validates the server before returning `connected`. |
-| `bearer` | Accepts a write-only `bearerToken` and validates before returning. |
-| `oauth_client_credentials` | Accepts write-only client credentials and optional scope, then validates. |
-| `oauth_authorization_code` | Returns `needs_auth` and requires a Tenant-admin browser continuation. |
+```typescript tab="TypeScript"
+const connection = await client.mcpConnections.create({
+  name: "Customer tools",
+  url: "https://mcp.example.com/v1",
+  authType: "bearer",
+  bearerToken: process.env.CUSTOMER_MCP_TOKEN!,
+});
 
-Public responses expose safe authentication metadata and one status:
-`connected`, `needs_auth`, or `error`. They never return bearer tokens, OAuth
-client secrets, access tokens, refresh tokens, or stored credential bundles.
+const test = await client.mcpConnections.test({
+  mcpConnectionId: connection.id,
+});
+if (!test.ok) throw new Error(`${test.error.code}: ${test.error.message}`);
+if (!test.toolNames.includes("lookup_customer")) {
+  throw new Error("Expected a lookup_customer tool");
+}
 
-A connection test returns latency, server identity, Tool names, and Tool count,
-or a sanitized failure with one of these codes:
-`MCP_CONNECTION_AUTHENTICATION_FAILED`, `MCP_CONNECTION_INVALID`,
-`MCP_CONNECTION_UNREACHABLE`, or `MCP_CONNECTION_DISCOVERY_FAILED`.
+const agent = await client.agents.get({ agentId });
+await client.agents.update({
+  agentId,
+  mcpConnectionIds: [...new Set([...agent.mcpConnectionIds, connection.id])],
+});
+```
 
-## Connect and verify a server [#connect-and-verify-a-server]
+```python tab="Python"
+import os
 
-You need a remote HTTPS URL without embedded credentials, query parameters, or
-fragments. Loopback HTTP is test-only and disabled outside the explicit test
-environment.
+connection = client.mcp_connections.create(
+    name="Customer tools",
+    url="https://mcp.example.com/v1",
+    auth_type="bearer",
+    bearer_token=os.environ["CUSTOMER_MCP_TOKEN"],
+)
 
-<Steps>
-  <Step>
-    ## Create and test the connection
+test = client.mcp_connections.test(connection.id)
+if test.error is not None:
+    raise RuntimeError(f"{test.error.code}: {test.error.message}")
+if "lookup_customer" not in (test.tool_names or []):
+    raise RuntimeError("Expected a lookup_customer tool")
 
-    ```typescript
-    const connection = await client.mcpConnections.create({
-      name: `Customer tools ${crypto.randomUUID()}`,
-      url: "https://mcp.example.com/v1",
-      authType: "none",
-    });
+agent = client.agents.get(agent_id)
+if connection.id not in agent.mcp_connection_ids:
+    client.agents.update(
+        agent_id,
+        mcp_connection_ids=[*agent.mcp_connection_ids, connection.id],
+    )
+```
 
-    const test = await client.mcpConnections.test({
-      mcpConnectionId: connection.id,
-    });
-    if (!test.ok) {
-      throw new Error(`${test.error.code}: ${test.error.message}`);
-    }
-    if (!test.toolNames.includes("lookup_customer")) {
-      throw new Error("Expected lookup_customer Tool");
-    }
-    ```
+The list of connection IDs you send replaces the agent's whole list, so the example adds to the current one. From the next turn, the agent can call `lookup_customer`. When a chat turn succeeds, the call and its result are saved in the session, so check them there rather than in the agent's reply.
 
-    Direct-auth creation validates the server. There is no separate enabled
-    flag: attachment to an Agent controls Tool availability.
+A connection has no on or off switch. Attaching it to an agent is what makes its tools available, and one connection can serve many agents.
 
-  </Step>
-  <Step>
-    ## Complete Authorization Code authentication when required
+## Choose how to sign in [#choose-how-to-sign-in]
 
-    Authorization Code creation returns `needs_auth`. Register
-    `{API origin}/v1/mcp/oauth/callback` with the authorization server. On your
-    trusted backend, use the current Supabase Tenant-admin access token to begin
-    the continuation and redirect that administrator's browser:
+The server URL must use HTTPS and cannot contain credentials, a query string, or a fragment.
 
-    ```typescript
-    import { BlazingAgents } from "@blazingagents/sdk";
+| `authType` | Use it when | What you send |
+| --- | --- | --- |
+| `none` | The server needs no credentials. | Nothing extra. |
+| `bearer` | The server takes a static token. | `bearerToken` |
+| `oauth_client_credentials` | The server issues tokens to a machine client. | `clientId`, `clientSecret`, and optional `scope` |
+| `oauth_authorization_code` | A person has to sign in and grant access. | Nothing extra; finish sign-in in the dashboard. |
 
-    async function beginMcpOAuth(
-      connectionId: string,
-      tenantAdminAccessToken: string,
-    ) {
-      const adminClient = new BlazingAgents({ apiKey: tenantAdminAccessToken });
-      const { authorizationUrl } = await adminClient.mcpConnections.connect({
-        mcpConnectionId: connectionId,
-      });
-      return Response.redirect(authorizationUrl, 303);
-    }
-    ```
+For every type except `oauth_authorization_code`, Blazing Agents checks the server before it saves the connection. If the check fails, nothing is saved.
 
-    <Callout type="info" title="OAuth uses an admin continuation">
-      An ordinary API-key client cannot start this flow. The returned URL carries
-      a short-lived BA setup token, not the upstream credential. Never return the
-      Tenant-admin token or client secret to browser code.
-    </Callout>
+Credentials are write-only. Responses never include bearer tokens, client secrets, or OAuth tokens.
 
-  </Step>
-  <Step>
-    ## Attach without dropping existing connections
+### Sign in with an authorization code [#sign-in-with-an-authorization-code]
 
-    `mcpConnectionIds` replaces the complete attachment set. Read the Agent and
-    merge the new ID:
+A connection that uses `oauth_authorization_code` starts with status `needs_auth`. To finish it, a tenant administrator opens the MCP connections page in the [dashboard](https://www.blazingagents.com/app), clicks **Connect**, and signs in to the MCP server. If the server's authorization server asks for a redirect URL, register `https://api.blazingagents.com/v1/mcp/oauth/callback`.
 
-    ```typescript
-    const agent = await client.agents.get({ agentId });
-    await client.agents.update({
-      agentId,
-      mcpConnectionIds: [...new Set([...agent.mcpConnectionIds, connection.id])],
-    });
-    ```
+The `connect()` SDK method starts the same flow, but it needs a signed-in dashboard administrator rather than an API key, so an API-key client gets `unauthorized`.
 
-  </Step>
-  <Step>
-    ## Invoke a discovered Tool
+## Check a connection [#check-a-connection]
 
-    ```typescript
-    const turn = await client.chat({
-      agentId,
-      message: {
-        id: crypto.randomUUID(),
-        role: "user",
-        parts: [{ type: "text", text: "Use lookup_customer for customer 42." }],
-      },
-    });
-    await turn.toResponse().text();
-    ```
+Each connection has a `status`: `connected`, `needs_auth`, or `error`. Treat `needs_auth` as a sign to reconnect.
 
-    Inspect the successful Session transcript for the Tool call and result
-    rather than searching model-authored prose for the Tool name.
+`test()` returns the server's identity, response time, and tool names, or a safe error with one of these codes:
 
-  </Step>
-</Steps>
+- `MCP_CONNECTION_AUTHENTICATION_FAILED`
+- `MCP_CONNECTION_INVALID`
+- `MCP_CONNECTION_UNREACHABLE`
+- `MCP_CONNECTION_DISCOVERY_FAILED`
 
-## Runtime exposure [#runtime-exposure]
+Run it again after you change credentials or the server changes, because tools are discovered live on every turn.
 
-At Turn startup, BA opens each attached connection, discovers its Tools,
-validates their schemas and limits, and exposes namespaced Tool keys. Required
-MCP Task Tools are not exposed. A connection in `needs_auth` fails closed, and
-one connection setup or Tool failure can fail the Turn instead of silently
-reducing capabilities.
+## What happens during a turn [#what-happens-during-a-turn]
 
-Outbound requests follow a fixed network policy: production fetch requires
-HTTPS, rejects credentials in URLs and denied addresses, revalidates redirects,
-bounds time and response size, and strips sensitive headers on allowed
-cross-origin redirects. Tool definitions and results are size-bounded, remote
-metadata is removed before model use, credential echoes are rejected, and
-runtime failures are sanitized.
+At the start of each turn, Blazing Agents connects to every attached server and lists its tools. A connection that needs sign-in fails the turn, and so can a server that cannot be reached or a tool that fails. Blazing Agents does not quietly run the turn with fewer tools. MCP tools that require the MCP task protocol are not offered to the agent.
 
-## Reconnect, Pins, and deletion [#reconnect-pins-and-deletion]
+Requests to the server use HTTPS, follow only safe redirects, and have time and size limits. Tool results are size-limited too, and a result that echoes a stored credential is rejected.
 
-`reconnect()` replaces the URL and authentication material. A failed direct-auth
-reconnect retains the previous usable binding because validation happens first.
-Authorization Code reconnect replaces credential state immediately, returns
-`needs_auth`, and requires a new continuation; abandoning it does not restore
-the old binding.
+Each attachment decides what end-user context the server receives. Turn on forwarding of the turn's `userId` or selected `metadata` keys with `agents.updateMcpAttachment()` (`update_mcp_attachment()` in Python). The server receives that context as information only; it does not grant access.
 
-Agent Versions store only the connection ID. Reconnecting that ID changes the
-live endpoint or credential used by historical Pins. Deleting it removes the
-connection from pinned execution, and restoring a Version that names it fails
-current attachment validation. Deletion is blocked until every current Agent
-detaches the connection.
+## Reconnect or delete [#reconnect-or-delete]
 
-Use `status`, `lastAuthErrorCode`, and `test()` after credential or server
-changes. Treat `needs_auth` as a reconnect signal.
+`reconnect()` replaces a connection's URL and credentials under the same ID. With a token or client credentials, the new details are checked first, and the old ones stay in use if the check fails. With an authorization code, the old credentials are dropped right away and the connection returns to `needs_auth` until someone signs in again.
+
+Agent versions store only the connection ID. Reconnecting therefore changes what older pinned versions use too. You can delete a connection only after every agent has detached it, and restoring a version that names a deleted connection fails.
 
 ## Production checklist [#production-checklist]
 
-- Use least-privileged credentials and keep them out of names, URLs, metadata, Tool arguments, and logs.
-- Keep Authorization Code setup inside a Tenant-admin browser flow.
+- Use credentials with the least access the tools need, and keep them out of names, URLs, metadata, tool arguments, and logs.
 - Forward `userId` or metadata only when the server needs it.
-- Re-test after the remote server changes; Tool discovery is live.
-- Expect discovery, timeout, cancellation, remote application, and cleanup failures.
-- MCP does not bypass Agent configuration, tenant scope, or [Tool approvals](/agents/tools/tool-approvals).
+- Plan for server errors, timeouts, and a turn that fails because a connection needs sign-in.
+- MCP tools follow the same [tool approvals](/agents/tools/tool-approvals) as any other tool.
 - Review [security and credentials](/platform/security-and-credentials).
 
-## Related reference [#related-reference]
+## Next [#next]
 
-- TypeScript: [MCP Connections](/sdk/typescript/mcp-connections), [Agents](/sdk/typescript/agents), and [`chat()`](/sdk/typescript/client#chat)
-- Python: [MCP Connections](/sdk/python/mcp-connections), [Agents](/sdk/python/agents), and [`chat()`](/sdk/python/client#chat)
-- HTTP: [MCP and Agent operations](/api-reference)
+- [Tool approvals](/agents/tools/tool-approvals) to require a decision before an MCP call runs.
+- MCP connection methods in the [TypeScript SDK](/sdk/typescript/mcp-connections) and [Python SDK](/sdk/python/mcp-connections).

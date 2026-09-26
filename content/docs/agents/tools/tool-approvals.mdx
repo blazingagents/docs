@@ -1,0 +1,202 @@
+---
+title: Tool approvals
+description: Decide which tool calls run freely, which are blocked, and which wait for a person or the model to approve.
+---
+
+# Tool approvals
+
+Stay in control of what your agent does. For each tool you choose whether calls run freely, are blocked, wait for a person to approve them, or are reviewed by the model first. When a person has to decide, the agent pauses, your app shows the call, and the agent carries on once the decision is in.
+
+## Approval policies [#approval-policies]
+
+Each agent has two policies: `approvalInChat` for chat and stateless generation, and `approvalInTasks` for [tasks](/automation/tasks). Each policy has a `default` mode and a list of per-tool `overrides`. A matching override wins over the default.
+
+| Mode | What happens to a call |
+| --- | --- |
+| `full` | Runs without approval. This is the default. |
+| `deny` | Is blocked. |
+| `manual` | Waits for a person to approve or deny it. |
+| `auto` | The agent's model allows it, denies it, or asks a person. If the review fails, the call is blocked. |
+
+This example lets chat tools run freely except `bash`, which needs a person, and lets tasks use only `read`. The agent needs the `workspace` tool group for these rules to be valid:
+
+```typescript tab="TypeScript"
+await client.agents.update({
+  agentId,
+  approvalInChat: {
+    default: "full",
+    overrides: [{ tool: { type: "builtin", name: "bash" }, decision: "manual" }],
+  },
+  approvalInTasks: {
+    default: "deny",
+    overrides: [{ tool: { type: "builtin", name: "read" }, decision: "full" }],
+  },
+});
+```
+
+```python tab="Python"
+client.agents.update(
+    agent_id,
+    approval_in_chat={
+        "default": "full",
+        "overrides": [{"tool": {"type": "builtin", "name": "bash"}, "decision": "manual"}],
+    },
+    approval_in_tasks={
+        "default": "deny",
+        "overrides": [{"tool": {"type": "builtin", "name": "read"}, "decision": "full"}],
+    },
+)
+```
+
+To target an MCP tool, use `{ type: "mcp", connectionId, name }` with the tool's original name and a connection attached to the agent (`connection_id` in Python). Each tool can appear once per policy, and it must be available to the agent, so update your rules when you remove a tool group or connection.
+
+Sending a policy replaces it, and leaving one out keeps it as it is. Both policies are part of the agent's [versions](/agents/versions-and-lifecycle), so pinning or restoring a version brings its policies with it.
+
+<span id="review-availability"></span>
+Only interactive chat can wait for a person. In tasks and stateless generation, there is nobody to ask, so `manual` calls and `auto` calls that need a person are blocked, and the agent carries on with the work it is allowed to do. Automatic review uses the agent's model, so it counts toward the turn's usage.
+
+<span id="when-a-tool-needs-approval"></span>
+<span id="approval-and-continuation-lifecycle"></span>
+<span id="join-the-continuation-turn"></span>
+
+## Human approval flow [#human-approval-flow]
+
+1. The agent proposes a call that needs a person, and the turn pauses.
+2. Your app shows the reviewer the tool and its arguments.
+3. Your backend sends the reviewer's decision. If several calls are waiting, each one needs a decision.
+4. The agent resumes. Approved calls run, and denied calls return a denied result to the agent. Your app streams the resumed answer.
+
+The resumed run is called a **continuation**, and reading its stream is called **joining** it. It is a new turn in the same session, and it counts toward usage like any other. You never run the tool yourself.
+
+## List and decide an approval [#list-and-decide-an-approval]
+
+On your backend, list the session's approvals and show the pending ones to someone allowed to decide:
+
+```typescript tab="TypeScript"
+const { data } = await client.sessions.toolApprovals({ agentId, sessionId });
+const pending = data.filter((item) => item.decision === "pending");
+for (const item of pending) {
+  console.log(item.approvalId, item.toolName, item.input);
+}
+```
+
+```python tab="Python"
+approvals = client.sessions.tool_approvals(agent_id=agent_id, session_id=session_id)
+for item in approvals.data:
+    if item.decision == "pending":
+        print(item.approval_id, item.tool_name, item.input)
+```
+
+When the reviewer decides, send the decision and stream the resumed answer back. Check that the reviewer may access this session before you call this:
+
+```typescript tab="TypeScript"
+async function decide(
+  agentId: string,
+  sessionId: string,
+  approvalId: string,
+  approved: boolean,
+): Promise<Response> {
+  const decision = await client.sessions.decideToolApproval({
+    agentId,
+    sessionId,
+    approvalId,
+    approved,
+  });
+  if (decision.state === "waiting") {
+    return Response.json({ state: "waiting" }, { status: 202 });
+  }
+  const resumed = await client.sessions.joinToolApprovalContinuation({
+    agentId,
+    sessionId,
+    continuationId: decision.continuationId,
+  });
+  return resumed.toResponse();
+}
+```
+
+```python tab="Python"
+from blazing_agents import AsyncBlazingAgents
+from fastapi.responses import JSONResponse, StreamingResponse
+
+client = AsyncBlazingAgents()
+
+
+async def decide(
+    agent_id: str, session_id: str, approval_id: str, approved: bool
+) -> JSONResponse | StreamingResponse:
+    decision = await client.sessions.decide_tool_approval(
+        agent_id=agent_id,
+        session_id=session_id,
+        approval_id=approval_id,
+        approved=approved,
+    )
+    if decision.state == "waiting":
+        return JSONResponse({"state": "waiting"}, status_code=202)
+    resumed = await client.sessions.join_tool_approval_continuation(
+        agent_id=agent_id,
+        session_id=session_id,
+        continuation_id=decision.continuation_id,
+    )
+    return StreamingResponse(
+        resumed,
+        headers={"x-vercel-ai-ui-message-stream": "v1"},
+        media_type="text/event-stream",
+    )
+```
+
+A `waiting` state means other calls in the same turn still need a decision, so keep their buttons on screen. Otherwise the response is the resumed answer as an AI SDK UI message stream, including any error at the end.
+
+## Render the resumed answer [#render-the-resumed-answer]
+
+Approvals use the AI SDK's [tool approval messages](https://ai-sdk.dev/docs/agents/tool-approvals) and UI message streams. Blazing Agents saves the decision and resumes the agent, so send decisions through your backend route above rather than relying on `addToolApprovalResponse` alone.
+
+In a custom UI, read the decision route's response with the AI SDK stream helpers. `renderAssistant` is your own callback; replace the displayed message by its ID each time it updates:
+
+```typescript
+import { parseJsonEventStream, readUIMessageStream, uiMessageChunkSchema } from "ai";
+
+const response = await fetch("/api/tool-approval", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ agentId, sessionId, approvalId, approved }),
+});
+if (!response.ok) throw new Error("Approval request failed");
+if (response.status !== 202 && response.body) {
+  const chunks = parseJsonEventStream({
+    stream: response.body,
+    schema: uiMessageChunkSchema,
+  }).pipeThrough(
+    new TransformStream({
+      transform(result, controller) {
+        if (!result.success) throw result.error;
+        controller.enqueue(result.value);
+      },
+    }),
+  );
+  for await (const message of readUIMessageStream({ stream: chunks, terminateOnError: true })) {
+    renderAssistant(message);
+  }
+}
+```
+
+See [reading UI message streams](https://ai-sdk.dev/docs/ai-sdk-ui/reading-ui-message-streams) and [chat transports](https://ai-sdk.dev/docs/ai-sdk-ui/transport) to fit this into `useChat`.
+
+## Retries and busy sessions [#retries-and-busy-sessions]
+
+- Sending the same decision twice is safe. Reversing a decision returns `409`.
+- While approvals are pending or a continuation is running, new chat turns and regeneration return `session_busy`.
+- Disconnecting from the stream does not stop the continuation. Join the same `continuationId` again to keep reading.
+- A failed continuation reports its error. Joining it again does not run the tool a second time.
+
+## Security [#security]
+
+- Sign in and authorize the reviewer on your backend, and keep your API key there.
+- Show the reviewer the saved tool and arguments, and send the decision for that approval ID. The decision cannot change the call.
+- Approving a call never gives the agent a tool it does not have. If the agent's configuration changes in a way that affects a pending call, the old approval no longer applies.
+
+See [security and credentials](/platform/security-and-credentials).
+
+## Next [#next]
+
+- [Built-in tools](/agents/tools/built-in-tools) and [MCP tools](/agents/tools/mcp-tools) for the tools you can put behind approval.
+- Approval methods in the [TypeScript SDK](/sdk/typescript/sessions) and [Python SDK](/sdk/python/sessions).

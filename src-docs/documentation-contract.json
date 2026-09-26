@@ -752,28 +752,27 @@
       },
       "cards": [],
       "callout": null,
-      "componentCounts": {
-        "Steps": 1,
-        "Step": 3
-      },
+      "componentCounts": {},
       "fences": {
         "endpointCurls": false,
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
           },
           {
             "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
           }
         ]
       },
@@ -789,29 +788,15 @@
       },
       "cards": [],
       "callout": null,
-      "componentCounts": {
-        "Steps": 1,
-        "Step": 4,
-        "Callout": 1
-      },
+      "componentCounts": {},
       "fences": {
         "endpointCurls": false,
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
           }
         ]
       },
@@ -833,11 +818,29 @@
         "items": [
           {
             "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "typescript",
             "metadata": {}
           }
         ]
       },
-      "file": "agents/tools/tool-approvals.md",
+      "file": "agents/tools/tool-approvals.mdx",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -4001,20 +4004,20 @@
     },
     {
       "file": "agents/tools/built-in-tools.mdx",
-      "name": "Built-in Tools",
+      "name": "Built-in tools",
       "publishable": true,
-      "title": "Built-in Tools",
+      "title": "Built-in tools",
       "url": "/agents/tools/built-in-tools"
     },
     {
       "file": "agents/tools/mcp-tools.mdx",
-      "name": "MCP Tools",
+      "name": "MCP tools",
       "publishable": true,
-      "title": "MCP Tools",
+      "title": "MCP tools",
       "url": "/agents/tools/mcp-tools"
     },
     {
-      "file": "agents/tools/tool-approvals.md",
+      "file": "agents/tools/tool-approvals.mdx",
       "name": "Tool approvals",
       "publishable": true,
       "title": "Tool approvals",
