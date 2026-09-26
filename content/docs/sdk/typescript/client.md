@@ -104,6 +104,8 @@ The SDK passes it to `fetch` as `signal`. Aborting throws `BlazingAgentsError` w
 
 Every failed request throws `BlazingAgentsError`. Branch on `code`, never on `message`.
 
+`message` starts with the code in brackets, such as `[model_validation_unavailable] Provider model discovery is unavailable`, so logs show the code without extra work. `error.code` holds the bare code, such as `model_validation_unavailable`.
+
 ```typescript
 import { BlazingAgentsError } from "@blazingagents/sdk";
 
@@ -121,7 +123,7 @@ Use `BlazingAgentsError.isInstance(error)` rather than `instanceof`, which fails
 | Field | Type | Description |
 | --- | --- | --- |
 | `code` | `BlazingAgentsErrorCode` | Machine-readable API or SDK code |
-| `message` | `string` | Human-readable description |
+| `message` | `string` | Human-readable description, prefixed with `[code]` |
 | `status` | `number \| undefined` | HTTP status, when a response arrived |
 | `details` | `Record<string, unknown> \| undefined` | Structured error details from the API |
 | `param` | `string \| undefined` | The invalid parameter, when the API names one |
