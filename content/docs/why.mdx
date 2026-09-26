@@ -72,11 +72,9 @@ The stream uses the Vercel AI SDK UI message format, so `useChat` from `@ai-sdk/
 
 ## When Blazing Agents is not the right fit [#when-blazing-agents-is-not-the-right-fit]
 
-- **You make one stateless model call.** A plain model SDK is simpler if you need no history, tools, files, or metering.
 - **You need to call it from the browser.** The API is backend-only. You need a server to hold the API key.
 - **You need everything inside your own infrastructure.** Blazing Agents is a hosted service, so turns run on its platform, not on your servers.
 - **You want to write the agent loop yourself.** Blazing Agents runs the loop. You configure the agent, its tools, and its policies rather than each model step.
-- **Your MCP servers are local processes.** Connections reach remote servers over Streamable HTTP.
 
 ## Next [#next]
 
