@@ -51,6 +51,7 @@ The development server runs at <http://localhost:3761>.
 | `npm run typecheck` | Generate sources and run TypeScript checks |
 | `npm test` | Run documentation tests and coverage checks |
 | `npm run check` | Run the required type-check and test gate |
+| `npm run lint:docs` | Check `content/docs/` against the style guide's mechanical rules |
 
 ## Repository structure
 
@@ -66,7 +67,8 @@ The development server runs at <http://localhost:3761>.
 ## Editing documentation
 
 Add or update pages under `content/docs/`. Keep each section's `meta.json` in
-sync with its navigation order. Run `npm run check` before submitting changes.
+sync with its navigation order. Follow the [style guide](STYLE.md), and run
+`npm run lint:docs` and `npm run check` before submitting changes.
 
 The production build is written to `.output/public` for deployment to
 `docs.blazingagents.com`.
