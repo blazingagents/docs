@@ -44,8 +44,8 @@ The program is safe to run again and again. It looks up the provider and agent b
     ```
 
     ```python tab="Python" title="quickstart.py"
-    import json
     import os
+    import sys
     import uuid
 
     from blazing_agents import BlazingAgents
@@ -117,20 +117,10 @@ The program is safe to run again and again. It looks up the provider and agent b
     });
     console.log(`Session: ${await result.sessionId}`);
 
-    const decoder = new TextDecoder();
-    let buffer = "";
-    for await (const bytes of result.toStream()) {
-      buffer += decoder.decode(bytes, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() ?? "";
-      for (const line of lines) {
-        if (!line.startsWith("data: {")) continue;
-        const chunk = JSON.parse(line.slice(6));
-        if (chunk.type === "text-delta") process.stdout.write(chunk.delta);
-        if (chunk.type === "error") throw new Error(chunk.errorText);
-      }
+    for await (const chunk of result.toStream()) {
+      process.stdout.write(chunk);
     }
-    process.stdout.write("\n");
+    // The stream is yours now: relay it to your app, parse it, or store it.
     ```
 
     ```python tab="Python" title="quickstart.py"
@@ -141,31 +131,29 @@ The program is safe to run again and again. It looks up the provider and agent b
     }
     with client.chat(agent_id=agent.id, message=message) as stream:
         print(f"Session: {stream.session_id}")
-        buffer = b""
-        for data in stream:
-            buffer += data
-            *lines, buffer = buffer.split(b"\n")
-            for line in lines:
-                if not line.startswith(b"data: {"):
-                    continue
-                chunk = json.loads(line[6:])
-                if chunk["type"] == "text-delta":
-                    print(chunk["delta"], end="", flush=True)
-                elif chunk["type"] == "error":
-                    raise RuntimeError(chunk["errorText"])
-    print()
+        for chunk in stream:
+            sys.stdout.buffer.write(chunk)
+        # The stream is yours now: relay it to your app, parse it, or store it.
     ```
 
-    Run the file once more. The answer appears word by word after the IDs:
+    Run the file once more. After the IDs, the raw stream prints as it arrives:
 
     ```text
     Provider: prv_...
     Agent: ag_...
     Session: ss_...
-    Hello! How can I help you today?
+    data: {"type":"start",...}
+
+    data: {"type":"text-delta","id":"...","delta":"Hello"}
+
+    data: {"type":"text-delta","id":"...","delta":"!"}
+
+    ...
+
+    data: [DONE]
     ```
 
-    The exact greeting depends on the model. Each run starts a new session, so you see a new `ss_...` ID every time.
+    These lines are AI SDK UI message events. In a web app your backend returns `result.toResponse()`, and the AI SDK `useChat` hook renders them as chat messages. Each run starts a new session, so you see a new `ss_...` ID every time.
 
   </Step>
 </Steps>
@@ -174,7 +162,7 @@ The program is safe to run again and again. It looks up the provider and agent b
 
 `client.chat()` without a `sessionId` starts a new session, a conversation that Blazing Agents keeps for you. You get the session ID before the answer finishes streaming, so you can save it right away. Pass it back as `sessionId` (`session_id` in Python) on the next call and the agent sees the whole conversation so far.
 
-The answer arrives as a stream of small JSON events. The loop prints the `text-delta` events and stops on an `error` event. In a web app you skip this parsing: return `result.toResponse()` from your backend and the AI SDK `useChat` hook renders the stream for you.
+The answer arrives as a stream of server-sent events in the AI SDK UI message format, and the program prints them untouched. The stream is yours: relay it to your app, parse it, or store it. In a web app, return `result.toResponse()` from your backend and the AI SDK `useChat` hook renders it for you.
 
 ## Next [#next]
 
