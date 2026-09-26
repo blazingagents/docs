@@ -75,7 +75,7 @@ const { task } = await client.tasks.create({
 | `userId` | `string` | no | `""` | The end user it runs for; cannot change later |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your labels, copied onto each run |
 
-Calling `create()` twice creates two tasks. Returns [`CreateTaskResponse`](#createtaskresponse). Errors: `validation_failed`, `agent_version_not_found`, `admin_agent_managed`, and `agent_disabled` when `submit` is `true`.
+Calling `create()` twice creates two tasks. Returns [`CreateTaskResponse`](#createtaskresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found), [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), and [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit` is `true`.
 
 ### `list()` [#list]
 
@@ -95,7 +95,7 @@ for (const task of data) console.log(task.name, task.latestRun?.status);
 | `limit` | `number` | no | `50` | 1 to 200 per page |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
-Returns [`TasksListResponse`](#taskslistresponse). Errors: `validation_failed`, `invalid_cursor`.
+Returns [`TasksListResponse`](#taskslistresponse). Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `get()` [#get]
 
@@ -107,7 +107,7 @@ Reads one task.
 const task = await client.tasks.get({ taskId });
 ```
 
-Returns [`TaskResponse`](#taskresponse). Errors: `validation_failed`, `not_found`.
+Returns [`TaskResponse`](#taskresponse). Errors: `validation_failed`, [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `update()` [#update]
 
@@ -133,7 +133,7 @@ Deletes a task and stops its schedule. Past runs and their sessions stay readabl
 await client.tasks.delete({ taskId });
 ```
 
-Fails with `task_active_run_exists` while a run is active; cancel it first. Errors: `validation_failed`, `not_found`, `task_active_run_exists`.
+Fails with [`task_active_run_exists`](/api-reference/protocols/errors#task_active_run_exists) while a run is active; cancel it first. Errors: `validation_failed`, `not_found`, `task_active_run_exists`.
 
 ### `createRun()` [#create-run]
 

@@ -48,7 +48,7 @@ console.log(overview.totals.requestCount, overview.activeAgentCount);
 | `to` | `string` | with `from` | today | Last UTC date |
 | `limit` | `number` | no | `5` | 1 to 20 rows in each top list |
 
-Returns [`UsageOverviewResponse`](#usageoverviewresponse). Errors: `validation_failed`.
+Returns [`UsageOverviewResponse`](#usageoverviewresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed).
 
 ### `get()` [#get]
 

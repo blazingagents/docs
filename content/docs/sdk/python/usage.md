@@ -43,7 +43,7 @@ for day in dashboard.daily:
 
 **Signature:** `overview(*, from_=..., to=..., limit=...) -> UsageOverview`
 
-`limit` caps the agent and end-user rankings. It is 1 to 20 and defaults to 5. Returns [`UsageOverview`](#usageoverview). Raises `APIStatusError` with `validation_failed` for a partial, reversed, or too-long range, or an invalid limit.
+`limit` caps the agent and end-user rankings. It is 1 to 20 and defaults to 5. Returns [`UsageOverview`](#usageoverview). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) for a partial, reversed, or too-long range, or an invalid limit.
 
 ### `get()` [#get]
 
