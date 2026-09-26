@@ -1,31 +1,86 @@
 ---
 title: Skills
-description: Package reusable Agent-owned instructions and supporting files for progressive loading.
+description: Teach an agent a workflow it loads only when a task needs it, so long instructions stay out of every prompt.
 ---
 
 # Skills
 
-A Skill is a reusable instruction directory owned by exactly one Agent. Use a
-Skill to teach a workflow; use a [Tool](/agents/tools/built-in-tools) to perform
-an action, or an [MCP Connection](/agents/tools/mcp-tools) for actions exposed
-by a remote server.
+A skill teaches an agent how to do one kind of job, such as drafting release notes or triaging a bug report. The agent sees only each skill's name and description until a task matches, then loads the full instructions and any reference files it needs. You can give an agent many detailed skills without paying for them in every prompt.
 
-## Ownership and storage [#ownership-and-storage]
+Use a skill to teach a workflow. Use a [tool](/agents/tools/built-in-tools) or an [MCP connection](/agents/tools/mcp-tools) when the agent needs to take an action.
 
-A Skill inherits its Agent's Tenant and Attribution. Postgres stores identity,
-indexed discovery metadata, and the file inventory; R2 stores authoritative
-files. Skills have no separate attachment record and do not live in or
-initialize a [Workspace](/agents/workspaces).
+## Add a skill [#add-a-skill]
 
-`SKILL.md` is required at the directory root. Its frontmatter requires `name`
-and `description`, and may include `license`, `compatibility`, string-to-string
-`metadata`, and experimental `allowed-tools`. Managed writes validate the file
-and update its discovery index atomically.
+A skill is a folder with a `SKILL.md` file at its root. The simplest skill is that one file. Set `AGENT_ID` to one of your `ag_...` agents.
 
-## Build a minimal Skill [#build-a-minimal-skill]
+```typescript tab="TypeScript" tab-group="sdk-language"
+import { BlazingAgents } from "@blazingagents/sdk";
 
-Create the following directory and ZIP its contents with `SKILL.md` at the
-archive root:
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
+const agentId = process.env.AGENT_ID!;
+
+const skill = await client.agent({ agentId }).skills.create({
+  path: "SKILL.md",
+  content: `---
+name: release-notes
+description: Draft release notes from a list of changes.
+---
+
+# Release notes
+
+Begin the response with exactly RELEASE NOTES READY, then group the changes
+under Added, Changed, and Fixed.
+`,
+});
+console.log(`Skill: ${skill.id}`);
+
+const result = await client.completion({
+  agentId,
+  prompt: "Write release notes for: dark mode, faster search, fixed login bug.",
+});
+console.log(await result.text);
+```
+
+```python tab="Python"
+import os
+
+from blazing_agents import BlazingAgents
+
+client = BlazingAgents()
+agent_id = os.environ["AGENT_ID"]
+
+skill = client.agent(agent_id).skills.create(
+    path="SKILL.md",
+    content="""---
+name: release-notes
+description: Draft release notes from a list of changes.
+---
+
+# Release notes
+
+Begin the response with exactly RELEASE NOTES READY, then group the changes
+under Added, Changed, and Fixed.
+""",
+)
+print(f"Skill: {skill.id}")
+
+print(
+    client.completion(
+        agent_id=agent_id,
+        prompt="Write release notes for: dark mode, faster search, fixed login bug.",
+    )
+)
+```
+
+The answer starts with `RELEASE NOTES READY`, which shows the agent loaded the skill. Skill names are unique per agent, so delete the skill or change its name before you run this again.
+
+`SKILL.md` needs frontmatter with a `name` and a `description`. The name uses lowercase letters, digits, and hyphens, up to 64 characters. Write the description for the model: it is all the agent sees when deciding whether to load the skill. You can also add `license`, `compatibility`, string `metadata`, and the experimental `allowed-tools`.
+
+## Add reference files [#add-reference-files]
+
+Longer skills keep details in extra files next to `SKILL.md`:
 
 ```text
 release-notes/
@@ -36,78 +91,48 @@ release-notes/
     └── release.md
 ```
 
-Use this minimal entry file:
+ZIP the folder's contents so `SKILL.md` sits at the archive root, then upload it. Tar and gzipped tar archives work too.
 
-```markdown title="SKILL.md"
----
-name: release-notes
-description: Draft release notes from a list of changes.
----
+```typescript tab="TypeScript" tab-group="sdk-language"
+import { readFile } from "node:fs/promises";
 
-# Release notes
-
-When this Skill applies, begin the response with exactly `RELEASE NOTES READY`.
+await client.agent({ agentId }).skills.upload({
+  source: { file: await readFile("release-notes.zip"), type: "zip" },
+});
 ```
 
-Supporting paths are relative to the archive root. Skill creation validates the
-complete directory, assigns a stable ID, writes every file under the Tenant and
-Agent scope, and indexes the frontmatter.
-
-## Progressive runtime loading [#progressive-runtime-loading]
-
-Agent preparation exposes only Skill names and descriptions. When one matches
-the task, the model calls `activate_skill` to load its current `SKILL.md`.
-Supporting files are then advertised as deterministic virtual locators for the
-existing `read` Tool:
-
-```text
-<skill_resources>
-- references/guide.md → read /.ba-agents/{agentId}/skills/{skillId}/references/guide.md
-</skill_resources>
+```python tab="Python"
+client.agent(agent_id).skills.upload(archive_type="zip", file="release-notes.zip")
 ```
 
-These locators read R2 without starting Workspace compute. They are not mounted
-filesystem paths and work only with `read`; `grep`, `glob`, `write`, `edit`, and
-`bash` keep their ordinary Workspace behavior.
+Blazing Agents checks the whole archive before it saves anything, so a bad `SKILL.md` leaves the agent unchanged.
 
-To execute a supporting script, read its advertised locator, inspect the
-content, copy it into the Workspace with `write`, then run that Workspace copy
-with `bash`. Authoritative Skill files remain read-only to model-facing Tools.
+## How the agent uses a skill [#how-the-agent-uses-a-skill]
 
-## Lifecycle and copies [#lifecycle-and-copies]
+On every turn the agent sees the name and description of each of its skills. When one fits the task, it loads that skill's current `SKILL.md`. It then sees a list of the skill's other files and can open any of them with the `read` tool. This works even when the agent has no tool groups enabled.
 
-Skills are current resources outside Agent Versions. Replacing files changes
-the current Skill. Copying creates an independent ID and file set for each
-destination Agent; one failed destination does not roll back successful copies.
-Deletion removes metadata and files without a detach step.
+Skill files are read-only to the agent and are not part of its [workspace](/agents/workspaces). Other file tools such as `grep`, `write`, and `bash` see only the workspace. To run a script that ships with a skill, the agent reads it, writes a copy into the workspace, and runs the copy.
 
-Review Skill instructions like code. Keep secrets out of Skill content, keep
-the entry file focused, and load larger references progressively.
+## Manage skills [#manage-skills]
 
-## Coding-agent skill catalog [#coding-agent-skill-catalog]
+- **Edit.** Replace or delete single files, or upload a new archive. The agent uses the new content on its next turn. Skills are not part of [versions](/agents/versions-and-lifecycle), so restoring an old version does not bring back old skill content.
+- **Copy.** Copy a skill to other agents. Each copy is independent, and if one destination fails the others still succeed.
+- **Delete.** Deleting a skill removes all its files. Deleting the agent deletes its skills.
 
-The public [Blazing Agents coding-agent skill catalog](https://skills.sh/blazingagents/skills)
-helps local coding assistants build against Blazing Agents. These local skills
-are separate from the Tenant-owned runtime Skills described above: installing
-one configures a supported coding assistant and does not create or modify a
-Skill on the Blazing Agents platform.
+Each agent can have up to 100 skills. Treat skill content like code: review changes, and keep secrets out of it. For every method, see the [TypeScript](/sdk/typescript/skills) or [Python](/sdk/python/skills) SDK.
 
-Use the [`skills` CLI](https://skills.sh/docs/cli) to inspect and install the
-catalog:
+## Skills for your coding assistant [#skills-for-your-coding-assistant]
+
+The [Blazing Agents skill catalog](https://skills.sh/blazingagents/skills) is a different thing: skills that help your local coding assistant write code against Blazing Agents. Installing one sets up your assistant and does not add anything to your agents.
 
 ```bash
-npx skills add blazingagents/skills --list
 npx skills add blazingagents/skills --skill blazing-agents
-npx skills list
-npx skills update blazing-agents
 ```
 
-The catalog source is available at
-[github.com/blazingagents/skills](https://github.com/blazingagents/skills).
+Run `npx skills add blazingagents/skills --list` to see the whole catalog. See the [`skills` CLI docs](https://skills.sh/docs/cli) and the [catalog source](https://github.com/blazingagents/skills).
 
-## SDK and API [#sdk-and-api]
+## Next [#next]
 
-- [TypeScript Skills SDK](/sdk/typescript/skills)
-- [Python Skills SDK](/sdk/python/skills)
-- [Skills REST API](/api-reference/rest-api/skills)
-- [CLI Assist](/cli/assist)
+- [Memory](/agents/memory) to let the agent remember facts across sessions.
+- [Built-in tools](/agents/tools/built-in-tools) to give the agent actions to go with its skills.
+- Skills SDK reference for [TypeScript](/sdk/typescript/skills) or [Python](/sdk/python/skills).

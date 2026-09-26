@@ -306,7 +306,42 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -328,7 +363,29 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -350,7 +407,16 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -372,7 +438,42 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -393,17 +494,37 @@
         "endpointCurls": false,
         "items": [
           {
-            "language": "text",
-            "metadata": {}
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
           },
           {
-            "language": "markdown",
+            "language": "python",
             "metadata": {
-              "title": "SKILL.md"
+              "tab": "Python"
             }
           },
           {
             "language": "text",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "bash",
             "metadata": {}
           }
         ]
@@ -426,11 +547,29 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -3741,9 +3880,9 @@
     },
     {
       "file": "agents/providers-and-models.md",
-      "name": "Providers and Models",
+      "name": "Providers and models",
       "publishable": true,
-      "title": "Providers and Models",
+      "title": "Providers and models",
       "url": "/agents/providers-and-models"
     },
     {
