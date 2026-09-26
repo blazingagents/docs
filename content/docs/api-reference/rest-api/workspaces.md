@@ -15,28 +15,124 @@ something in it. Every request is scoped to your tenant.
 
 ## Endpoints [#endpoints]
 
-### POST /v1/workspaces [#create-workspace]
+### GET /v1/workspaces [#list-workspaces]
 
-Creates a workspace. It starts only when an agent first uses it.
+List workspaces.
+
+Lists your tenant's workspaces newest first, one page at a time. Pass `nextCursor` as `cursor` to get the next page. The workspace reserved for the platform-managed `ba assist` agent is never listed.
 
 #### Request
 
-Requires bearer authentication and JSON. `name` is optional, `userId` defaults
-to `""`, `metadata` defaults to `{}`, and `networkPolicy` defaults to
-`{"mode":"unrestricted"}`. Restricted policies are
-`{"mode":"allowlist","allowedHosts":["api.example.com"]}` and
-`{"mode":"offline"}`.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `cursor` | string | query |  | `nextCursor` from the previous page. |
+| `limit` | integer | query |  | Page size, from 1 to 200. Defaults to 50. 1–200. Defaults to `50`. |
+| `userId` | string | query |  | Return only workspaces with this exact `userId`. Send `""` for tenant-level workspaces. |
 
 #### Response
 
-Returns `201 Created` with [`workspaceSchema`](/api-reference/protocols/objects-and-schemas#workspace).
+Returns `200 OK` as `application/json`. A page of workspaces.
 
-SDK: [TypeScript](/sdk/typescript/workspaces#create) /
-[Python](/sdk/python/workspaces#create).
+Response schema: `WorkspaceList`.
+
+```json
+{
+  "data": [
+    {
+      "id": "ws_3Vb8Ny6HpU1cGf4M",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+      "name": "Release files",
+      "userId": "user_42",
+      "metadata": {
+        "project": "docs"
+      },
+      "networkPolicy": {
+        "mode": "allowlist",
+        "allowedHosts": [
+          "registry.npmjs.org"
+        ]
+      },
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:00:00.000Z"
+    }
+  ],
+  "nextCursor": null
+}
+```
 
 #### Errors
 
-`400 validation_failed` for invalid fields.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/workspaces" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/workspaces [#create-workspace]
+
+Create a workspace.
+
+Creates a private file system your agents can keep between sessions. Creating it adds no compute cost: the workspace starts only when an agent first reads, writes, or runs something in it.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | string | body |  | Display name, up to 80 characters. Leave it out for an unnamed workspace. 1–80 characters. |
+| `userId` | string | body |  | Your own ID for the end user who owns the workspace. `""` means a tenant-level workspace. It cannot be changed later. Defaults to `""`. |
+| `metadata` | object | body |  | Your own key-value data, returned as sent. Defaults to `{}`. |
+| `networkPolicy` | object | body |  | Which hosts the workspace can reach: `unrestricted`, `allowlist` with `allowedHosts`, or `offline`. Defaults to `{"mode":"unrestricted"}`. |
+
+#### Response
+
+Returns `201 Created` as `application/json`. The created workspace.
+
+Response schema: `Workspace`.
+
+```json
+{
+  "id": "ws_3Vb8Ny6HpU1cGf4M",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "name": "Release files",
+  "userId": "user_42",
+  "metadata": {
+    "project": "docs"
+  },
+  "networkPolicy": {
+    "mode": "allowlist",
+    "allowedHosts": [
+      "registry.npmjs.org"
+    ]
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `429` | [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -47,59 +143,56 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/workspaces" \
   --data '{"name":"Release files","userId":"user_42","metadata":{"project":"docs"},"networkPolicy":{"mode":"allowlist","allowedHosts":["registry.npmjs.org"]}}'
 ```
 
-### GET /v1/workspaces [#list-workspaces]
-
-Lists workspaces newest first, one page at a time, optionally filtered by
-`userId`. The workspace reserved for the platform-managed `ba assist` agent is never
-listed.
-
-#### Request
-
-Requires bearer authentication. `cursor` is opaque, `limit` defaults to 50 and
-accepts 1–200, and `userId` filters by exact value.
-
-#### Response
-
-Returns `200 OK` with
-[`workspacesListResponseSchema`](/api-reference/protocols/objects-and-schemas#workspaces-list-response).
-Use `nextCursor` for the next page.
-
-SDK: [TypeScript](/sdk/typescript/workspaces#list) /
-[Python](/sdk/python/workspaces#list).
-
-#### Errors
-
-`400 validation_failed` for invalid or unknown query parameters.
-
-#### cURL
-
-```bash
-curl --get "$BLAZING_AGENTS_BASE_URL/v1/workspaces" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "limit=50" \
-  --data-urlencode "userId=user_42"
-```
-
 ### GET /v1/workspaces/:workspaceId [#get-workspace]
 
-Retrieves a workspace without starting it.
+Get a workspace.
+
+Returns a workspace without starting it.
 
 #### Request
 
-Requires bearer authentication and a `ws_…` `workspaceId` path parameter.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `workspaceId` | string | path | required | ID of the workspace. |
 
 #### Response
 
-Returns `200 OK` with
-[`workspaceSchema`](/api-reference/protocols/objects-and-schemas#workspace).
+Returns `200 OK` as `application/json`. The workspace.
 
-SDK: [TypeScript](/sdk/typescript/workspaces#get) /
-[Python](/sdk/python/workspaces#get).
+Response schema: `Workspace`.
+
+```json
+{
+  "id": "ws_3Vb8Ny6HpU1cGf4M",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "name": "Release files",
+  "userId": "user_42",
+  "metadata": {
+    "project": "docs"
+  },
+  "networkPolicy": {
+    "mode": "allowlist",
+    "allowedHosts": [
+      "registry.npmjs.org"
+    ]
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
+}
+```
 
 #### Errors
 
-`400 validation_failed`; `404 workspace_not_found` for missing or foreign
-Workspaces.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -110,31 +203,60 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" \
 
 ### PUT /v1/workspaces/:workspaceId [#update-workspace]
 
-Updates a workspace's name, metadata, or network policy without starting it.
+Update a workspace.
+
+Updates a workspace's name, metadata, or network policy. Send at least one field. `metadata` and `networkPolicy` replace their current values, and `name: null` clears the name. `userId` cannot be changed. If a new network policy switches between `unrestricted` and a restricted mode, a running workspace saves its files and stops; it applies the new policy the next time an agent uses it.
 
 #### Request
 
-Requires bearer authentication, a `ws_…` path parameter, and JSON. `name`
-accepts `null`; `metadata` and `networkPolicy` are replaced when supplied.
-`userId` cannot be changed.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `workspaceId` | string | path | required | ID of the workspace. |
+| `name` | string \| null | body |  | New display name, up to 80 characters, or `null` to clear it. 1–80 characters. |
+| `metadata` | object | body |  | Replaces the workspace's metadata. |
+| `networkPolicy` | object | body |  | Replaces the network policy. Which hosts the workspace can reach: `unrestricted`, `allowlist` with `allowedHosts`, or `offline`. |
 
 #### Response
 
-Returns `200 OK` with
-[`workspaceSchema`](/api-reference/protocols/objects-and-schemas#workspace).
+Returns `200 OK` as `application/json`. The updated workspace.
 
-SDK: [TypeScript](/sdk/typescript/workspaces#update) /
-[Python](/sdk/python/workspaces#update).
+Response schema: `Workspace`.
+
+```json
+{
+  "id": "ws_3Vb8Ny6HpU1cGf4M",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "name": "Release files",
+  "userId": "user_42",
+  "metadata": {
+    "project": "docs"
+  },
+  "networkPolicy": {
+    "mode": "offline"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:15:00.000Z"
+}
+```
 
 #### Errors
 
-`400 validation_failed`; `404 workspace_not_found`.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request PUT \
-  "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" \
+curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
   --data '{"networkPolicy":{"mode":"offline"}}'
@@ -142,31 +264,41 @@ curl --request PUT \
 
 ### DELETE /v1/workspaces/:workspaceId [#delete-workspace]
 
-Deletes a workspace and all its files. Agents always have a workspace, so move
-attached agents to another one first.
+Delete a workspace.
+
+Permanently deletes a workspace and all its files. Every agent needs a workspace, so move attached agents to another workspace first: while any agent uses it, the request returns `409 workspace_in_use` with their IDs in `details.agentIds`. Returns `202` while cleanup is still running and `204` when deletion finishes right away.
 
 #### Request
 
-Requires bearer authentication and a `ws_…` `workspaceId` path parameter.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `workspaceId` | string | path | required | ID of the workspace. |
 
 #### Response
 
-Returns `204 No Content` with an empty body when deletion finishes right away,
-or `202 Accepted` with an empty body when cleanup is still running.
+Returns `202 Accepted`. Deletion started and is still running.
 
-SDK: [TypeScript](/sdk/typescript/workspaces#delete) /
-[Python](/sdk/python/workspaces#delete).
+Returns `204 No Content`. The workspace was deleted.
 
 #### Errors
 
-`404 workspace_not_found`; `409 workspace_in_use` with
-`details.agentIds`; `409 workspace_busy`; `503 service_unavailable`.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `409` | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use), [`workspace_busy`](/api-reference/protocols/errors#workspace_busy) | The request conflicts with the resource's current state |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" \
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 

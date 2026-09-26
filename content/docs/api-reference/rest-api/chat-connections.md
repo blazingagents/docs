@@ -5,7 +5,7 @@ description: Create and manage Slack and Telegram connections and inspect delive
 
 # Chat connections
 
-## Overview
+## Overview [#overview]
 
 A chat connection puts one of your agents in a Slack workspace or a Telegram
 bot, so people can talk to it where they already chat. Each bot installation
@@ -14,111 +14,39 @@ You cannot change a connection's agent or platform identity after you create
 it. Every endpoint needs a bearer credential and an active subscription. See
 [setup](/platform/chat-integrations) for callbacks and permissions.
 
-A connection response contains `id`, `tenantId`, `agentId`, `name`, `platform`,
-`enabled`, `configuration` (including `platform`), read-only `webhookUrl`,
-verified `identity`, `health`,
-`credentialFragment` (last four token characters), `credentialVersion`,
-`createdAt`, and `updatedAt`. Full credentials are never returned.
-Health includes `checkedAt`, `tokenValid`, `identityVerified`, and `checks` with
-`code`, `status` (`pass`, `fail`, `unknown`), and optional `subject`.
+Full credentials are never returned. A connection shows only
+`credentialFragment`, the last four characters of its token. Health includes
+`checkedAt`, `tokenValid`, `identityVerified`, and `checks` with `code`,
+`status` (`pass`, `fail`, `unknown`), and optional `subject`.
 
-## Endpoints
-
-### POST /v1/chat-connections [#create-chat-connection]
-
-Creates a connection.
-
-#### Request
-
-Create requires `name` (1–80 characters), `agentId`, `platform`, and
-`credentials`; `configuration` is optional and `enabled` defaults to `true`.
-
-| Platform | Configuration | Credentials |
-| --- | --- | --- |
-| `slack` | optional `channelIds` | `botToken`, `signingSecret` |
-| `telegram` | optional `businessMode` and `chatIds` | `botToken` |
-
-Send Telegram IDs as strings. Destination lists hold at most 20 IDs and only
-choose where health checks look; they do not restrict access. Blazing Agents
-reads the bot identity from the token and sets `webhookUrl` for you. Creating
-an enabled Telegram connection registers that URL and a generated secret with
-Telegram.
-The [TypeScript](/sdk/typescript/chat-integrations) and
-[Python](/sdk/python/chat-integrations) examples show a complete create request.
-
-The bot identity is verified before the connection is saved.
-
-#### Response
-
-Returns `201 Created`: a connection object.
-
-```json
-{
-  "id": "cc_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "name": "Support",
-  "platform": "telegram",
-  "enabled": true,
-  "configuration": {
-    "platform": "telegram",
-    "businessMode": false,
-    "chatIds": []
-  },
-  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
-  "identity": {
-    "botId": "123456789",
-    "botUserId": "123456789",
-    "teamId": null,
-    "appId": null
-  },
-  "health": {
-    "checkedAt": "2026-09-12T12:00:00Z",
-    "tokenValid": true,
-    "identityVerified": true,
-    "checks": [
-      {
-        "code": "webhook_url",
-        "status": "fail"
-      }
-    ]
-  },
-  "credentialFragment": "OKEN",
-  "credentialVersion": 1,
-  "createdAt": "2026-09-12T12:00:00Z",
-  "updatedAt": "2026-09-12T12:00:00Z"
-}
-```
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{"name":"Support","agentId":"ag_1234567890ABCDEF","platform":"telegram","configuration":{"businessMode":false},"credentials":{"botToken":"123456789:REPLACE_WITH_BOT_TOKEN"}}'
-```
+## Endpoints [#endpoints]
 
 ### GET /v1/chat-connections [#list-chat-connections]
 
-Lists connections.
+List chat connections.
+
+Lists every chat connection in your tenant, oldest first. Full credentials are never returned.
 
 #### Request
 
-No body.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+There are no parameters and no request body.
 
 #### Response
 
-Returns `200 OK`: `{chatConnections: [...]}` in creation order.
+Returns `200 OK` as `application/json`. Your tenant's chat connections.
+
+Response schema: `ChatConnectionList`.
 
 ```json
 {
   "chatConnections": [
     {
-      "id": "cc_1234567890ABCDEF",
-      "tenantId": "ten_1234567890ABCDEF",
-      "agentId": "ag_1234567890ABCDEF",
-      "name": "Support",
+      "id": "cc_6Wd3Hs8KqP1vRt5N",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+      "agentId": "ag_4kP9sT2vXq7LmN3a",
+      "name": "Support bot",
       "platform": "telegram",
       "enabled": true,
       "configuration": {
@@ -126,58 +54,83 @@ Returns `200 OK`: `{chatConnections: [...]}` in creation order.
         "businessMode": false,
         "chatIds": []
       },
-      "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
+      "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_6Wd3Hs8KqP1vRt5N",
       "identity": {
-        "botId": "123456789",
-        "botUserId": "123456789",
+        "botId": "7123456789",
+        "botUserId": "7123456789",
         "teamId": null,
         "appId": null
       },
       "health": {
-        "checkedAt": "2026-09-12T12:00:00Z",
+        "checkedAt": "2026-07-10T10:00:00.000Z",
         "tokenValid": true,
         "identityVerified": true,
         "checks": [
           {
+            "code": "bot_identity",
+            "status": "pass"
+          },
+          {
+            "code": "channel_membership",
+            "status": "unknown"
+          },
+          {
             "code": "webhook_url",
-            "status": "fail"
+            "status": "pass"
           }
         ]
       },
-      "credentialFragment": "OKEN",
+      "credentialFragment": "x9Qa",
       "credentialVersion": 1,
-      "createdAt": "2026-09-12T12:00:00Z",
-      "updatedAt": "2026-09-12T12:00:00Z"
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:00:00.000Z"
     }
   ]
 }
 ```
 
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
 #### cURL
 
 ```bash
-curl --request GET "$BLAZING_AGENTS_BASE_URL/v1/chat-connections" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/chat-connections" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### GET /v1/chat-connections/:id [#get-chat-connection]
+### POST /v1/chat-connections [#create-chat-connection]
 
-Reads a connection.
+Create a chat connection.
+
+Connects one of your agents to a Slack app or Telegram bot. Blazing Agents checks the credentials with the chat platform and reads the bot identity from the token before saving, and returns the `webhookUrl` to configure on the platform. Each bot installation belongs to one connection. Slack needs `botToken` and `signingSecret`; Telegram needs only `botToken`. Creating an enabled Telegram connection registers its webhook for you. If that registration fails, the connection is saved disabled and its `webhook_url` health check fails; fix the bot and call enable.
 
 #### Request
 
-No body. `health` shows the result of the last check.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `(body)` | object | body | required | Raw `application/json` request body. |
 
 #### Response
 
-Returns `200 OK`: a connection object.
+Returns `201 Created` as `application/json`. The created chat connection.
+
+Response schema: `ChatConnection`.
 
 ```json
 {
-  "id": "cc_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "name": "Support",
+  "id": "cc_6Wd3Hs8KqP1vRt5N",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "Support bot",
   "platform": "telegram",
   "enabled": true,
   "configuration": {
@@ -185,407 +138,174 @@ Returns `200 OK`: a connection object.
     "businessMode": false,
     "chatIds": []
   },
-  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_6Wd3Hs8KqP1vRt5N",
   "identity": {
-    "botId": "123456789",
-    "botUserId": "123456789",
+    "botId": "7123456789",
+    "botUserId": "7123456789",
     "teamId": null,
     "appId": null
   },
   "health": {
-    "checkedAt": "2026-09-12T12:00:00Z",
+    "checkedAt": "2026-07-10T10:00:00.000Z",
     "tokenValid": true,
     "identityVerified": true,
     "checks": [
       {
-        "code": "webhook_url",
-        "status": "fail"
-      }
-    ]
-  },
-  "credentialFragment": "OKEN",
-  "credentialVersion": 1,
-  "createdAt": "2026-09-12T12:00:00Z",
-  "updatedAt": "2026-09-12T12:00:00Z"
-}
-```
-
-#### cURL
-
-```bash
-curl --request GET "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-### PATCH /v1/chat-connections/:id [#rename-chat-connection]
-
-Updates a connection.
-
-#### Request
-
-Send `name`, `configuration`, or both; empty updates are rejected. Configuration
-may contain Slack `channelIds`, Telegram `chatIds`, or Telegram `businessMode`.
-Changing Business mode on an enabled Telegram connection re-registers its
-webhook. `webhookUrl` is read-only.
-
-#### Response
-
-Returns `200 OK`: a connection object.
-
-```json
-{
-  "id": "cc_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "name": "Support",
-  "platform": "telegram",
-  "enabled": true,
-  "configuration": {
-    "platform": "telegram",
-    "businessMode": false,
-    "chatIds": []
-  },
-  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
-  "identity": {
-    "botId": "123456789",
-    "botUserId": "123456789",
-    "teamId": null,
-    "appId": null
-  },
-  "health": {
-    "checkedAt": "2026-09-12T12:00:00Z",
-    "tokenValid": true,
-    "identityVerified": true,
-    "checks": [
+        "code": "bot_identity",
+        "status": "pass"
+      },
+      {
+        "code": "channel_membership",
+        "status": "unknown"
+      },
       {
         "code": "webhook_url",
-        "status": "fail"
+        "status": "pass"
       }
     ]
   },
-  "credentialFragment": "OKEN",
+  "credentialFragment": "x9Qa",
   "credentialVersion": 1,
-  "createdAt": "2026-09-12T12:00:00Z",
-  "updatedAt": "2026-09-12T12:00:00Z"
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
 }
 ```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_request`](/api-reference/protocols/errors#invalid_request) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF" \
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"name":"Support"}'
-```
-
-### POST /v1/chat-connections/:id/credentials [#rotate-chat-credentials]
-
-Rotates credentials.
-
-#### Request
-
-Send `platform` and the complete credentials for the same installation: Slack
-uses `botToken` and `signingSecret`; Telegram uses `botToken`. The enabled state
-and sessions are kept. Enabled Telegram rotation generates a new secret and
-re-registers the webhook.
-
-#### Response
-
-Returns `200 OK`: a connection object.
-
-```json
-{
-  "id": "cc_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "name": "Support",
-  "platform": "telegram",
-  "enabled": true,
-  "configuration": {
-    "platform": "telegram",
-    "businessMode": false,
-    "chatIds": []
-  },
-  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
-  "identity": {
-    "botId": "123456789",
-    "botUserId": "123456789",
-    "teamId": null,
-    "appId": null
-  },
-  "health": {
-    "checkedAt": "2026-09-12T12:00:00Z",
-    "tokenValid": true,
-    "identityVerified": true,
-    "checks": [
-      {
-        "code": "webhook_url",
-        "status": "fail"
-      }
-    ]
-  },
-  "credentialFragment": "OKEN",
-  "credentialVersion": 1,
-  "createdAt": "2026-09-12T12:00:00Z",
-  "updatedAt": "2026-09-12T12:00:00Z"
-}
-```
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/credentials" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{"platform":"telegram","botToken":"123456789:REPLACE_WITH_BOT_TOKEN"}'
-```
-
-### POST /v1/chat-connections/:id/health [#check-chat-health]
-
-Checks health.
-
-#### Request
-
-No body. Runs new read-only checks against the platform and saves the results.
-
-#### Response
-
-Returns `200 OK`: a connection object, including refreshed health.
-
-```json
-{
-  "id": "cc_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "name": "Support",
-  "platform": "telegram",
-  "enabled": true,
-  "configuration": {
-    "platform": "telegram",
-    "businessMode": false,
-    "chatIds": []
-  },
-  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
-  "identity": {
-    "botId": "123456789",
-    "botUserId": "123456789",
-    "teamId": null,
-    "appId": null
-  },
-  "health": {
-    "checkedAt": "2026-09-12T12:00:00Z",
-    "tokenValid": true,
-    "identityVerified": true,
-    "checks": [
-      {
-        "code": "webhook_url",
-        "status": "fail"
-      }
-    ]
-  },
-  "credentialFragment": "OKEN",
-  "credentialVersion": 1,
-  "createdAt": "2026-09-12T12:00:00Z",
-  "updatedAt": "2026-09-12T12:00:00Z"
-}
-```
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/health" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-### POST /v1/chat-connections/:id/enable [#enable-chat-connection]
-
-Starts accepting messages.
-
-#### Request
-
-No body. Accepts new events; messages sent while disabled are not replayed. For
-Telegram, Blazing Agents registers the webhook first. A webhook registered elsewhere returns
-`409 chat_webhook_conflict`; other registration failures return
-`502 chat_webhook_registration_failed` and leave the connection disabled.
-
-#### Response
-
-Returns `200 OK`: a connection object.
-
-```json
-{
-  "id": "cc_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "name": "Support",
-  "platform": "telegram",
-  "enabled": true,
-  "configuration": {
-    "platform": "telegram",
-    "businessMode": false,
-    "chatIds": []
-  },
-  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
-  "identity": {
-    "botId": "123456789",
-    "botUserId": "123456789",
-    "teamId": null,
-    "appId": null
-  },
-  "health": {
-    "checkedAt": "2026-09-12T12:00:00Z",
-    "tokenValid": true,
-    "identityVerified": true,
-    "checks": [
-      {
-        "code": "webhook_url",
-        "status": "fail"
-      }
-    ]
-  },
-  "credentialFragment": "OKEN",
-  "credentialVersion": 1,
-  "createdAt": "2026-09-12T12:00:00Z",
-  "updatedAt": "2026-09-12T12:00:00Z"
-}
-```
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/enable" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-### POST /v1/chat-connections/:id/disable [#disable-chat-connection]
-
-Stops accepting messages.
-
-#### Request
-
-No body. Stops new messages and approval clicks; work already accepted can finish.
-Signed Slack URL verification still returns its challenge while disabled;
-other verified events are acknowledged and dropped.
-
-#### Response
-
-Returns `200 OK`: a connection object.
-
-```json
-{
-  "id": "cc_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "name": "Support",
-  "platform": "telegram",
-  "enabled": false,
-  "configuration": {
-    "platform": "telegram",
-    "businessMode": false,
-    "chatIds": []
-  },
-  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_1234567890ABCDEF",
-  "identity": {
-    "botId": "123456789",
-    "botUserId": "123456789",
-    "teamId": null,
-    "appId": null
-  },
-  "health": {
-    "checkedAt": "2026-09-12T12:00:00Z",
-    "tokenValid": true,
-    "identityVerified": true,
-    "checks": [
-      {
-        "code": "webhook_url",
-        "status": "fail"
-      }
-    ]
-  },
-  "credentialFragment": "OKEN",
-  "credentialVersion": 1,
-  "createdAt": "2026-09-12T12:00:00Z",
-  "updatedAt": "2026-09-12T12:00:00Z"
-}
-```
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/disable" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-### DELETE /v1/chat-connections/:id [#delete-chat-connection]
-
-Deletes a connection.
-
-#### Request
-
-No body. Sessions are kept. Blazing Agents tries to clear a matching Telegram
-webhook; it does not uninstall a Slack app.
-
-#### Response
-
-Returns `204 No Content`: empty body.
-
-#### cURL
-
-```bash
-curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+  --data '{"name":"Support bot","agentId":"ag_4kP9sT2vXq7LmN3a","platform":"telegram","credentials":{"botToken":"7123456789:AAFexampleTokenReplaceMe_x9Qa"}}'
 ```
 
 ### GET /v1/chat-connections/:id/deliveries [#list-chat-deliveries]
 
-Lists delivery records.
+List chat deliveries.
+
+Lists the replies and approval cards the connection has sent or tried to send, newest first. Each record shows its status, attempt number, diagnostic code, and any message receipts the platform returned. Message bodies, tool arguments, and credentials are not included. Pass `nextCursor` as `cursor` to fetch older records.
 
 #### Request
 
-Optional `limit` (1–100, default 100) and opaque `cursor` query parameters. Newest first; pass `nextCursor` to retrieve older records.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the chat connection. |
+| `cursor` | string | query |  | `nextCursor` from the previous page, to fetch older records. |
+| `limit` | integer | query |  | Maximum number of records to return, 1 to 100. Defaults to 100. 1–100. Defaults to `100`. |
 
 #### Response
 
-Returns `200 OK`: `{data, nextCursor}` with delivery source IDs, status, attempt, diagnostic code, representation and known receipts. Credentials, message bodies and tool arguments are omitted.
+Returns `200 OK` as `application/json`. A page of chat deliveries.
+
+Response schema: `ChatDeliveryList`.
 
 ```json
 {
-  "data": [],
+  "data": [
+    {
+      "id": "cd_2Nf7Lp4WxB9kTc3M",
+      "kind": "reply",
+      "status": "confirmed",
+      "attempt": 1,
+      "credentialVersion": 1,
+      "representation": "native",
+      "diagnostic": null,
+      "receipts": [
+        {
+          "attempt": 1,
+          "messageId": "412"
+        }
+      ],
+      "sessionId": "ss_5Jm1Qe8RvC3yHd6X",
+      "messageId": "412",
+      "approvalId": null,
+      "threadId": "telegram:5012345678",
+      "createdAt": "2026-07-10T10:05:00.000Z",
+      "updatedAt": "2026-07-10T10:05:02.000Z"
+    }
+  ],
   "nextCursor": null
 }
 ```
 
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
 #### cURL
 
 ```bash
-curl --request GET "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/deliveries" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/deliveries" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
 ### POST /v1/chat-connections/:id/deliveries/:deliveryId/repair [#repair-chat-delivery]
 
-Repairs a stuck delivery.
+Repair a chat delivery.
+
+Sends a stuck reply or approval card again, without running a turn or tool. Use it when the previous send stopped before its outcome was known. Send `expectedAttempt` equal to the delivery's current `attempt`, and set both `previousSenderStopped` and `acceptDuplicateRisk` to `true`. The connection must be enabled. Repair can make a message appear twice. Check `status` in the response: a successful request does not by itself mean the message was delivered.
 
 #### Request
 
-Send `{"expectedAttempt":1,"previousSenderStopped":true,"acceptDuplicateRisk":true}` using the observed attempt (0–99). Confirm the old sender has stopped before attesting; ask your operator to drain a crashed sender. Repair can duplicate output. It sends the saved reply or pending card without running a turn or tool.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the chat connection. |
+| `deliveryId` | string | path | required | ID of the delivery. |
+| `expectedAttempt` | integer | body | required | The delivery's current `attempt`, from list chat deliveries. The repair is refused if it has changed. 0–99. |
+| `previousSenderStopped` | boolean | body | required | Confirms that the sender of the previous attempt has stopped. |
+| `acceptDuplicateRisk` | boolean | body | required | Confirms you accept that the message may appear twice, because the platform may already have it. |
 
 #### Response
 
-Returns `200 OK`: the delivery result. Inspect its status: a successful HTTP response alone does not mean the message was delivered.
+Returns `200 OK` as `application/json`. The delivery outcome.
+
+Response schema: `ChatDeliveryResult`.
 
 ```json
 {
-  "id": "cd_1234567890ABCDEF",
-  "connectionId": "cc_1234567890ABCDEF",
-  "sessionId": "ss_1234567890ABCDEF",
-  "threadId": "telegram:123456789",
-  "attempt": 2,
+  "id": "cd_2Nf7Lp4WxB9kTc3M",
+  "sessionId": "ss_5Jm1Qe8RvC3yHd6X",
+  "threadId": "telegram:5012345678",
+  "connectionId": "cc_6Wd3Hs8KqP1vRt5N",
   "kind": "reply",
-  "status": "confirmed"
+  "status": "confirmed",
+  "attempt": 2
 }
 ```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_request`](/api-reference/protocols/errors#invalid_request) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -596,7 +316,560 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
   --data '{"expectedAttempt":1,"previousSenderStopped":true,"acceptDuplicateRisk":true}'
 ```
 
-## Next
+### GET /v1/chat-connections/:id [#get-chat-connection]
+
+Get a chat connection.
+
+Returns a connection. `health` shows the result of the last check; call check health to run a new one. Full credentials are never returned.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the chat connection. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The chat connection.
+
+Response schema: `ChatConnection`.
+
+```json
+{
+  "id": "cc_6Wd3Hs8KqP1vRt5N",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "Support bot",
+  "platform": "telegram",
+  "enabled": true,
+  "configuration": {
+    "platform": "telegram",
+    "businessMode": false,
+    "chatIds": []
+  },
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_6Wd3Hs8KqP1vRt5N",
+  "identity": {
+    "botId": "7123456789",
+    "botUserId": "7123456789",
+    "teamId": null,
+    "appId": null
+  },
+  "health": {
+    "checkedAt": "2026-07-10T10:00:00.000Z",
+    "tokenValid": true,
+    "identityVerified": true,
+    "checks": [
+      {
+        "code": "bot_identity",
+        "status": "pass"
+      },
+      {
+        "code": "channel_membership",
+        "status": "unknown"
+      },
+      {
+        "code": "webhook_url",
+        "status": "pass"
+      }
+    ]
+  },
+  "credentialFragment": "x9Qa",
+  "credentialVersion": 1,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### PATCH /v1/chat-connections/:id [#rename-chat-connection]
+
+Update a chat connection.
+
+Changes a connection's name or configuration. Send `name`, `configuration`, or both, with at least one field to change. Configuration fields must match the connection's platform: Slack accepts `channelIds`, and Telegram accepts `chatIds` and `businessMode`. Changing `businessMode` on an enabled Telegram connection re-registers its webhook. If that fails, your change is still saved and the request returns an error; call enable to retry. You cannot change the agent, platform, or `webhookUrl`.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the chat connection. |
+| `name` | string | body |  | New display name. 1–80 characters. |
+| `configuration` | object | body |  | Fields to change. Slack connections accept `channelIds`; Telegram connections accept `chatIds` and `businessMode`. Fields you leave out keep their values. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The updated chat connection.
+
+Response schema: `ChatConnection`.
+
+```json
+{
+  "id": "cc_6Wd3Hs8KqP1vRt5N",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "Customer support bot",
+  "platform": "telegram",
+  "enabled": true,
+  "configuration": {
+    "platform": "telegram",
+    "businessMode": false,
+    "chatIds": []
+  },
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_6Wd3Hs8KqP1vRt5N",
+  "identity": {
+    "botId": "7123456789",
+    "botUserId": "7123456789",
+    "teamId": null,
+    "appId": null
+  },
+  "health": {
+    "checkedAt": "2026-07-10T10:00:00.000Z",
+    "tokenValid": true,
+    "identityVerified": true,
+    "checks": [
+      {
+        "code": "bot_identity",
+        "status": "pass"
+      },
+      {
+        "code": "channel_membership",
+        "status": "unknown"
+      },
+      {
+        "code": "webhook_url",
+        "status": "pass"
+      }
+    ]
+  },
+  "credentialFragment": "x9Qa",
+  "credentialVersion": 1,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:15:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_request`](/api-reference/protocols/errors#invalid_request) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`chat_webhook_conflict`](/api-reference/protocols/errors#chat_webhook_conflict) | The request conflicts with the resource's current state |
+| `502` | [`chat_webhook_registration_failed`](/api-reference/protocols/errors#chat_webhook_registration_failed) | An upstream service failed |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"name":"Customer support bot"}'
+```
+
+### DELETE /v1/chat-connections/:id [#delete-chat-connection]
+
+Delete a chat connection.
+
+Deletes a connection and its stored credentials. Sessions it created are kept. For Telegram, Blazing Agents tries to remove the bot's webhook, and the delete succeeds even if that fails. Deleting a Slack connection does not uninstall the Slack app.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the chat connection. |
+
+#### Response
+
+Returns `204 No Content`. The chat connection was deleted.
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/chat-connections/:id/credentials [#rotate-chat-credentials]
+
+Rotate chat connection credentials.
+
+Replaces a connection's credentials. Send `platform` matching the connection and the complete credentials for the same bot installation: Slack needs `botToken` and `signingSecret`, and Telegram needs `botToken`. The new credentials are checked with the chat platform and must identify the same bot. The enabled state and sessions are kept. On an enabled Telegram connection, Blazing Agents re-registers the webhook with a new secret. If that fails, the new credentials are still saved and the request returns an error; call enable to retry.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the chat connection. |
+| `(body)` | object | body | required | Raw `application/json` request body. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The chat connection with rotated credentials.
+
+Response schema: `ChatConnection`.
+
+```json
+{
+  "id": "cc_6Wd3Hs8KqP1vRt5N",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "Support bot",
+  "platform": "telegram",
+  "enabled": true,
+  "configuration": {
+    "platform": "telegram",
+    "businessMode": false,
+    "chatIds": []
+  },
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_6Wd3Hs8KqP1vRt5N",
+  "identity": {
+    "botId": "7123456789",
+    "botUserId": "7123456789",
+    "teamId": null,
+    "appId": null
+  },
+  "health": {
+    "checkedAt": "2026-07-10T10:00:00.000Z",
+    "tokenValid": true,
+    "identityVerified": true,
+    "checks": [
+      {
+        "code": "bot_identity",
+        "status": "pass"
+      },
+      {
+        "code": "channel_membership",
+        "status": "unknown"
+      },
+      {
+        "code": "webhook_url",
+        "status": "pass"
+      }
+    ]
+  },
+  "credentialFragment": "b7Kw",
+  "credentialVersion": 2,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:15:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_request`](/api-reference/protocols/errors#invalid_request) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`chat_webhook_conflict`](/api-reference/protocols/errors#chat_webhook_conflict) | The request conflicts with the resource's current state |
+| `502` | [`chat_webhook_registration_failed`](/api-reference/protocols/errors#chat_webhook_registration_failed) | An upstream service failed |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/credentials" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"platform":"telegram","botToken":"7123456789:AAFrotatedTokenReplaceMe_b7Kw"}'
+```
+
+### POST /v1/chat-connections/:id/health [#check-chat-health]
+
+Check chat connection health.
+
+Runs new read-only checks against the chat platform, saves the results, and returns the connection with its refreshed `health`. Failing checks are reported in `health.checks`, not as an error.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the chat connection. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The chat connection with refreshed health.
+
+Response schema: `ChatConnection`.
+
+```json
+{
+  "id": "cc_6Wd3Hs8KqP1vRt5N",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "Support bot",
+  "platform": "telegram",
+  "enabled": true,
+  "configuration": {
+    "platform": "telegram",
+    "businessMode": false,
+    "chatIds": []
+  },
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_6Wd3Hs8KqP1vRt5N",
+  "identity": {
+    "botId": "7123456789",
+    "botUserId": "7123456789",
+    "teamId": null,
+    "appId": null
+  },
+  "health": {
+    "checkedAt": "2026-07-10T10:00:00.000Z",
+    "tokenValid": true,
+    "identityVerified": true,
+    "checks": [
+      {
+        "code": "bot_identity",
+        "status": "pass"
+      },
+      {
+        "code": "channel_membership",
+        "status": "unknown"
+      },
+      {
+        "code": "webhook_url",
+        "status": "pass"
+      }
+    ]
+  },
+  "credentialFragment": "x9Qa",
+  "credentialVersion": 1,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/health" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/chat-connections/:id/disable [#disable-chat-connection]
+
+Disable a chat connection.
+
+Stops the connection from accepting new messages and approval clicks. Work already accepted can finish. While disabled, Slack URL verification still succeeds, other messages are acknowledged and dropped, and deliveries cannot be repaired.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the chat connection. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The updated chat connection.
+
+Response schema: `ChatConnection`.
+
+```json
+{
+  "id": "cc_6Wd3Hs8KqP1vRt5N",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "Support bot",
+  "platform": "telegram",
+  "enabled": false,
+  "configuration": {
+    "platform": "telegram",
+    "businessMode": false,
+    "chatIds": []
+  },
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_6Wd3Hs8KqP1vRt5N",
+  "identity": {
+    "botId": "7123456789",
+    "botUserId": "7123456789",
+    "teamId": null,
+    "appId": null
+  },
+  "health": {
+    "checkedAt": "2026-07-10T10:00:00.000Z",
+    "tokenValid": true,
+    "identityVerified": true,
+    "checks": [
+      {
+        "code": "bot_identity",
+        "status": "pass"
+      },
+      {
+        "code": "channel_membership",
+        "status": "unknown"
+      },
+      {
+        "code": "webhook_url",
+        "status": "pass"
+      }
+    ]
+  },
+  "credentialFragment": "x9Qa",
+  "credentialVersion": 1,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:15:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/disable" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/chat-connections/:id/enable [#enable-chat-connection]
+
+Enable a chat connection.
+
+Starts accepting new messages. Messages sent while the connection was disabled are not replayed. For Telegram, Blazing Agents registers the webhook first. If the bot already sends updates to a webhook outside Blazing Agents, the request returns `chat_webhook_conflict`; remove that webhook and try again. If registration fails for another reason, the request returns `chat_webhook_registration_failed` and the connection stays disabled.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the chat connection. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The updated chat connection.
+
+Response schema: `ChatConnection`.
+
+```json
+{
+  "id": "cc_6Wd3Hs8KqP1vRt5N",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "Support bot",
+  "platform": "telegram",
+  "enabled": true,
+  "configuration": {
+    "platform": "telegram",
+    "businessMode": false,
+    "chatIds": []
+  },
+  "webhookUrl": "https://api.blazingagents.com/v1/chat/webhooks/telegram/cc_6Wd3Hs8KqP1vRt5N",
+  "identity": {
+    "botId": "7123456789",
+    "botUserId": "7123456789",
+    "teamId": null,
+    "appId": null
+  },
+  "health": {
+    "checkedAt": "2026-07-10T10:00:00.000Z",
+    "tokenValid": true,
+    "identityVerified": true,
+    "checks": [
+      {
+        "code": "bot_identity",
+        "status": "pass"
+      },
+      {
+        "code": "channel_membership",
+        "status": "unknown"
+      },
+      {
+        "code": "webhook_url",
+        "status": "pass"
+      }
+    ]
+  },
+  "credentialFragment": "x9Qa",
+  "credentialVersion": 1,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:15:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`chat_webhook_conflict`](/api-reference/protocols/errors#chat_webhook_conflict) | The request conflicts with the resource's current state |
+| `502` | [`chat_webhook_registration_failed`](/api-reference/protocols/errors#chat_webhook_registration_failed) | An upstream service failed |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/enable" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+## Next [#next]
 
 - [Chat integrations](/platform/chat-integrations) to set up Slack or Telegram.
 - [TypeScript](/sdk/typescript/chat-integrations) or [Python](/sdk/python/chat-integrations) chat integration methods.

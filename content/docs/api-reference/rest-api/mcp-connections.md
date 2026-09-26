@@ -7,89 +7,57 @@ description: Connect remote MCP tool servers, then test, update, and reconnect t
 
 ## Overview [#overview]
 
-An MCP connection gives your agents the tools on a remote MCP server that speaks Streamable HTTP. Store the server URL and its credentials once, then attach the connection to any agent in your tenant. Credentials are never returned. Connections have no `userId`.
+An MCP connection gives your agents the tools on a remote MCP server that speaks Streamable HTTP. Store the server URL and its credentials once, then attach the connection to any agent in your tenant. Credentials are never returned. Connections have no `userId`. Servers that sign in with OAuth finish connecting in the [dashboard](https://www.blazingagents.com/app).
 
 ## Endpoints [#endpoints]
 
-### POST /v1/mcp-connections [#create-mcp-connection]
-
-Creates an MCP connection you can attach to agents. Credentials are never returned.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-
-| Location | Field          | Required    | Description                                                                                                          |
-| -------- | -------------- | ----------- | -------------------------------------------------------------------------------------------------------------------- |
-| Body     | `name`         | yes         | Unique display name.                                                                                                 |
-| Body     | `url`          | yes         | Remote Streamable HTTP URL.                                                                                          |
-| Body     | `authType`     | yes         | `none`, `bearer`, `oauth_client_credentials`, or `oauth_authorization_code`; credentials depend on the discriminant. |
-| Body     | `bearerToken`  | conditional | Required only for `bearer`.                                                                                          |
-| Body     | `clientId`     | conditional | Required with `clientSecret` for client credentials; optional but paired for authorization code.                     |
-| Body     | `clientSecret` | conditional | Required with `clientId` for client credentials; optional but paired for authorization code.                         |
-| Body     | `scope`        | no          | Optional OAuth scope for either OAuth mode.                                                                          |
-| Header   | `Content-Type` | yes         | `application/json`.                                                                                                  |
-
-#### Response
-
-| Status        | Body                                                                                      | Lifecycle effect                                                                                          |
-| ------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `201 Created` | [McpConnectionResponse](/api-reference/protocols/objects-and-schemas#mcp-connection-response) | Stores a `connected` definition, or `needs_auth` for authorization-code OAuth; secrets remain write-only. |
-
-For `none`, `bearer`, and client-credentials authentication, Blazing Agents checks the live server before saving and returns `connected`. For authorization-code OAuth, it does not contact the server; it saves the connection as `needs_auth` so an administrator can finish sign-in with [connect](#connect-mcp-connection).
-
-Response schema: [`mcpConnectionResponseSchema`](/api-reference/protocols/objects-and-schemas#mcp-connection-response).
-
-#### Errors
-
-`400 validation_failed` for an invalid body. A failed server check returns
-`mcp_connection_invalid`, `mcp_connection_authentication_failed`,
-`mcp_connection_unreachable`, or `mcp_connection_discovery_failed`. A
-duplicate name returns `409 mcp_connection_name_conflict`, and reaching the
-tenant limit returns `mcp_connection_limit_reached`. A failed create saves
-nothing. For `none` and `bearer`, the server check runs before the name and
-limit checks, so a server error can come back first. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{"name":"Docs","url":"https://mcp.example.com/mcp","authType":"none"}'
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/mcp-connections#create), [Python](/sdk/python/mcp-connections#create). See [MCP connections](/agents/tools/mcp-tools).
-
 ### GET /v1/mcp-connections [#list-mcp-connections]
 
-Lists your MCP connections without their credentials.
+List MCP connections.
+
+Lists your tenant's MCP connections, sorted by name. Credentials are never returned.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
+There are no parameters and no request body.
 
 #### Response
 
-| Status   | Body                                                                                        | Lifecycle effect                 |
-| -------- | ------------------------------------------------------------------------------------------- | -------------------------------- |
-| `200 OK` | [McpConnectionsResponse](/api-reference/protocols/objects-and-schemas#mcp-connections-response) | Read-only; secrets are redacted. |
+Returns `200 OK` as `application/json`. Your tenant's MCP connections.
 
-Response schema: [`mcpConnectionsResponseSchema`](/api-reference/protocols/objects-and-schemas#mcp-connections-response).
+Response schema: `McpConnectionList`.
+
+```json
+{
+  "mcpConnections": [
+    {
+      "id": "mcp_2Rk7Wm4XsQ9dHv1B",
+      "name": "Docs Search",
+      "url": "https://mcp.example.com/mcp",
+      "authType": "bearer",
+      "status": "connected",
+      "credentialFragment": "x7Qa",
+      "lastAuthErrorCode": null,
+      "oauthIssuer": null,
+      "oauthResource": null,
+      "tokenExpiresAt": null,
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:00:00.000Z"
+    }
+  ]
+}
+```
 
 #### Errors
 
-Authentication and service errors only. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -98,158 +66,109 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
+### POST /v1/mcp-connections [#create-mcp-connection]
 
-SDKs: [TypeScript](/sdk/typescript/mcp-connections#list), [Python](/sdk/python/mcp-connections#list). See [MCP connections](/agents/tools/mcp-tools).
+Create an MCP connection.
 
-### GET /v1/mcp-connections/:id [#get-mcp-connection]
-
-Retrieves one MCP connection without its credentials.
+Creates an MCP connection you can attach to any agent in your tenant. Names are unique within your tenant, and credentials are never returned. The fields you send depend on `authType`: `bearerToken` is required for `bearer`; `clientId` and `clientSecret` are required together for `oauth_client_credentials`; for `oauth_authorization_code` they are optional but go together. For `none`, `bearer`, and `oauth_client_credentials`, Blazing Agents checks the live server before saving and returns `status: "connected"`. For `oauth_authorization_code`, it saves the connection as `needs_auth`, and an administrator finishes sign-in from the dashboard. A failed create saves nothing.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `id`            | yes      | MCP Connection ID.                        |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `(body)` | object | body | required | Raw `application/json` request body. |
 
 #### Response
 
-| Status   | Body                                                                                      | Lifecycle effect                     |
-| -------- | ----------------------------------------------------------------------------------------- | ------------------------------------ |
-| `200 OK` | [McpConnectionResponse](/api-reference/protocols/objects-and-schemas#mcp-connection-response) | Read-only; credentials are redacted. |
+Returns `201 Created` as `application/json`. The created MCP connection.
 
-Response schema: [`mcpConnectionResponseSchema`](/api-reference/protocols/objects-and-schemas#mcp-connection-response).
+Response schema: `McpConnection`.
 
-#### Errors
-
-`404 not_found` for an unknown ID or one in another tenant. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```json
+{
+  "id": "mcp_2Rk7Wm4XsQ9dHv1B",
+  "name": "Docs Search",
+  "url": "https://mcp.example.com/mcp",
+  "authType": "bearer",
+  "status": "connected",
+  "credentialFragment": "x7Qa",
+  "lastAuthErrorCode": null,
+  "oauthIssuer": null,
+  "oauthResource": null,
+  "tokenExpiresAt": null,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
+}
 ```
 
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/mcp-connections#get), [Python](/sdk/python/mcp-connections#get). See [MCP connections](/agents/tools/mcp-tools).
-
-### PATCH /v1/mcp-connections/:id [#update-mcp-connection]
-
-Renames an MCP connection.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `id`            | yes      | MCP Connection ID.                        |
-
-| Location | Field          | Required | Description                                              |
-| -------- | -------------- | -------- | -------------------------------------------------------- |
-| Body     | `name`         | yes      | New unique display name; at least one field is required. |
-| Header   | `Content-Type` | yes      | `application/json`.                                      |
-
-#### Response
-
-| Status   | Body                                                                                      | Lifecycle effect                                            |
-| -------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `200 OK` | [McpConnectionResponse](/api-reference/protocols/objects-and-schemas#mcp-connection-response) | Updates the definition without changing stored credentials. |
-
-Response schema: [`mcpConnectionResponseSchema`](/api-reference/protocols/objects-and-schemas#mcp-connection-response).
-
 #### Errors
 
-`400 validation_failed`; `404 not_found`; `409
-mcp_connection_name_conflict` for a duplicate name. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`mcp_connection_invalid`](/api-reference/protocols/errors#mcp_connection_invalid), [`mcp_connection_authentication_failed`](/api-reference/protocols/errors#mcp_connection_authentication_failed), [`mcp_connection_unreachable`](/api-reference/protocols/errors#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed), [`mcp_connection_limit_reached`](/api-reference/protocols/errors#mcp_connection_limit_reached) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `409` | [`mcp_connection_name_conflict`](/api-reference/protocols/errors#mcp_connection_name_conflict) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF" \
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"name":"Docs production"}'
+  --data '{"name":"Docs Search","url":"https://mcp.example.com/mcp","authType":"bearer","bearerToken":"mcp_live_4f8Kq2Lz9Xw7x7Qa"}'
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/mcp-connections#update), [Python](/sdk/python/mcp-connections#update). See [MCP connections](/agents/tools/mcp-tools).
-
-### DELETE /v1/mcp-connections/:id [#delete-mcp-connection]
-
-Deletes an MCP connection and revokes its stored OAuth credentials.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `id`            | yes      | MCP Connection ID.                        |
-
-#### Response
-
-| Status           | Body  | Lifecycle effect                                             |
-| ---------------- | ----- | ------------------------------------------------------------ |
-| `204 No Content` | Empty | Removes the definition and revokes stored OAuth credentials. |
-
-#### Errors
-
-`400 validation_failed` for a malformed ID; `404 not_found`; `409
-mcp_connection_in_use` while an agent is attached to the connection. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/mcp-connections#delete), [Python](/sdk/python/mcp-connections#delete). See [MCP connections](/agents/tools/mcp-tools).
 
 ### POST /v1/mcp-connections/:id/test [#test-mcp-connection]
 
-Tests an MCP connection and lists its server details and tools.
+Test an MCP connection.
+
+Connects to the MCP server with the stored credentials and returns its server details and tool names. The outcome is saved on the connection: success sets `status` to `connected` and clears `lastAuthErrorCode`; a rejected credential sets `needs_auth`; any other failure sets `error`. Server and network failures return `200` with `ok: false` and an error code, not an error status. Testing an OAuth connection can refresh its stored tokens first.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `id`            | yes      | MCP Connection ID.                        |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the MCP connection. |
 
 #### Response
 
-| Status   | Body                                                                                               | Lifecycle effect                                                                 |
-| -------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `200 OK` | [McpConnectionTestResponse](/api-reference/protocols/objects-and-schemas#mcp-connection-test-response) | Persists `status` and `lastAuthErrorCode`; OAuth testing may also renew a token. |
+Returns `200 OK` as `application/json`. The test result.
 
-A test of an existing connection always returns HTTP `200` and saves the
-outcome on the connection:
+Response schema: `McpConnectionTest`.
 
-- Success returns `ok: true`, sets `status: "connected"`, and clears `lastAuthErrorCode`.
-- A rejected credential returns `ok: false`, sets `status: "needs_auth"`, and records the code.
-- Any other failure returns `ok: false`, sets `status: "error"`, and records the code.
-
-Testing an OAuth connection can refresh its stored tokens first.
-
-Response schema: [`mcpConnectionTestResponseSchema`](/api-reference/protocols/objects-and-schemas#mcp-connection-test-response).
+```json
+{
+  "ok": true,
+  "latencyMs": 412,
+  "server": {
+    "name": "docs-search",
+    "version": "1.4.0"
+  },
+  "toolCount": 2,
+  "toolNames": [
+    "search_docs",
+    "get_page"
+  ]
+}
+```
 
 #### Errors
 
-`404 not_found` for a missing connection. Server and network failures come back as `200` with `{ "ok": false, "error": "…" }`, not as an error status. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -258,90 +177,58 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890A
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/mcp-connections#test), [Python](/sdk/python/mcp-connections#test). See [MCP connections](/agents/tools/mcp-tools).
-
-### POST /v1/mcp-connections/:id/connect [#connect-mcp-connection]
-
-Starts OAuth sign-in for an MCP connection. Requires a dashboard JWT.
-
-#### Request
-
-Requires a [dashboard JWT](/api-reference/rest-api/authentication). The signed-in administrator and every resource in the request must belong to the same tenant.
-
-| Location | Field           | Required | Description                                           |
-| -------- | --------------- | -------- | ----------------------------------------------------- |
-| Header   | `Authorization` | yes      | Dashboard JWT; Tenant API keys are rejected. |
-| Path     | `id`            | yes      | MCP Connection ID.                                    |
-
-#### Response
-
-| Status   | Body                                                                                                                | Lifecycle effect                                                      |
-| -------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `200 OK` | [McpConnectionOauthConnectResponse](/api-reference/protocols/objects-and-schemas#mcp-connection-oauth-connect-response) | Creates a short-lived setup continuation and returns a dashboard URL. |
-
-Response schema: [`mcpConnectionOauthConnectResponseSchema`](/api-reference/protocols/objects-and-schemas#mcp-connection-oauth-connect-response).
-
-#### Errors
-
-`400 validation_failed` for a malformed ID. A request without a dashboard JWT
-returns `401 unauthorized`. A missing connection, one in another tenant, or one
-with the wrong auth type or status currently returns `500 internal`, not
-`404`. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF/connect" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_DASHBOARD_JWT"
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/mcp-connections#connect), [Python](/sdk/python/mcp-connections#connect). See [MCP connections](/agents/tools/mcp-tools).
-
 ### POST /v1/mcp-connections/:id/reconnect [#reconnect-mcp-connection]
 
-Replaces a connection's server URL and credentials. For authorization-code OAuth, finish sign-in with connect afterward.
+Reconnect an MCP connection.
+
+Replaces an MCP connection's server URL and credentials. The fields you send depend on `authType`, as when you create a connection: `bearerToken` is required for `bearer`; `clientId` and `clientSecret` are required together for `oauth_client_credentials`; for `oauth_authorization_code` they are optional but go together. For `none`, `bearer`, and `oauth_client_credentials`, Blazing Agents checks the live server before replacing anything and returns `status: "connected"`; a failed check leaves the existing configuration as it was. For `oauth_authorization_code`, it saves the replacement as `needs_auth`, and an administrator finishes sign-in from the dashboard.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `id`            | yes      | MCP Connection ID.                        |
-
-| Location | Field          | Required    | Description                                                                                      |
-| -------- | -------------- | ----------- | ------------------------------------------------------------------------------------------------ |
-| Body     | `authType`     | yes         | Authentication discriminant.                                                                     |
-| Body     | `url`          | yes         | Replacement remote URL; credential fields depend on `authType`.                                  |
-| Body     | `bearerToken`  | conditional | Required only for `bearer`.                                                                      |
-| Body     | `clientId`     | conditional | Required with `clientSecret` for client credentials; optional but paired for authorization code. |
-| Body     | `clientSecret` | conditional | Required with `clientId` for client credentials; optional but paired for authorization code.     |
-| Body     | `scope`        | no          | Optional OAuth scope for either OAuth mode.                                                      |
-| Header   | `Content-Type` | yes         | `application/json`.                                                                              |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the MCP connection. |
+| `(body)` | object | body | required | Raw `application/json` request body. |
 
 #### Response
 
-| Status   | Body                                                                                                     | Lifecycle effect                                                                         |
-| -------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `200 OK` | [McpConnectionReconnectResult](/api-reference/protocols/objects-and-schemas#mcp-connection-reconnect-result) | Returns `connected` after live validation, or `needs_auth` for authorization-code OAuth. |
+Returns `200 OK` as `application/json`. The reconnected MCP connection.
 
-For `none`, `bearer`, or client credentials, Blazing Agents checks the server before replacing anything and returns `connected`. For authorization-code OAuth, it saves the replacement as `needs_auth`; call connect next. Later, a failed test or tool call can move a connection from `connected` to `needs_auth` when the credential is rejected, or to `error` for other failures.
+Response schema: `McpConnectionReconnectResult`.
 
-Response schema: [`mcpConnectionReconnectResultSchema`](/api-reference/protocols/objects-and-schemas#mcp-connection-reconnect-result).
+```json
+{
+  "status": "connected",
+  "connection": {
+    "id": "mcp_2Rk7Wm4XsQ9dHv1B",
+    "name": "Docs Search",
+    "url": "https://mcp.example.com/mcp",
+    "authType": "bearer",
+    "status": "connected",
+    "credentialFragment": "8Rw2",
+    "lastAuthErrorCode": null,
+    "oauthIssuer": null,
+    "oauthResource": null,
+    "tokenExpiresAt": null,
+    "createdAt": "2026-07-10T10:00:00.000Z",
+    "updatedAt": "2026-07-10T10:20:00.000Z"
+  }
+}
+```
 
 #### Errors
 
-`400 validation_failed` for a malformed ID or invalid body. A failed server
-check returns `mcp_connection_invalid`, `mcp_connection_authentication_failed`,
-`mcp_connection_unreachable`, or `mcp_connection_discovery_failed`, and leaves
-the existing configuration as it was. `404 not_found` for a missing
-connection, and `409 mcp_connection_stale_credential_version` if the
-credential changed at the same time. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`mcp_connection_invalid`](/api-reference/protocols/errors#mcp_connection_invalid), [`mcp_connection_authentication_failed`](/api-reference/protocols/errors#mcp_connection_authentication_failed), [`mcp_connection_unreachable`](/api-reference/protocols/errors#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`mcp_connection_stale_credential_version`](/api-reference/protocols/errors#mcp_connection_stale_credential_version) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -349,15 +236,161 @@ credential changed at the same time. See [REST errors](/api-reference/protocols/
 curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF/reconnect" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"authType":"none","url":"https://mcp.example.com/mcp"}'
+  --data '{"authType":"bearer","url":"https://mcp.example.com/mcp","bearerToken":"mcp_live_9Tb3Vc6Nm1Pq8Rw2"}'
 ```
 
-#### SDK and related guides
+### GET /v1/mcp-connections/:id [#get-mcp-connection]
 
-SDKs: [TypeScript](/sdk/typescript/mcp-connections#reconnect), [Python](/sdk/python/mcp-connections#reconnect). See [MCP connections](/agents/tools/mcp-tools).
+Get an MCP connection.
+
+Retrieves one MCP connection, including its current `status`. Credentials are never returned.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the MCP connection. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The MCP connection.
+
+Response schema: `McpConnection`.
+
+```json
+{
+  "id": "mcp_2Rk7Wm4XsQ9dHv1B",
+  "name": "Docs Search",
+  "url": "https://mcp.example.com/mcp",
+  "authType": "bearer",
+  "status": "connected",
+  "credentialFragment": "x7Qa",
+  "lastAuthErrorCode": null,
+  "oauthIssuer": null,
+  "oauthResource": null,
+  "tokenExpiresAt": null,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### PATCH /v1/mcp-connections/:id [#update-mcp-connection]
+
+Update an MCP connection.
+
+Renames an MCP connection. Send at least one field. The URL and credentials stay as they are; change them with reconnect.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the MCP connection. |
+| `name` | string | body |  | Display name of the connection, unique within your tenant. 1–80 characters. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The updated MCP connection.
+
+Response schema: `McpConnection`.
+
+```json
+{
+  "id": "mcp_2Rk7Wm4XsQ9dHv1B",
+  "name": "Docs Search Production",
+  "url": "https://mcp.example.com/mcp",
+  "authType": "bearer",
+  "status": "connected",
+  "credentialFragment": "x7Qa",
+  "lastAuthErrorCode": null,
+  "oauthIssuer": null,
+  "oauthResource": null,
+  "tokenExpiresAt": null,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:15:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`mcp_connection_name_conflict`](/api-reference/protocols/errors#mcp_connection_name_conflict) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"name":"Docs Search Production"}'
+```
+
+### DELETE /v1/mcp-connections/:id [#delete-mcp-connection]
+
+Delete an MCP connection.
+
+Deletes an MCP connection and revokes its stored OAuth credentials. Detach the connection from every agent first; a connection that is still attached cannot be deleted.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the MCP connection. |
+
+#### Response
+
+Returns `204 No Content`. The MCP connection was deleted.
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`mcp_connection_in_use`](/api-reference/protocols/errors#mcp_connection_in_use) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
 
 ## Next [#next]
 
 - [MCP connections](/agents/tools/mcp-tools) to give an agent remote tools.
 - [Agents API](/api-reference/rest-api/agents#update-agent-mcp-attachment) to control what each attachment forwards.
-- [MCP OAuth](/api-reference/rest-api/mcp-oauth) to finish OAuth sign-in.

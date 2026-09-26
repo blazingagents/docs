@@ -5,6 +5,10 @@ description: Start a task run, watch its progress and transcript, and cancel it.
 
 # Task runs
 
+## Overview [#overview]
+
+A task run is one execution of a task. Start a run on demand, poll its status and transcript while it works, and ask it to stop. Runs keep going if your connection drops.
+
 ## Tool approval policy [#tool-approval-policy]
 
 Task runs follow the agent version's `approvalInTasks` policy. Nobody is
@@ -14,308 +18,288 @@ which actions were blocked and keeps going with what it is allowed to do. If a
 run ends up waiting for a person anyway, it fails. See
 [Tool approvals](/agents/tools/tool-approvals).
 
-## Overview [#overview]
-
-A task run is one execution of a task. Start a run on demand, poll its status and transcript while it works, and ask it to stop. Runs keep going if your connection drops.
-
 ## Endpoints [#endpoints]
-
-### POST /v1/tasks/:taskId/runs [#create-task-run]
-
-Queues a task run now. Send an idempotency key to get the same run back on a retry.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, and a `tk_…` `taskId` path parameter. You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
-
-| Body field       | Type   | Required | Description                         |
-| ---------------- | ------ | -------- | ----------------------------------- |
-| `idempotencyKey` | string | no       | Non-empty tenant-defined replay key |
-
-Send `{}` when no key is needed. There are no query parameters.
-
-#### Response
-
-Returns `202 Accepted`.
-
-Response schema: [`createTaskRunResponseSchema`](/api-reference/protocols/objects-and-schemas#create-task-run-response).
-
-```json
-{ "runId": "tr_1234567890ABCDEF" }
-```
-
-The run starts as `queued`. Repeating a request with the same idempotency key
-returns the same run. Poll
-[Get a Task run](/api-reference/rest-api/task-runs#get-task-run) to follow it.
-
-#### Errors
-
-`400 validation_failed` for invalid input; `409 task_active_run_exists` when another run is active. `404 not_found` applies to a missing Task; `404 agent_version_not_found` rejects a missing pin, and `409 agent_disabled` rejects a disabled Agent. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request POST \
-  "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{"idempotencyKey":"daily-summary-2026-07-10"}'
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/tasks#create-run) / [Python](/sdk/python/tasks#submit). See [Tasks and schedules](/automation/tasks).
 
 ### GET /v1/tasks/:taskId/runs [#list-task-runs]
 
-Lists a task's runs newest first, one page at a time.
+List a task's runs.
+
+Lists a task's runs, newest first, one page at a time. Pass `nextCursor` as `cursor` to get the next page.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a `tk_…` `taskId`. You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
-
-| Query parameter | Type    | Default | Description   |
-| --------------- | ------- | ------- | ------------- |
-| `cursor`        | string  | none       | Opaque cursor |
-| `limit`         | integer | 50      | 1–200         |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `taskId` | string | path | required | ID of the task. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. |
+| `limit` | integer | query |  | Runs per page, 1 to 200. 1–200. Defaults to `50`. |
 
 #### Response
 
-Returns `200 OK` with `{ data, nextCursor }`. Each item is a complete [Task run object](/api-reference/protocols/objects-and-schemas#task-run).
+Returns `200 OK` as `application/json`. A page of task runs.
 
-Response schema: [`taskRunsListResponseSchema`](/api-reference/protocols/objects-and-schemas#task-runs-list-response).
+Response schema: `TaskRunList`.
 
 ```json
 {
   "data": [
     {
-      "id": "tr_1234567890ABCDEF",
-      "taskId": "tk_1234567890ABCDEF",
-      "tenantId": "ten_1234567890ABCDEF",
-      "agentId": "ag_1234567890ABCDEF",
+      "id": "tr_9Jd4Ks7NbV2xQm6P",
+      "taskId": "tk_6Wq3Hn8ZpL2vRt5C",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+      "agentId": "ag_4kP9sT2vXq7LmN3a",
       "agentVersion": 3,
-      "sessionId": "ss_1234567890ABCDEF",
-      "turnId": "turn_1234567890ABCDEF",
+      "sessionId": "ss_5Ty8Lr2GhW4nZc7F",
+      "turnId": "turn_3Xp6Mv9QdB1sKe4H",
       "status": "succeeded",
       "error": null,
       "userId": "",
-      "metadata": {},
-      "startedAt": "2026-07-10T10:00:01Z",
-      "finishedAt": "2026-07-10T10:03:00Z",
+      "metadata": {
+        "team": "support"
+      },
+      "startedAt": "2026-07-10T10:00:01.000Z",
+      "finishedAt": "2026-07-10T10:03:00.000Z",
       "cancelRequestedAt": null,
       "canceledAt": null,
-      "createdAt": "2026-07-10T10:00:00Z",
-      "updatedAt": "2026-07-10T10:03:00Z"
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:03:00.000Z"
     }
   ],
   "nextCursor": null
 }
 ```
 
-`turnId` stays `null` until the run's turn starts. A blocked run has no turn
-ID.
-
 #### Errors
 
-`400 validation_failed` for a malformed Task ID or limit; `400 invalid_cursor`
-for an opaque cursor that cannot be decoded. `404 not_found` applies when the
-Task is missing, foreign, or deleted. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --get \
-  "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "limit=50"
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/tasks#list-runs) / [Python](/sdk/python/tasks#list-runs). See [Tasks and schedules](/automation/tasks).
-
-### GET /v1/tasks/:taskId/runs/:runId [#get-task-run]
-
-Retrieves a task run's current state.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication), a `tk_…` `taskId`, and a `tr_…` `runId`. There are no query or body parameters. You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
-| Path     | `runId`         | yes      | Task run ID (`tr_…`).                     |
-
-#### Response
-
-Returns `200 OK` with a complete [Task run object](/api-reference/protocols/objects-and-schemas#task-run). `sessionId` stays `null` until the run starts its session. `error` is populated for a failed run.
-
-Response schema: [`taskRunResponseSchema`](/api-reference/protocols/objects-and-schemas#task-run-response).
-
-```json
-{
-  "id": "tr_1234567890ABCDEF",
-  "taskId": "tk_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "agentVersion": 3,
-  "sessionId": null,
-  "turnId": null,
-  "status": "queued",
-  "error": null,
-  "userId": "",
-  "metadata": {},
-  "startedAt": null,
-  "finishedAt": null,
-  "cancelRequestedAt": null,
-  "canceledAt": null,
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:00:00Z"
-}
-```
-
-Run status follows this lifecycle:
-
-| Status      | Meaning                                                                                                              |
-| ----------- | -------------------------------------------------------------------------------------------------------------------- |
-| `queued`    | Accepted and waiting to start; canceling now ends it before it runs.                                                 |
-| `running`   | The run has started and may already have its session.                                                                |
-| `blocked`   | Final. Not allowed to start by a quota, subscription, or usage-credit check; `error` says which.                    |
-| `succeeded` | Final. Finished successfully.                                                                                        |
-| `failed`    | Final. A configuration, execution, or platform failure; `error` describes it.                                        |
-| `canceled`  | Final. Stopped by a cancel request, while queued or running.                                                         |
-
-Every final status sets `finishedAt` and lets the task start another run. `blocked` is not `failed`: it means the run was not allowed to start, for example because a quota was reached, not that something broke.
-
-If the run's agent version has no provider and model, the run fails before it starts with `error: "provider_required"`, and `sessionId` and `turnId` stay `null`. A pinned version whose provider was deleted fails the same way with `error: "provider_not_found"`.
-
-#### Errors
-
-`400 validation_failed` for malformed IDs. `404 not_found` when the Task or run is missing, foreign, or mismatched. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl \
-  "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs/tr_1234567890ABCDEF" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
+### POST /v1/tasks/:taskId/runs [#create-task-run]
 
-SDKs: [TypeScript](/sdk/typescript/tasks#get-run) / [Python](/sdk/python/tasks#get-run). See [Tasks and schedules](/automation/tasks).
+Start a task run.
 
-### GET /v1/tasks/:taskId/runs/:runId/messages [#list-task-run-messages]
-
-Lists a task run's transcript. It returns an empty page until the run starts its session.
+Queues a run of the task now, whether or not it has a schedule. The run starts as `queued`; poll it to follow its progress. A task runs one run at a time, so this returns `409` while another run is queued or running. Send an `idempotencyKey` to make retries safe: repeating the request with the same key returns the same run. Send `{}` when you do not need a key.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication), a `tk_…` `taskId`, and a `tr_…` `runId`. You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
-| Path     | `runId`         | yes      | Task run ID (`tr_…`).                     |
-
-| Query parameter | Type    | Default | Description                       |
-| --------------- | ------- | ------- | --------------------------------- |
-| `cursor`        | string  | none       | Walk backward to older messages   |
-| `after`         | string  | none       | Poll forward after `latestCursor` |
-| `limit`         | integer | 50      | 1–200                             |
-
-`cursor` and `after` are mutually exclusive.
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `taskId` | string | path | required | ID of the task. |
+| `idempotencyKey` | string | body |  | Your own key for this run. Retrying with the same key returns the same run instead of starting another. |
 
 #### Response
 
-Returns `200 OK` with `{ data, nextCursor, latestCursor }`, the same shape and ordering as [List Session messages](/api-reference/rest-api/sessions#list-session-messages).
+Returns `202 Accepted` as `application/json`. The ID of the queued run.
 
-Response schema: [`taskRunMessagesResponseSchema`](/api-reference/protocols/objects-and-schemas#task-run-messages-response).
+Response schema: `CreatedTaskRun`.
+
+```json
+{
+  "runId": "tr_9Jd4Ks7NbV2xQm6P"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found) | The resource was not found |
+| `409` | [`task_active_run_exists`](/api-reference/protocols/errors#task_active_run_exists), [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"idempotencyKey":"daily-support-summary-2026-07-10"}'
+```
+
+### GET /v1/tasks/:taskId/runs/:runId [#get-task-run]
+
+Get a task run.
+
+Returns a task run's current state. `status` moves from `queued` to `running` and ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota was reached or usage credit ran out; `error` says why. `error` also describes a failed run. `sessionId` and `turnId` stay `null` until the run starts its session, and a run that fails before starting, such as one whose agent version has no provider and model, never gets them. Every final status sets `finishedAt` and lets the task start another run.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `taskId` | string | path | required | ID of the task. |
+| `runId` | string | path | required | ID of the task run. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The task run.
+
+Response schema: `TaskRun`.
+
+```json
+{
+  "id": "tr_9Jd4Ks7NbV2xQm6P",
+  "taskId": "tk_6Wq3Hn8ZpL2vRt5C",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "agentVersion": 3,
+  "sessionId": "ss_5Ty8Lr2GhW4nZc7F",
+  "turnId": "turn_3Xp6Mv9QdB1sKe4H",
+  "status": "succeeded",
+  "error": null,
+  "userId": "",
+  "metadata": {
+    "team": "support"
+  },
+  "startedAt": "2026-07-10T10:00:01.000Z",
+  "finishedAt": "2026-07-10T10:03:00.000Z",
+  "cancelRequestedAt": null,
+  "canceledAt": null,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:03:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs/tr_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### GET /v1/tasks/:taskId/runs/:runId/messages [#list-task-run-messages]
+
+List a task run's messages.
+
+Returns a task run's transcript with the run's `status`, `error`, and `finishedAt`, so one request tells you both what the agent said and whether the run is done. Pages come newest first, with messages in chronological order inside each page, the same as session messages. To follow a run as it works, save `latestCursor` and pass it as `after` to get only newer messages. Send `cursor` or `after`, not both. The page is empty until the run starts its session; while the run is still going, an empty page does not mean it is done.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `taskId` | string | path | required | ID of the task. |
+| `runId` | string | path | required | ID of the task run. |
+| `after` | string | query |  | `latestCursor` from an earlier response. Returns only messages newer than it. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. Walks back to older messages. |
+| `limit` | integer | query |  | Messages per page, 1 to 200. 1–200. Defaults to `50`. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. A page of messages with the run's state.
+
+Response schema: `TaskRunMessageList`.
 
 ```json
 {
   "data": [
     {
-      "id": "msg_1",
+      "id": "msg_7Rk2Wq9TdN4vLb3X",
       "role": "assistant",
-      "parts": [{ "type": "text", "text": "Summary complete." }]
+      "parts": [
+        {
+          "type": "text",
+          "text": "Yesterday had 14 open cases. Two are overdue: a refund request and a login issue."
+        }
+      ]
     }
   ],
   "nextCursor": null,
-  "latestCursor": "eyJzZXEiOjF9"
+  "latestCursor": "eyJzZXEiOjEyfQ",
+  "status": "succeeded",
+  "error": null,
+  "finishedAt": "2026-07-10T10:03:00.000Z"
 }
 ```
 
-Save `latestCursor` from each response and pass it as `after` to get only newer messages. While the run is still going, an empty page does not mean it is done; poll again.
-
 #### Errors
 
-`400 validation_failed` for malformed IDs, limits, or incompatible cursor
-directions; `400 invalid_cursor` for an opaque cursor that cannot be decoded.
-`404 not_found` applies to a missing or foreign Task or run. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --get \
-  "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs/tr_1234567890ABCDEF/messages" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "after=eyJzZXEiOjF9" \
-  --data-urlencode "limit=50"
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/tasks#run-messages) / [Python](/sdk/python/tasks#run-messages). See [Tasks and schedules](/automation/tasks).
-
-### POST /v1/tasks/:taskId/runs/:runId/cancel [#cancel-task-run]
-
-Asks an active task run to stop. The run stops shortly after, not immediately.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication), a `tk_…` `taskId`, and a `tr_…` `runId`. There are no query or body parameters. You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
-| Path     | `runId`         | yes      | Task run ID (`tr_…`).                     |
-
-#### Response
-
-Returns `204 No Content` with an empty body once the task is found. If the run is missing, belongs to another task or tenant, or has already finished, nothing happens and you still get `204`, so the response never reveals which runs exist.
-
-#### Errors
-
-`400 validation_failed` for malformed Task or run IDs. `404 not_found` when the Task is missing, foreign, or deleted. Standard authentication and service errors also apply. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request POST \
-  "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs/tr_1234567890ABCDEF/cancel" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs/tr_1234567890ABCDEF/messages" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-Poll [Get a Task run](/api-reference/rest-api/task-runs#get-task-run) for the resulting status.
+### POST /v1/tasks/:taskId/runs/:runId/cancel [#cancel-task-run]
 
-#### SDK and related guides
+Cancel a task run.
 
-SDKs: [TypeScript](/sdk/typescript/tasks#cancel-run) / [Python](/sdk/python/tasks#cancel-run). See [Tasks and schedules](/automation/tasks).
+Asks a queued or running task run to stop. A queued run ends before it starts; a running run stops shortly after, not immediately. Poll the run for its `canceled` status. You get `204` whenever the task exists, even if the run is missing or has already finished, so the response never reveals which runs exist.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `taskId` | string | path | required | ID of the task. |
+| `runId` | string | path | required | ID of the task run. |
+
+#### Response
+
+Returns `204 No Content`. Cancellation was requested.
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs/tr_1234567890ABCDEF/cancel" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
 
 ## Next [#next]
 

@@ -37,15 +37,10 @@ shape. There are no scopes, per-agent permissions, or extra auth headers.
 
 An API key always belongs to one tenant. A dashboard JWT works only after the
 signed-in user's tenant exists; signing in with OAuth alone does not create
-one. `GET /v1/me` accepts only a dashboard JWT, and API keys are managed only
-in the dashboard. Every other endpoint accepts either credential unless its
-page says otherwise.
-
-Raw REST calls to MCP authorization-code
-[connect](/api-reference/rest-api/mcp-connections#connect-mcp-connection) and
-[approval](/api-reference/rest-api/mcp-oauth) need the same tenant's dashboard
-JWT, because they check which administrator is signed in. An API key cannot
-stand in for that administrator.
+one. Every endpoint in this reference accepts either credential. A few
+dashboard-only endpoints, such as API key management and MCP OAuth approval,
+accept only a dashboard JWT because they check which administrator is signed
+in; they are not part of this reference.
 
 ## Authentication failures [#authentication-failures]
 

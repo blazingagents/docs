@@ -47,148 +47,64 @@ configuration or attachment changes must keep every rule valid. See
 
 ## Endpoints [#endpoints]
 
-### POST /v1/agents [#create-agent]
-
-Creates an agent. Names are unique within your tenant.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. There are no path or query parameters. You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-
-| Body field               | Type           | Required | Default                      |
-| ------------------------ | -------------- | -------- | ---------------------------- |
-| `name`                   | string         | yes      | none                            |
-| `model`                  | string \| null | no       | `null`                       |
-| `providerId`             | string \| null | no       | `null`                       |
-| `tools`                  | string[]       | no       | `[]`                         |
-| `workspaceId`            | string         | no       | New default Workspace        |
-| `instructions`           | string         | no       | `""`                         |
-| `approvalInChat` | ApprovalPolicy | no | `{"default":"full","overrides":[]}` |
-| `approvalInTasks` | ApprovalPolicy | no | `{"default":"full","overrides":[]}` |
-| `autoCompaction` | boolean | no | `true` |
-| `compactionReserveTokens` | integer | no | `16384` |
-| `memoryInjectionEnabled` | boolean        | no       | `false`                      |
-| `userId`                 | string         | no       | `""`                         |
-| `metadata`               | object         | no       | `{}`                         |
-| `mcpConnectionIds`       | string[]       | no       | `[]`                         |
-
-`providerId` and `model` go together: leave both out or send both as `null`
-for an agent without a model, or send both to configure one. `model` is the
-provider's own model ID, trimmed and non-empty. Tool groups are `workspace`,
-`write_todos`, and `memory`. Choosing tools does not depend on `workspaceId`.
-During a turn, the agent keeps using the workspace it had when it first
-touched its files, even if you reassign it mid-turn.
-
-Leave out `workspaceId` and Blazing Agents creates a new workspace for the
-agent. Send an existing workspace ID from your tenant to share it. A created
-workspace starts with the agent's name and `userId`, then stays independent:
-later agent changes do not update it. Neither choice starts the workspace.
-
-#### Response
-
-Returns `201 Created` with an [Agent object](/api-reference/protocols/objects-and-schemas#agent).
-
-Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-schemas#agent-response).
-
-```json
-{
-  "id": "ag_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "name": "Support Agent",
-  "model": null,
-  "thinkingLevel": null,
-  "approvalInChat": {"default":"full","overrides":[]},
-  "approvalInTasks": {"default":"full","overrides":[]},
-  "autoCompaction": true,
-  "compactionReserveTokens": 16384,
-  "providerId": null,
-  "tools": ["workspace", "write_todos"],
-  "workspaceId": "ws_1234567890ABCDEF",
-  "instructions": "Answer clearly.",
-  "memoryInjectionEnabled": true,
-  "userId": "",
-  "metadata": {},
-  "mcpConnectionIds": [],
-  "avatarUrl": null,
-  "version": 1,
-  "status": "active",
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:00:00Z"
-}
-```
-
-#### Errors
-
-`400 validation_failed` for invalid fields. Name and reference failures use their specific codes, including `agent_name_conflict` and `provider_not_found`. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{"name":"Support Agent","workspaceId":"ws_1234567890ABCDEF","tools":["workspace","write_todos"],"instructions":"Answer clearly.","memoryInjectionEnabled":true}'
-```
-
-#### SDK and related guides
-
-SDK: [TypeScript](/sdk/typescript/agents#create) / [Python](/sdk/python/agents#create). See [Agents](/agents/agents).
-
 ### GET /v1/agents [#list-agents]
 
-Lists agents, most recently updated first.
+List agents.
+
+Lists your agents, most recently updated first. Filter by end user or by workspace.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-
-| Query parameter | Type   | Required | Description                                                              |
-| --------------- | ------ | -------- | ------------------------------------------------------------------------ |
-| `userId`        | string | no       | Omit for all Agents; use an opaque value or `""` for tenant-level Agents |
-| `workspaceId`   | string | no       | Return only Agents attached to the Workspace                             |
-
-There is no request body.
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `userId` | string | query |  | Return only agents for this end user. Send an empty string for tenant-level agents, or leave it out for all agents. |
+| `workspaceId` | string | query |  | Return only agents that use this workspace. |
 
 #### Response
 
-Returns `200 OK` with complete [Agent objects](/api-reference/protocols/objects-and-schemas#agent).
+Returns `200 OK` as `application/json`. The tenant's agents.
 
-Response schema: [`agentsResponseSchema`](/api-reference/protocols/objects-and-schemas#agents-response).
+Response schema: `AgentList`.
 
 ```json
 {
   "agents": [
     {
-      "id": "ag_1234567890ABCDEF",
-      "tenantId": "ten_1234567890ABCDEF",
+      "approvalInChat": {
+        "default": "full",
+        "overrides": []
+      },
+      "approvalInTasks": {
+        "default": "full",
+        "overrides": []
+      },
+      "id": "ag_4kP9sT2vXq7LmN3a",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
       "name": "Support Agent",
       "model": "openai/gpt-6-luna",
       "thinkingLevel": null,
-      "approvalInChat": {"default":"full","overrides":[]},
-      "approvalInTasks": {"default":"full","overrides":[]},
+      "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+      "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
       "autoCompaction": true,
       "compactionReserveTokens": 16384,
-      "providerId": "prv_1234567890ABCDEF",
-      "workspaceId": "ws_1234567890ABCDEF",
       "memoryInjectionEnabled": false,
-      "tools": [],
-      "instructions": "Answer clearly.",
+      "tools": [
+        "workspace",
+        "write_todos"
+      ],
+      "instructions": "Answer billing questions clearly and briefly.",
       "userId": "",
-      "metadata": {},
+      "metadata": {
+        "team": "support"
+      },
       "mcpConnectionIds": [],
       "avatarUrl": null,
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:00:00.000Z",
       "version": 1,
-      "status": "active",
-      "createdAt": "2026-07-10T10:00:00Z",
-      "updatedAt": "2026-07-10T10:00:00Z"
+      "status": "active"
     }
   ]
 }
@@ -196,474 +112,162 @@ Response schema: [`agentsResponseSchema`](/api-reference/protocols/objects-and-s
 
 #### Errors
 
-`400 validation_failed` for invalid or unknown query fields. Standard errors also apply; see [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --get "$BLAZING_AGENTS_BASE_URL/v1/agents" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "userId="
-```
-
-#### SDK and related guides
-
-SDK: [TypeScript](/sdk/typescript/agents#list) / [Python](/sdk/python/agents#list). See [Agents](/agents/agents).
-
-### GET /v1/agents/:agentId [#get-agent]
-
-Retrieves an agent's current configuration.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-
-| Path parameter | Type   | Description       |
-| -------------- | ------ | ----------------- |
-| `agentId`      | string | Agent ID (`ag_…`) |
-
-There are no query or body parameters.
-
-#### Response
-
-Returns `200 OK` with an [Agent object](/api-reference/protocols/objects-and-schemas#agent), including a short-lived `avatarUrl` when an avatar exists.
-
-Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-schemas#agent-response).
-
-```json
-{
-  "id": "ag_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "name": "Support Agent",
-  "model": null,
-  "thinkingLevel": null,
-  "approvalInChat": {"default":"full","overrides":[]},
-  "approvalInTasks": {"default":"full","overrides":[]},
-  "autoCompaction": true,
-  "compactionReserveTokens": 16384,
-  "providerId": null,
-  "workspaceId": "ws_1234567890ABCDEF",
-  "memoryInjectionEnabled": false,
-  "tools": [],
-  "instructions": "Answer clearly.",
-  "userId": "",
-  "metadata": {},
-  "mcpConnectionIds": [],
-  "avatarUrl": null,
-  "version": 1,
-  "status": "active",
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:00:00Z"
-}
-```
-
-#### Errors
-
-`400 validation_failed` for a malformed ID. `404 not_found` when the Agent is missing or belongs to another tenant. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
+### POST /v1/agents [#create-agent]
 
-SDK: [TypeScript](/sdk/typescript/agents#get) / [Python](/sdk/python/agents#get). See [Agents](/agents/agents).
+Create an agent.
 
-### PUT /v1/agents/:agentId [#update-agent]
-
-Updates an agent. Array fields replace their current values.
+Creates an agent. Names are unique within your tenant. `providerId` and `model` go together: send both to give the agent a model, or leave both out. Leave out `workspaceId` to create a new workspace for the agent.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-
-| Parameter                     | Type           | Required | Description                          |
-| ----------------------------- | -------------- | -------- | ------------------------------------ |
-| Body `name`                   | string         | no       | 1–80 characters                      |
-| Body `model`                  | string \| null | no       | Provider-native model ID or `null`   |
-| Body `providerId`             | string \| null | no       | Stored Provider or `null`             |
-| Body `tools`                  | string[]       | no       | Complete replacement tool-group list |
-| Body `workspaceId`            | string         | no       | Reassign to another Workspace        |
-| Body `instructions`           | string         | no       | Up to 3,000 characters               |
-| Body `autoCompaction` | boolean | no | Enable automatic compaction |
-| Body `compactionReserveTokens` | integer | no | Nonnegative safe-integer reserve in tokens |
-| Body `approvalInChat` | ApprovalPolicy | no | Replace chat/stateless policy; omit to preserve |
-| Body `approvalInTasks` | ApprovalPolicy | no | Replace Task policy; omit to preserve |
-| Body `memoryInjectionEnabled` | boolean        | no       | Toggle automatic memory context      |
-| Body `metadata`               | object         | no       | Replacement metadata                 |
-| Body `mcpConnectionIds`       | string[]       | no       | Complete replacement MCP list        |
-
-Send at least one field. Changing the provider requires `model` in the same request. Send both as `null` to clear them; a provider without a model, or the reverse, is rejected. There are no query parameters.
-
-On the platform-managed agent that `ba assist` uses, you can change only
-`providerId`, `model`, and `thinkingLevel`. The same pairing rules apply, and
-each change saves a new version. A request that includes any other field
-returns `409 admin_agent_managed`.
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `approvalInChat` | object | body |  | Which tool calls need approval in sessions and stateless generation. Defaults to `{"default":"full","overrides":[]}`. |
+| `approvalInTasks` | object | body |  | Which tool calls need approval in task runs. Defaults to `{"default":"full","overrides":[]}`. |
+| `name` | string | body | required | Display name, unique within your tenant. 1–80 characters. |
+| `model` | string \| null | body |  | The provider's own model ID, such as `openai/gpt-6-luna`. Send it together with `providerId`. Defaults to `null`. |
+| `thinkingLevel` | string \| null | body |  | How much reasoning to request from the model, such as `high`. Needs a provider and model, and must be a level the model supports. Defaults to `null`. |
+| `providerId` | string \| null | body |  | ID of the provider whose key runs the model. Send it together with `model`. Defaults to `null`. |
+| `workspaceId` | string | body |  | ID of the workspace the agent reads and writes files in. Leave it out to create a new workspace for the agent, or send an existing one to share it. |
+| `autoCompaction` | boolean | body |  | Summarize older context automatically when a conversation nears the model's context limit. Defaults to `true`. |
+| `compactionReserveTokens` | integer | body |  | Tokens to keep free for the model's reply when deciding whether to compact. Minimum 0. Defaults to `16384`. |
+| `memoryInjectionEnabled` | boolean | body |  | Add the agent's saved memories to every turn automatically. Defaults to `false`. |
+| `tools` | string[] | body |  | Built-in tool groups the agent can use: `workspace`, `write_todos`, and `memory`. Defaults to `[]`. |
+| `instructions` | string | body |  | Instructions the agent follows on every turn. Up to 3000 characters. Defaults to `""`. |
+| `userId` | string | body |  | Your end user's ID, used for attribution. An empty string means a tenant-level agent. It cannot change after creation. Defaults to `""`. |
+| `metadata` | object | body |  | Your own key-value data, returned unchanged. Defaults to `{}`. |
+| `mcpConnectionIds` | string[] | body |  | IDs of the MCP connections attached to the agent. Defaults to `[]`. |
 
 #### Response
 
-Returns `200 OK` with the complete updated [Agent object](/api-reference/protocols/objects-and-schemas#agent).
+Returns `201 Created` as `application/json`. The created agent.
 
-Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-schemas#agent-response).
+Response schema: `Agent`.
 
 ```json
 {
-  "id": "ag_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
+  "approvalInChat": {
+    "default": "full",
+    "overrides": []
+  },
+  "approvalInTasks": {
+    "default": "full",
+    "overrides": []
+  },
+  "id": "ag_4kP9sT2vXq7LmN3a",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "name": "Support Agent",
   "model": "openai/gpt-6-luna",
   "thinkingLevel": null,
-  "approvalInChat": {"default":"full","overrides":[]},
-  "approvalInTasks": {"default":"full","overrides":[]},
+  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
   "autoCompaction": true,
   "compactionReserveTokens": 16384,
-  "providerId": "prv_1234567890ABCDEF",
-  "tools": ["workspace"],
-  "workspaceId": "ws_1234567890ABCDEF",
-  "instructions": "Answer clearly.",
-  "memoryInjectionEnabled": true,
+  "memoryInjectionEnabled": false,
+  "tools": [
+    "workspace",
+    "write_todos"
+  ],
+  "instructions": "Answer billing questions clearly and briefly.",
   "userId": "",
-  "metadata": { "team": "support" },
+  "metadata": {
+    "team": "support"
+  },
   "mcpConnectionIds": [],
   "avatarUrl": null,
-  "version": 2,
-  "status": "active",
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:15:00Z"
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z",
+  "version": 1,
+  "status": "active"
 }
 ```
 
 #### Errors
 
-`400 validation_failed` for invalid/empty input. Specific configuration codes include `agent_name_conflict` and `provider_not_found`. `404 not_found` applies when the Agent is missing or foreign; `409 admin_agent_managed` rejects changes to the `ba assist` agent's other fields. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `409` | [`agent_name_conflict`](/api-reference/protocols/errors#agent_name_conflict) | The request conflicts with the resource's current state |
+| `429` | [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
+| `503` | [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request PUT \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"workspaceId":"ws_1234567890ABCDEF","tools":["workspace"],"metadata":{"team":"support"}}'
+  --data '{"name":"Support Agent","providerId":"prv_7Tn4Kd9QwE2sLx5R","model":"openai/gpt-6-luna","tools":["workspace","write_todos"],"instructions":"Answer billing questions clearly and briefly.","metadata":{"team":"support"}}'
 ```
-
-#### SDK and related guides
-
-SDK: [TypeScript](/sdk/typescript/agents#update) / [Python](/sdk/python/agents#update). See [Agents](/agents/agents).
-
-### DELETE /v1/agents/:agentId [#delete-agent]
-
-Permanently deletes an agent and keeps its workspace. `includeArtifacts=true`
-also deletes its artifacts; `includeArtifacts=false` keeps them.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication), an
-`ag_…` `agentId`, and the `includeArtifacts=true|false` query parameter.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-| Query    | `includeArtifacts` | yes   | Delete (`true`) or preserve (`false`) Artifacts. |
-
-#### Response
-
-Returns `204 No Content` with an empty body.
-
-#### Errors
-
-`400 validation_failed` for a malformed ID. `404 not_found` when the Agent is missing or foreign. `409 admin_agent_managed` for the `ba assist` agent. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF?includeArtifacts=false" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-#### SDK and related guides
-
-SDK: [TypeScript](/sdk/typescript/agents#delete) / [Python](/sdk/python/agents#delete). See [Agents](/agents/agents).
-
-### POST /v1/agents/:agentId/disable [#disable-agent]
-
-Turns an agent off. New turns are rejected, and turns already running finish.
-
-#### Authorizations
-
-| Field           | Type   | Location | Required | Description                               |
-| --------------- | ------ | -------- | -------- | ----------------------------------------- |
-| `Authorization` | string | header   | required | Tenant API key or dashboard JWT. |
-
-#### Path parameters
-
-| Field     | Type   | Location | Required | Description        |
-| --------- | ------ | -------- | -------- | ------------------ |
-| `agentId` | string | path     | required | Agent ID (`ag_…`). |
-
-#### Response
-
-| Status   | Body                                                    | Description                                          |
-| -------- | ------------------------------------------------------- | ---------------------------------------------------- |
-| `200 OK` | [Agent](/api-reference/protocols/objects-and-schemas#agent) | Sets `status` to `disabled`; in-flight Turns finish. |
-
-Response schema: [`agentSchema`](/api-reference/protocols/objects-and-schemas#agent).
-
-#### Errors
-
-`404 not_found` when the Agent is missing. `409 admin_agent_managed` for the `ba assist` agent. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/disable" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-#### SDK and related guides
-
-SDK: [TypeScript](/sdk/typescript/agents#disable) / [Python](/sdk/python/agents#disable). See [Agents](/agents/agents).
-
-### POST /v1/agents/:agentId/enable [#enable-agent]
-
-Turns a disabled agent back on. Scheduled runs skipped while it was off do not run later.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-
-#### Response
-
-| Status   | Body                                                    | Lifecycle effect                                                    |
-| -------- | ------------------------------------------------------- | ------------------------------------------------------------------- |
-| `200 OK` | [Agent](/api-reference/protocols/objects-and-schemas#agent) | Sets `status` to `active`; skipped schedule fires are not replayed. |
-
-Response schema: [`agentSchema`](/api-reference/protocols/objects-and-schemas#agent).
-
-#### Errors
-
-`404 not_found`; `409 admin_agent_managed`. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/enable" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-#### SDK and related guides
-
-SDK: [TypeScript](/sdk/typescript/agents#enable) / [Python](/sdk/python/agents#enable). See [Agents](/agents/agents).
-
-### POST /v1/agents/:agentId/avatar [#upload-agent-avatar]
-
-Uploads or replaces an agent's avatar. Responses include a short-lived signed URL for it.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication) and `multipart/form-data`. You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-
-| Parameter   | Type | Required | Description                         |
-| ----------- | ---- | -------- | ----------------------------------- |
-| Form `file` | file | yes      | PNG, JPEG, or WebP, at most 512 KiB |
-
-There are no query parameters.
-
-#### Response
-
-Returns `200 OK` with the complete updated [Agent object](/api-reference/protocols/objects-and-schemas#agent). `avatarUrl` is a short-lived signed URL.
-
-Response schema: [`agentSchema`](/api-reference/protocols/objects-and-schemas#agent).
-
-#### Errors
-
-`400 validation_failed` when the multipart body has no `file` or the file is
-not a PNG, JPEG, or WebP image of at most 512 KiB; `415 invalid_request` when
-the request body is not `multipart/form-data`. A malformed Agent
-ID uses `400 validation_failed`; `404 not_found` applies when the Agent is
-missing or foreign; and `409 admin_agent_managed` for the `ba assist` agent. See
-[REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request POST \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/avatar" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --form "file=@./avatar.webp;type=image/webp"
-```
-
-#### SDK and related guides
-
-SDK: [TypeScript](/sdk/typescript/agents#upload-avatar) / [Python](/sdk/python/agents#upload-avatar). See [Agents](/agents/agents).
-
-### DELETE /v1/agents/:agentId/avatar [#delete-agent-avatar]
-
-Removes an agent's avatar and returns the updated agent.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication). `agentId` is a required `ag_…` path parameter. There are no query or body parameters. You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-
-#### Response
-
-Returns `200 OK` with the complete updated [Agent object](/api-reference/protocols/objects-and-schemas#agent); `avatarUrl` is `null`.
-
-Response schema: [`agentSchema`](/api-reference/protocols/objects-and-schemas#agent).
-
-#### Errors
-
-`400 validation_failed` for a malformed ID. `404 not_found` when the Agent is missing or foreign. `409 admin_agent_managed` for the `ba assist` agent. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/avatar" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-#### SDK and related guides
-
-SDK: [TypeScript](/sdk/typescript/agents#remove-avatar) / [Python](/sdk/python/agents#remove-avatar). See [Agents](/agents/agents).
-
-### GET /v1/agents/:agentId/versions [#list-agent-versions]
-
-Lists an agent's saved versions, newest first.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-
-| Location | Field    | Required | Description                          |
-| -------- | -------- | -------- | ------------------------------------ |
-| Query    | `cursor` | no       | Opaque backward-page cursor.         |
-| Query    | `limit`  | no       | Page size; defaults to exactly `50`. |
-
-#### Response
-
-| Status   | Body                                                                                      | Lifecycle effect |
-| -------- | ----------------------------------------------------------------------------------------- | ---------------- |
-| `200 OK` | [AgentVersionsResponse](/api-reference/protocols/objects-and-schemas#agent-versions-response) | Read-only.       |
-
-Use `nextCursor` for the next page.
-
-Response schema: [`agentVersionsResponseSchema`](/api-reference/protocols/objects-and-schemas#agent-versions-response).
-
-#### Errors
-
-`400 validation_failed`; `404 not_found`. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --get "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/versions" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "limit=20"
-```
-
-#### SDK and related guides
-
-SDK: [TypeScript](/sdk/typescript/agents#list-versions) / [Python](/sdk/python/agents#list-versions). See [Agents](/agents/agents).
-
-### GET /v1/agents/:agentId/versions/:version [#get-agent-version]
-
-Retrieves one saved agent version. It references providers and connections by ID; it does not copy them.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-| Path     | `version`       | yes      | Positive Agent Version number.            |
-
-#### Response
-
-| Status   | Body                                                                   | Lifecycle effect                                        |
-| -------- | ---------------------------------------------------------------------- | ------------------------------------------------------- |
-| `200 OK` | [AgentVersion](/api-reference/protocols/objects-and-schemas#agent-version) | Read-only; current referenced resources are not copied. |
-
-Response schema: [`agentVersionSchema`](/api-reference/protocols/objects-and-schemas#agent-version).
-
-#### Errors
-
-`400 validation_failed`; `404 not_found`. An unavailable Version pin supplied
-to Agent creation, generation, or Task configuration instead uses
-`agent_version_not_found`. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/versions/1" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-#### SDK and related guides
-
-SDK: [TypeScript](/sdk/typescript/agents#get-version) / [Python](/sdk/python/agents#get-version). See [Agents](/agents/agents).
 
 ### GET /v1/agents/:agentId/mcp-attachments [#list-agent-mcp-attachments]
 
-Lists the MCP connections attached to an agent.
+List agent MCP attachments.
+
+Lists the MCP connections attached to an agent and what the agent forwards to each one.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
 
 #### Response
 
-| Status   | Body                                                                                        | Lifecycle effect |
-| -------- | ------------------------------------------------------------------------------------------- | ---------------- |
-| `200 OK` | [McpAttachmentsResponse](/api-reference/protocols/objects-and-schemas#mcp-attachments-response) | Read-only.       |
+Returns `200 OK` as `application/json`. The agent's MCP attachments.
 
-Response schema: [`mcpAttachmentsResponseSchema`](/api-reference/protocols/objects-and-schemas#mcp-attachments-response).
+Response schema: `McpAttachmentList`.
+
+```json
+{
+  "mcpAttachments": [
+    {
+      "mcpConnectionId": "mcp_2Rk7Wm4XsQ9dHv1B",
+      "forwardUserId": true,
+      "forwardedMetadataKeys": [
+        "plan"
+      ],
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:05:00.000Z"
+    }
+  ]
+}
+```
 
 #### Errors
 
-`404 not_found`. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -672,41 +276,51 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/mcp-attachments" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
-
-SDK: [TypeScript](/sdk/typescript/agents#list-mcp-attachments) / [Python](/sdk/python/agents#list-mcp-attachments). See [Agents](/agents/agents).
-
 ### PATCH /v1/agents/:agentId/mcp-attachments/:mcpConnectionId [#update-agent-mcp-attachment]
 
-Changes which end-user details one attached MCP connection receives. Access is not affected.
+Update an agent MCP attachment.
+
+Changes what an agent forwards to one of its attached MCP connections. Send at least one field.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
-| Location | Field             | Required | Description                               |
-| -------- | ----------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization`   | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`         | yes      | Agent ID (`ag_…`).                        |
-| Path     | `mcpConnectionId` | yes      | MCP Connection ID.                        |
-
-| Location | Field                   | Required | Description                                                         |
-| -------- | ----------------------- | -------- | ------------------------------------------------------------------- |
-| Body     | `forwardUserId`         | no       | Whether to forward `userId`.                                        |
-| Body     | `forwardedMetadataKeys` | no       | Unique metadata-key allowlist; at least one body field is required. |
-| Header   | `Content-Type`          | yes      | `application/json`.                                                 |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `mcpConnectionId` | string | path | required | ID of an MCP connection attached to the agent. |
+| `forwardUserId` | boolean | body |  | Send the session's `userId` to the MCP server with every tool call. |
+| `forwardedMetadataKeys` | string[] | body |  | Session metadata keys whose values are sent to the MCP server with every tool call. Replaces the current list. |
 
 #### Response
 
-| Status   | Body                                                                                      | Lifecycle effect                                                       |
-| -------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `200 OK` | [McpAttachmentResponse](/api-reference/protocols/objects-and-schemas#mcp-attachment-response) | Updates attachment forwarding only; it does not change access control. |
+Returns `200 OK` as `application/json`. The updated MCP attachment.
 
-Response schema: [`mcpAttachmentResponseSchema`](/api-reference/protocols/objects-and-schemas#mcp-attachment-response).
+Response schema: `McpAttachment`.
+
+```json
+{
+  "mcpConnectionId": "mcp_2Rk7Wm4XsQ9dHv1B",
+  "forwardUserId": true,
+  "forwardedMetadataKeys": [
+    "plan"
+  ],
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:05:00.000Z"
+}
+```
 
 #### Errors
 
-`400 validation_failed`; `404 not_found`. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -714,12 +328,676 @@ Response schema: [`mcpAttachmentResponseSchema`](/api-reference/protocols/object
 curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/mcp-attachments/mcp_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"forwardUserId":true,"forwardedMetadataKeys":["locale"]}'
+  --data '{"forwardUserId":true,"forwardedMetadataKeys":["plan"]}'
 ```
 
-#### SDK and related guides
+### GET /v1/agents/:agentId/versions [#list-agent-versions]
 
-SDK: [TypeScript](/sdk/typescript/agents#update-mcp-attachment) / [Python](/sdk/python/agents#update-mcp-attachment). See [Agents](/agents/agents).
+List agent versions.
+
+Lists an agent's saved versions, newest first. Each version is a complete snapshot of the configuration and never changes. Pass `nextCursor` as `cursor` to get the next page.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
+| `limit` | integer | query |  | Maximum number of versions to return. 1–200. Defaults to `50`. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. A page of agent versions.
+
+Response schema: `AgentVersionList`.
+
+```json
+{
+  "data": [
+    {
+      "approvalInChat": {
+        "default": "full",
+        "overrides": []
+      },
+      "approvalInTasks": {
+        "default": "full",
+        "overrides": []
+      },
+      "agentId": "ag_4kP9sT2vXq7LmN3a",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+      "version": 1,
+      "name": "Support Agent",
+      "model": "openai/gpt-6-luna",
+      "thinkingLevel": null,
+      "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+      "autoCompaction": true,
+      "compactionReserveTokens": 16384,
+      "memoryInjectionEnabled": false,
+      "tools": [
+        "workspace",
+        "write_todos"
+      ],
+      "instructions": "Answer billing questions clearly and briefly.",
+      "metadata": {
+        "team": "support"
+      },
+      "mcpConnectionIds": [],
+      "createdAt": "2026-07-10T10:00:00.000Z"
+    }
+  ],
+  "nextCursor": null
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/versions" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### GET /v1/agents/:agentId/versions/:version [#get-agent-version]
+
+Get an agent version.
+
+Returns one saved version of an agent, a complete snapshot of its configuration at that point.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `version` | number | path | required | Version number, starting at 1. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The agent version.
+
+Response schema: `AgentVersion`.
+
+```json
+{
+  "approvalInChat": {
+    "default": "full",
+    "overrides": []
+  },
+  "approvalInTasks": {
+    "default": "full",
+    "overrides": []
+  },
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "version": 1,
+  "name": "Support Agent",
+  "model": "openai/gpt-6-luna",
+  "thinkingLevel": null,
+  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "autoCompaction": true,
+  "compactionReserveTokens": 16384,
+  "memoryInjectionEnabled": false,
+  "tools": [
+    "workspace",
+    "write_todos"
+  ],
+  "instructions": "Answer billing questions clearly and briefly.",
+  "metadata": {
+    "team": "support"
+  },
+  "mcpConnectionIds": [],
+  "createdAt": "2026-07-10T10:00:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/versions/1" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### GET /v1/agents/:agentId [#get-agent]
+
+Get an agent.
+
+Returns an agent's current configuration, including a short-lived `avatarUrl` when the agent has an avatar.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The agent.
+
+Response schema: `Agent`.
+
+```json
+{
+  "approvalInChat": {
+    "default": "full",
+    "overrides": []
+  },
+  "approvalInTasks": {
+    "default": "full",
+    "overrides": []
+  },
+  "id": "ag_4kP9sT2vXq7LmN3a",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "name": "Support Agent",
+  "model": "openai/gpt-6-luna",
+  "thinkingLevel": null,
+  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+  "autoCompaction": true,
+  "compactionReserveTokens": 16384,
+  "memoryInjectionEnabled": false,
+  "tools": [
+    "workspace",
+    "write_todos"
+  ],
+  "instructions": "Answer billing questions clearly and briefly.",
+  "userId": "",
+  "metadata": {
+    "team": "support"
+  },
+  "mcpConnectionIds": [],
+  "avatarUrl": null,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z",
+  "version": 1,
+  "status": "active"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### PUT /v1/agents/:agentId [#update-agent]
+
+Update an agent.
+
+Updates an agent and saves the result as a new version. Send at least one field. Fields you leave out keep their values, and arrays replace the current list. Changing `providerId` requires `model` in the same request, and sending both as `null` clears them. On the platform-managed `ba assist` agent, only `providerId`, `model`, and `thinkingLevel` can change.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `approvalInChat` | object | body |  | Which tool calls need approval in sessions and stateless generation. |
+| `approvalInTasks` | object | body |  | Which tool calls need approval in task runs. |
+| `name` | string | body |  | Display name, unique within your tenant. 1–80 characters. |
+| `model` | string \| null | body |  | The provider's own model ID, such as `openai/gpt-6-luna`. Send it together with `providerId`. |
+| `thinkingLevel` | string \| null | body |  | How much reasoning to request from the model, such as `high`. Needs a provider and model, and must be a level the model supports. |
+| `providerId` | string \| null | body |  | ID of the provider whose key runs the model. Send it together with `model`. |
+| `workspaceId` | string | body |  | ID of the workspace the agent reads and writes files in. |
+| `autoCompaction` | boolean | body |  | Summarize older context automatically when a conversation nears the model's context limit. |
+| `compactionReserveTokens` | integer | body |  | Tokens to keep free for the model's reply when deciding whether to compact. Minimum 0. |
+| `memoryInjectionEnabled` | boolean | body |  | Add the agent's saved memories to every turn automatically. |
+| `tools` | string[] | body |  | Built-in tool groups the agent can use: `workspace`, `write_todos`, and `memory`. |
+| `instructions` | string | body |  | Instructions the agent follows on every turn. Up to 3000 characters. |
+| `metadata` | object | body |  | Your own key-value data, returned unchanged. |
+| `mcpConnectionIds` | string[] | body |  | IDs of the MCP connections attached to the agent. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The updated agent.
+
+Response schema: `Agent`.
+
+```json
+{
+  "approvalInChat": {
+    "default": "full",
+    "overrides": []
+  },
+  "approvalInTasks": {
+    "default": "full",
+    "overrides": []
+  },
+  "id": "ag_4kP9sT2vXq7LmN3a",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "name": "Support Agent",
+  "model": "openai/gpt-6-luna",
+  "thinkingLevel": null,
+  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+  "autoCompaction": true,
+  "compactionReserveTokens": 16384,
+  "memoryInjectionEnabled": false,
+  "tools": [
+    "workspace"
+  ],
+  "instructions": "Answer billing and refund questions clearly and briefly.",
+  "userId": "",
+  "metadata": {
+    "team": "support"
+  },
+  "mcpConnectionIds": [],
+  "avatarUrl": null,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:15:00.000Z",
+  "version": 2,
+  "status": "active"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `409` | [`agent_name_conflict`](/api-reference/protocols/errors#agent_name_conflict), [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) | The request conflicts with the resource's current state |
+| `503` | [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"instructions":"Answer billing and refund questions clearly and briefly.","tools":["workspace"]}'
+```
+
+### DELETE /v1/agents/:agentId [#delete-agent]
+
+Delete an agent.
+
+Permanently deletes an agent. Its workspace is kept. Set `includeArtifacts` to choose whether its artifacts are deleted too. The platform-managed `ba assist` agent cannot be deleted.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `includeArtifacts` | string | query | required | `true` also deletes the agent's artifacts; `false` keeps them. One of `true`, `false`. |
+
+#### Response
+
+Returns `204 No Content`. The agent was deleted.
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF?includeArtifacts=false" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/agents/:agentId/disable [#disable-agent]
+
+Disable an agent.
+
+Turns an agent off. New turns for a disabled agent fail with `agent_disabled` until you enable it again. The platform-managed `ba assist` agent cannot be disabled.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The updated agent.
+
+Response schema: `Agent`.
+
+```json
+{
+  "approvalInChat": {
+    "default": "full",
+    "overrides": []
+  },
+  "approvalInTasks": {
+    "default": "full",
+    "overrides": []
+  },
+  "id": "ag_4kP9sT2vXq7LmN3a",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "name": "Support Agent",
+  "model": "openai/gpt-6-luna",
+  "thinkingLevel": null,
+  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+  "autoCompaction": true,
+  "compactionReserveTokens": 16384,
+  "memoryInjectionEnabled": false,
+  "tools": [
+    "workspace",
+    "write_todos"
+  ],
+  "instructions": "Answer billing questions clearly and briefly.",
+  "userId": "",
+  "metadata": {
+    "team": "support"
+  },
+  "mcpConnectionIds": [],
+  "avatarUrl": null,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z",
+  "version": 1,
+  "status": "disabled"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/disable" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/agents/:agentId/enable [#enable-agent]
+
+Enable an agent.
+
+Turns a disabled agent back on.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The updated agent.
+
+Response schema: `Agent`.
+
+```json
+{
+  "approvalInChat": {
+    "default": "full",
+    "overrides": []
+  },
+  "approvalInTasks": {
+    "default": "full",
+    "overrides": []
+  },
+  "id": "ag_4kP9sT2vXq7LmN3a",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "name": "Support Agent",
+  "model": "openai/gpt-6-luna",
+  "thinkingLevel": null,
+  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+  "autoCompaction": true,
+  "compactionReserveTokens": 16384,
+  "memoryInjectionEnabled": false,
+  "tools": [
+    "workspace",
+    "write_todos"
+  ],
+  "instructions": "Answer billing questions clearly and briefly.",
+  "userId": "",
+  "metadata": {
+    "team": "support"
+  },
+  "mcpConnectionIds": [],
+  "avatarUrl": null,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z",
+  "version": 1,
+  "status": "active"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/enable" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/agents/:agentId/avatar [#upload-agent-avatar]
+
+Upload an agent avatar.
+
+Sets the agent's avatar, replacing any current one. Send the image as the `file` field of a multipart form. The platform-managed `ba assist` agent's avatar cannot change.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a multipart form body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `file` | file | form | required | PNG, JPEG, or WebP image of 512 KiB or smaller. Its file extension must match its type. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The updated agent.
+
+Response schema: `Agent`.
+
+```json
+{
+  "approvalInChat": {
+    "default": "full",
+    "overrides": []
+  },
+  "approvalInTasks": {
+    "default": "full",
+    "overrides": []
+  },
+  "id": "ag_4kP9sT2vXq7LmN3a",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "name": "Support Agent",
+  "model": "openai/gpt-6-luna",
+  "thinkingLevel": null,
+  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+  "autoCompaction": true,
+  "compactionReserveTokens": 16384,
+  "memoryInjectionEnabled": false,
+  "tools": [
+    "workspace",
+    "write_todos"
+  ],
+  "instructions": "Answer billing questions clearly and briefly.",
+  "userId": "",
+  "metadata": {
+    "team": "support"
+  },
+  "mcpConnectionIds": [],
+  "avatarUrl": "https://files.example.com/avatars/ag_4kP9sT2vXq7LmN3a.webp",
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z",
+  "version": 1,
+  "status": "active"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) | The request conflicts with the resource's current state |
+| `415` | [`invalid_request`](/api-reference/protocols/errors#invalid_request) | The request body has an unsupported media type |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/avatar" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --form "file=@./file"
+```
+
+### DELETE /v1/agents/:agentId/avatar [#delete-agent-avatar]
+
+Delete an agent avatar.
+
+Removes the agent's avatar and returns the updated agent. The platform-managed `ba assist` agent's avatar cannot change.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The updated agent.
+
+Response schema: `Agent`.
+
+```json
+{
+  "approvalInChat": {
+    "default": "full",
+    "overrides": []
+  },
+  "approvalInTasks": {
+    "default": "full",
+    "overrides": []
+  },
+  "id": "ag_4kP9sT2vXq7LmN3a",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "name": "Support Agent",
+  "model": "openai/gpt-6-luna",
+  "thinkingLevel": null,
+  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+  "autoCompaction": true,
+  "compactionReserveTokens": 16384,
+  "memoryInjectionEnabled": false,
+  "tools": [
+    "workspace",
+    "write_todos"
+  ],
+  "instructions": "Answer billing questions clearly and briefly.",
+  "userId": "",
+  "metadata": {
+    "team": "support"
+  },
+  "mcpConnectionIds": [],
+  "avatarUrl": null,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z",
+  "version": 1,
+  "status": "active"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/avatar" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
 
 ## Next [#next]
 

@@ -29,10 +29,10 @@ Requests and responses use JSON, except avatar uploads, which use multipart
 form data. Generation and session turns stream their output. Every request is
 scoped to the tenant that owns the credential.
 
-Most endpoints accept either a `ba_` API key or a dashboard JWT.
-[`GET /v1/me`](/api-reference/rest-api/tenant#get-current-identity) accepts
-only the dashboard JWT. API key management happens in the dashboard and is not
-part of this API.
+Every endpoint in this reference accepts a `ba_` API key. The pages are
+generated from the platform's OpenAPI contract, which is also served at
+`/openapi.json`. Endpoints that only the dashboard can call, such as API key
+management, are not listed here.
 
 Every response carries an `X-Request-Id` header in `req_…` format. Log it with
 your application logs and include it when you contact support. Each HTTP
@@ -56,13 +56,13 @@ stream that has already started reports later failures inside the stream.
 | [Tenant](/api-reference/rest-api/tenant)                   | Current identity and settings                                    |
 | [Providers](/api-reference/rest-api/providers)             | Model provider keys and model discovery                          |
 | [MCP connections](/api-reference/rest-api/mcp-connections) | Connection lifecycle, testing, and OAuth                         |
-| [MCP OAuth](/api-reference/rest-api/mcp-oauth)             | Dashboard approval continuation                                  |
 | [Generation](/api-reference/rest-api/generation)           | Stateless text and structured output                             |
 | [Sessions](/api-reference/rest-api/sessions)               | Turns, transcripts, and tool approvals                           |
 | [Artifacts](/api-reference/rest-api/artifacts)             | Listing, download, and deletion                                  |
 | [Memories](/api-reference/rest-api/memories)               | Notes an agent keeps between sessions                            |
 | [Prompts](/api-reference/rest-api/prompts)                 | Reusable message templates                                       |
 | [Usage](/api-reference/rest-api/usage)                     | Tenant and agent usage queries                                   |
+| [Monetization](/api-reference/rest-api/merchant)           | Merchant connection, customer bindings, and usage events         |
 | [Tasks](/api-reference/rest-api/tasks)                     | Background task definitions and schedules                        |
 | [Task runs](/api-reference/rest-api/task-runs)             | Execution, polling, and cancellation                             |
 | [Chat connections](/api-reference/rest-api/chat-connections) | Slack and Telegram connections and delivery outcomes           |
