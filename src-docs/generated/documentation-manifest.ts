@@ -14,7 +14,7 @@ export const documentationPages = [
     "url": "/agents/agents"
   },
   {
-    "path": "agents/artifacts.md",
+    "path": "agents/artifacts.mdx",
     "url": "/agents/artifacts"
   },
   {
@@ -58,7 +58,7 @@ export const documentationPages = [
     "url": "/agents/tools/mcp-tools"
   },
   {
-    "path": "agents/tools/tool-approvals.md",
+    "path": "agents/tools/tool-approvals.mdx",
     "url": "/agents/tools/tool-approvals"
   },
   {
@@ -66,7 +66,7 @@ export const documentationPages = [
     "url": "/agents/versions-and-lifecycle"
   },
   {
-    "path": "agents/workspaces.md",
+    "path": "agents/workspaces.mdx",
     "url": "/agents/workspaces"
   },
   {
@@ -8696,20 +8696,20 @@ export const documentationTree: SerializedPageTree = {
             "$ref": "agents/memory.md"
           },
           {
-            "$id": "agents/workspaces.md",
+            "$id": "agents/workspaces.mdx",
             "type": "page",
             "name": "Workspaces",
-            "description": "Use the Tenant-owned durable filesystem attached to one or more same-Tenant Agents.",
+            "description": "Give your agent a private file system and shell whose files survive between sessions.",
             "url": "/agents/workspaces",
-            "$ref": "agents/workspaces.md"
+            "$ref": "agents/workspaces.mdx"
           },
           {
-            "$id": "agents/artifacts.md",
+            "$id": "agents/artifacts.mdx",
             "type": "page",
             "name": "Artifacts",
-            "description": "Publish selected Workspace files as immutable outputs applications can list and download.",
+            "description": "Let your agent publish finished files that your application can list and download.",
             "url": "/agents/artifacts",
-            "$ref": "agents/artifacts.md"
+            "$ref": "agents/artifacts.mdx"
           },
           {
             "type": "folder",
@@ -8719,7 +8719,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "agents/output/index.mdx",
                 "type": "page",
                 "name": "Output",
-                "description": "Choose free-form streaming text or schema-constrained JSON for an Agent response.",
+                "description": "Choose how your agent answers, as streamed text or as JSON in a shape you define.",
                 "url": "/agents/output",
                 "$ref": "agents/output/index.mdx"
               },
@@ -8727,7 +8727,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "agents/output/generation-and-streaming.mdx",
                 "type": "page",
                 "name": "Generation and streaming",
-                "description": "Choose stateful chat or stateless text and consume or relay its streamed result safely.",
+                "description": "Stream an agent's answer as a conversation with saved history, or as one-off text.",
                 "url": "/agents/output/generation-and-streaming",
                 "$ref": "agents/output/generation-and-streaming.mdx"
               },
@@ -8735,7 +8735,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "agents/output/structured-output.mdx",
                 "type": "page",
                 "name": "Structured output",
-                "description": "Generate schema-constrained JSON, observe partial progress, and validate the final object.",
+                "description": "Get JSON in a shape you define, ready for your code to use.",
                 "url": "/agents/output/structured-output",
                 "$ref": "agents/output/structured-output.mdx"
               }
@@ -8754,33 +8754,33 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "agents/tools/index.mdx",
                 "type": "page",
                 "name": "Tools",
-                "description": "Give Agents narrowly scoped actions through built-in Tools, remote MCP Tools, and durable human approval.",
+                "description": "Let your agent take actions, from editing files to calling your own services, with a person in the loop when it matters.",
                 "url": "/agents/tools",
                 "$ref": "agents/tools/index.mdx"
               },
               {
                 "$id": "agents/tools/built-in-tools.mdx",
                 "type": "page",
-                "name": "Built-in Tools",
-                "description": "Enable BA-provided planning, Memory, and Workspace actions and verify their effects.",
+                "name": "Built-in tools",
+                "description": "Switch on files and a shell, a to-do list, or memory for your agent, and check what it did.",
                 "url": "/agents/tools/built-in-tools",
                 "$ref": "agents/tools/built-in-tools.mdx"
               },
               {
                 "$id": "agents/tools/mcp-tools.mdx",
                 "type": "page",
-                "name": "MCP Tools",
-                "description": "Connect a remote MCP server, authenticate it safely, and expose its discovered Tools to an Agent.",
+                "name": "MCP tools",
+                "description": "Connect a remote MCP server once and give its tools to any of your agents.",
                 "url": "/agents/tools/mcp-tools",
                 "$ref": "agents/tools/mcp-tools.mdx"
               },
               {
-                "$id": "agents/tools/tool-approvals.md",
+                "$id": "agents/tools/tool-approvals.mdx",
                 "type": "page",
                 "name": "Tool approvals",
-                "description": "Configure Tool approval policies and let people approve or deny calls in chat.",
+                "description": "Decide which tool calls run freely, which are blocked, and which wait for a person or the model to approve.",
                 "url": "/agents/tools/tool-approvals",
-                "$ref": "agents/tools/tool-approvals.md"
+                "$ref": "agents/tools/tool-approvals.mdx"
               }
             ],
             "$id": "agents/tools",
