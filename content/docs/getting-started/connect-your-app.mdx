@@ -102,27 +102,21 @@ export DEMO_USER_TOKEN="demo-token"
             return JSONResponse({"error": "unauthorized"}, status_code=401)
 
         body = await request.json()
-        session_id = body.get("sessionId")
-        if session_id is not None and owners.get(session_id) != user_id:
+        session = {"session_id": body["sessionId"]} if "sessionId" in body else {}
+        if session and owners.get(body["sessionId"]) != user_id:
             return JSONResponse({"error": "forbidden"}, status_code=403)
 
+        stream = await client.chat(
+            agent_id=os.environ["BLAZING_AGENTS_AGENT_ID"],
+            message=body["message"],
+            trigger=body.get("trigger", "submit-message"),
+            user_id=user_id,
+            **session,
+        )
+        owners[stream.session_id] = user_id
         headers = {"cache-control": "no-cache", "x-vercel-ai-ui-message-stream": "v1"}
-        if session_id is None:
-            stream = await client.chat(
-                agent_id=os.environ["BLAZING_AGENTS_AGENT_ID"],
-                message=body["message"],
-                user_id=user_id,
-            )
-            owners[stream.session_id] = user_id
+        if "location" in stream.headers:
             headers["location"] = stream.headers["location"]
-        else:
-            stream = await client.chat(
-                agent_id=os.environ["BLAZING_AGENTS_AGENT_ID"],
-                session_id=session_id,
-                message=body["message"],
-                trigger=body.get("trigger", "submit-message"),
-                user_id=user_id,
-            )
         return StreamingResponse(stream, media_type="text/event-stream", headers=headers)
     ```
 
@@ -159,7 +153,7 @@ export DEMO_USER_TOKEN="demo-token"
 
 The first request has no `sessionId`, so Blazing Agents starts a new session and returns its ID before the answer finishes streaming. Your endpoint records the owner right away, then relays the stream. Later requests send the `sessionId`, your endpoint checks the owner, and the agent sees the whole conversation. Your frontend sends only the newest message each time.
 
-In TypeScript, `createChatRelay` does this for you. It also passes the request's abort signal along, so a user who closes the tab stops the turn. The Python endpoint does the same steps by hand.
+In TypeScript, `createChatRelay` does this for you. It also passes the request's abort signal along, so a user who closes the tab stops the turn. The Python endpoint does the same steps by hand with one `client.chat()` call: it passes `session_id` only when the request has one, and `stream.session_id` holds the ID either way.
 
 The `userId` you pass labels usage and resources per end user for reporting. It does not grant access. Your ownership check is what keeps one user out of another user's conversation.
 
