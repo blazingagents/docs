@@ -1,315 +1,277 @@
 ---
 title: Agents
-description: Create, configure, version, disable, and extend Agents with the Python SDK.
+description: Create, configure, version, pause, and delete agents with the Python SDK.
 ---
 
 # Agents
 
-`client.agents` manages Tenant-owned Agent configuration, lifecycle, immutable
-Versions, avatars, and MCP Attachments. All request fields are keyword-only
-and use snake case. The asynchronous client exposes the same operation names;
-await each request method and use `async for` only for lazy Version iteration.
+`client.agents` creates and configures your agents. Every configuration change saves a numbered version you can inspect or restore, and you can pause an agent without losing its setup.
 
-## Overview [#overview]
-
-Creating or ordinarily updating an Agent creates an immutable Version. Disable,
-enable, avatar, and MCP Attachment changes do not. Array fields are complete
-selections, not patches. `user_id` is immutable End-user Attribution.
-
-Omitting an update argument leaves the field unchanged. `provider_id` and
-`model` form one optional pair: both are `None` on an unconfigured Agent or both
-are present. `workspace_id` accepts a Workspace
-ID but not `None`: every Agent always has one attached Workspace. On create,
-omitting it atomically creates and attaches a normal default Workspace; an
-explicit ID shares an existing same-Tenant Workspace. The implicit Workspace
-starts with the Agent's name and Attribution, then remains independent; Agent
-updates do not synchronize it. The product row has no
-Container or compute cost until the first actual Workspace operation.
-
-Every request method also accepts `extra_headers: Mapping[str, str] | None`
-and the exported `Timeout` type (`float | httpx.Timeout | None`). See [Client](/sdk/python/client)
-for request correlation, transport errors, and response observation.
-
-## Thinking level [#thinking-level]
-
-Create and update accept `thinking_level` as a nonempty string or null
-(`None` in Python). Creation defaults to Provider default; omission on update
-preserves the saved selection, and null clears it. Agent and AgentVersion
-responses include the field, and restoration copies it through normal
-validation. Known invalid combinations fail without changing configuration
-or Version history. Unknown capabilities allow custom strings, which can
-still fail during Provider execution. See [Thinking level](/agents/providers-and-models#thinking-level).
-
-## Automatic context compaction [#automatic-context-compaction]
-
-Create and update accept `auto_compaction` (creation default: `True`)
-and `compaction_reserve_tokens` (creation default: `16384`). The reserve accepts a
-nonnegative safe integer up to `9007199254740991`; omission on update preserves
-saved values. Agent and Agent Version responses include both fields, and restoration
-copies them. See [context compaction](/agents/agents#automatic-context-compaction)
-for thresholds, summary usage, unknown models, and failure behavior.
-
-## Tool approval policies [#tool-approval-policies]
-
-The backend accepts `approvalInChat` and `approvalInTasks` on create/update and
-returns both on Agents and Versions. The corresponding Python SDK fields
-are `approval_in_chat` and `approval_in_tasks` available starting in v0.5.0.
-Do not assume these fields or policy restoration are available in older installed
-SDKs. Python v0.4.0 predates this support; upgrade to v0.5.0 or use the
-[REST contract](/api-reference/rest-api/agents#tool-approval-configuration).
-
-Each policy has required `default` and an override list of structured Tool
-references and decisions. Both modes use `full`, `deny`, `manual`, or `auto`.
-Defaults are full with no overrides. Omitted update fields stay unchanged;
-a supplied policy replaces the whole policy, and omitted/empty overrides clear
-its list. Policy-aware `restore_version()` must copy both saved policies through normal
-validation; older helpers can leave current policies in place instead.
-See [examples and validation](/agents/tools/tool-approvals#approval-policies).
-
-Version v0.5.0 exposes `ApprovalDecision`, `BuiltinToolName`,
-`ApprovalPolicyInput`, `ApprovalOverrideInput`, and `ToolReferenceInput`
-(`BuiltinToolReferenceInput` or `McpToolReferenceInput`). Response models include
-`ApprovalPolicy`, `ApprovalOverride`, `BuiltinToolReference`, `McpToolReference`,
-and `ToolReference`. Nested MCP inputs use `connection_id`; the SDK serializes it
-as `connectionId` on the wire. Input `overrides` is optional and normalized to an
-empty list; `OMITTED` on either update argument preserves the saved policy.
+Examples assume `client = BlazingAgents()` and reuse objects such as `provider` and `agent` from earlier examples. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names and use `async for` with `iter_versions()`.
 
 ```python
-# Requires blazing_agents v0.5.0 or later.
-client.agents.update(
-    agent_id=agent_id,
-    approval_in_chat={
-        "default": "full",
-        "overrides": [{"tool": {"type": "builtin", "name": "bash"}, "decision": "manual"}],
-    },
-    approval_in_tasks={"default": "deny"},
-)
-```
+import os
 
-The Agent must already have the Workspace Tool group enabled for this `bash` rule.
-The async client accepts the same inputs with `await`.
+from blazing_agents import BlazingAgents
+
+client = BlazingAgents()
+provider = client.providers.create(
+    name="OpenRouter",
+    provider_type="openrouter",
+    api_key=os.environ["OPENROUTER_API_KEY"],
+)
+agent = client.agents.create(
+    name="Release writer",
+    provider_id=provider.id,
+    model="openai/gpt-6-luna",
+    instructions="Write concise release notes.",
+)
+print(agent.id, agent.version)
+```
 
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`create()`](#create) | Create an Agent and Version 1 | `Agent` |
-| [`list()`](#list) | List and filter Agents | `Agents` |
-| [`get()`](#get) | Retrieve current configuration | `Agent` |
-| [`update()`](#update) | Update configuration and create a Version | `Agent` |
-| [`delete()`](#delete) | Permanently delete an Agent | `None` |
-| [`disable()`](#disable) | Reject future Turns | `Agent` |
-| [`enable()`](#enable) | Allow future Turns | `Agent` |
-| [`upload_avatar()`](#upload-avatar) | Upload or replace the private avatar | `Agent` |
+| [`create()`](#create) | Create an agent and its version 1 | `Agent` |
+| [`list()`](#list) | List agents | `Agents` |
+| [`get()`](#get) | Get the current configuration | `Agent` |
+| [`update()`](#update) | Change configuration and save a new version | `Agent` |
+| [`delete()`](#delete) | Permanently delete an agent | `None` |
+| [`disable()`](#disable) | Stop new turns | `Agent` |
+| [`enable()`](#enable) | Allow new turns again | `Agent` |
+| [`upload_avatar()`](#upload-avatar) | Set the avatar image | `Agent` |
 | [`remove_avatar()`](#remove-avatar) | Remove the avatar | `Agent` |
-| [`list_versions()`](#list-versions) | Read one Version page | `AgentVersionsPage` |
-| [`iter_versions()`](#iter-versions) | Lazily iterate Version pages | `Iterator[AgentVersion]` |
-| [`get_version()`](#get-version) | Retrieve an immutable Version | `AgentVersion` |
-| [`restore_version()`](#restore-version) | Copy an old Version into a new latest Version | `Agent` |
-| [`list_mcp_attachments()`](#list-mcp-attachments) | List MCP Attachment settings | `McpAttachments` |
-| [`update_mcp_attachment()`](#update-mcp-attachment) | Change End-user forwarding settings | `McpAttachment` |
+| [`list_versions()`](#list-versions) | Get one page of versions | `AgentVersionsPage` |
+| [`iter_versions()`](#iter-versions) | Iterate every version | `Iterator[AgentVersion]` |
+| [`get_version()`](#get-version) | Get one version | `AgentVersion` |
+| [`restore_version()`](#restore-version) | Copy an old version into a new one | `Agent` |
+| [`list_mcp_attachments()`](#list-mcp-attachments) | List MCP forwarding settings | `McpAttachments` |
+| [`update_mcp_attachment()`](#update-mcp-attachment) | Change MCP forwarding settings | `McpAttachment` |
 
 ## Methods [#methods]
 
 ### `create()` [#create]
 
-**Signature:** `create(*, name: str, model: str | _Omitted = ..., provider_id: str | _Omitted = ..., workspace_id: str = ..., auto_compaction: bool = ..., compaction_reserve_tokens: int = ..., memory_injection_enabled: bool = ..., tools: list[AgentTool] = ..., instructions: str = ..., user_id: str = ..., metadata: dict[str, object] = ..., mcp_connection_ids: list[str] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
-
-Creates an Agent and Version 1. `name` is required. Omit both `provider_id` and
-`model` to create an unconfigured Agent, or provide both to configure it. `workspace_id` accepts a string or
-omission. `tools` and
-`mcp_connection_ids` are complete selections.
+Creates an agent and saves its configuration as version 1.
 
 ```python
 agent = client.agents.create(
-    name="Release writer",
-    instructions="Write concise release notes.",
-    metadata={"team": "platform"},
+    name="Support agent",
+    provider_id=provider.id,
+    model="openai/gpt-6-luna",
+    tools=["workspace", "memory"],
+    user_id="customer_123",
+    metadata={"team": "support"},
 )
 ```
 
-Returns an [`Agent`](#agent). Server failures include `validation_failed`,
-`agent_name_conflict`, `provider_not_found`,
-`agent_mcp_connection_not_found`, and `agent_mcp_connections_invalid`. See
-[`POST /v1/agents`](/api-reference/rest-api/agents#create-agent).
+**Signature:** `create(*, name, model=..., provider_id=..., thinking_level=..., workspace_id=..., tools=..., instructions=..., memory_injection_enabled=..., auto_compaction=..., compaction_reserve_tokens=..., approval_in_chat=..., approval_in_tasks=..., user_id=..., metadata=..., mcp_connection_ids=...) -> Agent`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | `str` | required | Name, unique in your tenant, 1 to 80 characters |
+| `provider_id`, `model` | `str` | none | Provider and its native model ID. Pass both or neither |
+| `thinking_level` | `str \| None` | `None` | Reasoning level; `None` uses the provider default. Needs a provider and model. See [`get_thinking_levels()`](/sdk/python/providers#get-thinking-levels) |
+| `workspace_id` | `str` | new workspace | Existing workspace to share. When omitted, a new workspace is created with the agent's name and `user_id` |
+| `tools` | `list[AgentTool]` | `[]` | Built-in tool groups: `"workspace"`, `"write_todos"`, `"memory"` |
+| `instructions` | `str` | `""` | System instructions, up to 3,000 characters |
+| `memory_injection_enabled` | `bool` | `False` | Add the agent's memories to each turn's context automatically |
+| `auto_compaction` | `bool` | `True` | Summarize older context when it nears the model's context window |
+| `compaction_reserve_tokens` | `int` | `16384` | Tokens to keep free below the model's context window |
+| `approval_in_chat` | `ApprovalPolicyInput` | `{"default": "full"}` | Tool approval policy for chat and stateless calls |
+| `approval_in_tasks` | `ApprovalPolicyInput` | `{"default": "full"}` | Tool approval policy for task runs |
+| `user_id` | `str` | `""` | End user this agent belongs to; `""` means tenant level. Fixed after creation |
+| `metadata` | `dict[str, object]` | `{}` | Your own data |
+| `mcp_connection_ids` | `list[str]` | `[]` | Up to 10 unique MCP connection IDs |
+
+Without `provider_id` and `model`, the agent is saved unconfigured. Passing only one of them raises `ValueError` before any request. A workspace created for the agent stays independent afterwards: renaming the agent does not rename it.
+
+An approval policy is a dictionary with a required `default` decision and an optional list of per-tool `overrides`. Decisions are `"full"`, `"deny"`, `"manual"`, or `"auto"`. See [tool approvals](/agents/tools/tool-approvals) for what each decision does.
+
+Returns [`Agent`](#agent). Raises `APIStatusError` with `validation_failed`, `agent_name_conflict`, `provider_not_found`, `model_not_found`, `model_validation_unavailable`, `agent_mcp_connection_not_found`, or `agent_mcp_connections_invalid`.
 
 ### `list()` [#list]
 
-**Signature:** `list(*, user_id: str = ..., workspace_id: str = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agents`
+Lists your agents, most recently updated first.
 
-Lists current Agents by most recent update. The result is unpaginated.
-`user_id=""` filters for tenant-level Attribution; `workspace_id` filters by
-current Workspace attachment.
+```python
+tenant_level = client.agents.list(user_id="").agents
+```
 
-Returns `Agents`, whose `agents` field is `list[Agent]`. Server failures include
-`validation_failed`. See [`GET /v1/agents`](/api-reference/rest-api/agents#list-agents).
+**Signature:** `list(*, user_id=..., workspace_id=...) -> Agents`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `user_id` | `str` | Only agents for this end user; `""` returns tenant-level agents |
+| `workspace_id` | `str` | Only agents attached to this workspace |
+
+Returns `Agents`, whose `agents` field is `list[Agent]`. The list is not paginated. Raises `validation_failed` for invalid filters.
 
 ### `get()` [#get]
 
-**Signature:** `get(agent_id: str, *, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
+Gets an agent's current configuration.
 
-Retrieves current Agent configuration without creating a Version. Server
-failures include `validation_failed` and `not_found`. See
-[`GET /v1/agents/:agentId`](/api-reference/rest-api/agents#get-agent).
+```python
+agent = client.agents.get(agent.id)
+```
+
+**Signature:** `get(agent_id: str) -> Agent`
+
+Returns [`Agent`](#agent). Raises `validation_failed` for a malformed ID or `not_found`.
 
 ### `update()` [#update]
 
-**Signature:** `update(agent_id: str, *, name: str = ..., model: str | None = ..., provider_id: str | None = ..., thinking_level: str | None = ..., workspace_id: str = ..., auto_compaction: bool = ..., compaction_reserve_tokens: int = ..., memory_injection_enabled: bool = ..., tools: Sequence[AgentTool] = ..., instructions: str = ..., metadata: dict[str, object] = ..., mcp_connection_ids: Sequence[str] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
-
-Updates at least one mutable field and creates the next Version. Omitted fields
-stay unchanged. Changing a Provider requires a model in the same call; explicit
-`None` for both fields clears the pair. Supplied
-arrays replace their selections. `user_id` cannot be updated. Supplying no
-field raises `ValueError` before a request is sent.
-
-For the Admin Agent, `update()` accepts only `provider_id`, `model`, and `thinking_level`. Each
-accepted settled-pair change creates the next ordinary Version; all other
-fields remain platform-managed.
+Changes an agent's configuration and saves the result as the next version, even when the values are unchanged.
 
 ```python
-updated = client.agents.update(
+agent = client.agents.update(
     agent.id,
-    instructions="Include migration steps.",
+    instructions="Write concise release notes and include migration steps.",
 )
 ```
 
-Returns an [`Agent`](#agent). Server failures include `validation_failed`,
-`not_found`, `agent_name_conflict`, `provider_not_found`,
-`agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, and
-`admin_agent_managed`. See
-[`PUT /v1/agents/:agentId`](/api-reference/rest-api/agents#update-agent).
+**Signature:** `update(agent_id: str, *, name=..., model=..., provider_id=..., thinking_level=..., workspace_id=..., tools=..., instructions=..., memory_injection_enabled=..., auto_compaction=..., compaction_reserve_tokens=..., approval_in_chat=..., approval_in_tasks=..., metadata=..., mcp_connection_ids=...) -> Agent`
+
+Accepts every [`create()`](#create) parameter except `user_id`, which never changes. Omitted parameters keep their current value. Supplied values replace the old ones completely: `tools`, `mcp_connection_ids`, `metadata`, and each approval policy are full replacements, not patches.
+
+- To change the model on the current provider, pass `model` alone. To switch providers, pass `provider_id` and `model` together; `provider_id` alone raises `ValueError`.
+- To unconfigure the agent, pass `provider_id=None` and `model=None`. Clearing only one raises `ValueError`.
+- `thinking_level=None` resets to the provider default.
+- `workspace_id` moves the agent to another workspace. It cannot be cleared.
+
+Calling `update()` with no parameters raises `ValueError` before any request. Returns [`Agent`](#agent) with the new `version`. Raises `validation_failed`, `not_found`, `agent_name_conflict`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, or `agent_mcp_connections_invalid`.
 
 ### `delete()` [#delete]
 
-**Signature:** `delete(agent_id: str, *, include_artifacts: bool, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> None`
+Permanently deletes an agent with its versions, sessions, tasks, and memories. Its workspace, providers, and MCP connections are kept.
 
-Permanently deletes a Tenant-managed Agent and its owned history while
-preserving its Workspace. Server failures include `validation_failed`,
-`not_found`, and `admin_agent_managed`. See
-[`DELETE /v1/agents/:agentId`](/api-reference/rest-api/agents#delete-agent).
+```python
+client.agents.delete(agent.id, include_artifacts=False)
+```
+
+**Signature:** `delete(agent_id: str, *, include_artifacts: bool) -> None`
+
+`include_artifacts` is required: `True` also deletes the agent's published artifacts, and `False` keeps them. Raises `validation_failed` or `not_found`.
 
 ### `disable()` [#disable]
 
-**Signature:** `disable(agent_id: str, *, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
+Stops an agent from starting new turns. Turns already running finish normally.
 
-Idempotently disables an Agent. New Turns fail with `agent_disabled`; in-flight
-Turns finish. Returns an `Agent` with `status == "disabled"`. Server failures
-include `not_found` and `admin_agent_managed`. See
-[`POST .../disable`](/api-reference/rest-api/agents#disable-agent).
+```python
+agent = client.agents.disable(agent.id)
+```
+
+**Signature:** `disable(agent_id: str) -> Agent`
+
+Returns [`Agent`](#agent) with `status == "disabled"`. Calling it again is harmless. A disabled agent stays readable and editable, and new turns fail with `agent_disabled`. Raises `not_found`.
 
 ### `enable()` [#enable]
 
-**Signature:** `enable(agent_id: str, *, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
+Lets a disabled agent start turns again.
 
-Idempotently enables an Agent. Skipped schedule fires are not replayed. Returns
-an `Agent` with `status == "active"`. Server failures include `not_found` and
-`admin_agent_managed`. See
-[`POST .../enable`](/api-reference/rest-api/agents#enable-agent).
+```python
+agent = client.agents.enable(agent.id)
+```
+
+**Signature:** `enable(agent_id: str) -> Agent`
+
+Returns [`Agent`](#agent) with `status == "active"`. Calling it again is harmless. Scheduled task runs skipped while the agent was disabled do not run afterwards. Raises `not_found`.
 
 ### `upload_avatar()` [#upload-avatar]
 
-**Signature:** `upload_avatar(agent_id: str, file: UploadFile, *, filename: str | None = None, content_type: str | None = None, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
-
-Uploads or replaces a private PNG, JPEG, or WebP avatar of at most 512 KiB
-without creating a Version. `file` can be bytes, a filesystem path, or an open
-caller-owned binary file. The SDK opens and closes paths itself, but never
-closes a caller-owned file. Bytes require `filename`; paths derive it, and
-file objects use their `.name` when available. `content_type` overrides MIME
-inference.
+Sets or replaces the agent's avatar. This does not create a version.
 
 ```python
 from pathlib import Path
 
-agent = client.agents.upload_avatar(
-    agent.id,
-    Path("avatar.webp"),
-    content_type="image/webp",
-)
+agent = client.agents.upload_avatar(agent.id, Path("avatar.webp"))
 ```
 
-Returns an `Agent` whose `avatar_url` is a short-lived signed URL. Missing
-filenames raise `ValueError`; server failures include `validation_failed`,
-`not_found`, and `admin_agent_managed`. See
-[`POST .../avatar`](/api-reference/rest-api/agents#upload-agent-avatar).
+**Signature:** `upload_avatar(agent_id: str, file: UploadFile, *, filename: str | None = None, content_type: str | None = None) -> Agent`
+
+`file` is a PNG, JPEG, or WebP image of at most 512 KiB, given as bytes, a file path, or an open binary file. The SDK opens and closes paths itself and never closes a file object you pass. Bytes need `filename`; paths and named file objects supply their own. `content_type` overrides the type guessed from the filename.
+
+Returns [`Agent`](#agent) whose `avatar_url` is a short-lived signed URL. A missing filename raises `ValueError`. Raises `validation_failed` for a missing, oversized, or unsupported file, or `not_found`.
 
 ### `remove_avatar()` [#remove-avatar]
 
-**Signature:** `remove_avatar(agent_id: str, *, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
+Removes the avatar. This does not create a version, and calling it again is harmless.
 
-Idempotently removes the avatar without creating a Version. Returns an `Agent`
-with `avatar_url is None`. Server failures include `validation_failed`,
-`not_found`, and `admin_agent_managed`. See
-[`DELETE .../avatar`](/api-reference/rest-api/agents#delete-agent-avatar).
+```python
+agent = client.agents.remove_avatar(agent.id)
+```
+
+**Signature:** `remove_avatar(agent_id: str) -> Agent`
+
+Returns [`Agent`](#agent) with `avatar_url is None`. Raises `validation_failed` or `not_found`.
 
 ### `list_versions()` [#list-versions]
 
-**Signature:** `list_versions(agent_id: str, *, cursor: str = ..., limit: int = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> AgentVersionsPage`
+Gets one page of the agent's saved versions, newest first.
 
-Returns one page of immutable Versions, newest first. `cursor` is opaque;
-`limit` is 1 through 200 and defaults to 50. The returned page contains
-`data: list[AgentVersion]` and `next_cursor: str | None`.
+```python
+page = client.agents.list_versions(agent.id, limit=20)
+```
 
-Server failures include `validation_failed`, `invalid_cursor`, and
-`not_found`. See
-[`GET .../versions`](/api-reference/rest-api/agents#list-agent-versions).
+**Signature:** `list_versions(agent_id: str, *, cursor=..., limit=...) -> AgentVersionsPage`
+
+`limit` is 1 to 200 and defaults to 50. Pass the previous page's `next_cursor` as `cursor` to get the next page. Returns `AgentVersionsPage` with `data: list[AgentVersion]` and `next_cursor: str | None`. Raises `validation_failed`, `invalid_cursor`, or `not_found`.
 
 ### `iter_versions()` [#iter-versions]
 
-**Signature:** `iter_versions(agent_id: str, *, cursor: str = ..., limit: int = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Iterator[AgentVersion]`
-
-Returns a lazy iterator. No request is made until iteration starts; later
-pages are fetched only as needed, using the server's cursor.
+Iterates every version, fetching pages as you go.
 
 ```python
 for version in client.agents.iter_versions(agent.id, limit=20):
-    print(version.version)
-
-# AsyncBlazingAgents uses the same name.
-async for version in async_client.agents.iter_versions(agent.id, limit=20):
-    print(version.version)
+    print(version.version, version.model)
 ```
 
-The async return is `AsyncIterator[AgentVersion]`; do not `await` the iterator
-factory. Page requests can raise the same errors as [`list_versions()`](#list-versions).
+**Signature:** `iter_versions(agent_id: str, *, cursor=..., limit=...) -> Iterator[AgentVersion]`
+
+No request is sent until you start iterating. On the async client, use `async for` directly on `iter_versions(...)`; do not await it. Each page request can raise the same errors as [`list_versions()`](#list-versions).
 
 ### `get_version()` [#get-version]
 
-**Signature:** `get_version(agent_id: str, version: int, *, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> AgentVersion`
+Gets one saved version by number.
 
-Retrieves one immutable numbered Version. Server failures include
-`validation_failed` and `not_found`. See
-[`GET .../versions/:version`](/api-reference/rest-api/agents#get-agent-version).
+```python
+first = client.agents.get_version(agent.id, 1)
+```
+
+**Signature:** `get_version(agent_id: str, version: int) -> AgentVersion`
+
+Returns [`AgentVersion`](#agentversion). Raises `validation_failed` or `not_found`.
 
 ### `restore_version()` [#restore-version]
 
-**Signature:** `restore_version(agent_id: str, version: int, *, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Agent`
+Copies an old version's configuration into a new latest version. History is never rewritten.
 
-This SDK composition gets the immutable Version, then copies its versioned
-fields through an ordinary update to create a new latest Version. It never
-rewrites history. `user_id`, Workspace attachment, status, and avatar are not
-restored because Versions do not contain them; Version metadata is restored.
-The operation can raise
-errors from both reads and updates, including reference errors when an old
-Provider or MCP Connection is no longer available.
+```python
+agent = client.agents.restore_version(agent.id, 1)
+```
+
+**Signature:** `restore_version(agent_id: str, version: int) -> Agent`
+
+The SDK reads the version with [`get_version()`](#get-version), then saves its fields through [`update()`](#update). That copies the name, provider and model, thinking level, compaction settings, memory injection, tools, approval policies, instructions, metadata, and MCP connections. The workspace, `user_id`, status, and avatar stay as they are, because versions do not store them.
+
+Returns the updated [`Agent`](#agent). It can raise any error from either call, for example `provider_not_found` when the old provider was deleted.
 
 ### `list_mcp_attachments()` [#list-mcp-attachments]
 
-**Signature:** `list_mcp_attachments(agent_id: str, *, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> McpAttachments`
+Lists how the agent forwards end-user details to each of its MCP connections.
 
-Lists forwarding settings for the MCP Connections currently selected by the
-Agent. Returns `McpAttachments`, whose `mcp_attachments` field is
-`list[McpAttachment]`. Server failures include `validation_failed` and
-`not_found`. See
-[`GET .../mcp-attachments`](/api-reference/rest-api/agents#list-agent-mcp-attachments).
+```python
+attachments = client.agents.list_mcp_attachments(agent.id).mcp_attachments
+```
+
+**Signature:** `list_mcp_attachments(agent_id: str) -> McpAttachments`
+
+Returns `McpAttachments`, whose `mcp_attachments` field is `list[McpAttachment]`, one per connection in the agent's `mcp_connection_ids`. Raises `validation_failed` or `not_found`.
 
 ### `update_mcp_attachment()` [#update-mcp-attachment]
 
-**Signature:** `update_mcp_attachment(agent_id: str, mcp_connection_id: str, *, forward_user_id: bool = ..., forwarded_metadata_keys: Sequence[str] = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> McpAttachment`
-
-Changes End-user forwarding settings without changing MCP access control or
-creating a Version. At least one setting is required; omitting both raises
-`ValueError`. `forwarded_metadata_keys` accepts a sequence of up to 32 unique
-keys.
+Chooses whether the agent sends the end user's ID and selected metadata keys to one MCP connection. This does not create a version.
 
 ```python
 attachment = client.agents.update_mcp_attachment(
@@ -320,78 +282,57 @@ attachment = client.agents.update_mcp_attachment(
 )
 ```
 
-Returns [`McpAttachment`](#mcpattachment). Server failures include
-`validation_failed` and `not_found`. See
-[`PATCH .../mcp-attachments/:mcpConnectionId`](/api-reference/rest-api/agents#update-agent-mcp-attachment).
+**Signature:** `update_mcp_attachment(agent_id: str, mcp_connection_id: str, *, forward_user_id=..., forwarded_metadata_keys=...) -> McpAttachment`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `forward_user_id` | `bool` | Send the turn's `user_id` to the MCP server |
+| `forwarded_metadata_keys` | `Sequence[str]` | Up to 32 unique turn metadata keys to send |
+
+Pass at least one; omitting both raises `ValueError`. Returns [`McpAttachment`](#mcpattachment). Raises `validation_failed` or `not_found`.
 
 ## Response models [#response-models]
-
-Responses are Pydantic v2 models with snake-case fields. Documented fields are
-validated, unknown server fields remain in `model_extra`, and `_request_id`
-retains the server request ID without appearing in serialized output. An
-invalid success body raises `pydantic.ValidationError`.
 
 ### `Agent` [#agent]
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `str` | Agent ID (`ag_...`) |
-| `tenant_id` | `str` | Owning Tenant ID |
-| `name` | `str` | Tenant-unique name |
-| `model` | `str \| None` | Opaque model identifier, or `None` when unconfigured |
-| `provider_id` | `str \| None` | Stored Provider, or `None` when unconfigured |
-| `workspace_id` | `str` | Current Workspace attachment |
-| `approval_in_chat` | `ApprovalPolicy` | Chat/stateless policy; available since v0.5.0 |
-| `approval_in_tasks` | `ApprovalPolicy` | Task policy; available since v0.5.0 |
-| `auto_compaction` | `bool` | Automatic compaction setting |
-| `compaction_reserve_tokens` | `int` | Compaction reserve in tokens |
-| `memory_injection_enabled` | `bool` | Whether Memory is injected automatically |
-| `tools` | `list[str]` | Selected Tool groups |
+| `tenant_id` | `str` | Your tenant ID |
+| `name` | `str` | Name |
+| `provider_id` | `str \| None` | Provider, or `None` when unconfigured |
+| `model` | `str \| None` | Model ID, or `None` when unconfigured |
+| `thinking_level` | `str \| None` | Reasoning level, or `None` for the provider default |
+| `workspace_id` | `str` | Attached workspace |
+| `tools` | `list[str]` | Built-in tool groups |
 | `instructions` | `str` | System instructions |
-| `user_id` | `str` | Immutable End-user Attribution |
-| `metadata` | `dict[str, object]` | Application metadata |
-| `mcp_connection_ids` | `list[str]` | Selected MCP Connections |
-| `avatar_url` | `AnyUrl \| None` | Short-lived signed avatar URL |
-| `version` | `int` | Current positive Version |
-| `status` | `str` | Current execution status |
-| `created_at`, `updated_at` | `datetime` | Aware timestamps |
+| `memory_injection_enabled` | `bool` | Whether memories are added automatically |
+| `auto_compaction` | `bool` | Whether older context is summarized automatically |
+| `compaction_reserve_tokens` | `int` | Tokens kept free below the context window |
+| `approval_in_chat`, `approval_in_tasks` | `ApprovalPolicy` | Tool approval policies, with `default` and `overrides` |
+| `user_id` | `str` | End user, or `""` for tenant level |
+| `metadata` | `dict[str, object]` | Your own data |
+| `mcp_connection_ids` | `list[str]` | Selected MCP connections |
+| `avatar_url` | `AnyUrl \| None` | Short-lived avatar URL |
+| `version` | `int` | Current version number |
+| `status` | `str` | `"active"` or `"disabled"` |
+| `created_at`, `updated_at` | `datetime` | Timestamps |
 
 ### `AgentVersion` [#agentversion]
 
-`AgentVersion` contains `agent_id`, `tenant_id`, `version`, `name`, `model`,
-`provider_id`, `thinking_level`, `auto_compaction`, `compaction_reserve_tokens`, `memory_injection_enabled`, `tools`, `instructions`, `metadata`,
-`mcp_connection_ids`, and `created_at`. It intentionally omits current
-`workspace_id`, `user_id`, avatar, status, and update timestamp.
+A saved configuration. It has `agent_id`, `tenant_id`, `version`, `created_at`, and the same configuration fields as `Agent`: `name`, `provider_id`, `model`, `thinking_level`, `tools`, `instructions`, `memory_injection_enabled`, `auto_compaction`, `compaction_reserve_tokens`, `approval_in_chat`, `approval_in_tasks`, `metadata`, and `mcp_connection_ids`. It has no `workspace_id`, `user_id`, avatar, status, or `updated_at`.
 
 ### `McpAttachment` [#mcpattachment]
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `mcp_connection_id` | `str` | Selected MCP Connection |
-| `forward_user_id` | `bool` | Whether requests forward End-user Attribution |
-| `forwarded_metadata_keys` | `list[str]` | Metadata-key allowlist |
-| `created_at`, `updated_at` | `datetime` | Aware timestamps |
+| `mcp_connection_id` | `str` | MCP connection |
+| `forward_user_id` | `bool` | Whether the turn's `user_id` is sent |
+| `forwarded_metadata_keys` | `list[str]` | Metadata keys that are sent |
+| `created_at`, `updated_at` | `datetime` | Timestamps |
 
-See the canonical [Agent and MCP schemas](/api-reference/protocols/objects-and-schemas).
+## Next [#next]
 
-## Errors [#errors]
-
-HTTP failures raise `APIStatusError`; branch on its stable `code`, not the
-message. Connection and timeout failures raise `APIConnectionError` and
-`APITimeoutError`. Local argument errors described above are raised before the
-request. A disabled Agent remains readable and configurable; generation later
-fails with `agent_disabled`.
-
-## Async use [#async-use]
-
-Use `await async_client.agents.create(...)` and the same name for every other
-request operation. There are no `acreate()` or other `a`-prefixed aliases.
-Only lazy Version iteration changes syntax to `async for`, as shown under
-[`iter_versions()`](#iter-versions).
-
-## Related [#related]
-
-- [Agents](/agents/agents)
+- [Agents guide](/agents/agents)
 - [Versions and lifecycle](/agents/versions-and-lifecycle)
-- [MCP connections](/agents/tools/mcp-tools)
-- [REST Agents](/api-reference/rest-api/agents)
+- [Providers](/sdk/python/providers)
