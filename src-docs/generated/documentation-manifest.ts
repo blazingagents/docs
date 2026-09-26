@@ -8584,13 +8584,13 @@ export const documentationTree: SerializedPageTree = {
       },
       {
         "type": "folder",
-        "name": "Getting Started",
+        "name": "Getting started",
         "children": [
           {
             "$id": "getting-started/index.mdx",
             "type": "page",
-            "name": "Getting Started",
-            "description": "Set up the backend SDK, run a streamed Turn, and connect Blazing Agents to your application.",
+            "name": "Getting started",
+            "description": "Go from an API key to an agent that chats with your users inside your own app.",
             "url": "/getting-started",
             "$ref": "getting-started/index.mdx"
           },
@@ -8614,7 +8614,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "getting-started/connect-your-app.mdx",
             "type": "page",
             "name": "Connect Blazing Agents to your app",
-            "description": "Relay a chat stream through your authenticated backend and safely resume its Session.",
+            "description": "Add a chat endpoint to your backend that checks who the user is, streams the answer, and remembers each conversation.",
             "url": "/getting-started/connect-your-app",
             "$ref": "getting-started/connect-your-app.mdx"
           },
@@ -8622,7 +8622,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "getting-started/chatbot.mdx",
             "type": "page",
             "name": "Build a chatbot",
-            "description": "Send, Stop, edit, resend, and regenerate with SDK-native chat.",
+            "description": "Put a React chat UI with send, stop, resend, and regenerate on top of your chat endpoint.",
             "url": "/getting-started/chatbot",
             "$ref": "getting-started/chatbot.mdx"
           },
@@ -8630,7 +8630,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "getting-started/next-steps.mdx",
             "type": "page",
             "name": "Choose what to build next",
-            "description": "Move from your first successful Turn to the Blazing Agents section that matches your goal.",
+            "description": "Pick the next thing to give your agent, from files and tools to background work and billing.",
             "url": "/getting-started/next-steps",
             "$ref": "getting-started/next-steps.mdx"
           }
