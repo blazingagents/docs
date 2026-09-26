@@ -7,23 +7,24 @@ description: Continue MCP authorization-code setup from an authenticated dashboa
 
 ## Overview [#overview]
 
-This authenticated operation converts the short-lived setup token returned by
-MCP connect into a browser authorization URL. It requires the same Tenant's
-dashboard JWT; an API key cannot approve the admin-session continuation.
+Finish connecting an MCP server that signs in with OAuth. Exchange the
+short-lived setup token from MCP connect for a URL, then open it in the
+administrator's browser. This call needs the same tenant's dashboard JWT; an
+API key cannot approve it.
 
 ## Endpoints [#endpoints]
 
 ### POST /v1/mcp/oauth/authorize [#approve-mcp-oauth-authorization]
 
-Starts OAuth authorization for an MCP setup continuation. It requires a dashboard Supabase JWT, not an API key.
+Starts OAuth sign-in for a pending MCP connection. It requires a dashboard JWT, not an API key.
 
 #### Request
 
-Requires a [dashboard Supabase JWT](/api-reference/rest-api/authentication). The dashboard JWT selects the Tenant ownership boundary; the authenticated administrator and every referenced resource must belong to that Tenant.
+Requires a [dashboard JWT](/api-reference/rest-api/authentication). The signed-in administrator and every resource in the request must belong to the same tenant.
 
 | Location | Field           | Required | Description                                           |
 | -------- | --------------- | -------- | ----------------------------------------------------- |
-| Header   | `Authorization` | yes      | Dashboard Supabase JWT; Tenant API keys are rejected. |
+| Header   | `Authorization` | yes      | Dashboard JWT; Tenant API keys are rejected. |
 
 | Location | Field          | Required | Description                   |
 | -------- | -------------- | -------- | ----------------------------- |
@@ -36,10 +37,9 @@ Requires a [dashboard Supabase JWT](/api-reference/rest-api/authentication). The
 | -------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
 | `200 OK` | [`mcpOauthAuthorizationLaunchResponseSchema`](/api-reference/protocols/objects-and-schemas#mcp-oauth-authorization-launch-response) | Creates a short-lived browser authorization launch URL |
 
-Opening the returned URL reaches the unauthenticated protocol-support routes
-`GET /v1/mcp/oauth/authorize` and `GET /v1/mcp/oauth/callback`. Those browser
-redirect routes, plus client metadata discovery, are not authenticated
-operations in this inventory.
+The returned URL leads the browser through `GET /v1/mcp/oauth/authorize` and
+`GET /v1/mcp/oauth/callback`. Those redirect routes and OAuth client metadata
+discovery are handled for you, so they are not listed as operations here.
 
 #### Errors
 
@@ -59,17 +59,15 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/mcp/oauth/authorize" \
 
 #### SDK and related guides
 
-No SDK method: this administrator-only approval consumes a dashboard JWT's
-`authUserId`, while the backend SDK authenticates with a Tenant API key.
+No SDK method: this approval needs the signed-in administrator from a dashboard
+JWT, and the SDKs authenticate with an API key.
 [`mcpConnections.connect()`](/sdk/typescript/mcp-connections#connect)
 returns the dashboard continuation that this operation approves.
 Python [`mcp_connections.connect()`](/sdk/python/mcp-connections#connect)
 returns the same continuation when the client uses the required admin credential.
-See [MCP connections](/agents/tools/mcp-tools) and
-[Connect an MCP server](/agents/tools/mcp-tools).
+See [MCP connections](/agents/tools/mcp-tools).
 
-## Related [#related]
+## Next [#next]
 
-- [MCP connections API](/api-reference/rest-api/mcp-connections)
-- [MCP connections SDK](/sdk/typescript/mcp-connections)
-- [Python MCP connections SDK](/sdk/python/mcp-connections)
+- [MCP connections API](/api-reference/rest-api/mcp-connections#connect-mcp-connection) to get a setup token.
+- [MCP connections](/agents/tools/mcp-tools) to attach the connected server to an agent.

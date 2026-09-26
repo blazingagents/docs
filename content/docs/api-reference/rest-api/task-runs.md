@@ -1,35 +1,36 @@
 ---
 title: Task runs
-description: Start, inspect, poll, and cancel Task runs.
+description: Start a task run, watch its progress and transcript, and cancel it.
 ---
 
 # Task runs
 
 ## Tool approval policy [#tool-approval-policy]
 
-Task execution uses the resolved Agent Version's `approvalInTasks` policy. Tasks
-have no manual approval continuation path: manual calls and automatic escalation
-without a human are denied, with blocked work reported to the model. Other
-permitted work can continue. An unexpected pending human approval fails the Task.
-See [Tool approvals](/agents/tools/tool-approvals).
+Task runs follow the agent version's `approvalInTasks` policy. Nobody is
+there to approve a tool call during a run, so calls that need manual approval,
+or that automatic review escalates to a person, are denied. The agent is told
+which actions were blocked and keeps going with what it is allowed to do. If a
+run ends up waiting for a person anyway, it fails. See
+[Tool approvals](/agents/tools/tool-approvals).
 
 ## Overview [#overview]
 
-Task runs are durable executions of Task definitions. Use these endpoints to enqueue on-demand work, poll its lifecycle and transcript, or request cooperative cancellation.
+A task run is one execution of a task. Start a run on demand, poll its status and transcript while it works, and ask it to stop. Runs keep going if your connection drops.
 
 ## Endpoints [#endpoints]
 
 ### POST /v1/tasks/:taskId/runs [#create-task-run]
 
-Enqueues an immediate Task run. An optional idempotency key reuses the existing run.
+Queues a task run now. Send an idempotency key to get the same run back on a retry.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, and a `tk_…` `taskId` path parameter. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, and a `tk_…` `taskId` path parameter. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
 
 | Body field       | Type   | Required | Description                         |
@@ -48,11 +49,9 @@ Response schema: [`createTaskRunResponseSchema`](/api-reference/protocols/object
 { "runId": "tr_1234567890ABCDEF" }
 ```
 
-The run begins as `queued` and the API immediately enqueues its deterministic
-DBOS workflow. Repeating an idempotent request attaches to the same logical
-run. A low-frequency repair path recovers the cross-database case where the
-product row committed before DBOS enqueue succeeded. Poll
-[Get a Task run](/api-reference/rest-api/task-runs#get-task-run).
+The run starts as `queued`. Repeating a request with the same idempotency key
+returns the same run. Poll
+[Get a Task run](/api-reference/rest-api/task-runs#get-task-run) to follow it.
 
 #### Errors
 
@@ -70,24 +69,24 @@ curl --request POST \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/tasks#create-run) / [Python](/sdk/python/tasks#submit). See [Tasks and schedules](/automation/tasks) and [Run a background Task](/automation/tasks).
+SDKs: [TypeScript](/sdk/typescript/tasks#create-run) / [Python](/sdk/python/tasks#submit). See [Tasks and schedules](/automation/tasks).
 
 ### GET /v1/tasks/:taskId/runs [#list-task-runs]
 
-Lists a Task's runs newest first with cursor pagination.
+Lists a task's runs newest first, one page at a time.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a `tk_…` `taskId`. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a `tk_…` `taskId`. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
 
 | Query parameter | Type    | Default | Description   |
 | --------------- | ------- | ------- | ------------- |
-| `cursor`        | string  | —       | Opaque cursor |
+| `cursor`        | string  | none       | Opaque cursor |
 | `limit`         | integer | 50      | 1–200         |
 
 #### Response
@@ -123,8 +122,8 @@ Response schema: [`taskRunsListResponseSchema`](/api-reference/protocols/objects
 }
 ```
 
-`turnId` remains `null` until execution passes Turn admission. A blocked run
-has no Turn ID.
+`turnId` stays `null` until the run's turn starts. A blocked run has no turn
+ID.
 
 #### Errors
 
@@ -143,25 +142,25 @@ curl --get \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/tasks#list-runs) / [Python](/sdk/python/tasks#list-runs). See [Tasks and schedules](/automation/tasks) and [Run a background Task](/automation/tasks).
+SDKs: [TypeScript](/sdk/typescript/tasks#list-runs) / [Python](/sdk/python/tasks#list-runs). See [Tasks and schedules](/automation/tasks).
 
 ### GET /v1/tasks/:taskId/runs/:runId [#get-task-run]
 
-Retrieves durable Task run state without restarting execution.
+Retrieves a task run's current state.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication), a `tk_…` `taskId`, and a `tr_…` `runId`. There are no query or body parameters. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication), a `tk_…` `taskId`, and a `tr_…` `runId`. There are no query or body parameters. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
 | Path     | `runId`         | yes      | Task run ID (`tr_…`).                     |
 
 #### Response
 
-Returns `200 OK` with a complete [Task run object](/api-reference/protocols/objects-and-schemas#task-run). `sessionId` remains `null` until the worker attaches a fresh Session. `error` is populated for a failed run.
+Returns `200 OK` with a complete [Task run object](/api-reference/protocols/objects-and-schemas#task-run). `sessionId` stays `null` until the run starts its session. `error` is populated for a failed run.
 
 Response schema: [`taskRunResponseSchema`](/api-reference/protocols/objects-and-schemas#task-run-response).
 
@@ -191,16 +190,16 @@ Run status follows this lifecycle:
 
 | Status      | Meaning                                                                                                              |
 | ----------- | -------------------------------------------------------------------------------------------------------------------- |
-| `queued`    | Accepted and waiting for the durable worker; cancellation can finish it before execution.                            |
-| `running`   | The worker claimed the run and may have attached its fresh Session.                                                  |
-| `blocked`   | Terminal expected admission denial from quota, subscription, or Usage-credit checks; `error` explains the denial.   |
-| `succeeded` | Terminal successful completion.                                                                                      |
-| `failed`    | Terminal configuration, execution, or infrastructure failure; `error` describes the failure.                          |
-| `canceled`  | Terminal cooperative cancellation, whether observed while queued or running.                                         |
+| `queued`    | Accepted and waiting to start; canceling now ends it before it runs.                                                 |
+| `running`   | The run has started and may already have its session.                                                                |
+| `blocked`   | Final. Not allowed to start by a quota, subscription, or usage-credit check; `error` says which.                    |
+| `succeeded` | Final. Finished successfully.                                                                                        |
+| `failed`    | Final. A configuration, execution, or platform failure; `error` describes it.                                        |
+| `canceled`  | Final. Stopped by a cancel request, while queued or running.                                                         |
 
-Every terminal status sets `finishedAt` and releases the Task's active-run slot. `blocked` is distinct from `failed`: an expected admission denial is a soft block rather than an execution fault.
+Every final status sets `finishedAt` and lets the task start another run. `blocked` is not `failed`: it means the run was not allowed to start, for example because a quota was reached, not that something broke.
 
-When the recorded Agent Version is unconfigured, the run fails before quota or execution state with `error: "provider_required"`; `sessionId` and `turnId` remain `null`. A historical Version Pin whose Provider has since been deleted fails the same way with `error: "provider_not_found"`. These values use the existing `status` and `error` fields returned by both the REST API and SDKs.
+If the run's agent version has no provider and model, the run fails before it starts with `error: "provider_required"`, and `sessionId` and `turnId` stay `null`. A pinned version whose provider was deleted fails the same way with `error: "provider_not_found"`.
 
 #### Errors
 
@@ -216,26 +215,26 @@ curl \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/tasks#get-run) / [Python](/sdk/python/tasks#get-run). See [Tasks and schedules](/automation/tasks) and [Run a background Task](/automation/tasks).
+SDKs: [TypeScript](/sdk/typescript/tasks#get-run) / [Python](/sdk/python/tasks#get-run). See [Tasks and schedules](/automation/tasks).
 
 ### GET /v1/tasks/:taskId/runs/:runId/messages [#list-task-run-messages]
 
-Lists a Task run's Session transcript. It returns an empty page until a Session exists.
+Lists a task run's transcript. It returns an empty page until the run starts its session.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication), a `tk_…` `taskId`, and a `tr_…` `runId`. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication), a `tk_…` `taskId`, and a `tr_…` `runId`. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
 | Path     | `runId`         | yes      | Task run ID (`tr_…`).                     |
 
 | Query parameter | Type    | Default | Description                       |
 | --------------- | ------- | ------- | --------------------------------- |
-| `cursor`        | string  | —       | Walk backward to older messages   |
-| `after`         | string  | —       | Poll forward after `latestCursor` |
+| `cursor`        | string  | none       | Walk backward to older messages   |
+| `after`         | string  | none       | Poll forward after `latestCursor` |
 | `limit`         | integer | 50      | 1–200                             |
 
 `cursor` and `after` are mutually exclusive.
@@ -260,7 +259,7 @@ Response schema: [`taskRunMessagesResponseSchema`](/api-reference/protocols/obje
 }
 ```
 
-Save `latestCursor` from each response and pass it as `after` to poll only messages appended later. An empty forward page can still be followed by another poll while the run is non-terminal.
+Save `latestCursor` from each response and pass it as `after` to get only newer messages. While the run is still going, an empty page does not mean it is done; poll again.
 
 #### Errors
 
@@ -280,25 +279,25 @@ curl --get \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/tasks#run-messages) / [Python](/sdk/python/tasks#run-messages). See [Tasks and schedules](/automation/tasks) and [Run a background Task](/automation/tasks).
+SDKs: [TypeScript](/sdk/typescript/tasks#run-messages) / [Python](/sdk/python/tasks#run-messages). See [Tasks and schedules](/automation/tasks).
 
 ### POST /v1/tasks/:taskId/runs/:runId/cancel [#cancel-task-run]
 
-Requests cooperative cancellation of an active Task run. The transition occurs asynchronously.
+Asks an active task run to stop. The run stops shortly after, not immediately.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication), a `tk_…` `taskId`, and a `tr_…` `runId`. There are no query or body parameters. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication), a `tk_…` `taskId`, and a `tr_…` `runId`. There are no query or body parameters. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
 | Path     | `runId`         | yes      | Task run ID (`tr_…`).                     |
 
 #### Response
 
-Returns `204 No Content` with an empty body after an owned Task is found. A missing or foreign run, a run belonging to another Task, a non-active run, and a terminal run are deliberately non-enumerating no-ops.
+Returns `204 No Content` with an empty body once the task is found. If the run is missing, belongs to another task or tenant, or has already finished, nothing happens and you still get `204`, so the response never reveals which runs exist.
 
 #### Errors
 
@@ -316,10 +315,9 @@ Poll [Get a Task run](/api-reference/rest-api/task-runs#get-task-run) for the re
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/tasks#cancel-run) / [Python](/sdk/python/tasks#cancel-run). See [Tasks and schedules](/automation/tasks) and [Run a background Task](/automation/tasks).
+SDKs: [TypeScript](/sdk/typescript/tasks#cancel-run) / [Python](/sdk/python/tasks#cancel-run). See [Tasks and schedules](/automation/tasks).
 
-## Related [#related]
+## Next [#next]
 
-- [TypeScript SDK](/sdk/typescript)
-- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
-- [Errors](/api-reference/protocols/errors)
+- [Tasks and schedules](/automation/tasks) to plan background work.
+- [Pagination and filtering](/api-reference/protocols/pagination-and-filtering) to poll a run's transcript.

@@ -7,21 +7,21 @@ description: Read Tenant identity and manage Tenant settings.
 
 ## Overview [#overview]
 
-Tenant endpoints expose the current administrative identity and Tenant-wide settings. Use them from the dashboard administration boundary to inspect identity or manage display name and quota configuration.
+Read who is signed in to the dashboard, and read or change your tenant's display name and monthly quota. Your backend usually needs only the settings endpoints.
 
 ## Endpoints [#endpoints]
 
 ### GET /v1/me [#get-current-identity]
 
-Returns the current dashboard administrator's Tenant identity. It requires a dashboard Supabase JWT, not a Tenant API key.
+Returns the tenant identity of the administrator signed in to the dashboard. It requires a dashboard JWT, not an API key.
 
 #### Request
 
-The bearer credential must be a valid dashboard Supabase Auth JWT. There are no path, query, or body parameters. The dashboard JWT selects the Tenant ownership boundary; the authenticated administrator and every referenced resource must belong to that Tenant.
+The bearer credential must be a valid dashboard JWT. There are no path, query, or body parameters. The signed-in administrator and every resource in the request must belong to the same tenant.
 
 | Location | Field           | Required | Description                                           |
 | -------- | --------------- | -------- | ----------------------------------------------------- |
-| Header   | `Authorization` | yes      | Dashboard Supabase JWT; Tenant API keys are rejected. |
+| Header   | `Authorization` | yes      | Dashboard JWT; Tenant API keys are rejected. |
 
 #### Response
 
@@ -49,26 +49,26 @@ Response schema: [`tenantResponseSchema`](/api-reference/protocols/objects-and-s
 
 ```bash
 curl "$BLAZING_AGENTS_BASE_URL/v1/me" \
-  --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN"
+  --header "Authorization: Bearer $BLAZING_AGENTS_DASHBOARD_JWT"
 ```
 
-Tenant backends normally use [Get tenant settings](/api-reference/rest-api/tenant#get-tenant-settings) instead.
+Your backend normally uses [Get tenant settings](/api-reference/rest-api/tenant#get-tenant-settings) instead.
 
 #### SDK and related guides
 
-No SDK method: the backend SDK authenticates with an API key, while this operation requires a dashboard JWT. See [Tenancy and attribution](/platform/tenancy-and-attribution) and [Build a multi-tenant application](/platform/tenancy-and-attribution).
+No SDK method: the SDKs authenticate with an API key, and this operation requires a dashboard JWT. See [Tenancy and attribution](/platform/tenancy-and-attribution).
 
 ### GET /v1/tenant [#get-tenant-settings]
 
-Returns Tenant display-name and monthly-quota settings. A `null` quota means unlimited usage.
+Returns your tenant's display name and monthly quota. A `null` quota means usage is unlimited.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). There are no path, query, or body parameters. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). There are no path, query, or body parameters. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 
 #### Response
 
@@ -104,20 +104,19 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tenant" \
 
 SDK: [TypeScript `get`](/sdk/typescript/tenant#get) or [Python
 `get`](/sdk/python/tenant#get). See [Tenancy and
-attribution](/platform/tenancy-and-attribution) and [Build a
-multi-tenant application](/platform/tenancy-and-attribution).
+attribution](/platform/tenancy-and-attribution).
 
 ### PATCH /v1/tenant [#update-tenant-settings]
 
-Updates Tenant display-name or monthly-quota settings. Omitted settings remain unchanged.
+Updates your tenant's display name or monthly quota. Settings you leave out keep their values.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. There are no path or query parameters. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. There are no path or query parameters. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 
 | Body field                  | Type                     | Required     | Description                        |
 | --------------------------- | ------------------------ | ------------ | ---------------------------------- |
@@ -165,12 +164,9 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/tenant" \
 
 SDK: [TypeScript `patch`](/sdk/typescript/tenant#patch) or [Python
 `update`](/sdk/python/tenant#update). See [Tenancy and
-attribution](/platform/tenancy-and-attribution) and [Build a
-multi-tenant application](/platform/tenancy-and-attribution).
+attribution](/platform/tenancy-and-attribution).
 
-## Related [#related]
+## Next [#next]
 
-- [TypeScript SDK](/sdk/typescript)
-- [Python SDK Tenant](/sdk/python/tenant)
-- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
-- [Errors](/api-reference/protocols/errors)
+- [Usage and quotas](/platform/usage-and-quotas) to choose quota values.
+- [Usage API](/api-reference/rest-api/usage) to compare usage with your quota.

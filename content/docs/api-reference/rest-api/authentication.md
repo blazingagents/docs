@@ -7,20 +7,21 @@ description: Authenticate REST requests and understand Tenant resolution.
 
 ## Overview [#overview]
 
-Send one `Authorization: Bearer <credential>` header. Authentication resolves
-exactly one Tenant, which becomes the ownership boundary for the request.
-Attribution fields such as `userId` filter and group Tenant-owned data; they do
-not narrow what an API key can access.
+Send one `Authorization: Bearer <credential>` header with every request. The
+credential tells Blazing Agents which tenant you are, and every request can
+reach only that tenant's data. Attribution fields such as `userId` group your
+data by end user; they do not narrow what an API key can access.
 
 ## Credentials [#credentials]
 
-| Credential        | Intended caller          | Resolution                                                     |
-| ----------------- | ------------------------ | -------------------------------------------------------------- |
-| `ba_` API key     | Tenant backend           | SHA-256 digest lookup; plaintext is returned only when created |
-| Supabase Auth JWT | Blazing Agents dashboard | In-service JWKS verification, then provisioned Tenant lookup   |
+| Credential    | Intended caller          | How it is checked                                    |
+| ------------- | ------------------------ | ---------------------------------------------------- |
+| `ba_` API key | Your backend             | Matched against your keys; the full key is shown only once, at creation |
+| Dashboard JWT | Blazing Agents dashboard | Verified as a signed-in dashboard session for an existing tenant |
 
-Service-to-service M2M JWTs are internal and are not a public REST credential.
-End-user clients must not hold either public credential.
+Create API keys at
+[https://www.blazingagents.com/app/keys](https://www.blazingagents.com/app/keys).
+Never give either credential to end-user clients.
 
 ## Authorization header [#authorization-header]
 
@@ -29,37 +30,40 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-The header is required once. Credential shape selects the authentication path;
-there is no second header, scope list, per-Agent ACL, or precedence rule.
+Send the header once. Blazing Agents recognizes the credential type from its
+shape. There are no scopes, per-agent permissions, or extra auth headers.
 
 ## Tenant resolution [#tenant-resolution]
 
-An API key resolves directly to its owning Tenant. A JWT must be valid and its
-authenticated identity must already have a provisioned Tenant. Completing
-OAuth sign-in alone does not provision product state. `GET /v1/me` and Tenant
-credential lifecycle are JWT-only dashboard workflows; ordinary product
-operations accept either credential unless their documented workflow requires
-a dashboard session.
-Raw REST calls to MCP authorization-code `connect` and approval require the
-same Tenant's dashboard JWT because their ownership checks consume its
-`authUserId`; an API key cannot substitute for that administrator identity.
+An API key always belongs to one tenant. A dashboard JWT works only after the
+signed-in user's tenant exists; signing in with OAuth alone does not create
+one. `GET /v1/me` accepts only a dashboard JWT, and API keys are managed only
+in the dashboard. Every other endpoint accepts either credential unless its
+page says otherwise.
+
+Raw REST calls to MCP authorization-code
+[connect](/api-reference/rest-api/mcp-connections#connect-mcp-connection) and
+[approval](/api-reference/rest-api/mcp-oauth) need the same tenant's dashboard
+JWT, because they check which administrator is signed in. An API key cannot
+stand in for that administrator.
 
 ## Authentication failures [#authentication-failures]
 
 | Status | Code           | Meaning                                                                                                   |
 | ------ | -------------- | --------------------------------------------------------------------------------------------------------- |
 | `401`  | `unauthorized` | Header missing, malformed, expired, invalid, or unknown; also returned when an API key calls `GET /v1/me` |
-| `404`  | `not_found`    | Valid JWT identity has no provisioned Tenant                                                              |
+| `404`  | `not_found`    | Valid JWT, but the signed-in user has no tenant yet                                                       |
 
 See the complete [error contract](/api-reference/protocols/errors).
 
 ## Secret handling [#secret-handling]
 
-API-key creation returns the full token once. Store it in a backend secret
-manager, never log it, rotate by creating a replacement before deleting the old
-key, and use separate keys per environment when operational separation helps.
+You see the full API key only once, when you create it. Store it in a backend
+secret manager and never log it. To rotate, create the replacement before you
+delete the old key. Use a separate key per environment when that helps you
+operate.
 
-## Related [#related]
+## Next [#next]
 
-- [Security and credentials](/platform/security-and-credentials)
-- [Setup](/getting-started/setup)
+- [Security and credentials](/platform/security-and-credentials) for key handling in production.
+- [Set up Blazing Agents](/getting-started/setup) to create your first key.

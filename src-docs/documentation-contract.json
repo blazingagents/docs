@@ -1118,7 +1118,10 @@
         "assignedIds": [],
         "kind": "h2"
       },
-      "cards": ["/sdk/typescript", "/sdk/python"],
+      "cards": [
+        "/sdk/typescript",
+        "/sdk/python"
+      ],
       "callout": null,
       "componentCounts": {
         "Cards": 1,
@@ -1346,7 +1349,13 @@
     },
     {
       "anchors": {
-        "assignedIds": ["create", "list", "get", "update", "delete"],
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "update",
+          "delete"
+        ],
         "kind": "methods"
       },
       "cards": [],
@@ -1683,7 +1692,13 @@
     },
     {
       "anchors": {
-        "assignedIds": ["create", "list", "get", "update", "delete"],
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "update",
+          "delete"
+        ],
         "kind": "methods"
       },
       "cards": [],
@@ -1729,7 +1744,12 @@
     },
     {
       "anchors": {
-        "assignedIds": ["list", "get", "create-download-url", "delete"],
+        "assignedIds": [
+          "list",
+          "get",
+          "create-download-url",
+          "delete"
+        ],
         "kind": "methods"
       },
       "cards": [],
@@ -1868,7 +1888,13 @@
     },
     {
       "anchors": {
-        "assignedIds": ["create", "list", "get", "update", "delete"],
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "update",
+          "delete"
+        ],
         "kind": "methods"
       },
       "cards": [],
@@ -1910,7 +1936,10 @@
     },
     {
       "anchors": {
-        "assignedIds": ["get", "get-for-agent"],
+        "assignedIds": [
+          "get",
+          "get-for-agent"
+        ],
         "kind": "methods"
       },
       "cards": [],
@@ -1952,7 +1981,10 @@
     },
     {
       "anchors": {
-        "assignedIds": ["get", "patch"],
+        "assignedIds": [
+          "get",
+          "patch"
+        ],
         "kind": "methods"
       },
       "cards": [],
@@ -2132,7 +2164,14 @@
     },
     {
       "anchors": {
-        "assignedIds": ["create", "list", "iter", "get", "update", "delete"],
+        "assignedIds": [
+          "create",
+          "list",
+          "iter",
+          "get",
+          "update",
+          "delete"
+        ],
         "kind": "methods"
       },
       "cards": [],
@@ -2344,7 +2383,14 @@
     },
     {
       "anchors": {
-        "assignedIds": ["create", "list", "iter", "get", "update", "delete"],
+        "assignedIds": [
+          "create",
+          "list",
+          "iter",
+          "get",
+          "update",
+          "delete"
+        ],
         "kind": "methods"
       },
       "cards": [],
@@ -2374,7 +2420,13 @@
     },
     {
       "anchors": {
-        "assignedIds": ["list", "iter", "get", "create-download-url", "delete"],
+        "assignedIds": [
+          "list",
+          "iter",
+          "get",
+          "create-download-url",
+          "delete"
+        ],
         "kind": "methods"
       },
       "cards": [],
@@ -2487,7 +2539,13 @@
     },
     {
       "anchors": {
-        "assignedIds": ["create", "list", "get", "update", "delete"],
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "update",
+          "delete"
+        ],
         "kind": "methods"
       },
       "cards": [],
@@ -2517,7 +2575,10 @@
     },
     {
       "anchors": {
-        "assignedIds": ["get", "get-for-agent"],
+        "assignedIds": [
+          "get",
+          "get-for-agent"
+        ],
         "kind": "methods"
       },
       "cards": [],
@@ -2547,7 +2608,10 @@
     },
     {
       "anchors": {
-        "assignedIds": ["get", "update"],
+        "assignedIds": [
+          "get",
+          "update"
+        ],
         "kind": "methods"
       },
       "cards": [],
@@ -2754,7 +2818,10 @@
         "assignedIds": [],
         "kind": "h2"
       },
-      "cards": ["/api-reference/rest-api", "/api-reference/protocols"],
+      "cards": [
+        "/api-reference/rest-api",
+        "/api-reference/protocols"
+      ],
       "callout": null,
       "componentCounts": {
         "Cards": 1,
@@ -2969,7 +3036,9 @@
     },
     {
       "anchors": {
-        "assignedIds": ["approve-mcp-oauth-authorization"],
+        "assignedIds": [
+          "approve-mcp-oauth-authorization"
+        ],
         "kind": "operations"
       },
       "cards": [],
@@ -2986,7 +3055,9 @@
     },
     {
       "anchors": {
-        "assignedIds": ["generate"],
+        "assignedIds": [
+          "generate"
+        ],
         "kind": "operations"
       },
       "cards": [],
@@ -3185,7 +3256,15 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           },
           {
             "language": "bash",
@@ -3215,7 +3294,15 @@
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           },
           {
             "language": "typescript",
@@ -3314,6 +3401,10 @@
         "endpointCurls": false,
         "items": [
           {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
             "language": "json",
             "metadata": {}
           },
@@ -3345,11 +3436,27 @@
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -3397,15 +3504,39 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -3427,7 +3558,15 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },

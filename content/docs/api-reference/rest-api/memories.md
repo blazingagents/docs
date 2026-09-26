@@ -1,27 +1,27 @@
 ---
 title: Memories
-description: Create, search, update, and delete Agent-owned Memory.
+description: Create, search, update, and delete the notes an agent remembers between sessions.
 ---
 
 # Memories
 
 ## Overview [#overview]
 
-Memory is durable Agent-owned text with immutable `userId` Attribution. Use these endpoints to create, search, inspect, update, or delete Memory; administrative reads never update `lastAccessedAt`, while Agent memory use affects eviction recency.
+Memories are short notes an agent keeps between sessions, such as a user's preferences. Each belongs to one agent, and its `userId` cannot change. Use these endpoints to add, search, read, edit, and remove memories. Reading through the API does not change `lastAccessedAt`; the agent's own use does, and that decides which memory is removed first when the agent is full.
 
 ## Endpoints [#endpoints]
 
 ### POST /v1/agents/:agentId/memories [#create-memory]
 
-Creates one text Memory for an Agent. At the 500-Memory cap, the least recently accessed Memory may be evicted.
+Adds a memory to an agent. When the agent already has 500, the least recently used memory can be removed to make room.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 
 | Location | Field          | Required | Description                              |
@@ -59,15 +59,15 @@ SDKs: [TypeScript](/sdk/typescript/memories#create) / [Python](/sdk/python/memor
 
 ### GET /v1/agents/:agentId/memories [#list-memories]
 
-Lists or searches an Agent's Memory without updating access recency.
+Lists or searches an agent's memories without changing when they were last used.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 
 | Location | Field    | Required | Description                             |
@@ -108,15 +108,15 @@ SDKs: [TypeScript](/sdk/typescript/memories#list) / [Python](/sdk/python/memorie
 
 ### GET /v1/agents/:agentId/memories/:memoryId [#get-memory]
 
-Gets one Memory without updating its access recency.
+Gets one memory without changing when it was last used.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 | Path     | `memoryId`      | yes      | Memory ID (`mem_…`).                      |
 
@@ -130,7 +130,7 @@ Response schema: [`memoryResponseSchema`](/api-reference/protocols/objects-and-s
 
 #### Errors
 
-`404 not_found` for an unknown Agent/Memory pair. See [REST errors](/api-reference/protocols/errors).
+`404 not_found` when the memory does not belong to that agent or does not exist. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -145,15 +145,15 @@ SDKs: [TypeScript](/sdk/typescript/memories#get) / [Python](/sdk/python/memories
 
 ### PATCH /v1/agents/:agentId/memories/:memoryId [#update-memory]
 
-Replaces one Memory's text and updates its access time.
+Replaces one memory's text and marks it as used now.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 | Path     | `memoryId`      | yes      | Memory ID (`mem_…`).                      |
 
@@ -189,15 +189,15 @@ SDKs: [TypeScript](/sdk/typescript/memories#update) / [Python](/sdk/python/memor
 
 ### DELETE /v1/agents/:agentId/memories/:memoryId [#delete-memory]
 
-Permanently deletes one Memory.
+Permanently deletes one memory.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 | Path     | `memoryId`      | yes      | Memory ID (`mem_…`).                      |
 
@@ -222,9 +222,7 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/me
 
 SDKs: [TypeScript](/sdk/typescript/memories#delete) / [Python](/sdk/python/memories#delete). See [Memory](/agents/memory) and [Add durable Memory](/agents/memory).
 
-## Related [#related]
+## Next [#next]
 
-- [TypeScript SDK](/sdk/typescript)
-- [Python SDK Memories](/sdk/python/memories)
-- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
-- [Errors](/api-reference/protocols/errors)
+- [Memory](/agents/memory) to let an agent remember across sessions.
+- [Service limits](/api-reference/protocols/service-limits#memories-per-agent) for memory size and count limits.

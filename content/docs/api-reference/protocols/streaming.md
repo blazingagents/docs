@@ -5,9 +5,10 @@ description: Consume Session, text, object, and Tool approval streams with the c
 
 # Streaming protocol
 
-Blazing Agents uses AI SDK UI-message SSE for Session activity and chunked
-plain text for stateless generation. Use this page when relaying a response,
-reading it in the SDK, or handling cancellation and failures.
+Agent output streams to you as it is generated. Session turns stream AI SDK UI
+message events over SSE, and stateless generation streams plain text. Use this
+page when you relay a stream to a browser, read one in the SDK, or handle
+cancellation and failures.
 
 ## Contract [#contract]
 
@@ -19,59 +20,61 @@ reading it in the SDK, or handling cancellation and failures.
 | Object generation                 | `200`; `text/plain; charset=utf-8`                                                                      | chunked partial JSON text     | `partialObjectStream`, awaited `object`, `toResponse()` |
 | Tool approval continuation        | `200`; UI-message SSE headers                                                                           | persisted continuation chunks | `joinToolApprovalContinuation()` terminal result        |
 
-UI-message streams contain `data:` records whose values are AI SDK
-`UIMessageChunk` objects, followed by `data: [DONE]`. They are not
-OpenAI-compatible delta streams. Stateless object mode uses the same text wire
-format as text mode; the SDK parses partial and final JSON.
 
-The create Session route mints an `ss_...` ID. `result.sessionId` reads it from
-the `Location` header before the body is consumed. On resume it resolves to the
-ID supplied by the caller. After admission, interactive creation materializes
-before model execution. A later failure keeps the Session and submitted user
-message without an assistant response. Cancellation leaves the materialized
-Session unchanged; earlier validation or admission failures leave no Session.
+UI-message streams are `data:` records, each holding an AI SDK
+`UIMessageChunk`, and end with `data: [DONE]`. They are not OpenAI-style delta
+streams. Object generation uses the same plain-text format as text generation;
+the SDK parses the partial and final JSON for you.
 
-Chat and Tool approval continuation results allow one body claim through
-`toResponse()`. A second claim throws SDK `stream_error`. Completion and object results tee the successful body
-internally, so their iterator, awaited final value, and relay are all available
-from one result. `toResponse()` constructs a relay response that preserves the
-originating success status, `X-Request-Id`, `Location`, and required streaming
+Starting a new session returns its `ss_...` ID in the `Location` header, so
+`result.sessionId` is available before you read the body. When you continue a
+session, it returns the ID you sent. Once the turn is accepted, the session and
+your message are saved before the model runs. If the turn fails later, the
+session keeps your message without an assistant reply. If you cancel, the saved
+session stays as it is. A request rejected before the turn starts creates no
+session.
+
+You can claim the body of a chat or tool-approval continuation result once,
+through `toResponse()`; a second claim throws `stream_error`. Completion and
+object results let you read the iterator, await the final value, and relay the
+response from the same result. `toResponse()` builds a relay response that
+keeps the original success status, `X-Request-Id`, `Location`, and streaming
 headers.
 
-Failures have two phases:
+Failures depend on when they happen:
 
-- A caller abort before an HTTP exchange is SDK `request_aborted`; another
-  fetch failure is `network_error`.
-- A non-2xx response before streaming starts uses the normal
+- An abort before any HTTP exchange is `request_aborted`; any other network
+  failure is `network_error`.
+- A non-2xx response before the stream starts uses the normal
   [error envelope](/api-reference/protocols/errors#contract).
-- After a Session stream starts, failure is a native
+- After a session stream starts, a failure arrives as a
   `{ "type": "error", "errorText": "safe prose" }` chunk and the HTTP status
-  remains successful.
-- A failed text/object transport, invalid final JSON, malformed SSE, or invalid
-  create `Location` becomes SDK `stream_error` with the originating request ID
-  when available. Await `text` or `object` when the terminal outcome matters.
+  stays successful.
+- A broken text or object stream, invalid final JSON, malformed SSE, or an
+  invalid `Location` becomes `stream_error`, with the request ID when
+  available. Await `text` or `object` when you need the final outcome.
 
-Cancellation depends on the surface. For chat, an input `AbortSignal` aborts
-the request and canceling the selected decoded or relay stream propagates to
-the active Turn. Completion and object inputs also forward `AbortSignal`; use
-it to cancel the Turn rather than relying on cancellation of one tee branch.
-Canceling a Tool approval join only detaches that polling response: it does not
-cancel the durable continuation. Failed or canceled interactive Turns leave the transcript unchanged, including
-the previous answer during regeneration. Both are
-metered, and external Tool side effects are not rolled back. Durable Tasks
-differ: the worker attaches a fresh Session and persists the user message
-before generation. The terminal assistant message, including failure metadata,
-is persisted during final usage settlement. Failed or canceled Task runs can
-therefore retain transcript and failure history.
+To cancel a chat turn, abort its `AbortSignal` or cancel the stream you are
+reading or relaying. Completion and object calls also accept `abortSignal`;
+use it rather than canceling one reader. Canceling a tool-approval join only
+stops your polling; the continuation keeps running.
 
-A Tool approval decision returns `202` and a continuation identifier. Joining
-that continuation returns its terminal SSE stream; it does not reopen the
-original HTTP response.
+A failed or canceled chat turn leaves the transcript as it was, including the
+previous answer when you regenerate. Both still count toward usage, and tool
+side effects already performed are not undone. Tasks behave differently: each
+run starts a fresh session and saves the user message before generation, then
+saves the final assistant message, including any failure, when the run ends.
+Failed or canceled task runs therefore keep their transcript and failure
+details.
+
+Deciding a tool approval returns `202` with a continuation ID. Joining that
+continuation returns its final SSE stream; it does not reopen the original
+response.
 
 ## Examples [#examples]
 
-This is a minimal valid UI-message stream. Production finish chunks also carry
-the platform's message usage metadata.
+A minimal UI-message stream looks like this. Real finish chunks also carry
+usage metadata for the message.
 
 ```text
 data: {"type":"start","messageId":"msg_1"}
@@ -87,9 +90,9 @@ data: {"type":"finish","finishReason":"stop"}
 data: [DONE]
 ```
 
-Iterate deltas and await the assembled final text:
+Print text as it arrives, then keep the full answer:
 
-```typescript
+```typescript tab="TypeScript"
 const result = await client.completion({
   agentId,
   prompt: "Write a two-sentence release note.",
@@ -102,7 +105,17 @@ for await (const delta of result.textStream) {
 const finalText = await result.text;
 ```
 
-Forward cancellation from the caller:
+```python tab="Python"
+with client.completion_stream(
+    agent_id=agent_id,
+    prompt="Write a two-sentence release note.",
+) as stream:
+    for delta in stream:
+        print(delta, end="", flush=True)
+    final_text = stream.get_final_text()
+```
+
+Cancel a turn from the caller in TypeScript:
 
 ```typescript
 const controller = new AbortController();
@@ -116,48 +129,8 @@ controller.abort();
 await result.text;
 ```
 
-## Used by [#used-by]
+## Next [#next]
 
-- [SDK generation](/sdk/typescript/client#chat)
-- [SDK Session continuations](/sdk/typescript/sessions#join-tool-approval-continuation)
-- [REST generation](/api-reference/rest-api/generation#generate)
-- [REST Session Turns](/api-reference/rest-api/sessions#create-session-turn)
-- [REST approval continuation](/api-reference/rest-api/sessions#join-tool-approval-continuation)
-- [Generation and streaming](/agents/output/generation-and-streaming)
-- [Sessions and Turns](/platform/sessions-and-turns)
-- [Tool approvals](/agents/tools/tool-approvals)
-- [Build a chat endpoint](/platform/sessions-and-turns)
-- [Stream responses into a frontend](/agents/output/generation-and-streaming)
-
-## Source of truth [#source-of-truth]
-
-- `packages/core/src/entities/chat.ts`
-- `../typescript-sdk/src/generation.ts`
-- `../typescript-sdk/src/generation.chat-results.test.ts`
-- `../typescript-sdk/src/generation.chat-requests.test.ts`
-- `../typescript-sdk/src/generation.chat-errors.test.ts`
-- `../typescript-sdk/src/generation.transport-errors.test.ts`
-- `../typescript-sdk/src/generation.completion.test.ts`
-- `../typescript-sdk/src/generation.object.test.ts`
-- `servers/api/src/routes/agents/generation.ts`
-- `servers/api/src/routes/agents/generation.test.ts`
-- `servers/api/src/routes/sessions/turns.ts`
-- `servers/api/src/routes/sessions/create-responses.test.ts`
-- `servers/api/src/routes/sessions/create-errors.test.ts`
-- `servers/api/src/routes/sessions/resume.test.ts`
-- `servers/api/src/routes/sessions/tool-approvals.ts`
-- `servers/api/src/routes/sessions/tool-approvals.test.ts`
-- `servers/task-worker/src/task-run-execution.ts`
-- `servers/task-worker/src/run-workflow-lifecycle.test.ts`
-- `servers/task-worker/src/run-workflow-persistence.test.ts`
-
-## Related guides [#related-guides]
-
-See the capability and guide links under [Used by](#used-by).
-
-## Reference [#reference]
-
-See the implementation inventory under [Source of truth](#source-of-truth).
-
-Python equivalents use [`chat()`](/sdk/python/client#chat) and
-[`join_tool_approval_continuation()`](/sdk/python/sessions#join-tool-approval-continuation).
+- [Generation and streaming](/agents/output/generation-and-streaming) to relay streams into a frontend.
+- [Sessions and turns](/platform/sessions-and-turns) to continue and stop conversations.
+- [Tool approvals](/agents/tools/tool-approvals) to pause for human review.

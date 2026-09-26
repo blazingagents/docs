@@ -7,30 +7,29 @@ description: List, inspect, create download URLs for, and delete Agent-produced 
 
 ## Overview [#overview]
 
-Artifacts are immutable files published by Agent Turns. Metadata is
-Tenant-scoped, and bytes are downloaded directly from R2 through an explicit
-five-minute presigned URL.
+Artifacts are files your agents publish during a turn, such as a report or an
+export. List and inspect them here, then create a short-lived download link to
+fetch the bytes. Published files never change.
 
 ## Endpoints [#endpoints]
 
 ### GET /v1/artifacts [#list-artifacts]
 
-Lists the Tenant's Artifacts newest first, optionally filtered by Agent and
-Session provenance.
+Lists your tenant's artifacts newest first. Filter by the agent or session that
+produced them.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The
-credential selects the Tenant ownership boundary.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Query parameter | Type   | Default | Description                                 |
 | --------------- | ------ | ------- | ------------------------------------------- |
-| `agentId`       | string | —       | Restrict to one `ag_…` Agent                |
-| `sessionId`     | string | —       | Restrict to one `ss_…` Session              |
-| `cursor`        | string | —       | Opaque cursor                               |
+| `agentId`       | string | none       | Restrict to one `ag_…` Agent                |
+| `sessionId`     | string | none       | Restrict to one `ss_…` Session              |
+| `cursor`        | string | none       | Opaque cursor                               |
 
 Page size is 50.
 
@@ -76,11 +75,11 @@ curl --get \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/artifacts#list) / [Python](/sdk/python/artifacts#list). See [Artifacts](/agents/artifacts) and [Publish and download Artifacts](/agents/artifacts).
+SDKs: [TypeScript](/sdk/typescript/artifacts#list) / [Python](/sdk/python/artifacts#list). See [Artifacts](/agents/artifacts).
 
 ### GET /v1/artifacts/:artifactId [#get-artifact]
 
-Returns one Tenant-owned Artifact's metadata without downloading its bytes.
+Returns one artifact's metadata without downloading its bytes.
 
 #### Request
 
@@ -89,14 +88,13 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and an
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `artifactId`    | yes      | Artifact ID (`at_…`).                     |
 
 #### Response
 
 Returns `200 OK` with the same public Artifact fields shown by the list
-endpoint. Storage paths, R2 keys, bucket details, and credentials are never
-included.
+endpoint. Storage locations and credentials are never included.
 
 Response schema:
 [`artifactListItemSchema`](/api-reference/protocols/objects-and-schemas#artifactlistitem).
@@ -137,7 +135,7 @@ SDKs: [TypeScript](/sdk/typescript/artifacts#get) /
 
 ### POST /v1/artifacts/:artifactId/download-url [#create-artifact-download-url]
 
-Creates a direct R2 presigned URL that expires after five minutes.
+Creates a download URL that works for five minutes.
 
 #### Request
 
@@ -146,19 +144,19 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and an
 
 #### Response
 
-Returns `200 OK` with an absolute R2 URL and its expiry.
+Returns `200 OK` with an absolute download URL and its expiry.
 Response schema:
 [`artifactDownloadUrlResponseSchema`](/api-reference/protocols/objects-and-schemas#artifactdownloadurlresponse).
 
 ```json
 {
-  "url": "https://example.r2.cloudflarestorage.com/tenants/ten_1234567890ABCDEF/artifacts/at_1234567890ABCDEF/report.pdf?X-Amz-Signature=…",
+  "url": "https://downloads.example.com/at_1234567890ABCDEF/report.pdf?signature=…",
   "expiresAt": "2026-07-31T12:05:00.000Z"
 }
 ```
 
-Use the returned URL directly without an API credential. It retrieves the
-immutable bytes stored for this Artifact until it expires.
+Fetch the URL without an API credential. It returns the artifact's bytes until
+it expires, and you can use it more than once before then.
 
 #### Errors
 
@@ -178,18 +176,17 @@ SDKs: [TypeScript](/sdk/typescript/artifacts#create-download-url) / [Python](/sd
 
 ### DELETE /v1/artifacts/:artifactId [#delete-artifact]
 
-Hard-deletes an Artifact row and its immutable R2 object without changing the
-Workspace source file. Repeating the deletion returns `404 not_found`.
+Permanently deletes an artifact and its bytes. The source file in the workspace
+is not touched. Deleting the same artifact again returns `404 not_found`.
 
 #### Request
 
 Requires [bearer authentication](/api-reference/rest-api/authentication) and an
-`at_…` `artifactId`. There are no query or body parameters. The credential
-selects the Tenant ownership boundary.
+`at_…` `artifactId`. There are no query or body parameters.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `artifactId`    | yes      | Artifact ID (`at_…`).                     |
 
 #### Response
@@ -211,11 +208,9 @@ curl --request DELETE \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/artifacts#delete) / [Python](/sdk/python/artifacts#delete). See [Artifacts](/agents/artifacts) and [Publish and download Artifacts](/agents/artifacts).
+SDKs: [TypeScript](/sdk/typescript/artifacts#delete) / [Python](/sdk/python/artifacts#delete). See [Artifacts](/agents/artifacts).
 
-## Related [#related]
+## Next [#next]
 
-- [TypeScript SDK](/sdk/typescript)
-- [Python SDK Artifacts](/sdk/python/artifacts)
-- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
-- [Errors](/api-reference/protocols/errors)
+- [Artifacts](/agents/artifacts) to have an agent publish files.
+- [Service limits](/api-reference/protocols/service-limits#artifacts) for file size and count limits.

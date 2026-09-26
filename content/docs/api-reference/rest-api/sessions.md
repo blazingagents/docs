@@ -1,38 +1,38 @@
 ---
 title: Sessions
-description: Run stateful Turns and manage Session history and Tool approvals.
+description: Hold conversations with an agent, read their history, and decide tool approvals.
 ---
 
 # Sessions
 
 ## Policy-driven approvals [#policy-driven-approvals]
 
-Interactive Sessions use the Agent's versioned `approvalInChat` policy. Manual
-review and automatic escalation reuse the existing list/decide/join lifecycle.
-See [review availability](/agents/tools/tool-approvals#review-availability) and
-[exact backend metadata optionality](/api-reference/protocols/objects-and-schemas#tool-approval-metadata).
+Sessions follow the agent's `approvalInChat` policy. Whether a tool call waits
+for a person or is escalated by automatic review, you handle it the same way:
+list the pending approvals, decide one, then join its continuation. See
+[review availability](/agents/tools/tool-approvals#review-availability).
 
-The backend adds structured `tool`, `assistantMessageId`, `createdAt`, and
-`decidedAt` metadata. New SDK field support is release-dependent; the existing
-manual lifecycle remains usable without those fields.
+Approval records also carry `tool`, `assistantMessageId`, `createdAt`, and
+`decidedAt`. Some of these fields are optional, so do not require them; see
+[tool approval metadata](/api-reference/protocols/objects-and-schemas#tool-approval-metadata).
 
 ## Overview [#overview]
 
-A Session stores a stateful Agent transcript and its Tool-approval lifecycle. Use these endpoints to start or resume Turns, inspect history, delete the Session, or decide and join approvals. After admission, creation materializes before model execution; resume never creates a missing Session.
+A session is a conversation Blazing Agents keeps for you, so each new turn sees everything said before. Use these endpoints to start a conversation, continue it, read its history, delete it, and handle tool approvals. A session is saved as soon as its first turn is accepted, before the model runs. Continuing a session never creates one that is missing.
 
 ## Endpoints [#endpoints]
 
 ### POST /v1/agents/:agentId/sessions [#create-session-turn]
 
-Creates a Session and runs its first Turn. Validation/admission failures leave no Session; execution failures leave an empty, usable Session.
+Starts a session and runs its first turn. A rejected request creates no session; a turn that fails while running still leaves a usable session.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, and an `ag_…` `agentId` path parameter. Provide exactly one of `message` or `promptId`; `variables` is allowed only with `promptId`. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, and an `ag_…` `agentId` path parameter. Provide exactly one of `message` or `promptId`; `variables` is allowed only with `promptId`. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 
 | Body field  | Type                  | Required    | Description                                                              |
@@ -46,7 +46,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, 
 | `metadata`  | object                | no          | Session and usage metadata; defaults to `{}`                             |
 | `version`   | integer               | no          | Pin an immutable Agent Version; omission leaves the Session unpinned     |
 
-An omitted `version` has no schema default. An unpinned Session resolves the Agent's current Version for each Turn; an explicit pin remains fixed for later resumes.
+Leave out `version` to use the agent's current version on every turn. Send one to pin the session to that version for all later turns.
 
 #### Response
 
@@ -56,7 +56,7 @@ The body is an AI SDK UI message SSE stream of `UIMessageChunk` events. The resp
 
 #### Errors
 
-`400 validation_failed` covers malformed/mixed input; `provider_required` rejects an unconfigured resolved Version before Session, Turn, transcript, or billing side effects. Prompt variables and other state failures use their specific codes. `402 subscription_required` or `usage_credit_required` blocks billable execution. `404 not_found` applies to a missing Agent, Provider, or Prompt, while `agent_version_not_found` identifies a missing Pin and `workspace_not_found` identifies a missing Workspace. `409 agent_disabled` can reject execution. `429 quota_exceeded` or `rate_limited`, plus retryable `service_unavailable`, may occur before admission. Pre-stream failures use the JSON envelope; mid-stream failures emit an AI SDK error chunk. Failed or canceled admitted Turns are metered and leave the transcript unchanged. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` covers malformed/mixed input; `provider_required` means the agent version has no provider and model; no session is created and nothing is billed. Prompt variables and other state failures use their specific codes. `402 subscription_required` or `usage_credit_required` blocks billable execution. `404 not_found` applies to a missing Agent, Provider, or Prompt, while `agent_version_not_found` identifies a missing Pin and `workspace_not_found` identifies a missing Workspace. `409 agent_disabled` can reject execution. `429 quota_exceeded` or `rate_limited`, plus retryable `service_unavailable`, can reject the request before it runs. Failures before the stream starts use the JSON error body; failures after it starts arrive as an AI SDK error chunk. A turn that fails or is canceled after it starts still counts toward usage and leaves the transcript unchanged. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -70,23 +70,23 @@ curl --include --no-buffer --request POST \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/client#chat) / [Python](/sdk/python/client#chat). See [Sessions and Turns](/platform/sessions-and-turns) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDKs: [TypeScript](/sdk/typescript/client#chat) / [Python](/sdk/python/client#chat). See [Sessions and turns](/platform/sessions-and-turns).
 
 ### POST /v1/agents/:agentId/sessions/:sessionId [#resume-session-turn]
 
-Runs a Turn from the Session's accepted history. Missing or deleted Sessions return `404` and are never created.
+Continues a session with a new turn. A missing or deleted session returns `404` and is never created.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, an `ag_…` `agentId`, and an `ss_…` `sessionId`. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, an `ag_…` `agentId`, and an `ss_…` `sessionId`. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 | Path     | `sessionId`     | yes      | Session ID (`ss_…`).                      |
 
-The body matches [Create a Session turn](/api-reference/rest-api/sessions#create-session-turn) except that `version` is rejected. A Session created with a pin keeps using that Version; an unpinned Session resolves the Agent's current Version on each resumed Turn. To regenerate, set `trigger: "regenerate-message"` and optionally `messageId`; the transcript is truncated from that stored message and regenerated. A literal `message` or stored `promptId` remains required.
+The body matches [Create a Session turn](/api-reference/rest-api/sessions#create-session-turn) except that `version` is rejected. A pinned session keeps its version; an unpinned one uses the agent's current version on each turn. To regenerate an answer, set `trigger: "regenerate-message"` and optionally `messageId`; the transcript is cut back to that message and the answer is generated again. You still send a `message` or a `promptId`.
 
 #### Response
 
@@ -94,7 +94,7 @@ Returns `200 OK` with an AI SDK UI message SSE stream, `Content-Type: text/event
 
 #### Errors
 
-`400 validation_failed` covers invalid input; `provider_required` rejects an unconfigured pinned Version before Turn or billing side effects. Prompt variables, Version mismatch, and regeneration state use their specific codes. `402 subscription_required` or `usage_credit_required` blocks billable execution. `404 not_found` applies to an unknown/deleted Session or missing Agent, Provider, Prompt, or Workspace. `409 agent_disabled` can reject execution. `429 quota_exceeded` or `rate_limited`, plus retryable `service_unavailable`, may occur before admission. Failed or canceled admitted Turns are metered and leave the transcript unchanged. Failed or canceled regeneration preserves the selected prior response. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` covers invalid input; `provider_required` means the pinned version has no provider and model; nothing runs and nothing is billed. Prompt variables, Version mismatch, and regeneration state use their specific codes. `402 subscription_required` or `usage_credit_required` blocks billable execution. `404 not_found` applies to an unknown/deleted Session or missing Agent, Provider, Prompt, or Workspace. `409 agent_disabled` can reject execution. `429 quota_exceeded` or `rate_limited`, plus retryable `service_unavailable`, can reject the request before it runs. A turn that fails or is canceled after it starts still counts toward usage and leaves the transcript unchanged. A failed or canceled regeneration keeps the previous answer. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -108,26 +108,26 @@ curl --no-buffer --request POST \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/client#chat) / [Python](/sdk/python/client#chat). See [Sessions and Turns](/platform/sessions-and-turns) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDKs: [TypeScript](/sdk/typescript/client#chat) / [Python](/sdk/python/client#chat). See [Sessions and turns](/platform/sessions-and-turns).
 
 ### GET /v1/agents/:agentId/sessions [#list-sessions]
 
-Lists Sessions by most recent update. Unknown or foreign Agent IDs return an empty page.
+Lists an agent's sessions, most recently updated first. An unknown agent ID, or one in another tenant, returns an empty page.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and an `ag_…` `agentId` path parameter. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and an `ag_…` `agentId` path parameter. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 
 | Query parameter | Type    | Default | Description                                            |
 | --------------- | ------- | ------- | ------------------------------------------------------ |
-| `cursor`        | string  | —       | Opaque cursor from `nextCursor`                        |
+| `cursor`        | string  | none       | Opaque cursor from `nextCursor`                        |
 | `limit`         | integer | 50      | 1–200                                                  |
-| `userId`        | string  | —       | Attribution filter; `""` selects tenant-level Sessions |
+| `userId`        | string  | none       | Attribution filter; `""` selects tenant-level Sessions |
 
 #### Response
 
@@ -169,32 +169,32 @@ curl --get \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/sessions#list) / [Python](/sdk/python/sessions#list). See [Sessions and Turns](/platform/sessions-and-turns) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDKs: [TypeScript](/sdk/typescript/sessions#list) / [Python](/sdk/python/sessions#list). See [Sessions and turns](/platform/sessions-and-turns).
 
 ### GET /v1/sessions/latest [#list-latest-sessions]
 
-Lists the Tenant's most recently updated Sessions. Set `byAgent=true` for one latest Session per Agent.
+Lists your tenant's most recently updated sessions. Set `byAgent=true` to get only the latest session for each agent.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; only Sessions owned by that Tenant are considered.
+Requires [bearer authentication](/api-reference/rest-api/authentication). Only your tenant's sessions are considered.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 
 | Query parameter | Type    | Default | Description                                            |
 | --------------- | ------- | ------- | ------------------------------------------------------ |
-| `cursor`        | string  | —       | Opaque cursor from `nextCursor`                        |
+| `cursor`        | string  | none       | Opaque cursor from `nextCursor`                        |
 | `limit`         | integer | 50      | 1–200                                                  |
-| `userId`        | string  | —       | Attribution filter; `""` selects tenant-level Sessions |
+| `userId`        | string  | none       | Attribution filter; `""` selects tenant-level Sessions |
 | `byAgent`       | boolean | `false` | When true, return at most one latest Session per Agent  |
 
-With `byAgent=false`, multiple returned Sessions may belong to the same Agent. With `byAgent=true`, an Agent appears at most once and only when it has a non-deleted, nonempty Session matching the filters. Use the latter for an Agent Inbox instead of calling `GET /v1/agents/:agentId/sessions?limit=1` once per Agent. With `userId`, only Sessions attributed to that End-user are considered.
+With `byAgent=false`, several sessions can belong to the same agent. With `byAgent=true`, each agent appears at most once, and only if it has a session that is not deleted, not empty, and matches your filters. Use it to build an inbox of agents instead of calling `GET /v1/agents/:agentId/sessions?limit=1` for each one. With `userId`, only that end user's sessions count.
 
 #### Response
 
-Returns `200 OK` with [cursor pagination](/api-reference/protocols/pagination-and-filtering). Items are ordered by `updatedAt` descending, then `id` ascending. Each item is a Session list item plus its `agentId`, nullable `model`, nullable `thinkingLevel`, and `status` (`"active"` or `"disabled"`). These are the Agent's current values, independently of the Session's pinned Version or previous Turns. Disabled Agents remain included.
+Returns `200 OK` with [cursor pagination](/api-reference/protocols/pagination-and-filtering). Items are ordered by `updatedAt` descending, then `id` ascending. Each item is a session list item plus its `agentId`, nullable `model`, nullable `thinkingLevel`, and `status` (`"active"` or `"disabled"`). These show the agent as it is now, not the session's pinned version or earlier turns. Disabled agents are included.
 
 Response schema: [`latestSessionsListResponseSchema`](/api-reference/protocols/objects-and-schemas#latest-sessions-list-response).
 
@@ -253,22 +253,22 @@ SDKs: [TypeScript](/sdk/typescript/sessions#list-latest) / [Python](/sdk/python/
 
 ### GET /v1/agents/:agentId/sessions/:sessionId/messages [#list-session-messages]
 
-Lists stored AI SDK `UIMessage` objects. Pages are newest-first, with messages chronological within each page.
+Lists a session's messages as AI SDK `UIMessage` objects. Pages run newest first, with messages in chronological order inside each page.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication), an `ag_…` `agentId`, and an `ss_…` `sessionId`. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication), an `ag_…` `agentId`, and an `ss_…` `sessionId`. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 | Path     | `sessionId`     | yes      | Session ID (`ss_…`).                      |
 
 | Query parameter | Type    | Default | Description                         |
 | --------------- | ------- | ------- | ----------------------------------- |
-| `cursor`        | string  | —       | Walk backward to older messages     |
-| `after`         | string  | —       | Poll forward after a `latestCursor` |
+| `cursor`        | string  | none       | Walk backward to older messages     |
+| `after`         | string  | none       | Poll forward after a `latestCursor` |
 | `limit`         | integer | 50      | 1–200                               |
 
 `cursor` and `after` are mutually exclusive.
@@ -315,12 +315,12 @@ curl --get \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/sessions#messages) / [Python](/sdk/python/sessions#messages). See [Sessions and Turns](/platform/sessions-and-turns) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDKs: [TypeScript](/sdk/typescript/sessions#messages) / [Python](/sdk/python/sessions#messages). See [Sessions and turns](/platform/sessions-and-turns).
 
 ### DELETE /v1/agents/:agentId/sessions/:sessionId [#delete-session]
 
-Soft-deletes a Session. `deleteArtifacts=true` also hard-deletes its Artifacts;
-`deleteArtifacts=false` preserves them.
+Deletes a session so it can no longer be read. `deleteArtifacts=true` also
+deletes its artifacts permanently; `deleteArtifacts=false` keeps them.
 
 #### Request
 
@@ -330,7 +330,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication), an
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 | Path     | `sessionId`     | yes      | Session ID (`ss_…`).                      |
 | Query    | `deleteArtifacts` | yes    | Delete (`true`) or preserve (`false`) Artifacts. |
@@ -353,19 +353,19 @@ curl --request DELETE \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/sessions#delete) / [Python](/sdk/python/sessions#delete). See [Sessions and Turns](/platform/sessions-and-turns) and [Build a chat endpoint](/platform/sessions-and-turns).
+SDKs: [TypeScript](/sdk/typescript/sessions#delete) / [Python](/sdk/python/sessions#delete). See [Sessions and turns](/platform/sessions-and-turns).
 
 ### GET /v1/agents/:agentId/sessions/:sessionId/tool-approvals [#list-tool-approvals]
 
-Lists pending and decided Tool approvals for a Session.
+Lists a session's pending and decided tool approvals.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 | Path     | `sessionId`     | yes      | Session ID (`ss_…`).                      |
 
@@ -375,7 +375,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). The cr
 | -------- | ----------------------------------------------------------------------------------------- | ---------------- |
 | `200 OK` | [ToolApprovalsResponse](/api-reference/protocols/objects-and-schemas#tool-approvals-response) | Read-only.       |
 
-Approval state belongs to this Session; listing does not claim or decide a Tool call.
+Listing approvals does not claim or decide any tool call.
 
 Response schema: [`toolApprovalsResponseSchema`](/api-reference/protocols/objects-and-schemas#tool-approvals-response).
 
@@ -396,15 +396,15 @@ SDKs: [TypeScript](/sdk/typescript/sessions#tool-approvals) / [Python](/sdk/pyth
 
 ### POST /v1/agents/:agentId/sessions/:sessionId/tool-approvals/:approvalId [#decide-tool-approval]
 
-Approves or denies one pending Tool call. The decision applies only to that exact call.
+Approves or denies one pending tool call. The decision applies only to that exact call.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 | Path     | `sessionId`     | yes      | Session ID (`ss_…`).                      |
 | Path     | `approvalId`    | yes      | Tool approval ID.                         |
@@ -421,7 +421,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). The cr
 | -------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
 | `202 Accepted` | [ToolApprovalDecisionResponse](/api-reference/protocols/objects-and-schemas#tool-approval-decision-response) | Persists the decision and exposes a continuation to join. |
 
-The decision authorizes only the named Tool call; it does not bypass Tenant or product invariants.
+Approving a call allows only that call; every other rule still applies.
 
 Response schema: [`toolApprovalDecisionResponseSchema`](/api-reference/protocols/objects-and-schemas#tool-approval-decision-response).
 
@@ -446,15 +446,15 @@ SDKs: [TypeScript](/sdk/typescript/sessions#decide-tool-approval) / [Python](/sd
 
 ### GET /v1/agents/:agentId/sessions/:sessionId/tool-approval-continuations/:continuationId [#join-tool-approval-continuation]
 
-Streams a decided Tool approval continuation over SSE. Persisted chunks replay before live or terminal state.
+Streams the rest of the turn after a tool approval decision. Saved chunks replay first, then live output or the final state.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field            | Required | Description                               |
 | -------- | ---------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization`  | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization`  | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`        | yes      | Agent ID (`ag_…`).                        |
 | Path     | `sessionId`      | yes      | Session ID (`ss_…`).                      |
 | Path     | `continuationId` | yes      | Tool-approval continuation ID.            |
@@ -465,11 +465,11 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). The cr
 | -------- | ------------------------------ | ---------------------------------------------------------------------- |
 | `200 OK` | AI SDK UI message event stream | Claims or follows the durable continuation until it succeeds or fails. |
 
-The response is SSE with `Content-Type: text/event-stream`, `X-Vercel-AI-UI-Message-Stream: v1`, `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no`. `409 session_busy` applies only while the continuation is `waiting`. Queued and running joins, replays, and followers stream persisted chunks before following live or returning terminal state.
+The response is SSE with `Content-Type: text/event-stream`, `X-Vercel-AI-UI-Message-Stream: v1`, `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no`. `409 session_busy` applies only while the continuation is `waiting`. When it is queued or running, or you join again later, you get the saved chunks first, then live output or the final state.
 
 #### Errors
 
-`404 not_found`; `409 session_busy`; pre-stream Turn errors use the JSON error envelope and later failures use error chunks. See [REST errors](/api-reference/protocols/errors).
+`404 not_found`; `409 session_busy`; errors before the stream starts use the JSON error body, and later failures arrive as error chunks. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -482,8 +482,8 @@ curl --no-buffer "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/session
 
 SDKs: [TypeScript](/sdk/typescript/sessions#join-tool-approval-continuation) / [Python](/sdk/python/sessions#join-tool-approval-continuation). See [Tool approvals](/agents/tools/tool-approvals) and [Build a chat endpoint](/platform/sessions-and-turns).
 
-## Related [#related]
+## Next [#next]
 
-- Session SDKs: [TypeScript](/sdk/typescript/sessions) and [Python](/sdk/python/sessions)
-- [Streaming](/api-reference/protocols/streaming)
-- [Pagination and filtering](/api-reference/protocols/pagination-and-filtering)
+- [Sessions and turns](/platform/sessions-and-turns) to continue, stop, and reload conversations.
+- [Streaming protocol](/api-reference/protocols/streaming) to read the SSE stream.
+- [Tool approvals](/agents/tools/tool-approvals) to choose which calls need review.

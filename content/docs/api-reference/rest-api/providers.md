@@ -1,19 +1,19 @@
 ---
 title: Providers
-description: Manage Tenant Provider credentials and discover Provider-native models.
+description: Store model provider keys and discover the models each provider offers.
 ---
 
 # Providers
 
 ## Overview [#overview]
 
-Providers store Tenant model credentials and endpoint configuration. API keys are encrypted and write-only. Model discovery returns only normalized IDs, makes no inference request, and is reused to validate configured Agent writes.
+A provider stores the API key your agents use to call a model vendor such as OpenRouter. Blazing Agents encrypts the key and never returns it. List a provider's models to pick an ID for your agent; listing makes no model call, and the same list checks the model whenever you configure an agent.
 
 ## Endpoints [#endpoints]
 
 ### POST /v1/providers [#create-provider]
 
-Creates a Provider. The authenticated credential selects the Tenant boundary.
+Creates a provider in your tenant.
 
 #### Request
 
@@ -26,7 +26,7 @@ Creates a Provider. The authenticated credential selects the Tenant boundary.
 
 #### Response
 
-Returns `201 Created` with the redacted Provider.
+Returns `201 Created` with the provider. The key is never returned; only its last characters appear as `keyFragment`.
 
 Response schema: [`providerResponseSchema`](/api-reference/protocols/objects-and-schemas#provider-response).
 
@@ -61,7 +61,7 @@ SDKs: [TypeScript](/sdk/typescript/providers#create), [Python](/sdk/python/provi
 
 ### GET /v1/providers [#list-providers]
 
-Lists the authenticated Tenant's Providers with keys redacted. Returns `200` with [`providersResponseSchema`](/api-reference/protocols/objects-and-schemas#providers-response).
+Lists your tenant's providers. Keys are never returned.
 
 #### Request
 
@@ -69,7 +69,7 @@ Requires bearer authentication. There are no path, query, or body parameters.
 
 #### Response
 
-Returns `200 OK` with Provider list items containing only `id`, `name`, `providerType`, `createdAt`, and `updatedAt`. Use Get Provider for the base URL and key fragment.
+Returns `200 OK` with list items containing only `id`, `name`, `providerType`, `createdAt`, and `updatedAt`. Get a single provider for its base URL and key fragment.
 
 Response schema: [`providersResponseSchema`](/api-reference/protocols/objects-and-schemas#providers-response).
 
@@ -104,7 +104,7 @@ SDKs: [TypeScript](/sdk/typescript/providers#list), [Python](/sdk/python/provide
 
 ### GET /v1/providers/:id [#get-provider]
 
-Returns one redacted Provider or `404 provider_not_found` when it is missing or foreign.
+Returns one provider without its key, or `404 provider_not_found` when it is missing or in another tenant.
 
 #### Request
 
@@ -112,7 +112,7 @@ Requires bearer authentication and a Provider `id` path parameter.
 
 #### Response
 
-Returns `200 OK` with one redacted Provider.
+Returns `200 OK` with one provider.
 
 Response schema: [`providerResponseSchema`](/api-reference/protocols/objects-and-schemas#provider-response).
 
@@ -145,9 +145,9 @@ SDKs: [TypeScript](/sdk/typescript/providers#get), [Python](/sdk/python/provider
 
 ### GET /v1/providers/:id/models [#list-provider-models]
 
-Fetches the current Provider catalog without inference. IDs are trimmed, deduplicated, and lexically sorted.
+Lists the models the provider offers right now, without calling a model. IDs are trimmed, deduplicated, and sorted.
 
-Vercel AI Gateway uses its public catalog without the saved key. A returned ID proves only catalog membership, not key access, credits, Team policy, routing, or successful inference.
+Vercel AI Gateway uses its public catalog without your saved key. A listed ID only means the model is in the catalog. It does not prove your key can use it, that you have credits, or that a request will succeed.
 
 #### Request
 
@@ -155,17 +155,17 @@ Requires bearer authentication and a Provider `id` path parameter.
 
 #### Response
 
-Returns `200 OK` with the Provider-native model catalog.
+Returns `200 OK` with the provider's model IDs.
 
 Response schema: [`providerModelsResponseSchema`](/api-reference/protocols/objects-and-schemas#provider-models-response).
 
 ```json
-{ "models": [{ "id": "openai/gpt-5-mini" }, { "id": "openai/gpt-6-luna" }] }
+{ "models": [{ "id": "openai/gpt-6-luna" }] }
 ```
 
 #### Errors
 
-Returns `422 model_discovery_unsupported` for `custom`. Authentication, availability, network, and invalid-response failures return `503 model_validation_unavailable` without exposing credentials or vendor payloads.
+Returns `422 model_discovery_unsupported` for `custom`. If the vendor rejects the key, is unreachable, or returns something unreadable, you get `503 model_validation_unavailable`; the vendor's response is not passed through.
 
 #### cURL
 
@@ -174,7 +174,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF/models" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-The dashboard uses this same operation after Provider selection. Agent creation, model changes, complete Provider/model replacement, and Version restoration query a fresh catalog before writing. A completed catalog that omits the configured model returns `400 model_not_found`. Custom Provider IDs remain manual and skip catalog validation.
+Blazing Agents checks the same list whenever you create an agent, change its model or provider, or restore a version. If the model is not in the list, the write returns `400 model_not_found`. Custom providers skip this check, so you type their model IDs yourself.
 
 #### SDK and related guides
 
@@ -182,7 +182,7 @@ SDKs: [TypeScript](/sdk/typescript/providers#list-models), [Python](/sdk/python/
 
 ### PATCH /v1/providers/:id [#update-provider]
 
-Renames a Provider. Only `name` is mutable; replace the Provider to change its type, API key, or base URL.
+Renames a provider. Only `name` can change; create a new provider to change its type, API key, or base URL.
 
 #### Request
 
@@ -226,11 +226,11 @@ SDKs: [TypeScript](/sdk/typescript/providers#update), [Python](/sdk/python/provi
 
 ### DELETE /v1/providers/:id [#delete-provider]
 
-Deletes a Provider and encrypted key. Current Agent references return `provider_in_use`; historical Versions or Pins require explicit confirmation.
+Deletes a provider and its key. You cannot delete a provider an agent uses now; one used by older versions or pins needs your confirmation.
 
 #### Request
 
-Requires bearer authentication and a Provider `id` path parameter. Optional query `confirmVersionInvalidation=true` confirms that affected historical execution and restoration may stop. It never overrides a current Agent reference.
+Requires bearer authentication and a Provider `id` path parameter. Optional query `confirmVersionInvalidation=true` confirms that pinned sessions, tasks, and version restores that use this provider may stop working. It never overrides use by a current agent.
 
 #### Response
 
@@ -238,7 +238,7 @@ Returns `204 No Content` with an empty body.
 
 #### Errors
 
-Current Agent references return `provider_in_use` with `details.agentIds`. Historical references return `provider_historical_use` with `details.agentVersions`, `details.sessionIds`, and `details.taskIds`. Missing or foreign Providers return `provider_not_found`.
+Use by a current agent returns `provider_in_use` with `details.agentIds`. Use by older versions returns `provider_historical_use` with `details.agentVersions`, `details.sessionIds`, and `details.taskIds`. A missing provider, or one in another tenant, returns `provider_not_found`.
 
 #### cURL
 
@@ -252,23 +252,20 @@ curl --request DELETE \
 
 SDKs: [TypeScript](/sdk/typescript/providers#delete), [Python](/sdk/python/providers#delete).
 
-## Related [#related]
-
-- [Models and Providers](/agents/providers-and-models)
-- [TypeScript SDK](/sdk/typescript/providers)
-- [Python SDK](/sdk/python/providers)
-- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
-- [Errors](/api-reference/protocols/errors)
-
 ## GET /v1/providers/:id/thinking-levels [#get-thinking-levels]
 
-Requires Tenant bearer authentication and the required query parameter
-`model`, a nonempty Provider-native Model ID. Returns `200 OK` with
+Lists the thinking levels a model supports. Requires bearer authentication and
+the `model` query parameter, the provider's own model ID. Returns `200 OK` with
 `{ "known": true, "levels": ["off", "low", "medium", "high"] }`, or
 `{ "known": false, "levels": [] }` when capabilities cannot be discovered.
-A known empty list means only Provider default is available. This endpoint
-supports manual IDs and custom Providers without a model-listing request.
-An inaccessible Provider returns `provider_not_found`; invalid input returns
-`validation_failed`. Optional capability discovery failures return unknown.
-See [Thinking level](/agents/providers-and-models#thinking-level) for Pi
-precedence, cache scope, and independent model-access checks.
+A known empty list means only the provider's default is available. It works
+for model IDs you typed yourself and for custom providers. A provider you
+cannot reach returns `provider_not_found`, and invalid input returns
+`validation_failed`. If the capabilities cannot be looked up, you get
+`known: false`. See [Thinking level](/agents/providers-and-models#thinking-level)
+for how levels are chosen.
+
+## Next [#next]
+
+- [Providers and models](/agents/providers-and-models) to choose a provider and model.
+- [Agents API](/api-reference/rest-api/agents#create-agent) to use the provider in an agent.

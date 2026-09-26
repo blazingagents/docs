@@ -5,31 +5,29 @@ description: Traverse opaque keyset pages, poll transcripts forward, and apply e
 
 # Pagination and filtering
 
-Unbounded collections use opaque keyset cursors rather than offsets or page
-numbers. Use this contract to continue a list safely and to distinguish
-backward transcript paging from forward polling.
+Long lists come back one page at a time. Pass the cursor from one page into the
+next request to keep reading. Transcripts add a second cursor so you can poll
+for new messages without re-reading old ones.
 
 ## Contract [#contract]
 
-A standard page is `{ data, nextCursor }`. Pass a non-null `nextCursor` back
-as `cursor` only to the same endpoint with the same Tenant, filters, and
-ordering. `null` means there is no further page in the requested direction.
-Do not decode, edit, or reuse a cursor across collections. A non-empty opaque
-cursor that cannot be decoded returns `400 invalid_cursor`; other malformed
-pagination parameters return `400 validation_failed`.
+A standard page is `{ data, nextCursor }`. Pass a non-null `nextCursor` back as
+`cursor` to the same endpoint with the same filters. `null` means there are no
+more pages in that direction. Cursors are opaque: do not decode, edit, or reuse
+one on another list. A cursor the API cannot read returns `400
+invalid_cursor`; other bad paging parameters return `400 validation_failed`.
 
-Resource lists are newest-first according to their owning keyset: Agent
-Versions by Version number, Tasks by `updatedAt`, Memories by the
-`(createdAt, id)` key, and other cursored resources by their documented
-descending time key. Transcript endpoints return the newest page first but
-order messages chronologically inside each page.
+Lists run newest first: agent versions by version number, tasks by
+`updatedAt`, memories by `createdAt` then `id`, and other lists by their own
+timestamp. Transcripts return the newest page first, with messages in
+chronological order inside each page.
 
 | Collection        | SDK method                                                                                                         | REST operation                                                                                                     | Response cursor fields       | Page size                                       | Filters                                      |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ----------------------------------------------- | -------------------------------------------- |
 | Agents            | [`agents.list`](/sdk/typescript/agents#list)                                                             | [`list-agents`](/api-reference/rest-api/agents#list-agents)                                                            | none                         | bounded; no public `limit`                      | `userId`                                     |
-| Agent Versions    | [`agents.listVersions`](/sdk/typescript/agents#list-versions)                                            | [`list-agent-versions`](/api-reference/rest-api/agents#list-agent-versions)                                            | `nextCursor`                 | default 50, max 200                             | —                                            |
-| Providers         | [`providers.list`](/sdk/typescript/providers#list)                                                       | [`list-providers`](/api-reference/rest-api/providers#list-providers)                                                   | none                         | bounded; no public `limit`                      | —                                            |
-| MCP Connections   | [`mcpConnections.list`](/sdk/typescript/mcp-connections#list)                                            | [`list-mcp-connections`](/api-reference/rest-api/mcp-connections#list-mcp-connections)                                 | none                         | bounded; no public `limit`                      | —                                            |
+| Agent Versions    | [`agents.listVersions`](/sdk/typescript/agents#list-versions)                                            | [`list-agent-versions`](/api-reference/rest-api/agents#list-agent-versions)                                            | `nextCursor`                 | default 50, max 200                             | none                                            |
+| Providers         | [`providers.list`](/sdk/typescript/providers#list)                                                       | [`list-providers`](/api-reference/rest-api/providers#list-providers)                                                   | none                         | bounded; no public `limit`                      | none                                            |
+| MCP Connections   | [`mcpConnections.list`](/sdk/typescript/mcp-connections#list)                                            | [`list-mcp-connections`](/api-reference/rest-api/mcp-connections#list-mcp-connections)                                 | none                         | bounded; no public `limit`                      | none                                            |
 | MCP Attachments   | [`agents.listMcpAttachments`](/sdk/typescript/agents#list-mcp-attachments)                               | [`list-agent-mcp-attachments`](/api-reference/rest-api/agents#list-agent-mcp-attachments)                              | none                         | bounded; no public `limit`                      | owning Agent path                            |
 | Prompts           | [`prompts.list`](/sdk/typescript/prompts#list)                                                           | [`list-prompts`](/api-reference/rest-api/prompts#list-prompts)                                                         | none                         | bounded; no public `limit`                      | `userId`                                     |
 | Sessions          | [`sessions.list`](/sdk/typescript/sessions#list)                                                         | [`list-sessions`](/api-reference/rest-api/sessions#list-sessions)                                                      | `nextCursor`                 | default 50, max 200                             | `userId`                                     |
@@ -42,38 +40,39 @@ order messages chronologically inside each page.
 | Task run messages | [`tasks.runMessages`](/sdk/typescript/tasks#run-messages)                                                | [`list-task-run-messages`](/api-reference/rest-api/task-runs#list-task-run-messages)                                   | `nextCursor`, `latestCursor` | default 50, max 200                             | `cursor` or `after`                          |
 | Usage             | [`usage.get`](/sdk/typescript/usage#get), [`getForAgent`](/sdk/typescript/usage#get-for-agent) | [`get-usage`](/api-reference/rest-api/usage#get-usage), [`get-agent-usage`](/api-reference/rest-api/usage#get-agent-usage) | none                         | not cursored; Session top-N default 50, max 200 | dates, Agent, Session, Attribution, grouping |
 
-Bounded named-array responses do not expose cursors. No list surface exposes
-offset, total-count, or generic sort.
 
-Session and Task-run message responses add `latestCursor`:
+Lists without cursor fields return everything in one bounded response. No
+list supports offsets, total counts, or custom sorting.
+
+Session and task-run transcripts add `latestCursor`:
 
 - `cursor` walks backward to older messages.
-- `after` reads newer messages after a tail position.
-- The two parameters are mutually exclusive; REST validation rejects both.
-- When `data` is non-empty, use `latestCursor` as the next `after` value even
-  if `nextCursor` is null.
-- In forward mode, pass a non-null `nextCursor` back as `after` to continue the
-  same multi-page result. `latestCursor` records the observed tail for the next
-  poll after the forward result has been drained.
+- `after` reads messages newer than a saved position.
+- Send one or the other, never both.
+- When `data` is not empty, save `latestCursor` and use it as the next `after`
+  value, even if `nextCursor` is null.
+- In forward mode, pass a non-null `nextCursor` back as `after` to finish the
+  current result. `latestCursor` marks where the next poll starts once you have
+  drained it.
 
-For every supported `userId` filter, omission includes all Attribution values,
-`""` selects tenant-level resources, and a non-empty value selects that
-tenant-user partition. Attribution remains data, not access control.
+Every `userId` filter works the same way: leave it out to include everyone,
+send `""` for tenant-level records, or send a value to select that end user.
+`userId` groups your data; it does not restrict access.
 
-Usage `from` and `to` are paired inclusive UTC dates. With neither, the query
-uses the last 30 days ending today; the bounds may differ by at most 31 days.
-`groupBy` defaults to `day` and also supports `agent`, `model`, `session`, and
-`user`. `sessionId: ""` filters stateless Turns; response buckets represent
-that sentinel as `sessionId: null`. Tenant-level `groupBy=user` buckets keep
+Usage `from` and `to` are inclusive UTC dates and must be sent together.
+Without them you get the last 30 days ending today, and the range can span at
+most 31 days. `groupBy` defaults to `day` and also accepts `agent`, `model`,
+`session`, and `user`. `sessionId: ""` selects stateless turns, which come back
+with `sessionId: null`. Tenant-level buckets in `groupBy=user` keep
 `userId: ""`.
 
-Full-text `search` is specific to Memories.
+Only memories support full-text `search`.
 
 ## Examples [#examples]
 
-Page through Sessions until the backward cursor is exhausted:
+Read every session for an agent, one page at a time:
 
-```typescript
+```typescript tab="TypeScript"
 let cursor: string | undefined;
 
 do {
@@ -85,15 +84,20 @@ do {
 } while (cursor);
 ```
 
-Bootstrap from a backward read, persist its non-null tail, then poll forward.
-Only a `nextCursor` returned by a forward request is passed back as `after`:
+```python tab="Python"
+for session in client.sessions.iter(agent_id=agent_id, limit=100):
+    print(session.id)
+```
 
-```typescript
+Read a task run's transcript once, save its tail, then poll forward. Only pass
+back as `after` a `nextCursor` that came from a forward request:
+
+```typescript tab="TypeScript"
 const bootstrap = await client.tasks.runMessages({ taskId, runId, limit: 50 });
 for (const message of bootstrap.data) console.log(message);
 
 if (bootstrap.latestCursor === null) {
-  throw new Error("The Task run has no transcript tail yet");
+  throw new Error("The task run has no transcript yet");
 }
 
 await saveTail(bootstrap.latestCursor);
@@ -113,9 +117,30 @@ do {
 } while (after);
 ```
 
-Filter tenant-level usage and keep overall totals separate from top-N buckets:
+```python tab="Python"
+bootstrap = client.tasks.run_messages(task_id, run_id, limit=50)
+for message in bootstrap.data:
+    print(message)
 
-```typescript
+if bootstrap.latest_cursor is None:
+    raise RuntimeError("The task run has no transcript yet")
+
+save_tail(bootstrap.latest_cursor)
+after = bootstrap.latest_cursor
+
+while after is not None:
+    page = client.tasks.run_messages(task_id, run_id, after=after, limit=50)
+    for message in page.data:
+        print(message)
+    if page.latest_cursor is not None:
+        save_tail(page.latest_cursor)
+    after = page.next_cursor
+```
+
+Read tenant-level usage and keep the overall totals apart from the top-N
+buckets:
+
+```typescript tab="TypeScript"
 const usage = await client.usage.get({
   from: "2026-07-01",
   to: "2026-07-20",
@@ -127,106 +152,20 @@ const usage = await client.usage.get({
 console.log(usage.totals.requestCount, usage.buckets);
 ```
 
-## Used by [#used-by]
+```python tab="Python"
+usage = client.usage.get(
+    from_="2026-07-01",
+    to="2026-07-20",
+    user_id="",
+    group_by="session",
+    limit=25,
+)
 
-- [Sessions and Turns](/platform/sessions-and-turns)
-- [Tasks and schedules](/automation/tasks)
-- [Usage and quotas](/platform/usage-and-quotas)
-- [Build a chat endpoint](/platform/sessions-and-turns)
-- [Run a background Task](/automation/tasks)
-- [Monitor usage and quotas](/platform/usage-and-quotas)
+print(usage.totals.request_count, usage.buckets)
+```
 
-## Source of truth [#source-of-truth]
+## Next [#next]
 
-- `packages/core/src/api.ts`
-- `packages/core/src/api.test.ts`
-- `packages/core/src/entities/agents.ts`
-- `packages/core/src/entities/providers.ts`
-- `packages/core/src/entities/mcp-connections.ts`
-- `packages/core/src/entities/prompts.ts`
-- `packages/core/src/entities/skills.ts`
-- `packages/core/src/entities/sessions.ts`
-- `packages/core/src/entities/workspaces.ts`
-- `packages/core/src/entities/artifacts.ts`
-- `packages/core/src/entities/memories.ts`
-- `packages/core/src/entities/tasks.ts`
-- `packages/core/src/entities/usage.ts`
-- `../typescript-sdk/src/resources/agents.ts`
-- `../typescript-sdk/src/resources/agents.test.ts`
-- `../typescript-sdk/src/resources/providers.ts`
-- `../typescript-sdk/src/resources/providers.test.ts`
-- `../typescript-sdk/src/resources/mcp-connections.ts`
-- `../typescript-sdk/src/resources/mcp-connections.test.ts`
-- `../typescript-sdk/src/resources/prompts.ts`
-- `../typescript-sdk/src/resources/prompts.test.ts`
-- `../typescript-sdk/src/resources/sessions.ts`
-- `../typescript-sdk/src/resources/sessions.test.ts`
-- `../typescript-sdk/src/resources/artifacts.ts`
-- `../typescript-sdk/src/resources/artifacts.test.ts`
-- `../typescript-sdk/src/resources/memories.ts`
-- `../typescript-sdk/src/resources/memories.test.ts`
-- `../typescript-sdk/src/resources/tasks.ts`
-- `../typescript-sdk/src/resources/tasks.test.ts`
-- `../typescript-sdk/src/resources/usage.ts`
-- `../typescript-sdk/src/resources/usage.test.ts`
-- `servers/api/src/routes/sessions/list.ts`
-- `servers/api/src/routes/sessions/list.test.ts`
-- `servers/api/src/routes/sessions/list-messages.ts`
-- `servers/api/src/routes/sessions/list-messages.test.ts`
-- `servers/api/src/routes/artifacts/list.ts`
-- `servers/api/src/routes/artifacts/list.test.ts`
-- `servers/api/src/routes/memories/list.ts`
-- `servers/api/src/routes/memories/list.test.ts`
-- `servers/api/src/routes/task-runs/list.ts`
-- `servers/api/src/routes/task-runs/list.test.ts`
-- `servers/api/src/routes/task-runs/list-messages.ts`
-- `servers/api/src/routes/task-runs/list-messages.test.ts`
-- `servers/api/src/routes/usage/get.ts`
-- `servers/api/src/routes/usage/get.test.ts`
-- `servers/api/src/routes/usage/get-agent.ts`
-- `servers/api/src/routes/usage/get-agent.test.ts`
-- `servers/api/src/routes/agents/list-versions.ts`
-- `servers/api/src/routes/agents/list-versions.test.ts`
-- `servers/api/src/routes/agents/list.ts`
-- `servers/api/src/routes/agents/list.test.ts`
-- `servers/api/src/routes/agents/list-mcp-attachments.ts`
-- `servers/api/src/routes/agents/mcp-attachments.test.ts`
-- `servers/api/src/routes/providers/list.ts`
-- `servers/api/src/routes/providers/list.test.ts`
-- `servers/api/src/routes/mcp-connections/list.ts`
-- `servers/api/src/routes/mcp-connections/routes.test.ts`
-- `servers/api/src/routes/prompts/list.ts`
-- `servers/api/src/routes/prompts/list.test.ts`
-- `servers/api/src/routes/tasks/list.ts`
-- `servers/api/src/routes/tasks/list.test.ts`
-- `packages/server-core/src/agent-session-service.ts`
-- `packages/server-core/src/artifact-service.ts`
-- `packages/server-core/src/memory-service.ts`
-- `packages/server-core/src/task.ts`
-- `packages/server-core/src/task-run.ts`
-
-## Related guides [#related-guides]
-
-See the capability and guide links under [Used by](#used-by).
-
-## Reference [#reference]
-
-See the implementation inventory under [Source of truth](#source-of-truth).
-
-Python page and iterator contracts are documented for
-[`agents.list()`](/sdk/python/agents#list),
-[`agents.list_versions()`](/sdk/python/agents#list-versions),
-[`providers.list()`](/sdk/python/providers#list),
-[`mcp_connections.list()`](/sdk/python/mcp-connections#list),
-[`agents.list_mcp_attachments()`](/sdk/python/agents#list-mcp-attachments),
-[`prompts.list()`](/sdk/python/prompts#list),
-[`sessions.list()`](/sdk/python/sessions#list),
-[`sessions.list_latest()`](/sdk/python/sessions#list-latest),
-[`sessions.messages()`](/sdk/python/sessions#messages),
-[`artifacts.list()`](/sdk/python/artifacts#list),
-[`memories.list()`](/sdk/python/memories#list),
-[`tasks.list()`](/sdk/python/tasks#list),
-[`tasks.list_runs()`](/sdk/python/tasks#list-runs),
-[`tasks.run_messages()`](/sdk/python/tasks#run-messages),
-[`usage.get()`](/sdk/python/usage#get), and
-[`usage.get_for_agent()`](/sdk/python/usage#get-for-agent).
+- [Sessions and turns](/platform/sessions-and-turns) to continue and reload conversations.
+- [Tasks and schedules](/automation/tasks) to run agents in the background.
+- [Usage and quotas](/platform/usage-and-quotas) to track spend per user.
