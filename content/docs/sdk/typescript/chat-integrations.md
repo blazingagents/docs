@@ -1,103 +1,208 @@
 ---
 title: Chat integrations
-description: Configure Slack and Telegram connections with the TypeScript SDK.
+description: Connect an agent to a Slack or Telegram bot and manage the connection with the TypeScript SDK.
 ---
 
 # Chat integrations
 
-Use `client.chatConnections` (SDK 0.10.0+) to connect an existing Agent to Slack or
-Telegram. BA receives messages, maintains Sessions, and sends replies and approval
-buttons. Credentials are write-only.
-
-## Create a Telegram connection
-
-Run this in a trusted environment with the environment variables below.
+`client.chatConnections` puts an agent behind a Slack or Telegram bot. Blazing Agents receives the bot's messages, keeps a session for each direct message, thread, or forum topic, and posts the agent's replies and tool approval buttons. To set up the bot on each platform, read [Chat integrations](/platform/chat-integrations).
 
 ```typescript
-import { BlazingAgents } from "@blazingagents/sdk";
-
-const client = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-});
 const connection = await client.chatConnections.create({
   name: "Support on Telegram",
-  agentId: process.env.BA_AGENT_ID!,
+  agentId,
   platform: "telegram",
   enabled: false,
-  configuration: { businessMode: false },
-  credentials: {
-    botToken: process.env.TELEGRAM_BOT_TOKEN!,
-  },
+  credentials: { botToken: process.env.TELEGRAM_BOT_TOKEN! },
 });
-console.log(connection.webhookUrl);
-await client.chatConnections.enable({
-  chatConnectionId: connection.id,
-});
+
+await client.chatConnections.enable({ chatConnectionId: connection.id });
+const { health } = await client.chatConnections.checkHealth({ chatConnectionId: connection.id });
+console.log(health.checks);
 ```
 
-BA generates the Telegram webhook secret and registers the returned URL when
-enabled. Call `checkHealth({ chatConnectionId: connection.id })`, require the
-`webhook_url` check to pass, and send the bot a test message.
+Every method takes one input object and accepts an optional `abortSignal`. Bot credentials are never returned; responses show at most four characters in `credentialFragment`.
 
-For Slack, use `platform: "slack"`, credentials `botToken` and `signingSecret`,
-and paste the returned `webhookUrl` into Slack. Optional `channelIds` (Slack),
-`chatIds` (Telegram), and Telegram `businessMode` configure health probes and
-registration; destination IDs are not access restrictions.
+## Available operations [#available-operations]
 
-## Manage connections
-
-All methods accept one input object with optional `abortSignal`.
-
-| Method | Input | Result |
+| Method | Description | Returns |
 | --- | --- | --- |
-| `list()` | Optional request options | `{ chatConnections: ChatConnection[] }` |
-| `get()` | `chatConnectionId` | `ChatConnection` |
-| `create()` | `name`, `agentId`, `platform`, `configuration`, `credentials`, optional `enabled` | `ChatConnection` |
-| `update()` | `chatConnectionId`, at least one of `name` or `configuration` | `ChatConnection` |
-| `rotateCredentials()` | `chatConnectionId`, `platform`, `botToken`, and Slack `signingSecret` | `ChatConnection` |
-| `checkHealth()` | `chatConnectionId` | `ChatConnection` with refreshed health |
-| `enable()` | `chatConnectionId` | `ChatConnection` |
-| `disable()` | `chatConnectionId` | `ChatConnection` |
-| `delete()` | `chatConnectionId` | `void` |
+| [`create()`](#create) | Connect an agent to a bot | `ChatConnection` |
+| [`list()`](#list) | List connections | `ChatConnectionsResponse` |
+| [`get()`](#get) | Read one connection | `ChatConnection` |
+| [`update()`](#update) | Change the name or test destinations | `ChatConnection` |
+| [`rotateCredentials()`](#rotate-credentials) | Replace the bot credentials | `ChatConnection` |
+| [`checkHealth()`](#check-health) | Check the bot setup now | `ChatConnection` |
+| [`enable()`](#enable) | Start handling messages | `ChatConnection` |
+| [`disable()`](#disable) | Stop handling messages | `ChatConnection` |
+| [`delete()`](#delete) | Delete a connection | `void` |
 
-Responses include configuration, verified identity, health, and a credential
-fragment, never the credentials. Health checks report `pass`, `fail`, or `unknown`;
-verify unknown settings manually. A valid token alone does not prove delivery.
+## Methods [#methods]
 
-Creation defaults to enabled; the example keeps intake disabled during setup.
-The returned `webhookUrl` is read-only. Update changes the name, destinations, or
-Telegram Business mode. Credential rotation requires the complete platform
-bundle. Changing the Agent or bot requires a new connection. BA owns Telegram
-registration; Slack setup remains manual.
+### `create()` [#create]
 
-If creation times out, list connections before retrying. See the
-[REST reference](/api-reference/rest-api/chat-connections) for API errors.
+Connects an agent to a Slack or Telegram bot.
 
-## Use BA inside an existing Vercel Chat SDK bot
-
-Add this handler where your application's configured `bot` instance is available.
-Keep its existing adapters, state store and webhook routes. Install
-`@blazingagents/sdk` and its `ai` peer dependency, then set the BA API key and
-`BA_AGENT_ID` on the server.
+**Signature:** `create(input: CreateChatConnectionBody & ResourceRequestOptions): Promise<ChatConnection>`
 
 ```typescript
-import { BlazingAgents } from "@blazingagents/sdk";
+const connection = await client.chatConnections.create({
+  name: "Support on Slack",
+  agentId,
+  platform: "slack",
+  credentials: {
+    botToken: process.env.SLACK_BOT_TOKEN!,
+    signingSecret: process.env.SLACK_SIGNING_SECRET!,
+  },
+  configuration: { channelIds: ["C0123456789"] },
+});
+console.log(connection.webhookUrl);
+```
 
-const apiKey = process.env.BLAZING_AGENTS_API_KEY;
-if (!apiKey) throw new Error("Set BLAZING_AGENTS_API_KEY");
-const ba = new BlazingAgents({ apiKey });
-const agentId = process.env.BA_AGENT_ID;
-if (!agentId) throw new Error("Set BA_AGENT_ID");
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `name` | `string` | yes | — | 1 to 80 characters |
+| `agentId` | `string` | yes | — | The agent that answers; cannot change later |
+| `platform` | `"slack" \| "telegram"` | yes | — | Chat platform |
+| `credentials` | `object` | yes | — | Slack: `botToken` and `signingSecret`. Telegram: `botToken` |
+| `configuration` | `object` | no | `{}` | Slack: `channelIds`. Telegram: `chatIds` and `businessMode` |
+| `enabled` | `boolean` | no | `true` | Start handling messages right away |
 
-bot.onNewMention(async (thread, message) => {
-  const result = await ba.completion({ agentId, prompt: message.text });
-  await thread.post(await result.text);
+`channelIds` and `chatIds` list up to 20 conversations that health checks test against. They do not limit where the bot answers. Set `businessMode: true` for a Telegram Business bot.
+
+For Telegram, Blazing Agents registers the bot's webhook when the connection is enabled. For Slack, paste the returned `webhookUrl` into your Slack app's settings. Pass `enabled: false` to finish setup before messages arrive. To use another agent or bot, create a new connection.
+
+If `create()` times out, list your connections before you retry, so you do not create two. Returns [`ChatConnection`](#chatconnection).
+
+### `list()` [#list]
+
+Lists your connections.
+
+**Signature:** `list(input?: ResourceRequestOptions): Promise<ChatConnectionsResponse>`
+
+```typescript
+const { chatConnections } = await client.chatConnections.list();
+```
+
+Returns `{ chatConnections: ChatConnection[] }`.
+
+### `get()` [#get]
+
+Reads one connection.
+
+**Signature:** `get(input: { chatConnectionId: string } & ResourceRequestOptions): Promise<ChatConnection>`
+
+```typescript
+const connection = await client.chatConnections.get({ chatConnectionId });
+```
+
+Returns [`ChatConnection`](#chatconnection).
+
+### `update()` [#update]
+
+Changes the name, the test destinations, or Telegram Business mode.
+
+**Signature:** `update(input: UpdateChatConnectionBody & { chatConnectionId: string } & ResourceRequestOptions): Promise<ChatConnection>`
+
+```typescript
+const connection = await client.chatConnections.update({
+  chatConnectionId,
+  configuration: { chatIds: ["-1001234567890"] },
 });
 ```
 
-This answers each new mention independently. It does not subscribe to follow-ups,
-create a BA Session, or render approval cards. Your bot owns delivery and error
-handling. For managed persistent conversations, use the connection setup above.
-See [Chat SDK event handlers](https://chat-sdk.dev/docs/handling-events) for
-registration in an existing bot. Use a separate bot installation when comparing
-this custom handler with a BA-managed connection.
+Pass `name`, `configuration`, or both. `configuration` takes any of `channelIds`, `chatIds`, and `businessMode`, and changes only the keys you send. Returns [`ChatConnection`](#chatconnection).
+
+### `rotateCredentials()` [#rotate-credentials]
+
+Replaces the credentials for the same bot. Its sessions stay attached.
+
+**Signature:** `rotateCredentials(input: RotateChatConnectionBody & { chatConnectionId: string } & ResourceRequestOptions): Promise<ChatConnection>`
+
+```typescript
+const connection = await client.chatConnections.rotateCredentials({
+  chatConnectionId,
+  platform: "slack",
+  botToken: process.env.SLACK_BOT_TOKEN!,
+  signingSecret: process.env.SLACK_SIGNING_SECRET!,
+});
+```
+
+Send the full set for the platform: `botToken` and `signingSecret` for Slack, `botToken` for Telegram. Returns [`ChatConnection`](#chatconnection).
+
+### `checkHealth()` [#check-health]
+
+Checks the token, bot identity, and webhook now, and returns the connection with fresh results.
+
+**Signature:** `checkHealth(input: { chatConnectionId: string } & ResourceRequestOptions): Promise<ChatConnection>`
+
+```typescript
+const { health } = await client.chatConnections.checkHealth({ chatConnectionId });
+const webhook = health.checks.find(({ code }) => code === "webhook_url");
+if (webhook?.status !== "pass") console.warn("Webhook not confirmed", webhook);
+```
+
+Each check is `pass`, `fail`, or `unknown`; confirm `unknown` ones by hand. A valid token alone does not prove messages arrive, so require the `webhook_url` check to pass and send the bot a test message. Returns [`ChatConnection`](#chatconnection).
+
+### `enable()` [#enable]
+
+Starts handling the bot's messages.
+
+**Signature:** `enable(input: { chatConnectionId: string } & ResourceRequestOptions): Promise<ChatConnection>`
+
+```typescript
+await client.chatConnections.enable({ chatConnectionId });
+```
+
+Messages sent while the connection was disabled are not replayed. Returns [`ChatConnection`](#chatconnection) with `enabled: true`.
+
+### `disable()` [#disable]
+
+Stops handling new messages and approval clicks. Work already running may finish, and the connection keeps its settings.
+
+**Signature:** `disable(input: { chatConnectionId: string } & ResourceRequestOptions): Promise<ChatConnection>`
+
+```typescript
+await client.chatConnections.disable({ chatConnectionId });
+```
+
+Returns [`ChatConnection`](#chatconnection) with `enabled: false`.
+
+### `delete()` [#delete]
+
+Disconnects the bot from Blazing Agents. Its sessions stay readable.
+
+**Signature:** `delete(input: { chatConnectionId: string } & ResourceRequestOptions): Promise<void>`
+
+```typescript
+await client.chatConnections.delete({ chatConnectionId });
+```
+
+A Telegram bot's webhook is cleared for you. Uninstall a Slack app yourself.
+
+## Response types [#response-types]
+
+### `ChatConnection` [#chatconnection]
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | Connection ID (`cc_…`) |
+| `tenantId` | `string` | Your tenant ID |
+| `agentId` | `string` | The agent that answers |
+| `name` | `string` | Connection name |
+| `platform` | `"slack" \| "telegram"` | Chat platform |
+| `enabled` | `boolean` | Whether messages are handled |
+| `configuration` | `ChatConfiguration` | `platform` plus its `channelIds`, or `chatIds` and `businessMode` |
+| `webhookUrl` | `string` | The URL the platform sends messages to |
+| `identity` | `ChatIdentity` | The bot's `botId`, `botUserId`, `teamId`, and `appId` |
+| `health` | `ChatHealth` | `checkedAt`, `tokenValid`, `identityVerified`, and `checks` |
+| `credentialFragment` | `string` | Up to four characters of the credential |
+| `credentialVersion` | `number` | Goes up each time you rotate credentials |
+| `createdAt`, `updatedAt` | `string` | ISO 8601 timestamps |
+
+Each entry in `health.checks` is `{ code: string; status: "pass" | "fail" | "unknown"; subject?: string }`.
+
+## Next [#next]
+
+- [Chat integrations](/platform/chat-integrations)
+- [Use an existing Chat SDK bot](/platform/chat-integrations#sdk-examples-and-custom-bots)

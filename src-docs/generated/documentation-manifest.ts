@@ -9014,7 +9014,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/tasks.md",
                 "type": "page",
                 "name": "Tasks",
-                "description": "Manage asynchronous Tasks, schedules, Task runs, transcripts, and cancellation.",
+                "description": "Create background tasks and schedules, start runs, read their results, and cancel them with the TypeScript SDK.",
                 "url": "/sdk/typescript/tasks",
                 "$ref": "sdk/typescript/tasks.md"
               },
@@ -9022,7 +9022,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/prompts.md",
                 "type": "page",
                 "name": "Prompts",
-                "description": "Manage reusable Prompt templates and invoke them from generation helpers.",
+                "description": "Save reusable prompt templates with variables and manage them with the TypeScript SDK.",
                 "url": "/sdk/typescript/prompts",
                 "$ref": "sdk/typescript/prompts.md"
               },
@@ -9030,7 +9030,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/usage.md",
                 "type": "page",
                 "name": "Usage",
-                "description": "Query bounded Tenant-wide and per-Agent token, request, and duration rollups.",
+                "description": "Read token, request, and duration usage by day, agent, model, session, or end user with the TypeScript SDK.",
                 "url": "/sdk/typescript/usage",
                 "$ref": "sdk/typescript/usage.md"
               },
@@ -9038,7 +9038,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/tenant.md",
                 "type": "page",
                 "name": "Tenant",
-                "description": "Read and update Tenant display settings and soft quota configuration.",
+                "description": "Read and change your tenant's name, monthly quota, and billing switch with the TypeScript SDK.",
                 "url": "/sdk/typescript/tenant",
                 "$ref": "sdk/typescript/tenant.md"
               },
@@ -9046,7 +9046,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/chat-integrations.md",
                 "type": "page",
                 "name": "Chat integrations",
-                "description": "Configure Slack and Telegram connections with the TypeScript SDK.",
+                "description": "Connect an agent to a Slack or Telegram bot and manage the connection with the TypeScript SDK.",
                 "url": "/sdk/typescript/chat-integrations",
                 "$ref": "sdk/typescript/chat-integrations.md"
               }

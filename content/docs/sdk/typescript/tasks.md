@@ -1,104 +1,105 @@
 ---
 title: Tasks
-description: Manage asynchronous Tasks, schedules, Task runs, transcripts, and cancellation.
+description: Create background tasks and schedules, start runs, read their results, and cancel them with the TypeScript SDK.
 ---
 
 # Tasks
 
-`client.tasks` manages reusable asynchronous Agent instructions and their executions. A Task is a definition; every run has independent durable lifecycle state and receives a fresh Session when execution starts.
+`client.tasks` runs an agent in the background with no user present. A task saves a prompt for one agent; each run executes it once in a fresh session. Start runs yourself or give the task a schedule. To decide between tasks and chat, and to design a schedule, read [Tasks](/automation/tasks) and [Schedules](/automation/schedules).
 
-Every network method accepts one input object with optional `abortSignal`.
-`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
-types include that field too.
+```typescript
+const { task, runId } = await client.tasks.create({
+  agentId,
+  name: "Release summary",
+  prompt: "Summarize the release queue.",
+  submit: true,
+});
 
-## Tool approval policy [#tool-approval-policy]
+// Later, from any request or worker:
+const run = await client.tasks.getRun({ taskId: task.id, runId: runId! });
+console.log(run.status);
+```
 
-Task execution uses the resolved Agent Version's `approvalInTasks` policy. Tasks
-have no manual approval continuation path: manual calls and automatic escalation
-without a human are denied, with blocked work reported to the model. Other
-permitted work can continue. An unexpected pending human approval fails the Task.
-See [Tool approvals](/agents/tools/tool-approvals).
+Every method takes one input object and accepts an optional `abortSignal`.
 
-## Overview [#overview]
+## Runs [#runs]
 
-Tasks can be on-demand (`schedule: null`) or scheduled once, at an interval, or by a five-field numeric cron expression. `agentVersion: null` follows the Agent's current Version; an integer pins a Version. Task `agentId`, `userId`, and each run's inherited Attribution are immutable.
+A task has at most one active run at a time. A run moves from `queued` to `running`, then ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota ran out; `error` says why.
 
-Only one run per Task can be active. Runs move from `queued` to `running`, then to terminal `blocked`, `succeeded`, `failed`, or `canceled`. Cancellation is cooperative. Task, run, and transcript lists default to 50 items and accept 1–200.
+Runs use the agent's `approvalInTasks` policy. Nobody is there to approve a call, so tool calls that would need a person are denied and the agent is told so. See [tool approvals](/agents/tools/tool-approvals).
 
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`create()`](#create) | Create a Task, optionally submitting its first run | `CreateTaskResponse` |
-| [`list()`](#list) | List non-deleted Tasks | `TasksListResponse` |
-| [`get()`](#get) | Retrieve one Task | `TaskResponse` |
-| [`update()`](#update) | Change mutable Task configuration | `TaskResponse` |
-| [`delete()`](#delete) | Soft-delete an inactive Task | `void` |
-| [`createRun()`](#create-run) | Enqueue an immediate run | `CreateTaskRunResponse` |
-| [`listRuns()`](#list-runs) | List a Task's runs | `TaskRunsListResponse` |
-| [`getRun()`](#get-run) | Retrieve durable run state | `TaskRunResponse` |
-| [`runMessages()`](#run-messages) | Read or poll a run's Session transcript | `TaskRunMessagesResponse` |
-| [`cancelRun()`](#cancel-run) | Request cooperative cancellation | `void` |
+| [`create()`](#create) | Create a task, and optionally its first run | `CreateTaskResponse` |
+| [`list()`](#list) | List tasks | `TasksListResponse` |
+| [`get()`](#get) | Read one task | `TaskResponse` |
+| [`update()`](#update) | Change a task | `TaskResponse` |
+| [`delete()`](#delete) | Delete a task | `void` |
+| [`createRun()`](#create-run) | Start a run now | `CreateTaskRunResponse` |
+| [`listRuns()`](#list-runs) | List a task's runs | `TaskRunsListResponse` |
+| [`getRun()`](#get-run) | Read one run's status | `TaskRunResponse` |
+| [`runMessages()`](#run-messages) | Read a run's messages | `TaskRunMessagesResponse` |
+| [`cancelRun()`](#cancel-run) | Ask a run to stop | `void` |
 
 ## Methods [#methods]
 
 ### `create()` [#create]
 
-Creates an on-demand or scheduled Task. `submit: true` also enqueues an initial run, but Task creation itself is not idempotent.
+Creates a task that runs on demand or on a schedule.
 
 **Signature:** `create(input: CreateTaskBody & ResourceRequestOptions): Promise<CreateTaskResponse>`
 
-| Body field | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `agentId` | `string` | yes | — | Executing Agent ID (`ag_…`) |
-| `name` | `string` | yes | — | Name, 1–80 characters |
-| `prompt` | `string` | yes | — | Fixed instruction, 1–6,000 characters |
-| `agentVersion` | `number \| null` | no | `null` | Version Pin or current Version |
-| `schedule` | `TaskScheduleInput \| null` | no | `null` | Schedule or on-demand |
-| `enabled` | `boolean` | no | `true` | Whether scheduled fires may run |
-| `submit` | `boolean` | no | `false` | Enqueue an initial run |
-| `userId` | `string` | no | `""` | Immutable Attribution |
-| `metadata` | `Record<string, unknown>` | no | `{}` | Task metadata copied into each run at enqueue |
-
 ```typescript
-const { task, runId } = await client.tasks.create({
+const { task } = await client.tasks.create({
   agentId,
-  name: "Daily summary",
+  name: "Weekday summary",
   prompt: "Summarize open support cases.",
   schedule: {
     kind: "cron",
-    config: {
-      expression: "0 9 * * 1-5",
-      timezone: "Europe/London",
-    },
+    config: { expression: "0 9 * * 1-5", timezone: "Europe/London" },
   },
 });
 ```
 
-Returns [`CreateTaskResponse`](#createtaskresponse). Raises `validation_failed`, `agent_version_not_found`, or `admin_agent_managed`; `agent_disabled` can reject immediate submission. See [`POST /v1/tasks`](/api-reference/rest-api/tasks#create-task).
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | `string` | yes | — | The agent that runs it; cannot change later |
+| `name` | `string` | yes | — | 1 to 80 characters |
+| `prompt` | `string` | yes | — | The instruction each run sends, up to 6,000 characters |
+| `schedule` | `TaskScheduleInput \| null` | no | `null` | When to run; `null` runs only on demand. See [schedule types](#schedule-types) |
+| `enabled` | `boolean` | no | `true` | Whether the schedule fires |
+| `submit` | `boolean` | no | `false` | Also start a run right away |
+| `agentVersion` | `number \| null` | no | `null` | Agent version to pin; `null` uses the current version at each run |
+| `userId` | `string` | no | `""` | The end user it runs for; cannot change later |
+| `metadata` | `Record<string, unknown>` | no | `{}` | Your labels, copied onto each run |
+
+Calling `create()` twice creates two tasks. Returns [`CreateTaskResponse`](#createtaskresponse). Errors: `validation_failed`, `agent_version_not_found`, `admin_agent_managed`, and `agent_disabled` when `submit` is `true`.
 
 ### `list()` [#list]
 
-Lists non-deleted Tasks with compact latest-run state.
+Lists your tasks with each one's latest run.
 
 **Signature:** `list(input?: TasksListOptions): Promise<TasksListResponse>`
 
-| Option | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | no | Restrict to one Agent |
-| `userId` | `string` | no | Exact Attribution filter; `""` selects Tenant-level Tasks |
-| `cursor` | `string` | no | Opaque cursor from `nextCursor` |
-| `limit` | `number` | no | Page size, default 50 and maximum 200 |
-
 ```typescript
-const page = await client.tasks.list({ agentId, userId: "", limit: 25 });
+const { data } = await client.tasks.list({ agentId });
+for (const task of data) console.log(task.name, task.latestRun?.status);
 ```
 
-Returns [`TasksListResponse`](#taskslistresponse). Raises `validation_failed` for invalid filters or `invalid_cursor` for an unusable cursor. See [`GET /v1/tasks`](/api-reference/rest-api/tasks#list-tasks).
+| Option | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | `string` | no | — | Only this agent's tasks |
+| `userId` | `string` | no | — | Only this end user's tasks; `""` for tenant-level ones |
+| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+
+Returns [`TasksListResponse`](#taskslistresponse). Errors: `validation_failed`, `invalid_cursor`.
 
 ### `get()` [#get]
 
-Retrieves one non-deleted Task without triggering it.
+Reads one task.
 
 **Signature:** `get(input: { taskId: string } & ResourceRequestOptions): Promise<TaskResponse>`
 
@@ -106,38 +107,25 @@ Retrieves one non-deleted Task without triggering it.
 const task = await client.tasks.get({ taskId });
 ```
 
-Returns [`TaskResponse`](#taskresponse). Raises `validation_failed` for a malformed ID or `not_found` when the Task is unavailable. See [`GET /v1/tasks/:taskId`](/api-reference/rest-api/tasks#get-task).
+Returns [`TaskResponse`](#taskresponse). Errors: `validation_failed`, `not_found`.
 
 ### `update()` [#update]
 
-Changes one or more mutable fields. Pass `schedule: null` to make the Task on-demand or `agentVersion: null` to follow the Agent's current Version.
+Changes a task's name, prompt, schedule, version pin, or metadata, or pauses its schedule.
 
 **Signature:** `update(input: UpdateTaskBody & { taskId: string } & ResourceRequestOptions): Promise<TaskResponse>`
 
-| Body field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | no | Replacement name |
-| `prompt` | `string` | no | Replacement instruction |
-| `agentVersion` | `number \| null` | no | Replacement or cleared Version Pin |
-| `schedule` | `TaskScheduleInput \| null` | no | Replacement schedule or on-demand |
-| `enabled` | `boolean` | no | Scheduling switch |
-| `metadata` | `Record<string, unknown>` | no | Replacement metadata for future runs |
-
-At least one field is required. `agentId`, `userId`, and existing run facts cannot change.
-
 ```typescript
-const task = await client.tasks.update({
-  taskId,
-  enabled: false,
-  metadata: { pausedBy: "ops" },
-});
+const task = await client.tasks.update({ taskId, enabled: false });
 ```
 
-Returns [`TaskResponse`](#taskresponse). Raises `validation_failed`, `not_found`, `agent_version_not_found`, or `admin_agent_managed`. See [`PATCH /v1/tasks/:taskId`](/api-reference/rest-api/tasks#update-task).
+Takes `taskId` plus any of `name`, `prompt`, `schedule`, `enabled`, `agentVersion`, and `metadata`, with at least one. Fields you leave out stay as they are. `schedule: null` makes the task on-demand, and `agentVersion: null` goes back to the current version. `agentId` and `userId` cannot change, and runs that already exist keep their settings.
+
+Returns [`TaskResponse`](#taskresponse). Errors: `validation_failed`, `not_found`, `agent_version_not_found`, `admin_agent_managed`.
 
 ### `delete()` [#delete]
 
-Soft-deletes a Task while preserving its existing runs and Sessions.
+Deletes a task and stops its schedule. Past runs and their sessions stay readable.
 
 **Signature:** `delete(input: { taskId: string } & ResourceRequestOptions): Promise<void>`
 
@@ -145,83 +133,86 @@ Soft-deletes a Task while preserving its existing runs and Sessions.
 await client.tasks.delete({ taskId });
 ```
 
-Returns `void`. Raises `validation_failed`, `not_found`, or `task_active_run_exists` while a run is active. See [`DELETE /v1/tasks/:taskId`](/api-reference/rest-api/tasks#delete-task).
+Fails with `task_active_run_exists` while a run is active; cancel it first. Errors: `validation_failed`, `not_found`, `task_active_run_exists`.
 
 ### `createRun()` [#create-run]
 
-Enqueues an immediate run. An idempotency key makes retries for this Task resolve to the same logical run; omitting the body sends `{}`.
+Starts a run now and returns its ID without waiting for it.
 
 **Signature:** `createRun(input: CreateTaskRunBody & { taskId: string } & ResourceRequestOptions): Promise<CreateTaskRunResponse>`
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `taskId` | `string` | yes | Task ID (`tk_…`) |
-| `idempotencyKey` | `string` | no | Non-empty caller-defined replay key |
 
 ```typescript
 const { runId } = await client.tasks.createRun({
   taskId,
-  idempotencyKey: "daily-summary-2026-08-02",
+  idempotencyKey: "release-summary-2026-09-26",
 });
 ```
 
-Returns immediately with `{ runId: string }`. Persist `runId`, then use `getRun()` and `runMessages()` from a later request, process, or worker. Raises `validation_failed`, `not_found`, `task_active_run_exists`, `agent_version_not_found`, or `agent_disabled`. See [`POST .../runs`](/api-reference/rest-api/task-runs#create-task-run).
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `taskId` | `string` | yes | Task ID (`tk_…`) |
+| `idempotencyKey` | `string` | no | Your key for this run; retrying with the same key returns the same run |
+
+Returns `{ runId: string }`. Save it and check the run later with [`getRun()`](#get-run). Errors: `validation_failed`, `not_found`, `task_active_run_exists`, `agent_version_not_found`, `agent_disabled`.
 
 ### `listRuns()` [#list-runs]
 
-Lists a Task's runs newest first.
+Lists a task's runs, newest first.
 
 **Signature:** `listRuns(input: { taskId: string } & TaskRunsListOptions): Promise<TaskRunsListResponse>`
 
-| Option | Type | Required | Description |
-| --- | --- | --- | --- |
-| `cursor` | `string` | no | Opaque cursor from `nextCursor` |
-| `limit` | `number` | no | Page size, default 50 and maximum 200 |
-
 ```typescript
-const page = await client.tasks.listRuns({ taskId, limit: 25 });
+const { data } = await client.tasks.listRuns({ taskId, limit: 10 });
 ```
 
-Returns [`TaskRunsListResponse`](#taskrunslistresponse). Raises `validation_failed`, `invalid_cursor`, or `not_found`. See [`GET .../runs`](/api-reference/rest-api/task-runs#list-task-runs).
+| Option | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+
+Returns [`TaskRunsListResponse`](#taskrunresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
 
 ### `getRun()` [#get-run]
 
-Retrieves durable state for one run. `sessionId` remains `null` until execution attaches its fresh Session.
+Reads one run's status.
 
 **Signature:** `getRun(input: { taskId: string; runId: string } & ResourceRequestOptions): Promise<TaskRunResponse>`
 
 ```typescript
 const run = await client.tasks.getRun({ taskId, runId });
+if (run.status === "queued" || run.status === "running") {
+  console.log("Still working; check again later.");
+} else {
+  console.log(run.status, run.error);
+}
 ```
 
-Returns [`TaskRunResponse`](#taskrunresponse). Raises `validation_failed` for malformed IDs or `not_found` for a missing, foreign, or mismatched Task/run pair. See [`GET .../runs/:runId`](/api-reference/rest-api/task-runs#get-task-run).
+Returns [`TaskRunResponse`](#taskrunresponse). `sessionId` is `null` until the run starts. Errors: `validation_failed`, `not_found`.
 
 ### `runMessages()` [#run-messages]
 
-Reads a run's Session transcript. A queued run without a Session returns an empty page. Use `cursor` to walk backward or `after` to poll forward, never both.
+Reads the messages from a run's session, the same way [`sessions.messages()`](/sdk/typescript/sessions#messages) does.
 
 **Signature:** `runMessages(input: { taskId: string; runId: string } & TaskRunMessagesOptions): Promise<TaskRunMessagesResponse>`
 
-| Option | Type | Required | Description |
-| --- | --- | --- | --- |
-| `cursor` | `string` | no | Walk backward to older messages |
-| `after` | `string` | no | Poll messages after a prior `latestCursor` |
-| `limit` | `number` | no | Page size, default 50 and maximum 200 |
-
 ```typescript
-const transcript = await client.tasks.runMessages({
-  taskId,
-  runId,
-  after: latestCursor,
-  limit: 50,
-});
+const page = await client.tasks.runMessages({ taskId, runId });
+const newer = page.latestCursor
+  ? await client.tasks.runMessages({ taskId, runId, after: page.latestCursor })
+  : null;
 ```
 
-Returns [`TaskRunMessagesResponse`](#taskrunmessagesresponse). Raises `validation_failed` for invalid IDs/options, `invalid_cursor` for an unusable cursor, or `not_found` for a missing Task/run pair. See [`GET .../messages`](/api-reference/rest-api/task-runs#list-task-run-messages).
+| Option | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `cursor` | `string` | no | — | Go back to older messages |
+| `after` | `string` | no | — | Fetch messages added since an earlier `latestCursor` |
+
+A run that has not started returns an empty page. Do not pass `cursor` and `after` together. Returns [`TaskRunMessagesResponse`](#taskrunmessagesresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
 
 ### `cancelRun()` [#cancel-run]
 
-Requests cooperative cancellation and returns before the state transition finishes. Poll `getRun()` for the result. Missing, mismatched, and terminal runs are deliberately non-enumerating no-ops after an owned Task is found.
+Asks a run to stop and returns without waiting.
 
 **Signature:** `cancelRun(input: { taskId: string; runId: string } & ResourceRequestOptions): Promise<void>`
 
@@ -229,25 +220,27 @@ Requests cooperative cancellation and returns before the state transition finish
 await client.tasks.cancelRun({ taskId, runId });
 ```
 
-Returns `void`. Raises `validation_failed` for malformed IDs or `not_found` when the Task itself is unavailable. See [`POST .../cancel`](/api-reference/rest-api/task-runs#cancel-task-run).
+The run stops at its next safe point; poll [`getRun()`](#get-run) until its status is `canceled` or another final state. Cancelling a run that already finished, or a run ID the task does not have, does nothing. Errors: `validation_failed`, and `not_found` when the task does not exist.
 
 ## Response types [#response-types]
 
 ### `TaskResponse` [#taskresponse]
 
-`TaskResponse` is the Task object itself, not a wrapper.
-
 | Field | Type | Description |
 | --- | --- | --- |
-| `id`, `tenantId`, `agentId` | `string` | Task and ownership IDs |
-| `agentVersion` | `number \| null` | Version Pin or current Version |
-| `name`, `prompt` | `string` | Definition fields |
-| `schedule` | `TaskScheduleInput \| null` | Schedule or on-demand |
-| `enabled` | `boolean` | Scheduled-fire switch |
-| `activeRunId`, `latestRunId` | `string \| null` | Active and latest run IDs |
-| `userId` | `string` | Immutable Attribution |
-| `metadata` | `Record<string, unknown>` | Task metadata |
-| `deletedAt` | `string \| null` | Soft-deletion timestamp |
+| `id` | `string` | Task ID (`tk_…`) |
+| `tenantId` | `string` | Your tenant ID |
+| `agentId` | `string` | The agent that runs it |
+| `agentVersion` | `number \| null` | Pinned version, or `null` for current |
+| `name` | `string` | Task name |
+| `prompt` | `string` | The instruction |
+| `schedule` | `TaskScheduleInput \| null` | Schedule, or `null` for on-demand |
+| `enabled` | `boolean` | Whether the schedule fires |
+| `activeRunId` | `string \| null` | The run in progress |
+| `latestRunId` | `string \| null` | The most recent run |
+| `userId` | `string` | The end user, or `""` |
+| `metadata` | `Record<string, unknown>` | Your labels |
+| `deletedAt` | `string \| null` | When it was deleted |
 | `createdAt`, `updatedAt` | `string` | ISO 8601 timestamps |
 
 ### `CreateTaskResponse` [#createtaskresponse]
@@ -259,7 +252,7 @@ interface CreateTaskResponse {
 }
 ```
 
-`runId` is non-null only when `submit: true`.
+`runId` is set only when you passed `submit: true`.
 
 ### `TasksListResponse` [#taskslistresponse]
 
@@ -267,11 +260,7 @@ interface CreateTaskResponse {
 interface TasksListResponse {
   data: Array<
     TaskResponse & {
-      latestRun: {
-        id: string;
-        status: TaskRunStatus;
-        finishedAt: string | null;
-      } | null;
+      latestRun: { id: string; status: TaskRunStatus; finishedAt: string | null } | null;
     }
   >;
   nextCursor: string | null;
@@ -282,29 +271,27 @@ interface TasksListResponse {
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id`, `taskId`, `tenantId`, `agentId` | `string` | Run and ownership IDs |
-| `agentVersion` | `number` | Version selected at enqueue |
-| `sessionId` | `string \| null` | Fresh execution Session |
-| `turnId` | `string \| null` | Separate metered Turn ID after admission; `null` while queued or blocked |
-| `status` | `TaskRunStatus` | Durable lifecycle state |
-| `error` | `string \| null` | Failure or block explanation |
-| `userId` | `string` | Attribution inherited at enqueue |
-| `metadata` | `Record<string, unknown>` | Metadata inherited at enqueue |
-| `startedAt`, `finishedAt` | `string \| null` | Execution timestamps |
-| `cancelRequestedAt`, `canceledAt` | `string \| null` | Cancellation timestamps |
+| `id` | `string` | Run ID (`tr_…`) |
+| `taskId`, `tenantId`, `agentId` | `string` | Owning task, tenant, and agent |
+| `agentVersion` | `number` | The agent version the run uses |
+| `sessionId` | `string \| null` | The run's session, once started |
+| `turnId` | `string \| null` | The turn in your usage records, once started |
+| `status` | `TaskRunStatus` | Where the run is |
+| `error` | `string \| null` | Why it failed or was blocked |
+| `userId` | `string` | The task's end user when the run was created |
+| `metadata` | `Record<string, unknown>` | The task's metadata when the run was created |
+| `startedAt`, `finishedAt` | `string \| null` | When it started and ended |
+| `cancelRequestedAt`, `canceledAt` | `string \| null` | When cancellation was asked for and done |
 | `createdAt`, `updatedAt` | `string` | ISO 8601 timestamps |
 
 ```typescript
-type TaskRunStatus =
-  "queued" | "running" | "blocked" | "succeeded" | "failed" | "canceled";
+type TaskRunStatus = "queued" | "running" | "blocked" | "succeeded" | "failed" | "canceled";
 
 interface TaskRunsListResponse {
   data: TaskRunResponse[];
   nextCursor: string | null;
 }
 ```
-
-`queued` and `running` are active. Every other status is terminal; `blocked` represents an expected admission denial, such as quota exhaustion, a missing required subscription, or insufficient Usage credit, rather than an execution failure.
 
 ### `TaskRunMessagesResponse` [#taskrunmessagesresponse]
 
@@ -316,7 +303,7 @@ interface TaskRunMessagesResponse {
 }
 ```
 
-Save `latestCursor` and pass it as `after` to request only appended messages. See the canonical [Task schemas](/api-reference/protocols/objects-and-schemas#task).
+`SessionMessage` is described in the [sessions reference](/sdk/typescript/sessions#sessionmessagesresponse).
 
 ## Schedule types [#schedule-types]
 
@@ -324,80 +311,28 @@ Save `latestCursor` and pass it as `after` to request only appended messages. Se
 type TaskScheduleInput =
   | { kind: "once"; config: { at: string } }
   | { kind: "interval"; config: { everyMs: number } }
-  | {
-      kind: "cron";
-      config: {
-        expression: string;
-        timezone?: string;
-        staggerMs?: number;
-      };
-    };
+  | { kind: "cron"; config: { expression: string; timezone?: string; staggerMs?: number } };
 ```
 
-`at` is an ISO 8601 timestamp, intervals are at least 60 seconds, cron expressions contain five numeric fields, `timezone` defaults to `"UTC"`, and `staggerMs` is non-negative.
+- `once`: runs at `at`, an ISO 8601 timestamp with an offset.
+- `interval`: runs every `everyMs` milliseconds, at least 60,000.
+- `cron`: a five-field numeric cron expression, such as `"0 9 * * 1-5"`. `timezone` is an IANA name and defaults to `"UTC"`. `staggerMs` adds a delay of up to that many milliseconds.
+
+A scheduled fire is skipped while another run of the task is active or the agent is disabled. See [Schedules](/automation/schedules).
 
 ## Errors [#errors]
 
-SDK request failures throw `BlazingAgentsError`. Branch on its stable `code`, not its message.
+Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The task codes:
 
-| Code | Common methods | Action |
-| --- | --- | --- |
-| `validation_failed` | All methods | Correct IDs, fields, schedule, list options, or mutually exclusive cursors |
-| `invalid_cursor` | List and transcript methods | Restart without the stale or malformed cursor |
-| `not_found` | ID-based methods | Check Task/run ownership and deletion state |
-| `task_active_run_exists` | `createRun()`, `delete()` | Wait for or cancel the active run |
-| `agent_version_not_found` | `create()`, `update()`, `createRun()` | Select an available Version Pin |
-| `agent_disabled` | Immediate submission and `createRun()` | Enable the Agent before enqueueing |
-| `admin_agent_managed` | `create()`, `update()` | Use a non-Admin Agent |
+| Code | Meaning |
+| --- | --- |
+| `task_active_run_exists` | A run is already active; wait or cancel it |
+| `agent_version_not_found` | The pinned agent version does not exist |
+| `agent_disabled` | The agent is disabled, so no run can start |
+| `admin_agent_managed` | Blazing Agents manages this agent, so it cannot run tasks |
 
-Cancellation deliberately does not reveal a missing or terminal run. Authentication, transport, malformed-response, and service failures can also throw. See [SDK errors](/api-reference/protocols/errors).
+## Next [#next]
 
-## End-to-end workflow [#end-to-end-workflow]
-
-Create an on-demand Task, enqueue one idempotent run, persist its identifiers,
-and return to the caller:
-
-```typescript
-import { BlazingAgents } from "@blazingagents/sdk";
-
-const client = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-});
-const agentId = "ag_0123456789abcdef";
-
-const { task } = await client.tasks.create({
-  agentId,
-  name: "Release summary",
-  prompt: "Summarize the release queue.",
-});
-
-const { runId } = await client.tasks.createRun({
-  taskId: task.id,
-  idempotencyKey: "release-summary-2026-08-02",
-});
-
-// Persist task.id and runId before this request ends.
-```
-
-From a later request, scheduled job, or worker invocation, load the persisted
-IDs and inspect one durable snapshot. If the run is active, end the invocation
-and let the caller or scheduler check again later:
-
-```typescript
-const run = await client.tasks.getRun({ taskId, runId });
-if (run.status === "queued" || run.status === "running") {
-  console.log("Task is still active; check again in a later invocation.");
-} else {
-  const transcript = await client.tasks.runMessages({ taskId, runId });
-  for (const message of transcript.data) console.log(message);
-  console.log(run.status, run.error);
-}
-```
-
-## Related [#related]
-
-- [Tasks and schedules](/automation/tasks)
-- [Run a background Task](/automation/tasks)
-- [Schedule recurring work](/automation/schedules)
-- [REST Tasks](/api-reference/rest-api/tasks)
-- [REST Task runs](/api-reference/rest-api/task-runs)
+- [Tasks](/automation/tasks)
+- [Schedules](/automation/schedules)
+- [Sessions reference](/sdk/typescript/sessions)

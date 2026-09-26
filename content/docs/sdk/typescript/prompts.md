@@ -1,116 +1,121 @@
 ---
 title: Prompts
-description: Manage reusable Prompt templates and invoke them from generation helpers.
+description: Save reusable prompt templates with variables and manage them with the TypeScript SDK.
 ---
 
 # Prompts
 
-`client.prompts` manages tenant-owned named message templates. Variables are inferred from `{{variable}}` placeholders and supplied only when invoking the Prompt.
-
-Every network method accepts one input object with optional `abortSignal`.
-`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
-types include that field too.
-
-## Overview [#overview]
-
-Prompt names are unique within a Tenant. A Prompt belongs either to the Tenant (`userId: ""`) or to an attributed End-user; Attribution is set at creation and cannot be changed. Metadata and template content remain mutable. An optional, mutable `agentId` links to an Agent in the same Tenant. Deleting that Agent deletes linked Prompts. Update with `agentId: null` to clear the link.
-
-Templates may contain up to 10 variables. Variable names must match `[A-Za-z_][A-Za-z0-9_]*`. Updating a template recomputes the returned `variables` array. Prompt records are not retained in transcripts; only their rendered text enters a generation or Session transcript.
-
-## Available operations [#available-operations]
-
-| Method | Description | Returns |
-| --- | --- | --- |
-| [`create()`](#create) | Create a reusable Prompt | `PromptResponse` |
-| [`list()`](#list) | List all or filter by exact `userId` and/or `agentId` | `PromptsResponse` |
-| [`get()`](#get) | Retrieve one Prompt | `PromptResponse` |
-| [`update()`](#update) | Change a Prompt's name, template, metadata, or Agent link | `PromptResponse` |
-| [`delete()`](#delete) | Permanently delete a Prompt | `void` |
-
-## Methods [#methods]
-
-### `create()` [#create]
-
-Creates a Prompt and infers its variable names from the template.
-
-**Signature:** `create(input: CreatePromptBody & ResourceRequestOptions): Promise<PromptResponse>`
-
-| Body field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | yes | Tenant-unique display name, 1–80 characters |
-| `template` | `string` | yes | Non-empty template, up to 10,240 characters and 10 variables |
-| `agentId` | `string \| null` | no | Same-Tenant Agent link; omitted or null means unlinked |
-| `userId` | `string` | no | End-user Attribution; defaults to `""` |
-| `metadata` | `Record<string, unknown>` | no | Mutable metadata; defaults to `{}` |
+`client.prompts` saves prompt templates you reuse across turns. Write `{{variable}}` placeholders in the template, then run it by passing its `promptId` and `variables` to `chat()`, `completion()`, or `object()`. To learn when a saved prompt helps, read [Prompts](/agents/prompts).
 
 ```typescript
 const prompt = await client.prompts.create({
   name: "Release note",
   template: "Write a release note for {{feature}}.",
-  userId: "user-42",
-  metadata: { channel: "changelog" },
+});
+
+const result = await client.completion({
+  agentId,
+  promptId: prompt.id,
+  variables: { feature: "faster search" },
+});
+console.log(await result.text);
+```
+
+Every method takes one input object and accepts an optional `abortSignal`.
+
+## Templates [#templates]
+
+- Variable names match `[A-Za-z_][A-Za-z0-9_]*`. A template has up to 10 different variables and 10,240 characters.
+- Blazing Agents reads the variables from the template and returns them in `variables`.
+- When you run a prompt, pass every variable and no others, or the turn fails with `prompt_variable_missing` or `prompt_variable_unknown`.
+- Only the filled-in text is saved in the session, so editing or deleting a prompt later does not change past conversations.
+
+## Available operations [#available-operations]
+
+| Method | Description | Returns |
+| --- | --- | --- |
+| [`create()`](#create) | Save a prompt | `PromptResponse` |
+| [`list()`](#list) | List prompts | `PromptsResponse` |
+| [`get()`](#get) | Read one prompt | `PromptResponse` |
+| [`update()`](#update) | Change a prompt | `PromptResponse` |
+| [`delete()`](#delete) | Delete a prompt | `void` |
+
+## Methods [#methods]
+
+### `create()` [#create]
+
+Saves a prompt template.
+
+**Signature:** `create(input: CreatePromptBody & ResourceRequestOptions): Promise<PromptResponse>`
+
+```typescript
+const prompt = await client.prompts.create({
+  name: "Release note",
+  template: "Write a release note for {{feature}} aimed at {{audience}}.",
+  agentId,
 });
 ```
 
-Returns [`PromptResponse`](#promptresponse). Raises `validation_failed` for invalid input, `prompt_name_conflict` for a duplicate name, or `prompt_limit_reached` at the Tenant cap. A missing or foreign Agent uses `not_found`. See [`POST /v1/prompts`](/api-reference/rest-api/prompts#create-prompt).
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `name` | `string` | yes | — | 1 to 80 characters, unique in your tenant |
+| `template` | `string` | yes | — | The template text |
+| `agentId` | `string \| null` | no | `null` | Agent to link it to, for your own grouping |
+| `userId` | `string` | no | `""` | The end user it belongs to; cannot change later |
+| `metadata` | `Record<string, unknown>` | no | `{}` | Your labels |
+
+Deleting the linked agent also deletes the prompt. Your tenant can hold up to 100 prompts. Returns [`PromptResponse`](#promptresponse). Errors: `validation_failed`, `prompt_name_conflict`, `prompt_limit_reached`, and `not_found` when the agent does not exist.
 
 ### `list()` [#list]
 
-Lists Prompts by most recent update. Omit both filters to list every Prompt or pass exact values; `""` selects Tenant-level Prompts.
+Lists your prompts, most recently updated first.
 
 **Signature:** `list(input?: { userId?: string; agentId?: string } & ResourceRequestOptions): Promise<PromptsResponse>`
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `userId` | `string` | no | Exact Attribution filter |
-| `agentId` | `string` | no | Exact Agent link filter; combines with userId |
-
 ```typescript
-const { prompts } = await client.prompts.list({ userId: "user-42", agentId: "ag_0123456789abcdef" });
+const { prompts } = await client.prompts.list({ agentId });
 ```
 
-Returns `{ prompts: PromptResponse[] }`. Only standard authentication and service errors apply. See [`GET /v1/prompts`](/api-reference/rest-api/prompts#list-prompts).
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `userId` | `string` | no | Only this end user's prompts; `""` for tenant-level ones |
+| `agentId` | `string` | no | Only prompts linked to this agent |
+
+The result is not paginated. Returns `{ prompts: PromptResponse[] }`.
 
 ### `get()` [#get]
 
-Retrieves one Prompt by its `prompt_…` ID.
+Reads one prompt.
 
 **Signature:** `get(input: { promptId: string } & ResourceRequestOptions): Promise<PromptResponse>`
 
 ```typescript
 const prompt = await client.prompts.get({ promptId });
+console.log(prompt.variables);
 ```
 
-Returns [`PromptResponse`](#promptresponse). Raises `validation_failed` for a malformed ID or `not_found` when the Prompt is unavailable. See [`GET /v1/prompts/:promptId`](/api-reference/rest-api/prompts#get-prompt).
+Returns [`PromptResponse`](#promptresponse). Errors: `validation_failed`, `not_found`.
 
 ### `update()` [#update]
 
-Changes a Prompt in place. Omitted fields remain unchanged, and `userId` cannot be updated.
+Changes a prompt's name, template, agent link, or metadata.
 
 **Signature:** `update(input: UpdatePromptBody & { promptId: string } & ResourceRequestOptions): Promise<PromptResponse>`
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `promptId` | `string` | yes | Prompt ID (`prompt_…`) |
-| `agentId` | `string \| null` | no | Set or clear the Agent link |
-| `name` | `string` | no | New Tenant-unique name |
-| `template` | `string` | no | New template; recomputes `variables` |
-| `metadata` | `Record<string, unknown>` | no | Complete replacement metadata |
-
-At least one body field is required.
 
 ```typescript
 const prompt = await client.prompts.update({
   promptId,
-  template: "Summarize {{feature}} for the {{audience}}.",
+  template: "Summarize {{feature}} for {{audience}}.",
 });
 ```
 
-Returns [`PromptResponse`](#promptresponse). Raises `validation_failed` for invalid or empty input, `prompt_name_conflict` for a duplicate name, or `not_found` when unavailable. See [`PATCH /v1/prompts/:promptId`](/api-reference/rest-api/prompts#update-prompt).
+Takes `promptId` plus any of `name`, `template`, `agentId`, and `metadata`, with at least one. Fields you leave out stay as they are; `metadata` replaces all metadata, and `agentId: null` removes the link. `userId` cannot change. The next turn that uses the prompt gets the new template.
+
+Returns [`PromptResponse`](#promptresponse). Errors: `validation_failed`, `prompt_name_conflict`, `not_found`.
 
 ### `delete()` [#delete]
 
-Permanently deletes a Prompt. Previously rendered transcripts remain unchanged.
+Deletes a prompt for good.
 
 **Signature:** `delete(input: { promptId: string } & ResourceRequestOptions): Promise<void>`
 
@@ -118,7 +123,7 @@ Permanently deletes a Prompt. Previously rendered transcripts remain unchanged.
 await client.prompts.delete({ promptId });
 ```
 
-Returns `void`. Raises `validation_failed` for a malformed ID or `not_found` when the Prompt is unavailable. See [`DELETE /v1/prompts/:promptId`](/api-reference/rest-api/prompts#delete-prompt).
+Errors: `validation_failed`, `not_found`.
 
 ## Response types [#response-types]
 
@@ -127,65 +132,30 @@ Returns `void`. Raises `validation_failed` for a malformed ID or `not_found` whe
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `string` | Prompt ID (`prompt_…`) |
-| `tenantId` | `string` | Owning Tenant ID (`ten_…`) |
-| `agentId` | `string \| null` | Linked Agent; null when unlinked |
-| `name` | `string` | Tenant-unique display name |
-| `template` | `string` | Unrendered template |
-| `variables` | `string[]` | Inferred, de-duplicated variable names in template order |
-| `userId` | `string` | Immutable End-user Attribution; `""` means Tenant-level |
-| `metadata` | `Record<string, unknown>` | Mutable metadata |
-| `createdAt` | `string` | ISO 8601 creation timestamp |
-| `updatedAt` | `string` | ISO 8601 update timestamp |
+| `tenantId` | `string` | Your tenant ID |
+| `agentId` | `string \| null` | Linked agent, or `null` |
+| `name` | `string` | Prompt name |
+| `template` | `string` | The template text |
+| `variables` | `string[]` | Variable names, in the order they first appear |
+| `userId` | `string` | The end user it belongs to, or `""` |
+| `metadata` | `Record<string, unknown>` | Your labels |
+| `createdAt` | `string` | ISO 8601 timestamp |
+| `updatedAt` | `string` | ISO 8601 timestamp |
 
-`PromptsResponse` is `{ prompts: PromptResponse[] }`. See the canonical [Prompt schemas](/api-reference/protocols/objects-and-schemas#prompt-response).
+`PromptsResponse` is `{ prompts: PromptResponse[] }`.
 
 ## Errors [#errors]
 
-SDK request failures throw `BlazingAgentsError`. Branch on its stable `code`, not its message.
+Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The prompt codes:
 
-| Code | Applies to | Action |
-| --- | --- | --- |
-| `validation_failed` | All mutations and ID lookups | Correct the indicated input |
-| `prompt_name_conflict` | `create()`, `update()` | Choose a unique name |
-| `prompt_limit_reached` | `create()` | Delete an unused Prompt or raise the Tenant cap |
-| `not_found` | `get()`, `update()`, `delete()` | Check that the Prompt exists in this Tenant |
-| `prompt_variable_missing` | Prompt invocation | Supply every inferred variable |
-| `prompt_variable_unknown` | Prompt invocation | Remove variables not declared by the template |
+| Code | Meaning |
+| --- | --- |
+| `prompt_name_conflict` | Another prompt has this name |
+| `prompt_limit_reached` | Your tenant already has 100 prompts |
+| `prompt_variable_missing` | A turn left out one of the prompt's variables |
+| `prompt_variable_unknown` | A turn passed a variable the template does not use |
 
-See [SDK errors](/api-reference/protocols/errors).
-
-## End-to-end workflow [#end-to-end-workflow]
-
-Create a Prompt, invoke it through a generation helper, update it, then delete it:
-
-```typescript
-import { BlazingAgents } from "@blazingagents/sdk";
-
-const client = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-});
-
-const prompt = await client.prompts.create({
-  name: "Release note",
-  template: "Write a release note for {{feature}}.",
-});
-
-const result = await client.completion({
-  agentId: "ag_0123456789abcdef",
-  promptId: prompt.id,
-  variables: { feature: "faster search" },
-});
-console.log(await result.text);
-
-await client.prompts.update({
-  promptId: prompt.id,
-  metadata: { purpose: "release" },
-});
-await client.prompts.delete({ promptId: prompt.id });
-```
-
-## Related [#related]
+## Next [#next]
 
 - [Prompts](/agents/prompts)
-- [Generate structured output](/agents/output/structured-output)
-- [REST Prompts](/api-reference/rest-api/prompts)
+- [Client generation methods](/sdk/typescript/client#generation-methods)

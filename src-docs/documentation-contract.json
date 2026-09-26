@@ -1847,10 +1847,6 @@
           {
             "language": "typescript",
             "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
           }
         ]
       },
@@ -1931,6 +1927,10 @@
           {
             "language": "typescript",
             "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
           }
         ]
       },
@@ -1950,14 +1950,6 @@
       "fences": {
         "endpointCurls": false,
         "items": [
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
           {
             "language": "typescript",
             "metadata": {}

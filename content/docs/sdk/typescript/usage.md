@@ -1,171 +1,137 @@
 ---
 title: Usage
-description: Query bounded Tenant-wide and per-Agent token, request, and duration rollups.
+description: Read token, request, and duration usage by day, agent, model, session, or end user with the TypeScript SDK.
 ---
 
 # Usage
 
-`client.usage` reads append-only per-Turn usage after it has been rolled up daily. Results are operational measurements, not billing records.
+`client.usage` tells you how many tokens and requests your agents used, and for whom. Use it to build a usage dashboard, show one end user their consumption, or find the sessions that used the most tokens. To learn how usage is counted and how quotas stop runaway spend, read [Usage and quotas](/platform/usage-and-quotas).
 
-Every network method accepts one input object with optional `abortSignal`.
-`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
-types include that field too.
+```typescript
+const { buckets, totals } = await client.usage.get({ groupBy: "user" });
+for (const bucket of buckets) {
+  console.log(bucket.userId || "(tenant)", bucket.inputTokens + bucket.outputTokens);
+}
+console.log(totals.requestCount);
+```
 
-## Overview [#overview]
+Every method takes one input object and accepts an optional `abortSignal`. Usage is summed per day. Use it to monitor your agents, not as billing records.
 
-Usage reports input tokens, output tokens, requests, and duration in milliseconds. Queries may filter by Agent, Session, or End-user Attribution and group by `day`, `agent`, `model`, `session`, or `user`.
+## Date ranges [#date-ranges]
 
-Supply both `from` and `to` or neither. The default is the last 30 days ending today in UTC; a custom inclusive range spans at most 31 days. `groupBy` defaults to `day`. `limit` defaults to 50, ranges from 1 to 200, and affects only the top Sessions returned by `groupBy: "session"`.
+`from` and `to` are UTC dates such as `"2026-09-01"`, both included. Pass both or neither. Without them you get the last 30 days ending today. A range covers at most 31 days.
 
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`overview()`](#overview-method) | Query dashboard totals and bounded breakdowns | `UsageOverviewResponse` |
-| [`get()`](#get) | Query Tenant-wide usage | `UsageResponse` |
-| [`getForAgent()`](#get-for-agent) | Query usage scoped to one Agent | `UsageResponse` |
+| [`overview()`](#overview-method) | Totals, daily series, and top agents, users, and models in one call | `UsageOverviewResponse` |
+| [`get()`](#get) | Usage across your tenant, grouped one way | `UsageResponse` |
+| [`getForAgent()`](#get-for-agent) | Usage for one agent, grouped one way | `UsageResponse` |
 
 ## Methods [#methods]
 
 ### `overview()` [#overview-method]
 
-Returns dashboard-ready usage across the Tenant in one bounded response.
+Returns everything a usage dashboard needs in one response.
 
 **Signature:** `overview(input?: Partial<UsageOverviewQuery> & ResourceRequestOptions): Promise<UsageOverviewResponse>`
 
-| Query field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `from` | `string` | with `to` | Inclusive UTC date (`YYYY-MM-DD`) |
-| `to` | `string` | with `from` | Inclusive UTC date (`YYYY-MM-DD`) |
-| `limit` | `number` | no | Top rows per ranking, 1–20; defaults to 5 |
-
 ```typescript
-const dashboard = await client.usage.overview({
-  from: "2026-07-01",
-  to: "2026-07-07",
-  limit: 5,
-});
-
-console.log(dashboard.totals.requestCount, dashboard.activeAgentCount);
+const overview = await client.usage.overview({ from: "2026-09-01", to: "2026-09-07" });
+console.log(overview.totals.requestCount, overview.activeAgentCount);
 ```
 
-Returns [`UsageOverviewResponse`](#usageoverviewresponse). Raises
-`validation_failed` for a partial, reversed, or oversized range or invalid
-limit. See [`GET /v1/usage/overview`](/api-reference/rest-api/usage#get-usage-overview).
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `from` | `string` | with `to` | 30 days ago | First UTC date |
+| `to` | `string` | with `from` | today | Last UTC date |
+| `limit` | `number` | no | `5` | 1 to 20 rows in each top list |
+
+Returns [`UsageOverviewResponse`](#usageoverviewresponse). Errors: `validation_failed`.
 
 ### `get()` [#get]
 
-Returns usage across the Tenant, optionally narrowed by Agent, Session, or Attribution.
+Returns usage across your tenant, grouped by one dimension and optionally filtered.
 
 **Signature:** `get(input?: Partial<UsageQuery> & ResourceRequestOptions): Promise<UsageResponse>`
 
-| Query field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `from` | `string` | with `to` | Inclusive UTC date (`YYYY-MM-DD`) |
-| `to` | `string` | with `from` | Inclusive UTC date (`YYYY-MM-DD`) |
-| `agentId` | `string` | no | Agent filter (`ag_…`) |
-| `sessionId` | `string` | no | Session filter (`ss_…`); `""` selects stateless Turns |
-| `userId` | `string` | no | Exact Attribution filter; `""` selects Tenant-level usage |
-| `groupBy` | `UsageGroupBy` | no | `day`, `agent`, `model`, `session`, or `user`; defaults to `day` |
-| `limit` | `number` | no | Integer 1–200; top-N limit for Session grouping |
-
 ```typescript
 const usage = await client.usage.get({
-  from: "2026-07-01",
-  to: "2026-07-20",
-  groupBy: "day",
+  from: "2026-09-01",
+  to: "2026-09-26",
+  userId: "user_42",
+  groupBy: "model",
 });
 ```
 
-Returns [`UsageResponse`](#usageresponse). Raises `validation_failed` for a partial, reversed, or oversized range or an invalid filter, grouping, or limit. See [`GET /v1/usage`](/api-reference/rest-api/usage#get-usage).
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `from` | `string` | with `to` | 30 days ago | First UTC date |
+| `to` | `string` | with `from` | today | Last UTC date |
+| `groupBy` | `"day" \| "agent" \| "model" \| "session" \| "user"` | no | `"day"` | One bucket per value |
+| `agentId` | `string` | no | — | Only this agent |
+| `sessionId` | `string` | no | — | Only this session; `""` for turns without a session (`completion()` and `object()`) |
+| `userId` | `string` | no | — | Only this end user; `""` for tenant-level usage |
+| `limit` | `number` | no | `50` | 1 to 200; with `groupBy: "session"`, returns the top sessions by tokens |
+
+Returns [`UsageResponse`](#usageresponse). Errors: `validation_failed`.
 
 ### `getForAgent()` [#get-for-agent]
 
-Returns usage scoped to the Agent in the path. The aggregation does not require the Agent to exist; a valid ID with no matching rows returns empty buckets and zero totals.
+Returns usage for one agent. It takes the same fields as [`get()`](#get), with `agentId` required.
 
 **Signature:** `getForAgent(input: Partial<UsageQuery> & { agentId: string } & ResourceRequestOptions): Promise<UsageResponse>`
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent scope (`ag_…`) |
-| Other fields from `UsageQuery` | — | no | Same filters and grouping as `get()`, alongside `agentId` |
-
-The input's `agentId` fixes the Agent scope. Supply filters such as `userId`
-and `groupBy` in the same object.
-
 ```typescript
 const usage = await client.usage.getForAgent({
-  agentId: "ag_0123456789abcdef",
-  userId: "user-42",
+  agentId,
+  userId: "user_42",
   groupBy: "session",
   limit: 20,
 });
 ```
 
-Returns [`UsageResponse`](#usageresponse). Raises `validation_failed` for a malformed Agent ID or invalid usage query. See [`GET /v1/agents/:agentId/usage`](/api-reference/rest-api/usage#get-agent-usage).
+An agent with no usage, including one you deleted, returns empty buckets and zero totals. Returns [`UsageResponse`](#usageresponse). Errors: `validation_failed`.
 
 ## Response types [#response-types]
-
-### `UsageQuery` [#usagequery]
-
-```typescript
-type UsageGroupBy = "day" | "agent" | "model" | "session" | "user";
-
-interface UsageQuery {
-  from?: string;
-  to?: string;
-  agentId?: string;
-  sessionId?: string;
-  userId?: string;
-  groupBy: UsageGroupBy;
-  limit: number;
-}
-```
-
-The SDK accepts `Partial<UsageQuery>`, so defaults may fill `groupBy`, `limit`, and the date window.
 
 ### `UsageBucket` [#usagebucket]
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `day` | `string \| null` | UTC date for day grouping; otherwise `null` |
-| `agentId` | `string \| null` | Agent ID for Agent grouping; otherwise `null` |
-| `sessionId` | `string \| null` | Session ID for Session grouping; stateless usage is `null` |
-| `userId` | `string \| null` | Attribution for user grouping; `""` remains the Tenant-level bucket |
-| `provider` | `string \| null` | Provider for model grouping; otherwise `null` |
-| `model` | `string \| null` | Model for model grouping; otherwise `null` |
-| `inputTokens` | `number` | Non-negative input-token count |
-| `outputTokens` | `number` | Non-negative output-token count |
-| `requestCount` | `number` | Non-negative request count |
-| `durationMs` | `number` | Non-negative total duration in milliseconds |
+| `day` | `string \| null` | UTC date, when grouped by day |
+| `agentId` | `string \| null` | Agent, when grouped by agent |
+| `sessionId` | `string \| null` | Session, when grouped by session; `null` for turns without one |
+| `userId` | `string \| null` | End user, when grouped by user; `""` is tenant-level usage |
+| `provider` | `string \| null` | Provider, when grouped by model |
+| `model` | `string \| null` | Model, when grouped by model |
+| `inputTokens` | `number` | Input tokens |
+| `outputTokens` | `number` | Output tokens |
+| `requestCount` | `number` | Number of turns |
+| `durationMs` | `number` | Total time in milliseconds |
+
+Fields that do not match the grouping are `null`.
 
 ### `UsageResponse` [#usageresponse]
 
 ```typescript
+interface UsageResponse {
+  buckets: UsageBucket[];
+  totals: UsageTotals;
+}
+
 interface UsageTotals {
   inputTokens: number;
   outputTokens: number;
   requestCount: number;
   durationMs: number;
 }
-
-interface UsageResponse {
-  buckets: UsageBucket[];
-  totals: UsageTotals;
-}
 ```
-
-Fields unrelated to the selected grouping are `null`. See the canonical [Usage schemas](/api-reference/protocols/objects-and-schemas#usage-response).
 
 ### `UsageOverviewResponse` [#usageoverviewresponse]
 
 ```typescript
-interface UsageOverviewQuery {
-  from?: string;
-  to?: string;
-  limit: number;
-}
-
 interface UsageOverviewResponse {
   totals: UsageTotals;
   daily: UsageBucket[];
@@ -176,58 +142,14 @@ interface UsageOverviewResponse {
 }
 ```
 
-The SDK accepts `Partial<UsageOverviewQuery>`. `daily` contains every day in
-the selected or default range in ascending order, including zero-usage days.
-`byAgent` and `byUser` contain the top `limit` rows by
-total tokens. `byModel` contains the top rows and may end with a remainder
-bucket whose `provider` and `model` are both `null`, so summing model buckets
-still matches `totals`. Tenant-level usage has `userId: ""` and can appear in
-`byUser`. `activeAgentCount` covers all used Agents before the ranking limit.
+- `daily` has one bucket for every day in the range, oldest first, including days with no usage.
+- `byAgent` and `byUser` list the top `limit` entries by total tokens, and `byModel` the top `limit` models.
+- `byModel` may end with one bucket whose `provider` and `model` are both `null`. It holds all other models, so the model buckets add up to `totals`.
+- `activeAgentCount` counts every agent with usage in the range, not only the top ones.
 
-## Errors [#errors]
+The package exports `UsageBucket`, `UsageTotals`, `UsageOverviewQuery`, and `UsageOverviewResponse`.
 
-SDK request failures throw `BlazingAgentsError`. Branch on its stable `code`, not its message.
-
-| Code | Applies to | Action |
-| --- | --- | --- |
-| `validation_failed` | All methods | Correct the date range, ID, filter, grouping, or limit |
-
-Authentication, transport, malformed-response, and service failures may also throw. See [SDK errors](/api-reference/protocols/errors).
-
-## End-to-end workflow [#end-to-end-workflow]
-
-Compare Tenant totals with one Agent's model breakdown over the same range:
-
-```typescript
-import { BlazingAgents } from "@blazingagents/sdk";
-
-const client = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-});
-const range = { from: "2026-07-01", to: "2026-07-20" };
-
-const [tenantUsage, agentUsage] = await Promise.all([
-  client.usage.get({ ...range, groupBy: "day" }),
-  client.usage.getForAgent({
-    agentId: "ag_0123456789abcdef",
-    ...range,
-    groupBy: "model",
-  }),
-]);
-
-console.log({
-  tenantRequests: tenantUsage.totals.requestCount,
-  agentModels: agentUsage.buckets.map(({ provider, model, inputTokens }) => ({
-    provider,
-    model,
-    inputTokens,
-  })),
-});
-```
-
-## Related [#related]
+## Next [#next]
 
 - [Usage and quotas](/platform/usage-and-quotas)
-- [Monitor usage and quotas](/platform/usage-and-quotas)
-- [REST Usage](/api-reference/rest-api/usage)
-- [Pagination and filtering](/api-reference/protocols/pagination-and-filtering)
+- [Tenant reference](/sdk/typescript/tenant#patch)
