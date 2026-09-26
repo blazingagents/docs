@@ -8922,7 +8922,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "sdk/index.mdx",
             "type": "page",
             "name": "SDK",
-            "description": "Choose a first-party SDK for operating Blazing Agents from backend application code.",
+            "description": "Call Blazing Agents from your backend with a typed TypeScript or Python client.",
             "url": "/sdk",
             "$ref": "sdk/index.mdx"
           },
@@ -8934,7 +8934,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/index.mdx",
                 "type": "page",
                 "name": "TypeScript SDK",
-                "description": "Install, configure, and navigate the typed server client for Blazing Agents.",
+                "description": "Install the TypeScript client and find the method for every Blazing Agents operation.",
                 "url": "/sdk/typescript",
                 "$ref": "sdk/typescript/index.mdx"
               },
@@ -8942,7 +8942,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/client.md",
                 "type": "page",
                 "name": "Client",
-                "description": "Configure the TypeScript client and use its root chat, completion, and structured-output methods.",
+                "description": "Configure the TypeScript client and run turns with chat, completion, and structured output.",
                 "url": "/sdk/typescript/client",
                 "$ref": "sdk/typescript/client.md"
               },
