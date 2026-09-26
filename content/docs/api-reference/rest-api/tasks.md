@@ -5,6 +5,10 @@ description: Run agent work in the background, on demand or on a schedule.
 
 # Tasks
 
+## Overview [#overview]
+
+A task is a saved prompt for an agent that runs in the background, on demand or on a schedule. Each run gets its own record and transcript, so you can check on it later. Use tasks for reports, syncs, and other work nobody waits on.
+
 ## Tool approval policy [#tool-approval-policy]
 
 Task runs follow the agent version's `approvalInTasks` policy. Nobody is
@@ -14,111 +18,28 @@ which actions were blocked and keeps going with what it is allowed to do. If a
 run ends up waiting for a person anyway, it fails. See
 [Tool approvals](/agents/tools/tool-approvals).
 
-## Overview [#overview]
-
-A task is a saved prompt for an agent that runs in the background, on demand or on a schedule. Each run gets its own record and transcript, so you can check on it later. Use tasks for reports, syncs, and other work nobody waits on.
-
 ## Endpoints [#endpoints]
-
-### POST /v1/tasks [#create-task]
-
-Creates a task to run on demand or on a schedule.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. There are no path or query parameters. You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-
-| Body field     | Type            | Required | Default |
-| -------------- | --------------- | -------- | ------- |
-| `agentId`      | string          | yes      | none       |
-| `agentVersion` | integer \| null | no       | `null`  |
-| `name`         | string          | yes      | none       |
-| `prompt`       | string          | yes      | none       |
-| `schedule`     | object \| null  | no       | `null`  |
-| `enabled`      | boolean         | no       | `true`  |
-| `submit`       | boolean         | no       | `false` |
-| `userId`       | string          | no       | `""`    |
-| `metadata`     | object          | no       | `{}`    |
-
-Names are 1–80 characters; prompts are 1–6,000 characters. Schedules use the [Task schedule shapes](/api-reference/protocols/objects-and-schemas#task).
-
-#### Response
-
-Returns `201 Created` with the complete [Task object](/api-reference/protocols/objects-and-schemas#task) and the queued run ID, or `null` when `submit` is false.
-
-Response schema: [`createTaskResponseSchema`](/api-reference/protocols/objects-and-schemas#create-task-response).
-
-```json
-{
-  "task": {
-    "id": "tk_1234567890ABCDEF",
-    "tenantId": "ten_1234567890ABCDEF",
-    "agentId": "ag_1234567890ABCDEF",
-    "agentVersion": null,
-    "name": "Daily summary",
-    "prompt": "Summarize open support cases.",
-    "schedule": {
-      "kind": "cron",
-      "config": { "expression": "0 9 * * 1-5", "timezone": "Europe/London" }
-    },
-    "enabled": true,
-    "activeRunId": null,
-    "latestRunId": null,
-    "userId": "",
-    "metadata": {},
-    "deletedAt": null,
-    "createdAt": "2026-07-10T10:00:00Z",
-    "updatedAt": "2026-07-10T10:00:00Z"
-  },
-  "runId": null
-}
-```
-
-#### Errors
-
-`400 validation_failed` for invalid fields or schedule. `404 agent_version_not_found` for a missing pinned version, `409 agent_disabled` when an immediate run hits a disabled agent, and `409 admin_agent_managed` because the platform-managed `ba assist` agent cannot run tasks. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/tasks" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{"agentId":"ag_1234567890ABCDEF","name":"Daily summary","prompt":"Summarize open support cases.","schedule":{"kind":"cron","config":{"expression":"0 9 * * 1-5","timezone":"Europe/London"}}}'
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/tasks#create) / [Python](/sdk/python/tasks#create). See [Tasks and schedules](/automation/tasks).
 
 ### GET /v1/tasks [#list-tasks]
 
-Lists tasks with their latest run status, one page at a time.
+List tasks.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-
-| Query parameter | Type    | Default | Description                                 |
-| --------------- | ------- | ------- | ------------------------------------------- |
-| `agentId`       | string  | none       | Restrict to one Agent                       |
-| `userId`        | string  | none       | Attribution filter; `""` means tenant-level |
-| `cursor`        | string  | none       | Opaque cursor                               |
-| `limit`         | integer | 50      | 1–200                                       |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | query |  | `ag_…` ID. |
+| `userId` | string | query |  |  |
+| `cursor` | string \| null | query |  |  |
+| `limit` | integer | query |  | 1–200. Defaults to `50`. |
 
 #### Response
 
-Returns `200 OK` with `{ data, nextCursor }`. Each `data` item is a complete [Task](/api-reference/protocols/objects-and-schemas#task) plus `latestRun: { id, status, finishedAt } | null`.
+Returns `200 OK` as `application/json`. A page of tasks.
 
-Response schema: [`tasksListResponseSchema`](/api-reference/protocols/objects-and-schemas#tasks-list-response).
+Response schema: `TaskList`.
 
 ```json
 {
@@ -127,81 +48,194 @@ Response schema: [`tasksListResponseSchema`](/api-reference/protocols/objects-an
       "id": "tk_1234567890ABCDEF",
       "tenantId": "ten_1234567890ABCDEF",
       "agentId": "ag_1234567890ABCDEF",
-      "agentVersion": null,
-      "name": "Daily summary",
-      "prompt": "Summarize open support cases.",
-      "schedule": null,
+      "agentVersion": 1,
+      "name": "string",
+      "prompt": "string",
+      "schedule": {
+        "kind": "once",
+        "config": {
+          "at": "2026-07-10T10:00:00Z"
+        }
+      },
       "enabled": true,
-      "activeRunId": null,
+      "activeRunId": "tr_1234567890ABCDEF",
       "latestRunId": "tr_1234567890ABCDEF",
-      "userId": "",
+      "userId": "string",
       "metadata": {},
-      "deletedAt": null,
+      "deletedAt": "2026-07-10T10:00:00Z",
       "createdAt": "2026-07-10T10:00:00Z",
-      "updatedAt": "2026-07-10T10:03:00Z",
+      "updatedAt": "2026-07-10T10:00:00Z",
       "latestRun": {
         "id": "tr_1234567890ABCDEF",
-        "status": "succeeded",
-        "finishedAt": "2026-07-10T10:03:00Z"
+        "status": "queued",
+        "finishedAt": "2026-07-10T10:00:00Z"
       }
     }
   ],
-  "nextCursor": null
+  "nextCursor": "string"
 }
 ```
 
 #### Errors
 
-`400 validation_failed` for invalid filters or limits; `400 invalid_cursor`
-for an opaque cursor that cannot be decoded. See [REST errors](/api-reference/protocols/errors).
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --get "$BLAZING_AGENTS_BASE_URL/v1/tasks" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "agentId=ag_1234567890ABCDEF" \
-  --data-urlencode "limit=50"
+curl "$BLAZING_AGENTS_BASE_URL/v1/tasks" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
+### POST /v1/tasks [#create-task]
 
-SDKs: [TypeScript](/sdk/typescript/tasks#list) / [Python](/sdk/python/tasks#list). See [Tasks and schedules](/automation/tasks).
-
-### GET /v1/tasks/:taskId [#get-task]
-
-Retrieves a task without running it.
+Create a task.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a `tk_…` `taskId` path parameter. There are no query or body parameters. You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | body | required | `ag_…` ID. |
+| `agentVersion` | integer \| null | body |  | 1–2147483647. Defaults to `null`. |
+| `name` | string | body | required | 1–80 characters. |
+| `prompt` | string | body | required | 1–6000 characters. |
+| `schedule` | object \| null | body |  | Defaults to `null`. |
+| `enabled` | boolean | body |  | Defaults to `true`. |
+| `submit` | boolean | body |  | Defaults to `false`. |
+| `userId` | string | body |  | Defaults to `""`. |
+| `metadata` | object | body |  | Defaults to `{}`. |
 
 #### Response
 
-Returns `200 OK` with the complete [Task object](/api-reference/protocols/objects-and-schemas#task).
+Returns `201 Created` as `application/json`. The created task.
 
-Response schema: [`taskResponseSchema`](/api-reference/protocols/objects-and-schemas#task-response).
+Response schema: `CreatedTask`.
+
+```json
+{
+  "task": {
+    "id": "tk_1234567890ABCDEF",
+    "tenantId": "ten_1234567890ABCDEF",
+    "agentId": "ag_1234567890ABCDEF",
+    "agentVersion": 1,
+    "name": "string",
+    "prompt": "string",
+    "schedule": {
+      "kind": "once",
+      "config": {
+        "at": "2026-07-10T10:00:00Z"
+      }
+    },
+    "enabled": true,
+    "activeRunId": "tr_1234567890ABCDEF",
+    "latestRunId": "tr_1234567890ABCDEF",
+    "userId": "string",
+    "metadata": {},
+    "deletedAt": "2026-07-10T10:00:00Z",
+    "createdAt": "2026-07-10T10:00:00Z",
+    "updatedAt": "2026-07-10T10:00:00Z"
+  },
+  "runId": "tr_1234567890ABCDEF"
+}
+```
+
+Returns `202 Accepted` as `application/json`. The created task with its queued run id.
+
+Response schema: `CreatedTask`.
+
+```json
+{
+  "task": {
+    "id": "tk_1234567890ABCDEF",
+    "tenantId": "ten_1234567890ABCDEF",
+    "agentId": "ag_1234567890ABCDEF",
+    "agentVersion": 1,
+    "name": "string",
+    "prompt": "string",
+    "schedule": {
+      "kind": "once",
+      "config": {
+        "at": "2026-07-10T10:00:00Z"
+      }
+    },
+    "enabled": true,
+    "activeRunId": "tr_1234567890ABCDEF",
+    "latestRunId": "tr_1234567890ABCDEF",
+    "userId": "string",
+    "metadata": {},
+    "deletedAt": "2026-07-10T10:00:00Z",
+    "createdAt": "2026-07-10T10:00:00Z",
+    "updatedAt": "2026-07-10T10:00:00Z"
+  },
+  "runId": "tr_1234567890ABCDEF"
+}
+```
+
+#### Errors
+
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/tasks" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"agentId":"ag_1234567890ABCDEF","name":"string","prompt":"string"}'
+```
+
+### GET /v1/tasks/:taskId [#get-task]
+
+Get a task.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `taskId` | string | path | required | `tk_…` ID. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The task.
+
+Response schema: `Task`.
 
 ```json
 {
   "id": "tk_1234567890ABCDEF",
   "tenantId": "ten_1234567890ABCDEF",
   "agentId": "ag_1234567890ABCDEF",
-  "agentVersion": null,
-  "name": "Daily summary",
-  "prompt": "Summarize open support cases.",
-  "schedule": null,
+  "agentVersion": 1,
+  "name": "string",
+  "prompt": "string",
+  "schedule": {
+    "kind": "once",
+    "config": {
+      "at": "2026-07-10T10:00:00Z"
+    }
+  },
   "enabled": true,
-  "activeRunId": null,
-  "latestRunId": null,
-  "userId": "",
+  "activeRunId": "tr_1234567890ABCDEF",
+  "latestRunId": "tr_1234567890ABCDEF",
+  "userId": "string",
   "metadata": {},
-  "deletedAt": null,
+  "deletedAt": "2026-07-10T10:00:00Z",
   "createdAt": "2026-07-10T10:00:00Z",
   "updatedAt": "2026-07-10T10:00:00Z"
 }
@@ -209,7 +243,13 @@ Response schema: [`taskResponseSchema`](/api-reference/protocols/objects-and-sch
 
 #### Errors
 
-`400 validation_failed` for a malformed ID. `404 not_found` when the Task is missing, foreign, or deleted. See [REST errors](/api-reference/protocols/errors).
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -218,92 +258,106 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/tasks#get) / [Python](/sdk/python/tasks#get). See [Tasks and schedules](/automation/tasks).
-
 ### PATCH /v1/tasks/:taskId [#update-task]
 
-Updates a task. Schedule and enabled changes take effect for future runs.
+Update a task.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, and a `tk_…` `taskId`. You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
-
-| Body field     | Type            | Required | Description                     |
-| -------------- | --------------- | -------- | ------------------------------- |
-| `name`         | string          | no       | New name                        |
-| `agentVersion` | integer \| null | no       | Pin a Version or follow current |
-| `prompt`       | string          | no       | New fixed instruction           |
-| `schedule`     | object \| null  | no       | Replacement schedule or `null`  |
-| `enabled`      | boolean         | no       | Scheduling switch               |
-| `metadata`     | object          | no       | Replacement metadata            |
-
-At least one field is required.
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `taskId` | string | path | required | `tk_…` ID. |
+| `agentVersion` | integer \| null | body |  | 1–2147483647. |
+| `name` | string | body |  | 1–80 characters. |
+| `prompt` | string | body |  | 1–6000 characters. |
+| `schedule` | object \| null | body |  |  |
+| `enabled` | boolean | body |  |  |
+| `metadata` | object | body |  |  |
 
 #### Response
 
-Returns `200 OK` with the complete updated [Task object](/api-reference/protocols/objects-and-schemas#task).
+Returns `200 OK` as `application/json`. The updated task.
 
-Response schema: [`taskSchema`](/api-reference/protocols/objects-and-schemas#task).
+Response schema: `Task`.
+
+```json
+{
+  "id": "tk_1234567890ABCDEF",
+  "tenantId": "ten_1234567890ABCDEF",
+  "agentId": "ag_1234567890ABCDEF",
+  "agentVersion": 1,
+  "name": "string",
+  "prompt": "string",
+  "schedule": {
+    "kind": "once",
+    "config": {
+      "at": "2026-07-10T10:00:00Z"
+    }
+  },
+  "enabled": true,
+  "activeRunId": "tr_1234567890ABCDEF",
+  "latestRunId": "tr_1234567890ABCDEF",
+  "userId": "string",
+  "metadata": {},
+  "deletedAt": "2026-07-10T10:00:00Z",
+  "createdAt": "2026-07-10T10:00:00Z",
+  "updatedAt": "2026-07-10T10:00:00Z"
+}
+```
 
 #### Errors
 
-`400 validation_failed` for invalid/empty fields or schedule. `404 not_found` applies to a missing Task; `404 agent_version_not_found` rejects a missing pin, and `409 admin_agent_managed` for the platform-managed `ba assist` agent. See [REST errors](/api-reference/protocols/errors).
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request PATCH \
-  "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF" \
+curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"enabled":false,"metadata":{"pausedBy":"ops"}}'
+  --data '{"agentVersion":1}'
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/tasks#update) / [Python](/sdk/python/tasks#update). See [Tasks and schedules](/automation/tasks).
 
 ### DELETE /v1/tasks/:taskId [#delete-task]
 
-Deletes a task. Its past runs and sessions are kept.
+Delete a task.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a `tk_…` `taskId`. There are no query or body parameters. You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `taskId` | string | path | required | `tk_…` ID. |
 
 #### Response
 
-Returns `204 No Content` with an empty body.
+Returns `204 No Content`. Deleted.
 
 #### Errors
 
-`400 validation_failed` for a malformed ID; `409 task_active_run_exists` while
-a run is active. `404 not_found` applies when the Task is missing, foreign, or
-already deleted. See [REST errors](/api-reference/protocols/errors).
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF" \
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/tasks#delete) / [Python](/sdk/python/tasks#delete). See [Tasks and schedules](/automation/tasks).
 
 ## Next [#next]
 

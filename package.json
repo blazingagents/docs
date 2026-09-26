@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "build": "npm run generate && vite build --config vite.docs.config.mts && rm -rf .output/server .output/nitro.json && npm run verify-output",
-    "check": "npm run typecheck && npm run test && npm run lint:docs",
+    "check": "npm run typecheck && npm run test && npm run lint:docs && node scripts/rest-api.mjs --check",
     "dev": "npm run generate && vite --config vite.docs.config.mts",
     "generate": "node scripts/error-catalog.mjs && fumadocs-mdx source.config.ts .source && node scripts/generate-docs-manifest.mjs",
+    "generate:rest-api": "node scripts/rest-api.mjs",
     "lint:docs": "node scripts/lint-docs.mjs",
     "sync:openapi": "node scripts/sync-openapi.mjs",
     "test": "npm run generate && vitest run --config vitest.docs.config.mts && node scripts/verify-docs-coverage.mjs",

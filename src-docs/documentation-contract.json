@@ -3185,19 +3185,19 @@
     {
       "anchors": {
         "assignedIds": [
-          "create-agent",
           "list-agents",
+          "create-agent",
+          "list-agent-mcp-attachments",
+          "update-agent-mcp-attachment",
+          "list-agent-versions",
+          "get-agent-version",
           "get-agent",
           "update-agent",
           "delete-agent",
           "disable-agent",
           "enable-agent",
           "upload-agent-avatar",
-          "delete-agent-avatar",
-          "list-agent-versions",
-          "get-agent-version",
-          "list-agent-mcp-attachments",
-          "update-agent-mcp-attachment"
+          "delete-agent-avatar"
         ],
         "kind": "operations"
       },
@@ -3216,8 +3216,8 @@
     {
       "anchors": {
         "assignedIds": [
-          "create-workspace",
           "list-workspaces",
+          "create-workspace",
           "get-workspace",
           "update-workspace",
           "delete-workspace"
@@ -3239,9 +3239,9 @@
     {
       "anchors": {
         "assignedIds": [
+          "list-skills",
           "create-skill",
           "upload-skill",
-          "list-skills",
           "get-skill",
           "delete-skill",
           "get-skill-file",
@@ -3266,7 +3266,6 @@
     {
       "anchors": {
         "assignedIds": [
-          "get-current-identity",
           "get-tenant-settings",
           "update-tenant-settings"
         ],
@@ -3287,10 +3286,11 @@
     {
       "anchors": {
         "assignedIds": [
-          "create-provider",
           "list-providers",
-          "get-provider",
+          "create-provider",
           "list-provider-models",
+          "list-thinking-levels",
+          "get-provider",
           "update-provider",
           "delete-provider"
         ],
@@ -3311,14 +3311,13 @@
     {
       "anchors": {
         "assignedIds": [
-          "create-mcp-connection",
           "list-mcp-connections",
+          "create-mcp-connection",
+          "test-mcp-connection",
+          "reconnect-mcp-connection",
           "get-mcp-connection",
           "update-mcp-connection",
-          "delete-mcp-connection",
-          "test-mcp-connection",
-          "connect-mcp-connection",
-          "reconnect-mcp-connection"
+          "delete-mcp-connection"
         ],
         "kind": "operations"
       },
@@ -3330,25 +3329,6 @@
         "items": []
       },
       "file": "api-reference/rest-api/mcp-connections.md",
-      "filesTree": [],
-      "recipe": "Canonical documentation",
-      "steps": []
-    },
-    {
-      "anchors": {
-        "assignedIds": [
-          "approve-mcp-oauth-authorization"
-        ],
-        "kind": "operations"
-      },
-      "cards": [],
-      "callout": null,
-      "componentCounts": {},
-      "fences": {
-        "endpointCurls": true,
-        "items": []
-      },
-      "file": "api-reference/rest-api/mcp-oauth.md",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -3375,10 +3355,11 @@
     {
       "anchors": {
         "assignedIds": [
-          "create-session-turn",
-          "resume-session-turn",
           "list-sessions",
+          "create-session-turn",
+          "list-latest-sessions",
           "list-session-messages",
+          "resume-session-turn",
           "delete-session",
           "list-tool-approvals",
           "decide-tool-approval",
@@ -3402,8 +3383,8 @@
       "anchors": {
         "assignedIds": [
           "list-artifacts",
-          "get-artifact",
           "create-artifact-download-url",
+          "get-artifact",
           "delete-artifact"
         ],
         "kind": "operations"
@@ -3423,8 +3404,8 @@
     {
       "anchors": {
         "assignedIds": [
-          "create-memory",
           "list-memories",
+          "create-memory",
           "get-memory",
           "update-memory",
           "delete-memory"
@@ -3446,8 +3427,8 @@
     {
       "anchors": {
         "assignedIds": [
-          "create-prompt",
           "list-prompts",
+          "create-prompt",
           "get-prompt",
           "update-prompt",
           "delete-prompt"
@@ -3469,8 +3450,8 @@
     {
       "anchors": {
         "assignedIds": [
-          "get-usage-overview",
           "get-usage",
+          "get-usage-overview",
           "get-agent-usage"
         ],
         "kind": "operations"
@@ -3490,8 +3471,39 @@
     {
       "anchors": {
         "assignedIds": [
-          "create-task",
+          "get-merchant-connection",
+          "create-merchant-connection",
+          "update-merchant-connection",
+          "retire-merchant-connection",
+          "list-merchant-customer-bindings",
+          "bind-user-to-merchant-customer",
+          "delete-merchant-customer-binding",
+          "list-merchant-usage-events",
+          "summarize-merchant-usage-delivery",
+          "get-merchant-usage-event",
+          "retry-merchant-usage-event-delivery",
+          "release-unmapped-merchant-usage-event",
+          "discard-merchant-usage-event"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/merchant.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
           "list-tasks",
+          "create-task",
           "get-task",
           "update-task",
           "delete-task"
@@ -3513,8 +3525,8 @@
     {
       "anchors": {
         "assignedIds": [
-          "create-task-run",
           "list-task-runs",
+          "create-task-run",
           "get-task-run",
           "list-task-run-messages",
           "cancel-task-run"
@@ -3529,6 +3541,35 @@
         "items": []
       },
       "file": "api-reference/rest-api/task-runs.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "list-chat-connections",
+          "create-chat-connection",
+          "list-chat-deliveries",
+          "repair-chat-delivery",
+          "get-chat-connection",
+          "rename-chat-connection",
+          "delete-chat-connection",
+          "rotate-chat-credentials",
+          "check-chat-health",
+          "disable-chat-connection",
+          "enable-chat-connection"
+        ],
+        "kind": "operations"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": true,
+        "items": []
+      },
+      "file": "api-reference/rest-api/chat-connections.md",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -3891,413 +3932,6 @@
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
-    }
-  ],
-  "restEndpoints": [
-    {
-      "method": "POST",
-      "operation": "create-agent",
-      "path": "/v1/agents"
-    },
-    {
-      "method": "GET",
-      "operation": "list-agents",
-      "path": "/v1/agents"
-    },
-    {
-      "method": "GET",
-      "operation": "get-agent",
-      "path": "/v1/agents/:agentId"
-    },
-    {
-      "method": "PUT",
-      "operation": "update-agent",
-      "path": "/v1/agents/:agentId"
-    },
-    {
-      "method": "DELETE",
-      "operation": "delete-agent",
-      "path": "/v1/agents/:agentId"
-    },
-    {
-      "method": "POST",
-      "operation": "disable-agent",
-      "path": "/v1/agents/:agentId/disable"
-    },
-    {
-      "method": "POST",
-      "operation": "enable-agent",
-      "path": "/v1/agents/:agentId/enable"
-    },
-    {
-      "method": "POST",
-      "operation": "upload-agent-avatar",
-      "path": "/v1/agents/:agentId/avatar"
-    },
-    {
-      "method": "DELETE",
-      "operation": "delete-agent-avatar",
-      "path": "/v1/agents/:agentId/avatar"
-    },
-    {
-      "method": "GET",
-      "operation": "list-agent-versions",
-      "path": "/v1/agents/:agentId/versions"
-    },
-    {
-      "method": "GET",
-      "operation": "get-agent-version",
-      "path": "/v1/agents/:agentId/versions/:version"
-    },
-    {
-      "method": "GET",
-      "operation": "list-agent-mcp-attachments",
-      "path": "/v1/agents/:agentId/mcp-attachments"
-    },
-    {
-      "method": "PATCH",
-      "operation": "update-agent-mcp-attachment",
-      "path": "/v1/agents/:agentId/mcp-attachments/:mcpConnectionId"
-    },
-    {
-      "method": "POST",
-      "operation": "create-workspace",
-      "path": "/v1/workspaces"
-    },
-    {
-      "method": "GET",
-      "operation": "list-workspaces",
-      "path": "/v1/workspaces"
-    },
-    {
-      "method": "GET",
-      "operation": "get-workspace",
-      "path": "/v1/workspaces/:workspaceId"
-    },
-    {
-      "method": "PUT",
-      "operation": "update-workspace",
-      "path": "/v1/workspaces/:workspaceId"
-    },
-    {
-      "method": "DELETE",
-      "operation": "delete-workspace",
-      "path": "/v1/workspaces/:workspaceId"
-    },
-    {
-      "method": "POST",
-      "operation": "create-skill",
-      "path": "/v1/agents/:agentId/skills"
-    },
-    {
-      "method": "POST",
-      "operation": "upload-skill",
-      "path": "/v1/agents/:agentId/skills/upload"
-    },
-    {
-      "method": "GET",
-      "operation": "list-skills",
-      "path": "/v1/agents/:agentId/skills"
-    },
-    {
-      "method": "GET",
-      "operation": "get-skill",
-      "path": "/v1/agents/:agentId/skills/:skillId"
-    },
-    {
-      "method": "DELETE",
-      "operation": "delete-skill",
-      "path": "/v1/agents/:agentId/skills/:skillId"
-    },
-    {
-      "method": "GET",
-      "operation": "get-skill-file",
-      "path": "/v1/agents/:agentId/skills/:skillId/files/*"
-    },
-    {
-      "method": "PUT",
-      "operation": "put-skill-file",
-      "path": "/v1/agents/:agentId/skills/:skillId/files/*"
-    },
-    {
-      "method": "DELETE",
-      "operation": "delete-skill-file",
-      "path": "/v1/agents/:agentId/skills/:skillId/files/*"
-    },
-    {
-      "method": "POST",
-      "operation": "copy-skill",
-      "path": "/v1/agents/:agentId/skills/:skillId/copies"
-    },
-    {
-      "method": "GET",
-      "operation": "get-current-identity",
-      "path": "/v1/me"
-    },
-    {
-      "method": "GET",
-      "operation": "get-tenant-settings",
-      "path": "/v1/tenant"
-    },
-    {
-      "method": "PATCH",
-      "operation": "update-tenant-settings",
-      "path": "/v1/tenant"
-    },
-    {
-      "method": "POST",
-      "operation": "create-provider",
-      "path": "/v1/providers"
-    },
-    {
-      "method": "GET",
-      "operation": "list-providers",
-      "path": "/v1/providers"
-    },
-    {
-      "method": "GET",
-      "operation": "get-provider",
-      "path": "/v1/providers/:id"
-    },
-    {
-      "method": "GET",
-      "operation": "list-provider-models",
-      "path": "/v1/providers/:id/models"
-    },
-    {
-      "method": "PATCH",
-      "operation": "update-provider",
-      "path": "/v1/providers/:id"
-    },
-    {
-      "method": "DELETE",
-      "operation": "delete-provider",
-      "path": "/v1/providers/:id"
-    },
-    {
-      "method": "POST",
-      "operation": "create-mcp-connection",
-      "path": "/v1/mcp-connections"
-    },
-    {
-      "method": "GET",
-      "operation": "list-mcp-connections",
-      "path": "/v1/mcp-connections"
-    },
-    {
-      "method": "GET",
-      "operation": "get-mcp-connection",
-      "path": "/v1/mcp-connections/:id"
-    },
-    {
-      "method": "PATCH",
-      "operation": "update-mcp-connection",
-      "path": "/v1/mcp-connections/:id"
-    },
-    {
-      "method": "DELETE",
-      "operation": "delete-mcp-connection",
-      "path": "/v1/mcp-connections/:id"
-    },
-    {
-      "method": "POST",
-      "operation": "test-mcp-connection",
-      "path": "/v1/mcp-connections/:id/test"
-    },
-    {
-      "method": "POST",
-      "operation": "connect-mcp-connection",
-      "path": "/v1/mcp-connections/:id/connect"
-    },
-    {
-      "method": "POST",
-      "operation": "reconnect-mcp-connection",
-      "path": "/v1/mcp-connections/:id/reconnect"
-    },
-    {
-      "method": "POST",
-      "operation": "approve-mcp-oauth-authorization",
-      "path": "/v1/mcp/oauth/authorize"
-    },
-    {
-      "method": "POST",
-      "operation": "generate",
-      "path": "/v1/agents/:agentId/generation"
-    },
-    {
-      "method": "POST",
-      "operation": "create-session-turn",
-      "path": "/v1/agents/:agentId/sessions"
-    },
-    {
-      "method": "POST",
-      "operation": "resume-session-turn",
-      "path": "/v1/agents/:agentId/sessions/:sessionId"
-    },
-    {
-      "method": "GET",
-      "operation": "list-sessions",
-      "path": "/v1/agents/:agentId/sessions"
-    },
-    {
-      "method": "GET",
-      "operation": "list-session-messages",
-      "path": "/v1/agents/:agentId/sessions/:sessionId/messages"
-    },
-    {
-      "method": "DELETE",
-      "operation": "delete-session",
-      "path": "/v1/agents/:agentId/sessions/:sessionId"
-    },
-    {
-      "method": "GET",
-      "operation": "list-tool-approvals",
-      "path": "/v1/agents/:agentId/sessions/:sessionId/tool-approvals"
-    },
-    {
-      "method": "POST",
-      "operation": "decide-tool-approval",
-      "path": "/v1/agents/:agentId/sessions/:sessionId/tool-approvals/:approvalId"
-    },
-    {
-      "method": "GET",
-      "operation": "join-tool-approval-continuation",
-      "path": "/v1/agents/:agentId/sessions/:sessionId/tool-approval-continuations/:continuationId"
-    },
-    {
-      "method": "GET",
-      "operation": "list-artifacts",
-      "path": "/v1/artifacts"
-    },
-    {
-      "method": "GET",
-      "operation": "get-artifact",
-      "path": "/v1/artifacts/:artifactId"
-    },
-    {
-      "method": "POST",
-      "operation": "create-artifact-download-url",
-      "path": "/v1/artifacts/:artifactId/download-url"
-    },
-    {
-      "method": "DELETE",
-      "operation": "delete-artifact",
-      "path": "/v1/artifacts/:artifactId"
-    },
-    {
-      "method": "POST",
-      "operation": "create-memory",
-      "path": "/v1/agents/:agentId/memories"
-    },
-    {
-      "method": "GET",
-      "operation": "list-memories",
-      "path": "/v1/agents/:agentId/memories"
-    },
-    {
-      "method": "GET",
-      "operation": "get-memory",
-      "path": "/v1/agents/:agentId/memories/:memoryId"
-    },
-    {
-      "method": "PATCH",
-      "operation": "update-memory",
-      "path": "/v1/agents/:agentId/memories/:memoryId"
-    },
-    {
-      "method": "DELETE",
-      "operation": "delete-memory",
-      "path": "/v1/agents/:agentId/memories/:memoryId"
-    },
-    {
-      "method": "POST",
-      "operation": "create-prompt",
-      "path": "/v1/prompts"
-    },
-    {
-      "method": "GET",
-      "operation": "list-prompts",
-      "path": "/v1/prompts"
-    },
-    {
-      "method": "GET",
-      "operation": "get-prompt",
-      "path": "/v1/prompts/:promptId"
-    },
-    {
-      "method": "PATCH",
-      "operation": "update-prompt",
-      "path": "/v1/prompts/:promptId"
-    },
-    {
-      "method": "DELETE",
-      "operation": "delete-prompt",
-      "path": "/v1/prompts/:promptId"
-    },
-    {
-      "method": "GET",
-      "operation": "get-usage-overview",
-      "path": "/v1/usage/overview"
-    },
-    {
-      "method": "GET",
-      "operation": "get-usage",
-      "path": "/v1/usage"
-    },
-    {
-      "method": "GET",
-      "operation": "get-agent-usage",
-      "path": "/v1/agents/:agentId/usage"
-    },
-    {
-      "method": "POST",
-      "operation": "create-task",
-      "path": "/v1/tasks"
-    },
-    {
-      "method": "GET",
-      "operation": "list-tasks",
-      "path": "/v1/tasks"
-    },
-    {
-      "method": "GET",
-      "operation": "get-task",
-      "path": "/v1/tasks/:taskId"
-    },
-    {
-      "method": "PATCH",
-      "operation": "update-task",
-      "path": "/v1/tasks/:taskId"
-    },
-    {
-      "method": "DELETE",
-      "operation": "delete-task",
-      "path": "/v1/tasks/:taskId"
-    },
-    {
-      "method": "POST",
-      "operation": "create-task-run",
-      "path": "/v1/tasks/:taskId/runs"
-    },
-    {
-      "method": "GET",
-      "operation": "list-task-runs",
-      "path": "/v1/tasks/:taskId/runs"
-    },
-    {
-      "method": "GET",
-      "operation": "get-task-run",
-      "path": "/v1/tasks/:taskId/runs/:runId"
-    },
-    {
-      "method": "GET",
-      "operation": "list-task-run-messages",
-      "path": "/v1/tasks/:taskId/runs/:runId/messages"
-    },
-    {
-      "method": "POST",
-      "operation": "cancel-task-run",
-      "path": "/v1/tasks/:taskId/runs/:runId/cancel"
     }
   ],
   "targets": [
@@ -4841,13 +4475,6 @@
       "url": "/api-reference/rest-api/mcp-connections"
     },
     {
-      "file": "api-reference/rest-api/mcp-oauth.md",
-      "name": "MCP OAuth",
-      "publishable": true,
-      "title": "MCP OAuth",
-      "url": "/api-reference/rest-api/mcp-oauth"
-    },
-    {
       "file": "api-reference/rest-api/generation.md",
       "name": "Generation",
       "publishable": true,
@@ -4890,6 +4517,13 @@
       "url": "/api-reference/rest-api/usage"
     },
     {
+      "file": "api-reference/rest-api/merchant.md",
+      "name": "Monetization",
+      "publishable": true,
+      "title": "Monetization",
+      "url": "/api-reference/rest-api/merchant"
+    },
+    {
       "file": "api-reference/rest-api/tasks.md",
       "name": "Tasks",
       "publishable": true,
@@ -4902,6 +4536,13 @@
       "publishable": true,
       "title": "Task runs",
       "url": "/api-reference/rest-api/task-runs"
+    },
+    {
+      "file": "api-reference/rest-api/chat-connections.md",
+      "name": "Chat connections",
+      "publishable": true,
+      "title": "Chat connections",
+      "url": "/api-reference/rest-api/chat-connections"
     },
     {
       "file": "api-reference/protocols/index.mdx",

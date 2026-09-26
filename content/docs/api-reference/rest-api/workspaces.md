@@ -15,28 +15,108 @@ something in it. Every request is scoped to your tenant.
 
 ## Endpoints [#endpoints]
 
-### POST /v1/workspaces [#create-workspace]
+### GET /v1/workspaces [#list-workspaces]
 
-Creates a workspace. It starts only when an agent first uses it.
+List workspaces.
 
 #### Request
 
-Requires bearer authentication and JSON. `name` is optional, `userId` defaults
-to `""`, `metadata` defaults to `{}`, and `networkPolicy` defaults to
-`{"mode":"unrestricted"}`. Restricted policies are
-`{"mode":"allowlist","allowedHosts":["api.example.com"]}` and
-`{"mode":"offline"}`.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `cursor` | string | query |  |  |
+| `limit` | integer | query |  | 1–200. Defaults to `50`. |
+| `userId` | string | query |  |  |
 
 #### Response
 
-Returns `201 Created` with [`workspaceSchema`](/api-reference/protocols/objects-and-schemas#workspace).
+Returns `200 OK` as `application/json`. A page of workspaces.
 
-SDK: [TypeScript](/sdk/typescript/workspaces#create) /
-[Python](/sdk/python/workspaces#create).
+Response schema: `WorkspaceList`.
+
+```json
+{
+  "data": [
+    {
+      "id": "ws_1234567890ABCDEF",
+      "tenantId": "ten_1234567890ABCDEF",
+      "name": "string",
+      "userId": "string",
+      "metadata": {},
+      "networkPolicy": {
+        "mode": "unrestricted"
+      },
+      "createdAt": "2026-07-10T10:00:00Z",
+      "updatedAt": "2026-07-10T10:00:00Z"
+    }
+  ],
+  "nextCursor": "string"
+}
+```
 
 #### Errors
 
-`400 validation_failed` for invalid fields.
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/workspaces" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/workspaces [#create-workspace]
+
+Create a workspace.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | string | body |  | 1–80 characters. |
+| `userId` | string | body |  | Defaults to `""`. |
+| `metadata` | object | body |  | Defaults to `{}`. |
+| `networkPolicy` | object | body |  | Defaults to `{"mode":"unrestricted"}`. |
+
+#### Response
+
+Returns `201 Created` as `application/json`. The created workspace.
+
+Response schema: `Workspace`.
+
+```json
+{
+  "id": "ws_1234567890ABCDEF",
+  "tenantId": "ten_1234567890ABCDEF",
+  "name": "string",
+  "userId": "string",
+  "metadata": {},
+  "networkPolicy": {
+    "mode": "unrestricted"
+  },
+  "createdAt": "2026-07-10T10:00:00Z",
+  "updatedAt": "2026-07-10T10:00:00Z"
+}
+```
+
+#### Errors
+
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -44,62 +124,51 @@ SDK: [TypeScript](/sdk/typescript/workspaces#create) /
 curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/workspaces" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"name":"Release files","userId":"user_42","metadata":{"project":"docs"},"networkPolicy":{"mode":"allowlist","allowedHosts":["registry.npmjs.org"]}}'
-```
-
-### GET /v1/workspaces [#list-workspaces]
-
-Lists workspaces newest first, one page at a time, optionally filtered by
-`userId`. The workspace reserved for the platform-managed `ba assist` agent is never
-listed.
-
-#### Request
-
-Requires bearer authentication. `cursor` is opaque, `limit` defaults to 50 and
-accepts 1–200, and `userId` filters by exact value.
-
-#### Response
-
-Returns `200 OK` with
-[`workspacesListResponseSchema`](/api-reference/protocols/objects-and-schemas#workspaces-list-response).
-Use `nextCursor` for the next page.
-
-SDK: [TypeScript](/sdk/typescript/workspaces#list) /
-[Python](/sdk/python/workspaces#list).
-
-#### Errors
-
-`400 validation_failed` for invalid or unknown query parameters.
-
-#### cURL
-
-```bash
-curl --get "$BLAZING_AGENTS_BASE_URL/v1/workspaces" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "limit=50" \
-  --data-urlencode "userId=user_42"
+  --data '{"name":"string"}'
 ```
 
 ### GET /v1/workspaces/:workspaceId [#get-workspace]
 
-Retrieves a workspace without starting it.
+Get a workspace.
 
 #### Request
 
-Requires bearer authentication and a `ws_…` `workspaceId` path parameter.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `workspaceId` | string | path | required | `ws_…` ID. |
 
 #### Response
 
-Returns `200 OK` with
-[`workspaceSchema`](/api-reference/protocols/objects-and-schemas#workspace).
+Returns `200 OK` as `application/json`. The workspace.
 
-SDK: [TypeScript](/sdk/typescript/workspaces#get) /
-[Python](/sdk/python/workspaces#get).
+Response schema: `Workspace`.
+
+```json
+{
+  "id": "ws_1234567890ABCDEF",
+  "tenantId": "ten_1234567890ABCDEF",
+  "name": "string",
+  "userId": "string",
+  "metadata": {},
+  "networkPolicy": {
+    "mode": "unrestricted"
+  },
+  "createdAt": "2026-07-10T10:00:00Z",
+  "updatedAt": "2026-07-10T10:00:00Z"
+}
+```
 
 #### Errors
 
-`400 validation_failed`; `404 workspace_not_found` for missing or foreign
-Workspaces.
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -110,63 +179,92 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" \
 
 ### PUT /v1/workspaces/:workspaceId [#update-workspace]
 
-Updates a workspace's name, metadata, or network policy without starting it.
+Update a workspace.
 
 #### Request
 
-Requires bearer authentication, a `ws_…` path parameter, and JSON. `name`
-accepts `null`; `metadata` and `networkPolicy` are replaced when supplied.
-`userId` cannot be changed.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `workspaceId` | string | path | required | `ws_…` ID. |
+| `name` | string \| null | body |  | 1–80 characters. |
+| `metadata` | object | body |  |  |
+| `networkPolicy` | object | body |  |  |
 
 #### Response
 
-Returns `200 OK` with
-[`workspaceSchema`](/api-reference/protocols/objects-and-schemas#workspace).
+Returns `200 OK` as `application/json`. The updated workspace.
 
-SDK: [TypeScript](/sdk/typescript/workspaces#update) /
-[Python](/sdk/python/workspaces#update).
+Response schema: `Workspace`.
+
+```json
+{
+  "id": "ws_1234567890ABCDEF",
+  "tenantId": "ten_1234567890ABCDEF",
+  "name": "string",
+  "userId": "string",
+  "metadata": {},
+  "networkPolicy": {
+    "mode": "unrestricted"
+  },
+  "createdAt": "2026-07-10T10:00:00Z",
+  "updatedAt": "2026-07-10T10:00:00Z"
+}
+```
 
 #### Errors
 
-`400 validation_failed`; `404 workspace_not_found`.
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request PUT \
-  "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" \
+curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"networkPolicy":{"mode":"offline"}}'
+  --data '{"name":"string"}'
 ```
 
 ### DELETE /v1/workspaces/:workspaceId [#delete-workspace]
 
-Deletes a workspace and all its files. Agents always have a workspace, so move
-attached agents to another one first.
+Delete a workspace.
 
 #### Request
 
-Requires bearer authentication and a `ws_…` `workspaceId` path parameter.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `workspaceId` | string | path | required | `ws_…` ID. |
 
 #### Response
 
-Returns `204 No Content` with an empty body when deletion finishes right away,
-or `202 Accepted` with an empty body when cleanup is still running.
+Returns `202 Accepted`. Deletion accepted and running.
 
-SDK: [TypeScript](/sdk/typescript/workspaces#delete) /
-[Python](/sdk/python/workspaces#delete).
+Returns `204 No Content`. Deleted.
 
 #### Errors
 
-`404 workspace_not_found`; `409 workspace_in_use` with
-`details.agentIds`; `409 workspace_busy`; `503 service_unavailable`.
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+| `409` | Workspace is in use or busy |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" \
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 

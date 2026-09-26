@@ -84,6 +84,11 @@ people who built it.
 
 ## Before you submit
 
+- The REST API resource pages under `content/docs/api-reference/rest-api/` are
+  generated from `openapi/openapi.json`. Edit their intro prose in
+  `content/rest-api-intros/`, then run `npm run generate:rest-api`. Fix
+  operation, field, and example text in the platform's OpenAPI contract.
+
 - `src-docs/documentation-contract.json` holds a presentation entry per page
   that the tests validate. Update the entries for the pages you change.
 - Run `npm run lint:docs` and `npm run check`. Both must pass.

@@ -47,10 +47,11 @@ The development server runs at <http://localhost:3761>.
 | --- | --- |
 | `npm run dev` | Generate documentation metadata and start the development server |
 | `npm run generate` | Generate Fumadocs sources and the documentation manifest |
+| `npm run generate:rest-api` | Regenerate the REST API reference pages from `openapi/openapi.json` |
 | `npm run build` | Create and verify the production build |
 | `npm run typecheck` | Generate sources and run TypeScript checks |
 | `npm test` | Run documentation tests and coverage checks |
-| `npm run check` | Run the required type-check and test gate |
+| `npm run check` | Run the required type-check, test, style, and REST reference freshness gate |
 | `npm run lint:docs` | Check `content/docs/` against the style guide's mechanical rules |
 | `npm run sync:openapi` | Copy the platform's API contract into `openapi/openapi.json` |
 
@@ -90,7 +91,9 @@ nvm exec 24 npm run smoke:examples
 
 | Path | Purpose |
 | --- | --- |
-| `content/docs/` | Authored MDX and Markdown documentation |
+| `content/docs/` | Authored MDX and Markdown documentation, plus the generated REST API resource pages |
+| `content/rest-api-intros/` | Hand-written intro prose for each generated REST API page |
+| `openapi/openapi.json` | The platform OpenAPI contract the REST API reference is generated from |
 | `src-docs/` | Documentation application, components, routes, and validation |
 | `openapi/` | Committed copy of the platform's OpenAPI contract |
 | `public/` | Icons, social images, and other static assets |

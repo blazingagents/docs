@@ -78,14 +78,6 @@ const presentationSchema = z
     }
   });
 
-const restEndpointSchema = z
-  .object({
-    method: z.enum(["DELETE", "GET", "PATCH", "POST", "PUT"]),
-    operation: z.string().regex(/^[a-z0-9-]+$/),
-    path: z.string().startsWith("/v1/"),
-  })
-  .strict();
-
 const targetSchema = z
   .object({
     file: z.string().regex(/\.(?:md|mdx)$/),
@@ -99,7 +91,6 @@ const targetSchema = z
 export const documentationContractSchema = z
   .object({
     presentations: z.array(presentationSchema),
-    restEndpoints: z.array(restEndpointSchema),
     targets: z.array(targetSchema),
   })
   .strict()
@@ -123,14 +114,6 @@ export const documentationContractSchema = z
     unique(
       contract.presentations.map(({ file }) => file),
       "presentation file"
-    );
-    unique(
-      contract.restEndpoints.map(({ method, path }) => `${method} ${path}`),
-      "REST method and path"
-    );
-    unique(
-      contract.restEndpoints.map(({ operation }) => operation),
-      "REST operation"
     );
     if (
       !arraysEqual(

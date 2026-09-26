@@ -19,267 +19,478 @@ responses include the skill's metadata and its current list of files.
 
 ## Endpoints [#endpoints]
 
-### POST /v1/agents/:agentId/skills [#create-skill]
+### GET /v1/agents/:agentId/skills [#list-skills]
 
-Creates a skill from a `SKILL.md` document and returns its file list.
+List an agent's skills.
 
 #### Request
 
-Requires JSON with `path: "SKILL.md"` and `content` that starts with frontmatter.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | `ag_…` ID. |
+| `cursor` | string | query |  |  |
+| `limit` | integer | query |  | 1–100. Defaults to `50`. |
 
 #### Response
 
-Returns `201 Created` with an `application/json` Skill detail.
+Returns `200 OK` as `application/json`. A page of skills.
 
-Response schema: `skillResponseSchema`.
+Response schema: `SkillList`.
 
-SDK: [TypeScript](/sdk/typescript/skills#create) /
-[Python](/sdk/python/skills#create).
+```json
+{
+  "data": [
+    {
+      "id": "skill_1234567890ABCDEF",
+      "tenantId": "ten_1234567890ABCDEF",
+      "agentId": "ag_1234567890ABCDEF",
+      "name": "string",
+      "description": "string",
+      "metadata": {},
+      "createdAt": "2026-07-10T10:00:00Z",
+      "updatedAt": "2026-07-10T10:00:00Z"
+    }
+  ],
+  "nextCursor": "string"
+}
+```
 
 #### Errors
 
-`400 validation_failed`; `404 not_found` for a missing agent; `409 skill_name_conflict`.
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/agents/:agentId/skills [#create-skill]
+
+Create a skill.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | `ag_…` ID. |
+| `path` | string | body | required |  |
+| `content` | string | body | required |  |
+
+#### Response
+
+Returns `201 Created` as `application/json`. The created skill.
+
+Response schema: `Skill`.
+
+```json
+{
+  "id": "skill_1234567890ABCDEF",
+  "tenantId": "ten_1234567890ABCDEF",
+  "agentId": "ag_1234567890ABCDEF",
+  "name": "string",
+  "description": "string",
+  "metadata": {},
+  "createdAt": "2026-07-10T10:00:00Z",
+  "updatedAt": "2026-07-10T10:00:00Z",
+  "files": [
+    {
+      "path": "string",
+      "sizeBytes": 0
+    }
+  ]
+}
+```
+
+#### Errors
+
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+| `409` | Skill name already exists |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"path":"SKILL.md","content":"---\nname: deploy\ndescription: Deploy the application.\n---\n"}'
+  --data '{"path":"SKILL.md","content":"string"}'
 ```
 
 ### POST /v1/agents/:agentId/skills/upload [#upload-skill]
 
-Imports a whole skill from an archive and returns its file list.
+Upload a skill archive.
 
 #### Request
 
-Requires multipart form fields `type` (`zip`, `tar`, or `tar.gz`) and `file`.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a multipart form body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | `ag_…` ID. |
+| `type` | string | form | required | One of `zip`, `tar`, `tar.gz`. |
+| `file` | file | form | required |  |
 
 #### Response
 
-Returns `201 Created` with an `application/json` Skill detail.
+Returns `201 Created` as `application/json`. The created skill.
 
-Response schema: `skillResponseSchema`.
+Response schema: `Skill`.
 
-SDK: [TypeScript](/sdk/typescript/skills#upload) /
-[Python](/sdk/python/skills#upload).
-
-#### Errors
-
-`400 validation_failed`; `404 not_found` for a missing agent; `409 skill_name_conflict`.
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/upload" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --form "type=tar.gz" \
-  --form "file=@skill.tar.gz"
+```json
+{
+  "id": "skill_1234567890ABCDEF",
+  "tenantId": "ten_1234567890ABCDEF",
+  "agentId": "ag_1234567890ABCDEF",
+  "name": "string",
+  "description": "string",
+  "metadata": {},
+  "createdAt": "2026-07-10T10:00:00Z",
+  "updatedAt": "2026-07-10T10:00:00Z",
+  "files": [
+    {
+      "path": "string",
+      "sizeBytes": 0
+    }
+  ]
+}
 ```
 
-### GET /v1/agents/:agentId/skills [#list-skills]
-
-Lists an agent's skills, one page at a time.
-
-#### Request
-
-Accepts opaque `cursor` and `limit` from 1 through 100.
-
-#### Response
-
-Returns `200 OK` with an `application/json` cursor-paginated list.
-
-Response schema: `skillsListResponseSchema`.
-
-SDK: [TypeScript](/sdk/typescript/skills#list) /
-[Python](/sdk/python/skills#list).
-
 #### Errors
 
-`400 validation_failed`; `404 not_found` for a missing agent.
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+| `409` | Skill name already exists |
+| `413` | Archive exceeds the size limit |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --get "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills" \
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/upload" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "limit=50"
+  --form "type=zip" \
+  --form "file=@./file"
 ```
 
 ### GET /v1/agents/:agentId/skills/:skillId [#get-skill]
 
-Returns a skill's metadata and current file list.
+Get a skill.
 
 #### Request
 
-Requires valid Agent and Skill IDs.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | `ag_…` ID. |
+| `skillId` | string | path | required | `skill_…` ID. |
 
 #### Response
 
-Returns `200 OK` with an `application/json` Skill detail.
+Returns `200 OK` as `application/json`. The skill.
 
-Response schema: `skillResponseSchema`.
+Response schema: `Skill`.
 
-SDK: [TypeScript](/sdk/typescript/skills#get) /
-[Python](/sdk/python/skills#get).
+```json
+{
+  "id": "skill_1234567890ABCDEF",
+  "tenantId": "ten_1234567890ABCDEF",
+  "agentId": "ag_1234567890ABCDEF",
+  "name": "string",
+  "description": "string",
+  "metadata": {},
+  "createdAt": "2026-07-10T10:00:00Z",
+  "updatedAt": "2026-07-10T10:00:00Z",
+  "files": [
+    {
+      "path": "string",
+      "sizeBytes": 0
+    }
+  ]
+}
+```
 
 #### Errors
 
-`400 validation_failed`; `404 skill_not_found`.
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/skill_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
 ### DELETE /v1/agents/:agentId/skills/:skillId [#delete-skill]
 
-Deletes a skill and all its files.
+Delete a skill.
 
 #### Request
 
-Requires valid Agent and Skill IDs.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | `ag_…` ID. |
+| `skillId` | string | path | required | `skill_…` ID. |
 
 #### Response
 
-Returns `204 No Content` with an empty body.
-
-SDK: [TypeScript](/sdk/typescript/skills#delete) /
-[Python](/sdk/python/skills#delete).
+Returns `204 No Content`. Deleted.
 
 #### Errors
 
-`400 validation_failed`; `404 skill_not_found`.
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID" \
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/skill_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### GET /v1/agents/:agentId/skills/:skillId/files?path=\<path\> [#get-skill-file]
+### GET /v1/agents/:agentId/skills/:skillId/files [#get-skill-file]
 
-Downloads the raw bytes of a skill file.
+Read a skill file.
 
 #### Request
 
-Requires valid Agent and Skill IDs plus the `path` query parameter naming a
-non-empty file path, for example `?path=assets/icon.bin`.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | `ag_…` ID. |
+| `skillId` | string | path | required | `skill_…` ID. |
+| `path` | string | query | required |  |
 
 #### Response
 
-Returns `200 OK` with `Content-Type: application/octet-stream` and raw bytes.
-
-SDK: [TypeScript](/sdk/typescript/skills#get-file) /
-[Python](/sdk/python/skills#read-file).
+Returns `200 OK` as `application/octet-stream`. The file's raw bytes.
 
 #### Errors
 
-`400 validation_failed`; `404 skill_not_found`.
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=assets/icon.bin" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/skill_1234567890ABCDEF/files?path=string" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --output icon.bin
+  --output file
 ```
 
-### PUT /v1/agents/:agentId/skills/:skillId/files?path=\<path\> [#put-skill-file]
+### PUT /v1/agents/:agentId/skills/:skillId/files [#put-skill-file]
 
-Creates or replaces a skill file from raw bytes.
+Write a skill file.
 
 #### Request
 
-The `path` query parameter names the target file and the body is the exact
-file content. Replacing `SKILL.md` rereads its frontmatter and keeps the skill
-ID.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a binary body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | `ag_…` ID. |
+| `skillId` | string | path | required | `skill_…` ID. |
+| `path` | string | query | required |  |
+| `(body)` | file | body | required | Raw `application/octet-stream` request body. |
 
 #### Response
 
-Returns `200 OK` with an `application/json` updated Skill detail.
+Returns `200 OK` as `application/json`. The updated skill.
 
-Response schema: `skillResponseSchema`.
+Response schema: `Skill`.
 
-SDK: [TypeScript](/sdk/typescript/skills#put-file) /
-[Python](/sdk/python/skills#replace-file).
-
-#### Errors
-
-`400 validation_failed`; `404 skill_not_found`; `409 skill_name_conflict`.
-
-#### cURL
-
-```bash
-curl --request PUT \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=scripts/deploy.sh" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-binary "@deploy.sh"
+```json
+{
+  "id": "skill_1234567890ABCDEF",
+  "tenantId": "ten_1234567890ABCDEF",
+  "agentId": "ag_1234567890ABCDEF",
+  "name": "string",
+  "description": "string",
+  "metadata": {},
+  "createdAt": "2026-07-10T10:00:00Z",
+  "updatedAt": "2026-07-10T10:00:00Z",
+  "files": [
+    {
+      "path": "string",
+      "sizeBytes": 0
+    }
+  ]
+}
 ```
 
-### DELETE /v1/agents/:agentId/skills/:skillId/files?path=\<path\> [#delete-skill-file]
-
-Deletes a supporting file. The root `SKILL.md` cannot be deleted.
-
-#### Request
-
-The `path` query parameter names a relative file path other than the root `SKILL.md`.
-
-#### Response
-
-Returns `200 OK` with an `application/json` updated Skill detail.
-
-Response schema: `skillResponseSchema`.
-
-SDK: [TypeScript](/sdk/typescript/skills#delete-file) /
-[Python](/sdk/python/skills#delete-file).
-
 #### Errors
 
-`400 validation_failed`; `400 invalid_request` when deleting root `SKILL.md`;
-`404 skill_not_found`. Deleting a file that does not exist succeeds.
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=scripts/deploy.sh" \
+curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/skill_1234567890ABCDEF/files?path=string" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --data-binary "@./file"
+```
+
+### DELETE /v1/agents/:agentId/skills/:skillId/files [#delete-skill-file]
+
+Delete a skill file.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | `ag_…` ID. |
+| `skillId` | string | path | required | `skill_…` ID. |
+| `path` | string | query | required |  |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The updated skill.
+
+Response schema: `Skill`.
+
+```json
+{
+  "id": "skill_1234567890ABCDEF",
+  "tenantId": "ten_1234567890ABCDEF",
+  "agentId": "ag_1234567890ABCDEF",
+  "name": "string",
+  "description": "string",
+  "metadata": {},
+  "createdAt": "2026-07-10T10:00:00Z",
+  "updatedAt": "2026-07-10T10:00:00Z",
+  "files": [
+    {
+      "path": "string",
+      "sizeBytes": 0
+    }
+  ]
+}
+```
+
+#### Errors
+
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/skill_1234567890ABCDEF/files?path=string" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
 ### POST /v1/agents/:agentId/skills/:skillId/copies [#copy-skill]
 
-Copies a skill to each destination agent and returns a result for each one.
+Copy a skill to other agents.
 
 #### Request
 
-Requires JSON containing one or more unique destination `agentIds`.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | `ag_…` ID. |
+| `skillId` | string | path | required | `skill_…` ID. |
+| `agentIds` | string[] | body | required |  |
 
 #### Response
 
-Returns `200 OK` with an `application/json` ordered result per destination;
-each result is `created` or `failed`.
+Returns `200 OK` as `application/json`. The per-destination copy results.
 
-Response schema: `skillCopyResultsSchema`.
+Response schema: `SkillCopyResultList`.
 
-SDK: [TypeScript](/sdk/typescript/skills#copy) /
-[Python](/sdk/python/skills#copy).
+```json
+[
+  {
+    "agentId": "ag_1234567890ABCDEF",
+    "status": "created",
+    "skill": {
+      "id": "skill_1234567890ABCDEF",
+      "tenantId": "ten_1234567890ABCDEF",
+      "agentId": "ag_1234567890ABCDEF",
+      "name": "string",
+      "description": "string",
+      "metadata": {},
+      "createdAt": "2026-07-10T10:00:00Z",
+      "updatedAt": "2026-07-10T10:00:00Z",
+      "files": [
+        {
+          "path": "string",
+          "sizeBytes": 0
+        }
+      ]
+    }
+  }
+]
+```
 
 #### Errors
 
-`400 validation_failed`; `404 skill_not_found`.
+| Status | Description |
+| --- | --- |
+| `400` | Validation failed |
+| `401` | Missing or invalid credential |
+| `404` | Not found in this tenant |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request POST \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/copies" \
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/skill_1234567890ABCDEF/copies" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
   --data '{"agentIds":["ag_1234567890ABCDEF"]}'
