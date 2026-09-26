@@ -191,6 +191,20 @@ async function step(name, fn) {
 
 class Blocked extends Error {}
 
+/** Deletions of resources the harness created, run newest first. */
+const cleanups = [];
+async function runCleanups() {
+  while (cleanups.length > 0) {
+    const { label, path } = cleanups.pop();
+    try {
+      await api("DELETE", path);
+      console.log(`        cleanup: deleted ${label}`);
+    } catch (error) {
+      record("FAIL", `cleanup: delete ${label}`, error.message);
+    }
+  }
+}
+
 try {
   console.log(`Project: ${workdir}\nAPI: ${baseUrl}\nPython SDK: ${PYTHON_SDK}\n`);
 
@@ -235,6 +249,9 @@ try {
       if (first !== again) {
         throw new Error(`the page promises the same provider ID on every run; got ${first} then ${again}`);
       }
+      if (!openRouterKey && !quickstartProviderExisted && !quickstartProviderIds.has(first)) {
+        cleanups.push({ label: `placeholder-key provider ${first}`, path: `/v1/providers/${first}` });
+      }
       quickstartProviderIds.add(first);
     });
     await step(`quickstart.mdx: step 2, create an agent (${lang})`, async () => {
@@ -260,12 +277,7 @@ try {
   if (quickstartProviderIds.size > 1) {
     record("FAIL", "quickstart.mdx: both SDKs reuse one provider", [...quickstartProviderIds].join(", "));
   }
-  if (!openRouterKey && !quickstartProviderExisted) {
-    for (const id of quickstartProviderIds) {
-      await api("DELETE", `/v1/providers/${id}`);
-      console.log(`        cleanup: deleted placeholder-key provider ${id}`);
-    }
-  }
+  await runCleanups();
 
   const home = await readFences("index.mdx");
   for (const lang of Object.keys(langs)) {
@@ -279,18 +291,29 @@ try {
       if (agents.some(({ name }) => name === "Support agent")) {
         throw new Error('the tenant already has a "Support agent"; the "Run once" script would fail. Delete it and rerun.');
       }
-      const agentId = expectLine((await runExample(lang, "create-agent", createAgent)).output, /^BLAZING_AGENTS_AGENT_ID=(ag_[A-Za-z0-9]{16})$/m, "BLAZING_AGENTS_AGENT_ID=ag_...")[1];
-      const { providerId } = await api("GET", `/v1/agents/${agentId}`);
+      const agentsBefore = new Set(agents.map(({ id }) => id));
+      const providersBefore = new Set((await api("GET", "/v1/providers")).providers.map(({ id }) => id));
       try {
+        const agentId = expectLine((await runExample(lang, "create-agent", createAgent)).output, /^BLAZING_AGENTS_AGENT_ID=(ag_[A-Za-z0-9]{16})$/m, "BLAZING_AGENTS_AGENT_ID=ag_...")[1];
         await serveAndPost(lang, route, agentId);
       } finally {
-        await api("DELETE", `/v1/agents/${agentId}`);
-        await api("DELETE", `/v1/providers/${providerId}`);
-        console.log(`        cleanup: deleted ${agentId} and ${providerId}`);
+        /** The "Run once" script may fail after creating either resource, so find what it left by name. */
+        for (const { id, name } of (await api("GET", "/v1/providers")).providers) {
+          if (name === "OpenRouter" && !providersBefore.has(id)) {
+            cleanups.push({ label: `provider ${id}`, path: `/v1/providers/${id}` });
+          }
+        }
+        for (const { id, name } of (await api("GET", "/v1/agents")).agents) {
+          if (name === "Support agent" && !agentsBefore.has(id)) {
+            cleanups.push({ label: `agent ${id}`, path: `/v1/agents/${id}?includeArtifacts=true` });
+          }
+        }
+        await runCleanups();
       }
     });
   }
 } finally {
+  await runCleanups();
   await rm(workdir, { recursive: true, force: true });
 }
 
