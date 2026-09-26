@@ -15,45 +15,41 @@ fetch the bytes. Published files never change.
 
 ### GET /v1/artifacts [#list-artifacts]
 
-Lists your tenant's artifacts newest first. Filter by the agent or session that
-produced them.
+List artifacts.
+
+Lists your tenant's artifacts newest first, 50 per page. Filter by the agent or session that published them, and pass `nextCursor` as `cursor` to get the next page.
 
 #### Request
 
 Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Query parameter | Type   | Default | Description                                 |
-| --------------- | ------ | ------- | ------------------------------------------- |
-| `agentId`       | string | none       | Restrict to one `ag_…` Agent                |
-| `sessionId`     | string | none       | Restrict to one `ss_…` Session              |
-| `cursor`        | string | none       | Opaque cursor                               |
-
-Page size is 50.
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | query |  | Return only artifacts published by this agent. |
+| `sessionId` | string | query |  | Return only artifacts published in this session. |
+| `cursor` | string \| null | query |  | `nextCursor` from the previous page. |
 
 #### Response
 
-Returns `200 OK`.
+Returns `200 OK` as `application/json`. A page of artifacts.
 
-Response schema: [`artifactsListResponseSchema`](/api-reference/protocols/objects-and-schemas#artifacts-list-response).
+Response schema: `ArtifactList`.
 
 ```json
 {
   "data": [
     {
-      "artifactId": "at_1234567890ABCDEF",
-      "agentId": "ag_1234567890ABCDEF",
-      "tenantId": "ten_1234567890ABCDEF",
-      "sessionId": "ss_1234567890ABCDEF",
+      "artifactId": "at_6Jm2Qx8RtW4nPz1K",
+      "agentId": "ag_4kP9sT2vXq7LmN3a",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+      "sessionId": "ss_9Fh3Lc7VbN2kDs5Y",
       "filename": "report.pdf",
       "mediaType": "application/pdf",
       "sizeBytes": 24830,
       "userId": "",
       "metadata": {},
-      "createdAt": "2026-07-10T10:00:00Z",
-      "updatedAt": "2026-07-10T10:00:00Z"
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:00:00.000Z"
     }
   ],
   "nextCursor": null
@@ -62,153 +58,155 @@ Response schema: [`artifactsListResponseSchema`](/api-reference/protocols/object
 
 #### Errors
 
-`400 validation_failed` for malformed filters; `400 invalid_cursor` for an
-opaque cursor that cannot be decoded. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --get \
-  "$BLAZING_AGENTS_BASE_URL/v1/artifacts?agentId=ag_1234567890ABCDEF" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/artifacts" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
+### POST /v1/artifacts/:artifactId/download-url [#create-artifact-download-url]
 
-SDKs: [TypeScript](/sdk/typescript/artifacts#list) / [Python](/sdk/python/artifacts#list). See [Artifacts](/agents/artifacts).
+Create an artifact download URL.
 
-### GET /v1/artifacts/:artifactId [#get-artifact]
-
-Returns one artifact's metadata without downloading its bytes.
+Creates a link that downloads the artifact's file for five minutes. Fetch it without an API key; it works more than once until `expiresAt`. Anyone with the link can download the file, so keep it out of logs.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and an
-`at_…` `artifactId`. There are no query or body parameters.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `artifactId`    | yes      | Artifact ID (`at_…`).                     |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `artifactId` | string | path | required | ID of the artifact. |
 
 #### Response
 
-Returns `200 OK` with the same public Artifact fields shown by the list
-endpoint. Storage locations and credentials are never included.
+Returns `200 OK` as `application/json`. The download URL and when it expires.
 
-Response schema:
-[`artifactListItemSchema`](/api-reference/protocols/objects-and-schemas#artifactlistitem).
+Response schema: `ArtifactDownloadUrl`.
 
 ```json
 {
-  "artifactId": "at_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "sessionId": "ss_1234567890ABCDEF",
+  "url": "https://downloads.example.com/at_6Jm2Qx8RtW4nPz1K/report.pdf?signature=3f9a2c",
+  "expiresAt": "2026-07-10T10:05:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/artifacts/at_1234567890ABCDEF/download-url" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### GET /v1/artifacts/:artifactId [#get-artifact]
+
+Get an artifact.
+
+Returns an artifact's metadata without its contents. Create a download URL to fetch the file.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `artifactId` | string | path | required | ID of the artifact. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The artifact.
+
+Response schema: `Artifact`.
+
+```json
+{
+  "artifactId": "at_6Jm2Qx8RtW4nPz1K",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "sessionId": "ss_9Fh3Lc7VbN2kDs5Y",
   "filename": "report.pdf",
   "mediaType": "application/pdf",
   "sizeBytes": 24830,
   "userId": "",
   "metadata": {},
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:00:00Z"
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
 }
 ```
 
 #### Errors
 
-`400 validation_failed` for a malformed ID. `404 not_found` applies to a
-missing or foreign Artifact. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --fail-with-body \
-  "$BLAZING_AGENTS_BASE_URL/v1/artifacts/at_1234567890ABCDEF" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/artifacts/at_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/artifacts#get) /
-[Python](/sdk/python/artifacts#get).
-
-### POST /v1/artifacts/:artifactId/download-url [#create-artifact-download-url]
-
-Creates a download URL that works for five minutes.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication) and an
-`at_…` `artifactId`. There are no query or body parameters.
-
-#### Response
-
-Returns `200 OK` with an absolute download URL and its expiry.
-Response schema:
-[`artifactDownloadUrlResponseSchema`](/api-reference/protocols/objects-and-schemas#artifactdownloadurlresponse).
-
-```json
-{
-  "url": "https://downloads.example.com/at_1234567890ABCDEF/report.pdf?signature=…",
-  "expiresAt": "2026-07-31T12:05:00.000Z"
-}
-```
-
-Fetch the URL without an API credential. It returns the artifact's bytes until
-it expires, and you can use it more than once before then.
-
-#### Errors
-
-`400 validation_failed` for malformed IDs. `404 not_found` applies to a missing or foreign Artifact. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request POST \
-  "$BLAZING_AGENTS_BASE_URL/v1/artifacts/at_1234567890ABCDEF/download-url" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/artifacts#create-download-url) / [Python](/sdk/python/artifacts#create-download-url). Treat the returned URL as a bearer secret and omit it from logs.
 
 ### DELETE /v1/artifacts/:artifactId [#delete-artifact]
 
-Permanently deletes an artifact and its bytes. The source file in the workspace
-is not touched. Deleting the same artifact again returns `404 not_found`.
+Delete an artifact.
+
+Permanently deletes an artifact and its file. The source file in the workspace is not touched. Deleting the same artifact again returns `404 not_found`.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and an
-`at_…` `artifactId`. There are no query or body parameters.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `artifactId`    | yes      | Artifact ID (`at_…`).                     |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `artifactId` | string | path | required | ID of the artifact. |
 
 #### Response
 
-Returns `204 No Content` with an empty body.
+Returns `204 No Content`. The artifact was deleted.
 
 #### Errors
 
-`400 validation_failed` for malformed IDs. `404 not_found` applies to a missing,
-foreign, or already deleted Artifact. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/artifacts/at_1234567890ABCDEF" \
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/artifacts/at_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/artifacts#delete) / [Python](/sdk/python/artifacts#delete). See [Artifacts](/agents/artifacts).
 
 ## Next [#next]
 

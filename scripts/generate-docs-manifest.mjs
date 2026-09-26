@@ -1,309 +1,14 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loader } from "fumadocs-core/source";
 import fumadocs from "fumadocs-mdx/vite";
 import { createServer } from "vite";
 import { documentationContractSchema } from "../src-docs/lib/documentation-contract-schema.ts";
+import { loadRestApi } from "./rest-api.mjs";
 
-const REST_API_OPERATION =
-  /^### (?<method>DELETE|GET|PATCH|POST|PUT) (?<path>\/v1\/\S+) \[#(?<operation>[a-z0-9-]+)\]$/gm;
-const PARAGRAPH_BREAK = /\n\s*\n/;
-const TITLE = /^title: (?<title>.+)$/m;
-const CURL_BLOCK = /#### cURL\s+```bash\n(?<code>[\s\S]*?)\n```/;
-const RESPONSE_SECTION = /#### Response\n\n(?<content>[\s\S]*?)(?=\n#### |$)/;
-const ERROR_SECTION = /#### Errors\n\n(?<content>[\s\S]*?)(?=\n#### |$)/;
-const SUCCESS_STATUS =
-  /\b(?<status>2\d\d) (?:OK|Created|Accepted|No Content)\b/g;
-const ERROR_STATUS = /`(?<status>[45]\d\d)(?: [a-z][a-z0-9_]*)?`/g;
-const DOCUMENTED_ERROR =
-  /`(?<statuses>[45]\d\d(?:\s*\/\s*[45]\d\d)*)\s+(?<code>[a-z][a-z0-9_]*)`/g;
-const ERROR_NUMBER = /[45]\d\d/g;
-const FENCED_RESPONSE = /```(?<language>[^\n]*)\n(?<code>[\s\S]*?)\n```/g;
 const ENVIRONMENT_VARIABLE = /\$([A-Z][A-Z0-9_]*)/g;
-const MARKDOWN_LINK = /\[(?<name>[^\]]+)\]\([^)]+\)/;
-const NON_ALPHANUMERIC = /[^a-z0-9]/g;
-const RESPONSE_SCHEMA =
-  /(?:Non-streaming )?Response schema:\s+(?:\[`?|`)(?<name>[A-Za-z][A-Za-z0-9]*)/i;
-const RESPONSE_SCHEMA_LINK =
-  /(?:Non-streaming )?Response schema:\s+\[`?(?<name>[A-Za-z][A-Za-z0-9]*)`?\]\((?<href>[^)]+)\)/i;
-const RESPONSE_TABLE_ROW =
-  /^\|\s*`?(?<status>2\d\d) [^|`]+`?\s*\|\s*(?<body>[^|]+)\|\s*(?<description>[^|]+)\|/gm;
-const INLINE_MARKDOWN_LINK = /\[(?<label>[^\]]+)\]\((?<href>[^)]+)\)/g;
 const WHITESPACE = /\s/;
-const TRAILING_PERIOD = /\.$/;
-const TERMINAL_PUNCTUATION = /[.!?:]$/;
-const SAMPLE_TIMESTAMP = "2026-07-20T12:00:00.000Z";
-const AGENT_RESPONSE_EXAMPLE = {
-  approvalInChat: { default: "full", overrides: [] },
-  approvalInTasks: { default: "full", overrides: [] },
-  avatarUrl: null,
-  createdAt: SAMPLE_TIMESTAMP,
-  id: "ag_1234567890ABCDEF",
-  instructions: "Answer clearly.",
-  mcpConnectionIds: [],
-  memoryInjectionEnabled: true,
-  metadata: {},
-  model: "openrouter/auto",
-  name: "Support Agent",
-  providerId: null,
-  status: "active",
-  tenantId: "ten_1234567890ABCDEF",
-  tools: ["workspace", "write_todos"],
-  updatedAt: SAMPLE_TIMESTAMP,
-  userId: "",
-  version: 1,
-  workspaceId: "ws_1234567890ABCDEF",
-};
-const AGENT_VERSION_EXAMPLE = {
-  approvalInChat: { default: "full", overrides: [] },
-  approvalInTasks: { default: "full", overrides: [] },
-  agentId: "ag_1234567890ABCDEF",
-  createdAt: SAMPLE_TIMESTAMP,
-  instructions: "Answer clearly.",
-  mcpConnectionIds: [],
-  memoryInjectionEnabled: true,
-  metadata: {},
-  model: "openrouter/auto",
-  name: "Support Agent",
-  providerId: null,
-  tenantId: "ten_1234567890ABCDEF",
-  tools: ["workspace"],
-  version: 1,
-};
-const MCP_ATTACHMENT_EXAMPLE = {
-  createdAt: SAMPLE_TIMESTAMP,
-  forwardedMetadataKeys: ["locale"],
-  forwardUserId: true,
-  mcpConnectionId: "mcp_1234567890ABCDEF",
-  updatedAt: SAMPLE_TIMESTAMP,
-};
-const MCP_CONNECTION_EXAMPLE = {
-  authType: "none",
-  createdAt: SAMPLE_TIMESTAMP,
-  credentialFragment: null,
-  id: "mcp_1234567890ABCDEF",
-  lastAuthErrorCode: null,
-  name: "Docs server",
-  oauthIssuer: null,
-  oauthResource: null,
-  status: "connected",
-  tokenExpiresAt: null,
-  updatedAt: SAMPLE_TIMESTAMP,
-  url: "https://mcp.example.com/mcp",
-};
-const MEMORY_EXAMPLE = {
-  agentId: "ag_1234567890ABCDEF",
-  createdAt: SAMPLE_TIMESTAMP,
-  id: "mem_1234567890ABCDEF",
-  lastAccessedAt: SAMPLE_TIMESTAMP,
-  tenantId: "ten_1234567890ABCDEF",
-  text: "Prefers concise answers.",
-  updatedAt: SAMPLE_TIMESTAMP,
-  userId: "user-42",
-};
-const PROMPT_EXAMPLE = {
-  createdAt: SAMPLE_TIMESTAMP,
-  id: "prompt_1234567890ABCDEF",
-  metadata: {},
-  name: "Welcome",
-  template: "Welcome, {{name}}!",
-  tenantId: "ten_1234567890ABCDEF",
-  updatedAt: SAMPLE_TIMESTAMP,
-  userId: "",
-  variables: ["name"],
-};
-const TASK_EXAMPLE = {
-  activeRunId: null,
-  agentId: "ag_1234567890ABCDEF",
-  agentVersion: null,
-  createdAt: SAMPLE_TIMESTAMP,
-  deletedAt: null,
-  enabled: true,
-  id: "tk_1234567890ABCDEF",
-  latestRunId: null,
-  metadata: {},
-  name: "Daily summary",
-  prompt: "Summarize open support cases.",
-  schedule: null,
-  tenantId: "ten_1234567890ABCDEF",
-  updatedAt: SAMPLE_TIMESTAMP,
-  userId: "",
-};
-const USAGE_EXAMPLE = {
-  buckets: [
-    {
-      agentId: "ag_1234567890ABCDEF",
-      day: "2026-07-20",
-      durationMs: 1400,
-      inputTokens: 120,
-      model: null,
-      outputTokens: 80,
-      provider: null,
-      requestCount: 2,
-      sessionId: null,
-      userId: null,
-    },
-  ],
-  totals: {
-    durationMs: 1400,
-    inputTokens: 120,
-    outputTokens: 80,
-    requestCount: 2,
-  },
-};
-const USAGE_OVERVIEW_EXAMPLE = {
-  activeAgentCount: 1,
-  byAgent: [],
-  byModel: [],
-  byUser: [],
-  daily: USAGE_EXAMPLE.buckets,
-  totals: USAGE_EXAMPLE.totals,
-};
-const WORKSPACE_EXAMPLE = {
-  createdAt: SAMPLE_TIMESTAMP,
-  id: "ws_1234567890ABCDEF",
-  metadata: { project: "docs" },
-  name: "Release files",
-  tenantId: "ten_1234567890ABCDEF",
-  updatedAt: SAMPLE_TIMESTAMP,
-  userId: "user-42",
-};
-const CHAT_NON_STREAM_EXAMPLE = {
-  message: {
-    id: "msg_response",
-    parts: [{ text: "Hello.", type: "text" }],
-    role: "assistant",
-  },
-};
-const SKILL_EXAMPLE = {
-  agentId: "ag_1234567890ABCDEF",
-  createdAt: SAMPLE_TIMESTAMP,
-  description: "Deploy the application.",
-  id: "skill_1234567890ABCDEF",
-  metadata: { category: "deployment" },
-  name: "deploy",
-  tenantId: "ten_1234567890ABCDEF",
-  updatedAt: SAMPLE_TIMESTAMP,
-};
-const SKILL_DETAIL_EXAMPLE = {
-  ...SKILL_EXAMPLE,
-  files: [
-    { path: "SKILL.md", sizeBytes: 96 },
-    { path: "scripts/deploy.sh", sizeBytes: 240 },
-  ],
-};
-const REPRESENTATIVE_RESPONSES = new Map([
-  ["agent", AGENT_RESPONSE_EXAMPLE],
-  ["agentobject", AGENT_RESPONSE_EXAMPLE],
-  ["agentversion", AGENT_VERSION_EXAMPLE],
-  ["chatnonstreamresponseschema", CHAT_NON_STREAM_EXAMPLE],
-  [
-    "agentversionsresponse",
-    { data: [AGENT_VERSION_EXAMPLE], nextCursor: null },
-  ],
-  ["mcpattachmentresponse", MCP_ATTACHMENT_EXAMPLE],
-  ["mcpattachmentsresponse", { mcpAttachments: [MCP_ATTACHMENT_EXAMPLE] }],
-  ["mcpconnectionresponse", MCP_CONNECTION_EXAMPLE],
-  ["mcpconnectionsresponse", { mcpConnections: [MCP_CONNECTION_EXAMPLE] }],
-  [
-    "mcpconnectiontestresponse",
-    {
-      latencyMs: 42,
-      ok: true,
-      server: { name: "Docs server", version: "1.0.0" },
-      toolCount: 2,
-      toolNames: ["search", "fetch"],
-    },
-  ],
-  [
-    "mcpconnectionoauthconnectresponse",
-    {
-      authorizationUrl:
-        "https://app.example.com/app/mcp-connections?mcpOAuthSetup=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-  ],
-  [
-    "mcpconnectionreconnectresult",
-    { connection: MCP_CONNECTION_EXAMPLE, status: "connected" },
-  ],
-  [
-    "mcpoauthauthorizationlaunchresponseschema",
-    {
-      authorizationUrl:
-        "https://app.example.com/v1/mcp/oauth/authorize?setup=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-  ],
-  [
-    "toolapprovalsresponse",
-    {
-      continuation: {
-        id: "tool-approval:message-1",
-        state: "waiting",
-      },
-      data: [
-        {
-          approvalId: "approval-1",
-          tool: null,
-          assistantMessageId: "msg_1234567890ABCDEF",
-          createdAt: SAMPLE_TIMESTAMP,
-          decidedAt: null,
-          decision: "pending",
-          input: { action: "deleteById", agentId: "ag_1234567890ABCDEF" },
-          reason: null,
-          toolCallId: "call-1",
-          toolName: "agents",
-        },
-      ],
-    },
-  ],
-  [
-    "toolapprovaldecisionresponse",
-    { continuationId: "tool-approval:message-1", state: "queued" },
-  ],
-  ["memoryresponse", { memory: MEMORY_EXAMPLE }],
-  ["memorieslistresponse", { data: [MEMORY_EXAMPLE], nextCursor: null }],
-  ["promptobject", PROMPT_EXAMPLE],
-  ["skillresponseschema", SKILL_DETAIL_EXAMPLE],
-  ["skillslistresponseschema", { data: [SKILL_EXAMPLE], nextCursor: null }],
-  [
-    "skillcopyresultsschema",
-    [
-      {
-        agentId: "ag_1234567890ABCDEF",
-        skill: SKILL_DETAIL_EXAMPLE,
-        status: "created",
-      },
-      {
-        agentId: "ag_0FEDCBA098765432",
-        error: {
-          code: "skill_name_conflict",
-          message: "A Skill with this name already exists.",
-        },
-        status: "failed",
-      },
-    ],
-  ],
-  ["taskobject", TASK_EXAMPLE],
-  ["usageoverviewresponse", USAGE_OVERVIEW_EXAMPLE],
-  ["usageresponse", USAGE_EXAMPLE],
-  [
-    "workspaceslistresponseschema",
-    { data: [WORKSPACE_EXAMPLE], nextCursor: null },
-  ],
-  ["workspaceschema", WORKSPACE_EXAMPLE],
-]);
-const DEFAULT_ERROR_CODES = new Map([
-  ["400", "invalid_request"],
-  ["401", "unauthorized"],
-  ["404", "not_found"],
-  ["409", "internal"],
-  ["413", "invalid_request"],
-  ["429", "rate_limited"],
-  ["500", "internal"],
-  ["502", "internal"],
-  ["503", "service_unavailable"],
-]);
 const SHARED_REST_ERRORS = [
   { code: "unauthorized", message: "Unauthorized", status: "401" },
   { code: "internal", message: "Internal Server Error", status: "500" },
@@ -328,13 +33,6 @@ const contract = documentationContractSchema.parse(
 );
 const navigationLabels = new Map(
   contract.targets.map(({ file, name }) => [file, name])
-);
-const restApiDirectory = resolve(
-  webappDirectory,
-  "content/docs/api-reference/rest-api"
-);
-const restApiMetadata = JSON.parse(
-  readFileSync(resolve(restApiDirectory, "meta.json"), "utf8")
 );
 
 /** Canonical examples use a deliberately small, validated shell subset. */
@@ -985,96 +683,6 @@ function createRequestExamples(curl, request) {
   ];
 }
 
-function responseNote(content, status, request) {
-  if (status === "204") {
-    return "No response body";
-  }
-  if (request.outputFile) {
-    return "Binary response body";
-  }
-  if (request.noBuffer) {
-    return "Streaming response body";
-  }
-  const statusParagraph =
-    content
-      .split(PARAGRAPH_BREAK)
-      .find((paragraph) => paragraph.includes(`${status} `)) ?? content;
-  if (statusParagraph.toLowerCase().includes("empty body")) {
-    return "No response body";
-  }
-  const linkedBody = statusParagraph
-    .match(MARKDOWN_LINK)
-    ?.groups?.name.replaceAll("`", "");
-  if (linkedBody) {
-    return linkedBody;
-  }
-  const schema = content.match(RESPONSE_SCHEMA)?.groups?.name;
-  if (schema) {
-    return schema;
-  }
-  if (content.includes("application/octet-stream")) {
-    return "application/octet-stream";
-  }
-  if (content.includes("text/plain")) {
-    return "text/plain";
-  }
-  return "JSON response body";
-}
-
-function parseErrorResponses(section, successStatuses) {
-  const content = section.match(ERROR_SECTION)?.groups?.content;
-  if (!content) {
-    return [];
-  }
-  const codes = new Map();
-  for (const match of content.matchAll(DOCUMENTED_ERROR)) {
-    for (const status of match.groups.statuses.matchAll(ERROR_NUMBER)) {
-      if (!codes.has(status[0])) {
-        codes.set(status[0], match.groups.code);
-      }
-    }
-  }
-  const statuses = new Set(
-    [...content.matchAll(ERROR_STATUS)].map(({ groups }) => groups.status)
-  );
-  for (const status of codes.keys()) {
-    statuses.add(status);
-  }
-  return [...statuses]
-    .filter((status) => !successStatuses.has(status))
-    .map((status) => {
-      const code =
-        codes.get(status) ?? DEFAULT_ERROR_CODES.get(status) ?? "internal";
-      const message =
-        code === "validation_failed"
-          ? "One or more request values failed validation."
-          : "The request could not be completed.";
-      return {
-        code: JSON.stringify({ error: { code, message } }, null, 2),
-        contentType: "application/json",
-        language: "json",
-        status,
-      };
-    });
-}
-
-function addRepresentativeResponse(response) {
-  if (response.code || !response.note) {
-    return response;
-  }
-  const key = response.note.toLowerCase().replaceAll(NON_ALPHANUMERIC, "");
-  const representative = REPRESENTATIVE_RESPONSES.get(key);
-  if (!representative) {
-    return response;
-  }
-  return {
-    ...response,
-    code: JSON.stringify(representative, null, 2),
-    contentType: "application/json",
-    language: "json",
-  };
-}
-
 function addSharedRestErrors(responses, request) {
   const statuses = new Set(responses.map(({ status }) => status));
   const applicable = [
@@ -1100,213 +708,56 @@ function addSharedRestErrors(responses, request) {
   return [...responses, ...shared];
 }
 
-function getResponseContentType(content, status, request) {
-  if (status === "204" || content.toLowerCase().includes("empty body")) {
-    return;
-  }
-  if (request.outputFile || content.includes("application/octet-stream")) {
-    return "application/octet-stream";
-  }
-  if (request.noBuffer && content.includes("text/event-stream")) {
-    return "text/event-stream";
-  }
-  if (request.noBuffer || content.includes("text/plain")) {
-    return "text/plain";
-  }
-  return "application/json";
-}
-
-function parseResponses(section, request) {
-  const content = section.match(RESPONSE_SECTION)?.groups?.content;
-  if (!content) {
-    throw new Error("Missing Response section");
-  }
-  const statuses = [
-    ...new Set(
-      [...content.matchAll(SUCCESS_STATUS)].map(({ groups }) => groups.status)
-    ),
-  ];
-  const fences = [...content.matchAll(FENCED_RESPONSE)].map(({ groups }) => ({
-    code: groups.code,
-    language: groups.language || "text",
-  }));
-  const supportsStreamToggle =
-    content.includes("text/event-stream") &&
-    (content.includes("stream: false") || content.includes("`stream: false`"));
-  let successResponses;
-  if (supportsStreamToggle) {
-    successResponses = statuses.flatMap((status) => [
-      {
-        contentType: "text/event-stream",
-        note: "Streaming response body",
-        status,
-      },
-      ...(fences.length > 0
-        ? fences.map((fence) => ({
-            ...fence,
-            contentType: "application/json",
-            note: responseNote(content, status, {
-              ...request,
-              noBuffer: false,
-            }),
-            status,
-          }))
-        : [
-            {
-              contentType: "application/json",
-              note:
-                content.match(RESPONSE_SCHEMA)?.groups?.name ??
-                "JSON response body",
-              status,
-            },
-          ]),
-    ]);
-  } else if (statuses.length === 1 && fences.length > 0) {
-    successResponses = fences.map((fence) => ({
-      ...fence,
-      contentType: getResponseContentType(content, statuses[0], request),
-      note: responseNote(content, statuses[0], request),
-      status: statuses[0],
-    }));
-  } else {
-    successResponses = statuses.map((status) => ({
-      contentType: getResponseContentType(content, status, request),
-      note: responseNote(content, status, request),
-      status,
-    }));
-  }
-  return addSharedRestErrors(
-    [
-      ...successResponses.map(addRepresentativeResponse),
-      ...parseErrorResponses(section, new Set(statuses)),
-    ],
-    request
-  );
-}
-
-function cleanResponseText(value) {
-  return value
-    .replaceAll(INLINE_MARKDOWN_LINK, "$<label>")
-    .replaceAll("`", "")
-    .replaceAll(/\s+/g, " ")
-    .trim()
-    .replace(TRAILING_PERIOD, "");
-}
-
-function parseResponseMetadata(section, responses) {
-  const content = section.match(RESPONSE_SECTION)?.groups?.content;
-  if (!content) {
-    throw new Error("Missing Response section");
-  }
-  const success = responses.find(({ status }) => status.startsWith("2"));
-  const schemaLink = content.match(RESPONSE_SCHEMA_LINK)?.groups;
-  const schemaName =
-    schemaLink?.name ?? content.match(RESPONSE_SCHEMA)?.groups?.name;
-  const tableRows = [...content.matchAll(RESPONSE_TABLE_ROW)];
-  const tableRow = tableRows.find(
-    ({ groups }) => groups.status === success?.status
-  )?.groups;
-  const tableBodyLink = tableRow?.body.matchAll(INLINE_MARKDOWN_LINK).next()
-    .value?.groups;
-  const paragraphs = content
-    .split(PARAGRAPH_BREAK)
-    .filter(
-      (paragraph) =>
-        !(
-          paragraph.startsWith("|") ||
-          paragraph.startsWith("```") ||
-          paragraph.startsWith("Response schema:")
-        )
-    );
-  const prose = paragraphs.find((paragraph) =>
-    paragraph.includes(`${success?.status ?? "2"}`)
-  );
-  const description = cleanResponseText(
-    prose ??
-      tableRow?.description ??
-      (success?.note === "No response body"
-        ? "Returns an empty response body"
-        : (success?.note ?? "Returns the documented response body"))
-  );
-  const schema =
-    schemaName || tableBodyLink?.label
-      ? {
-          ...(schemaLink?.href || tableBodyLink?.href
-            ? { href: schemaLink?.href ?? tableBodyLink?.href }
-            : {}),
-          name:
-            schemaName ??
-            tableBodyLink?.label.replaceAll("`", "") ??
-            "response",
-        }
-      : undefined;
-  return {
-    description: TERMINAL_PUNCTUATION.test(description)
-      ? description
-      : `${description}.`,
-    ...(schema ? { schema } : {}),
-  };
-}
-
-const restApiOperations = restApiMetadata.pages.slice(2).map((page) => {
-  const markdownPath = resolve(restApiDirectory, `${page}.md`);
-  const source = readFileSync(
-    existsSync(markdownPath)
-      ? markdownPath
-      : resolve(restApiDirectory, `${page}.mdx`),
-    "utf8"
-  );
-  const title = source.match(TITLE)?.groups?.title;
-  if (!title) {
-    throw new Error(`Missing REST API title for ${page}`);
-  }
-  const matches = [...source.matchAll(REST_API_OPERATION)];
-  const operations = matches.map(({ 0: heading, groups, index }, position) => {
-    const sectionEnd = matches[position + 1]?.index ?? source.length;
-    const section = source.slice(index + heading.length, sectionEnd);
-    const description = section
-      .trim()
-      .split(PARAGRAPH_BREAK)[0]
-      ?.replaceAll("\n", " ");
-    if (!description) {
-      throw new Error(
-        `Missing description for REST operation ${groups.operation}`
-      );
+function toManifestResponses(operation) {
+  const success = operation.responses.map((response) => {
+    if (response.contentType === "application/json") {
+      return {
+        code: JSON.stringify(response.example, null, 2),
+        contentType: response.contentType,
+        language: "json",
+        status: response.status,
+      };
     }
-    const curl = section.match(CURL_BLOCK)?.groups?.code;
-    if (!curl) {
-      throw new Error(
-        `Missing cURL example for REST operation ${groups.operation}`
-      );
-    }
-    const request = parseCurl(curl);
-    if (request.method !== groups.method) {
-      throw new Error(
-        `cURL method mismatch for ${groups.operation}: ${request.method} !== ${groups.method}`
-      );
-    }
-    const responses = parseResponses(section, request);
-    return {
-      description,
-      examples: createRequestExamples(curl, request),
-      method: groups.method,
-      operation: groups.operation,
-      path: groups.path,
-      responseMetadata: parseResponseMetadata(section, responses),
-      responses,
-      url: `/api-reference/rest-api/${page}/${groups.operation}`,
-    };
+    const note = {
+      "application/octet-stream": "Binary response body",
+      "text/event-stream": "Streaming response body",
+      "text/plain": "Streaming response body",
+    }[response.contentType];
+    return note
+      ? { contentType: response.contentType, note, status: response.status }
+      : { note: "No response body", status: response.status };
   });
-  if (operations.length === 0) {
-    throw new Error(`Missing REST API operations for ${page}`);
-  }
-  return {
-    operations,
-    pageId: `api-reference/rest-api/${page}.md`,
-    title,
-    url: `/api-reference/rest-api/${page}`,
-  };
-});
+  const errors = operation.errors.map(({ example, status }) => ({
+    code: JSON.stringify(example, null, 2),
+    contentType: "application/json",
+    language: "json",
+    status,
+  }));
+  return [...success, ...errors];
+}
+
+const restApiOperations = loadRestApi().map((page) => ({
+  operations: page.operations.map((operation) => {
+    const request = parseCurl(operation.curl);
+    const [success] = operation.responses;
+    return {
+      description: `${operation.summary}.`,
+      examples: createRequestExamples(operation.curl, request),
+      method: operation.method,
+      operation: operation.anchor,
+      path: operation.path,
+      responseMetadata: {
+        description: `${success.description}.`,
+        ...(success.schema ? { schema: { name: success.schema } } : {}),
+      },
+      responses: addSharedRestErrors(toManifestResponses(operation), request),
+      url: `/api-reference/rest-api/${page.slug}/${operation.anchor}`,
+    };
+  }),
+  pageId: `api-reference/rest-api/${page.slug}.md`,
+  title: page.title,
+  url: `/api-reference/rest-api/${page.slug}`,
+}));
 
 function applyNavigationLabels(node) {
   if (node && typeof node === "object") {

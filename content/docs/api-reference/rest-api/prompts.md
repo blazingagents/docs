@@ -11,59 +11,123 @@ A prompt is a saved message template with `{{variable}}` placeholders. Store it 
 
 ## Endpoints [#endpoints]
 
-### POST /v1/prompts [#create-prompt]
+### GET /v1/prompts [#list-prompts]
 
-Creates a prompt and finds the variables in its template.
+List prompts.
+
+Lists your prompts, most recently updated first, in a single response. Filter by end user, by linked agent, or both.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. There are no path or query parameters. You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-
-| Body field | Type   | Required | Description                                                  |
-| ---------- | ------ | -------- | ------------------------------------------------------------ |
-| `name`     | string | yes      | 1–80 characters                                              |
-| `template` | string | yes      | Non-empty template, up to 10,240 characters and 10 variables |
-| `agentId` | string or null | no | Same-Tenant Agent link; omission or null means unlinked |
-| `userId`   | string | no       | Defaults to `""`                                             |
-| `metadata` | object | no       | Defaults to `{}`                                             |
-
-Deleting a linked agent also deletes its prompts. Prompts without an agent
-stay. Linking an agent that is missing or in another tenant returns
-`404 not_found`.
-
-Variable names match `[A-Za-z_][A-Za-z0-9_]*`.
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `userId` | string | query |  | Return only prompts for this end user. Send an empty string for tenant-level prompts, or leave it out for all prompts. |
+| `agentId` | string | query |  | Return only prompts linked to this agent. |
 
 #### Response
 
-Returns `201 Created` with a [Prompt object](/api-reference/protocols/objects-and-schemas#prompt).
+Returns `200 OK` as `application/json`. Your tenant's prompts.
 
-Response schema: [`promptResponseSchema`](/api-reference/protocols/objects-and-schemas#prompt-response).
+Response schema: `PromptList`.
 
 ```json
 {
-  "id": "prompt_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": null,
-  "name": "Welcome",
-  "template": "Welcome, {{name}}!",
-  "variables": ["name"],
-  "userId": "",
-  "metadata": {},
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:00:00Z"
+  "prompts": [
+    {
+      "id": "prompt_5Wn3Hc7TbK2xQv9F",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+      "agentId": "ag_4kP9sT2vXq7LmN3a",
+      "name": "Refund reply",
+      "template": "Write a short, friendly reply to {{customerName}} about order {{orderId}}.",
+      "variables": [
+        "customerName",
+        "orderId"
+      ],
+      "userId": "",
+      "metadata": {
+        "team": "support"
+      },
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:00:00.000Z"
+    }
+  ]
 }
 ```
 
 #### Errors
 
-`400 validation_failed` for a parsed body that fails schema validation. Filling in
-variables can fail with `prompt_variable_missing` or `prompt_variable_unknown`;
-a duplicate name returns `409 prompt_name_conflict`; and reaching the tenant
-limit returns `prompt_limit_reached`. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/prompts" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/prompts [#create-prompt]
+
+Create a prompt.
+
+Saves a message template and lists the variables it uses in `variables`. Your tenant can keep up to 100 prompts.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | string | body | required | Display name, 1 to 80 characters, unique within your tenant. 1–80 characters. |
+| `template` | string | body | required | Message template, up to 10,240 characters. Mark each variable as `{{name}}`; names match `[A-Za-z_][A-Za-z0-9_]*`, and a template can use up to 10 of them. 1–10240 characters. |
+| `agentId` | string \| null | body |  | ID of an agent in your tenant to link the prompt to, or `null` for no link. Deleting the agent also deletes its linked prompts. |
+| `userId` | string | body |  | Your end user's ID, used for attribution. An empty string means a tenant-level prompt. It cannot change after creation. Defaults to `""`. |
+| `metadata` | object | body |  | Your own key-value data, returned unchanged. Defaults to `{}`. |
+
+#### Response
+
+Returns `201 Created` as `application/json`. The created prompt.
+
+Response schema: `Prompt`.
+
+```json
+{
+  "id": "prompt_5Wn3Hc7TbK2xQv9F",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "Refund reply",
+  "template": "Write a short, friendly reply to {{customerName}} about order {{orderId}}.",
+  "variables": [
+    "customerName",
+    "orderId"
+  ],
+  "userId": "",
+  "metadata": {
+    "team": "support"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`prompt_limit_reached`](/api-reference/protocols/errors#prompt_limit_reached) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`prompt_name_conflict`](/api-reference/protocols/errors#prompt_name_conflict) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -71,91 +135,59 @@ limit returns `prompt_limit_reached`. See [REST errors](/api-reference/protocols
 curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/prompts" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"name":"Welcome","template":"Welcome, {{name}}!"}'
+  --data '{"name":"Refund reply","template":"Write a short, friendly reply to {{customerName}} about order {{orderId}}.","agentId":"ag_4kP9sT2vXq7LmN3a","metadata":{"team":"support"}}'
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/prompts#create) / [Python](/sdk/python/prompts#create). See [Prompts](/agents/prompts) and [Generate structured output](/agents/output/structured-output).
-
-### GET /v1/prompts [#list-prompts]
-
-Lists prompts, most recently updated first, in a single response.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-
-| Query parameter | Type   | Required | Description                                           |
-| --------------- | ------ | -------- | ----------------------------------------------------- |
-| `agentId` | string | no | Exact Agent link filter; combines with userId |
-| `userId`        | string | no       | Attribution filter; `""` selects tenant-level Prompts |
-
-There is no request body.
-
-#### Response
-
-Returns `200 OK` with a `prompts` array. Each item is a complete [Prompt object](/api-reference/protocols/objects-and-schemas#prompt).
-
-Response schema: [`promptsResponseSchema`](/api-reference/protocols/objects-and-schemas#prompts-response).
-
-#### Errors
-
-`400 validation_failed` for invalid or unknown query fields. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --get "$BLAZING_AGENTS_BASE_URL/v1/prompts" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "userId="
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/prompts#list) / [Python](/sdk/python/prompts#list). See [Prompts](/agents/prompts) and [Generate structured output](/agents/output/structured-output).
 
 ### GET /v1/prompts/:promptId [#get-prompt]
 
-Gets one prompt.
+Get a prompt.
+
+Retrieves a prompt, including the variables its template uses.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a `prompt_…` `promptId` path parameter. There are no query or body parameters. You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `promptId`      | yes      | Prompt ID (`prompt_…`).                   |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `promptId` | string | path | required | ID of the prompt. |
 
 #### Response
 
-Returns `200 OK` with a complete [Prompt object](/api-reference/protocols/objects-and-schemas#prompt).
+Returns `200 OK` as `application/json`. The prompt.
 
-Response schema: [`promptResponseSchema`](/api-reference/protocols/objects-and-schemas#prompt-response).
+Response schema: `Prompt`.
 
 ```json
 {
-  "id": "prompt_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": null,
-  "name": "Welcome",
-  "template": "Welcome, {{name}}!",
-  "variables": ["name"],
+  "id": "prompt_5Wn3Hc7TbK2xQv9F",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "Refund reply",
+  "template": "Write a short, friendly reply to {{customerName}} about order {{orderId}}.",
+  "variables": [
+    "customerName",
+    "orderId"
+  ],
   "userId": "",
-  "metadata": {},
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:00:00Z"
+  "metadata": {
+    "team": "support"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
 }
 ```
 
 #### Errors
 
-`400 validation_failed` for a malformed ID. `404 not_found` when missing or foreign. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -164,93 +196,107 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/prompts/prompt_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/prompts#get) / [Python](/sdk/python/prompts#get). See [Prompts](/agents/prompts) and [Generate structured output](/agents/output/structured-output).
-
 ### PATCH /v1/prompts/:promptId [#update-prompt]
 
-Updates a prompt and finds its variables again when the template changes.
+Update a prompt.
+
+Updates a prompt in place; prompts keep no earlier versions. Send at least one field. Fields you leave out keep their values. When the template changes, `variables` reflects the new template.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, and a `prompt_…` `promptId`. You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `promptId`      | yes      | Prompt ID (`prompt_…`).                   |
-
-| Body field | Type   | Required | Description                           |
-| ---------- | ------ | -------- | ------------------------------------- |
-| `agentId` | string or null | no | Set or clear the Agent link |
-| `name`     | string | no       | New name                              |
-| `template` | string | no       | New template, up to 10,240 characters |
-| `metadata` | object | no       | Replacement metadata                  |
-
-At least one body field is required. There are no query parameters. A missing
-or foreign Agent link returns `404 not_found`.
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `promptId` | string | path | required | ID of the prompt. |
+| `agentId` | string \| null | body |  | ID of an agent in your tenant to link the prompt to, or `null` for no link. Deleting the agent also deletes its linked prompts. |
+| `name` | string | body |  | Display name, 1 to 80 characters, unique within your tenant. 1–80 characters. |
+| `template` | string | body |  | Message template, up to 10,240 characters. Mark each variable as `{{name}}`; names match `[A-Za-z_][A-Za-z0-9_]*`, and a template can use up to 10 of them. 1–10240 characters. |
+| `metadata` | object | body |  | Your own key-value data, returned unchanged. Replaces the current value. |
 
 #### Response
 
-Returns `200 OK` with the complete updated [Prompt object](/api-reference/protocols/objects-and-schemas#prompt).
+Returns `200 OK` as `application/json`. The updated prompt.
 
-Response schema: [`promptResponseSchema`](/api-reference/protocols/objects-and-schemas#prompt-response).
+Response schema: `Prompt`.
+
+```json
+{
+  "id": "prompt_5Wn3Hc7TbK2xQv9F",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "Refund reply",
+  "template": "Write a short, friendly reply to {{customerName}} about order {{orderId}}. Mention the refund amount {{amount}}.",
+  "variables": [
+    "customerName",
+    "orderId",
+    "amount"
+  ],
+  "userId": "",
+  "metadata": {
+    "team": "support"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:15:00.000Z"
+}
+```
 
 #### Errors
 
-`400 validation_failed` for invalid or empty parsed input.
-`prompt_variable_missing`, `prompt_variable_unknown`, and
-`409 prompt_name_conflict` identify expansion and name failures. `404
-not_found` applies when the Prompt is missing or foreign. See [REST
-errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`prompt_name_conflict`](/api-reference/protocols/errors#prompt_name_conflict) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request PATCH \
-  "$BLAZING_AGENTS_BASE_URL/v1/prompts/prompt_1234567890ABCDEF" \
+curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/prompts/prompt_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"template":"Hello, {{name}}!"}'
+  --data '{"template":"Write a short, friendly reply to {{customerName}} about order {{orderId}}. Mention the refund amount {{amount}}."}'
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/prompts#update) / [Python](/sdk/python/prompts#update). See [Prompts](/agents/prompts) and [Generate structured output](/agents/output/structured-output).
 
 ### DELETE /v1/prompts/:promptId [#delete-prompt]
 
-Permanently deletes a prompt. Messages already sent with it stay in their transcripts.
+Delete a prompt.
+
+Permanently deletes a prompt. Messages already sent with it stay in their transcripts, and later requests that pass its `promptId` return `not_found`.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a `prompt_…` `promptId`. There are no query or body parameters. You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `promptId`      | yes      | Prompt ID (`prompt_…`).                   |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `promptId` | string | path | required | ID of the prompt. |
 
 #### Response
 
-Returns `204 No Content` with an empty body.
+Returns `204 No Content`. The prompt was deleted.
 
 #### Errors
 
-`400 validation_failed` for a malformed ID. `404 not_found` when missing or foreign. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/prompts/prompt_1234567890ABCDEF" \
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/prompts/prompt_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/prompts#delete) / [Python](/sdk/python/prompts#delete). See [Prompts](/agents/prompts) and [Generate structured output](/agents/output/structured-output).
 
 ## Next [#next]
 

@@ -9,79 +9,41 @@ description: Store model provider keys and discover the models each provider off
 
 A provider stores the API key your agents use to call a model vendor such as OpenRouter. Blazing Agents encrypts the key and never returns it. List a provider's models to pick an ID for your agent; listing makes no model call, and the same list checks the model whenever you configure an agent.
 
+List a model's thinking levels to see which `thinkingLevel` values an agent
+can use with it. `known: false` means the capabilities could not be looked up;
+a known empty list means only the provider's default is available. See
+[Thinking level](/agents/providers-and-models#thinking-level) for how levels
+are chosen.
+
 ## Endpoints [#endpoints]
-
-### POST /v1/providers [#create-provider]
-
-Creates a provider in your tenant.
-
-#### Request
-
-| Body field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | string | yes | Unique display name, 1–80 characters |
-| `providerType` | string | yes | `openai`, `anthropic`, `openrouter`, `google`, `vercel_ai_gateway`, or `custom` |
-| `baseUrl` | string \| null | no | Endpoint override; required for `custom`, not accepted for `vercel_ai_gateway` |
-| `apiKey` | string | yes | Write-only Provider key |
-
-#### Response
-
-Returns `201 Created` with the provider. The key is never returned; only its last characters appear as `keyFragment`.
-
-Response schema: [`providerResponseSchema`](/api-reference/protocols/objects-and-schemas#provider-response).
-
-```json
-{
-  "id": "prv_1234567890ABCDEF",
-  "name": "Production OpenRouter",
-  "providerType": "openrouter",
-  "baseUrl": null,
-  "keyFragment": "wxyz",
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:00:00Z"
-}
-```
-
-#### Errors
-
-Errors include `validation_failed`, `provider_name_conflict`, and `provider_limit_reached`.
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/providers" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{"name":"Production OpenRouter","providerType":"openrouter","baseUrl":null,"apiKey":"'"$OPENROUTER_API_KEY"'"}'
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/providers#create), [Python](/sdk/python/providers#create).
 
 ### GET /v1/providers [#list-providers]
 
-Lists your tenant's providers. Keys are never returned.
+List providers.
+
+Lists your tenant's providers, most recently updated first. Items leave out the base URL and key fragment; get a single provider to see them.
 
 #### Request
 
-Requires bearer authentication. There are no path, query, or body parameters.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+There are no parameters and no request body.
 
 #### Response
 
-Returns `200 OK` with list items containing only `id`, `name`, `providerType`, `createdAt`, and `updatedAt`. Get a single provider for its base URL and key fragment.
+Returns `200 OK` as `application/json`. Your tenant's providers.
 
-Response schema: [`providersResponseSchema`](/api-reference/protocols/objects-and-schemas#providers-response).
+Response schema: `ProviderList`.
 
 ```json
 {
   "providers": [
     {
-      "id": "prv_1234567890ABCDEF",
+      "id": "prv_7Tn4Kd9QwE2sLx5R",
       "name": "Production OpenRouter",
       "providerType": "openrouter",
-      "createdAt": "2026-07-10T10:00:00Z",
-      "updatedAt": "2026-07-10T10:00:00Z"
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:00:00.000Z"
     }
   ]
 }
@@ -89,7 +51,12 @@ Response schema: [`providersResponseSchema`](/api-reference/protocols/objects-an
 
 #### Errors
 
-Standard authentication and service errors apply.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -98,74 +65,103 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/providers" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
+### POST /v1/providers [#create-provider]
 
-SDKs: [TypeScript](/sdk/typescript/providers#list), [Python](/sdk/python/providers#list).
+Create a provider.
 
-### GET /v1/providers/:id [#get-provider]
-
-Returns one provider without its key, or `404 provider_not_found` when it is missing or in another tenant.
+Stores a model vendor API key for your agents to use. Names are unique within your tenant, and your tenant can hold up to 20 providers. The key is never returned; only its last characters appear as `keyFragment`. Send `baseUrl` for a `custom` provider, and leave it out for `vercel_ai_gateway`. Only the name can change later, so create a new provider to change the type, key, or base URL.
 
 #### Request
 
-Requires bearer authentication and a Provider `id` path parameter.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | string | body | required | Display name, unique within your tenant. 1–80 characters. |
+| `providerType` | string | body | required | The model vendor. Cannot be changed later. One of `openai`, `anthropic`, `openrouter`, `google`, `vercel_ai_gateway`, `custom`. |
+| `baseUrl` | string \| null | body |  | Endpoint override. Required for `custom`, not accepted for `vercel_ai_gateway`, and optional otherwise. Cannot be changed later. Defaults to `null`. |
+| `apiKey` | string | body | required | The vendor API key. It is stored encrypted, never returned, and cannot be changed later. |
 
 #### Response
 
-Returns `200 OK` with one provider.
+Returns `201 Created` as `application/json`. The created provider.
 
-Response schema: [`providerResponseSchema`](/api-reference/protocols/objects-and-schemas#provider-response).
+Response schema: `Provider`.
 
 ```json
 {
-  "id": "prv_1234567890ABCDEF",
+  "id": "prv_7Tn4Kd9QwE2sLx5R",
   "name": "Production OpenRouter",
   "providerType": "openrouter",
   "baseUrl": null,
-  "keyFragment": "wxyz",
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:00:00Z"
+  "keyFragment": "9f2c",
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
 }
 ```
 
 #### Errors
 
-Malformed IDs return `validation_failed`; missing or foreign Providers return `provider_not_found`.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`provider_limit_reached`](/api-reference/protocols/errors#provider_limit_reached) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `409` | [`provider_name_conflict`](/api-reference/protocols/errors#provider_name_conflict) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/providers" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"name":"Production OpenRouter","providerType":"openrouter","baseUrl":null,"apiKey":"sk-or-v1-3b7e...9f2c"}'
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/providers#get), [Python](/sdk/python/providers#get).
 
 ### GET /v1/providers/:id/models [#list-provider-models]
 
-Lists the models the provider offers right now, without calling a model. IDs are trimmed, deduplicated, and sorted.
+List a provider's models.
 
-Vercel AI Gateway uses its public catalog without your saved key. A listed ID only means the model is in the catalog. It does not prove your key can use it, that you have credits, or that a request will succeed.
+Lists the model IDs the provider offers right now, trimmed, deduplicated, and sorted. Listing makes no model call. Vercel AI Gateway uses its public catalog without your key, so a listed model does not prove your key can use it. Custom providers do not support listing. Creating or updating an agent checks its model against this same list.
 
 #### Request
 
-Requires bearer authentication and a Provider `id` path parameter.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the provider. |
 
 #### Response
 
-Returns `200 OK` with the provider's model IDs.
+Returns `200 OK` as `application/json`. The provider's model IDs.
 
-Response schema: [`providerModelsResponseSchema`](/api-reference/protocols/objects-and-schemas#provider-models-response).
+Response schema: `ProviderModelList`.
 
 ```json
-{ "models": [{ "id": "openai/gpt-6-luna" }] }
+{
+  "models": [
+    {
+      "id": "openai/gpt-6-luna"
+    }
+  ]
+}
 ```
 
 #### Errors
 
-Returns `422 model_discovery_unsupported` for `custom`. If the vendor rejects the key, is unreachable, or returns something unreadable, you get `503 model_validation_unavailable`; the vendor's response is not passed through.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
+| `422` | [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported) | The request was understood but rejected |
+| `503` | [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -174,96 +170,198 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF/models" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-Blazing Agents checks the same list whenever you create an agent, change its model or provider, or restore a version. If the model is not in the list, the write returns `400 model_not_found`. Custom providers skip this check, so you type their model IDs yourself.
+### GET /v1/providers/:id/thinking-levels [#list-thinking-levels]
 
-#### SDK and related guides
+List a model's thinking levels.
 
-SDKs: [TypeScript](/sdk/typescript/providers#list-models), [Python](/sdk/python/providers#list-models).
-
-### PATCH /v1/providers/:id [#update-provider]
-
-Renames a provider. Only `name` can change; create a new provider to change its type, API key, or base URL.
+Lists the thinking levels a model supports on this provider. It works for model IDs you typed yourself and for custom providers. `known` is `false`, with no levels, when the model's capabilities cannot be looked up. A known empty list means only the provider's default is available.
 
 #### Request
 
-Requires bearer authentication, a Provider `id`, and JSON containing `name`.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the provider. |
+| `model` | string | query | required | The provider's own model ID. |
 
 #### Response
 
-Returns `200 OK` with the renamed Provider.
+Returns `200 OK` as `application/json`. The model's supported thinking levels.
 
-Response schema: [`providerResponseSchema`](/api-reference/protocols/objects-and-schemas#provider-response).
+Response schema: `ProviderThinkingLevels`.
 
 ```json
 {
-  "id": "prv_1234567890ABCDEF",
-  "name": "Primary OpenRouter",
-  "providerType": "openrouter",
-  "baseUrl": null,
-  "keyFragment": "wxyz",
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:05:00Z"
+  "known": true,
+  "levels": [
+    "off",
+    "low",
+    "medium",
+    "high"
+  ]
 }
 ```
 
 #### Errors
 
-Errors include `validation_failed`, `provider_name_conflict`, and `provider_not_found`.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request PATCH \
-  "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF/thinking-levels?model=openai%2Fgpt-6-luna" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### GET /v1/providers/:id [#get-provider]
+
+Get a provider.
+
+Returns a provider, including its base URL and `keyFragment`, the last characters of its key. The key itself is never returned.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the provider. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The provider.
+
+Response schema: `Provider`.
+
+```json
+{
+  "id": "prv_7Tn4Kd9QwE2sLx5R",
+  "name": "Production OpenRouter",
+  "providerType": "openrouter",
+  "baseUrl": null,
+  "keyFragment": "9f2c",
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### PATCH /v1/providers/:id [#update-provider]
+
+Rename a provider.
+
+Renames a provider. Only `name` can change. To rotate a key or change the type or base URL, create a new provider, point your agents at it, then delete the old one.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the provider. |
+| `name` | string | body | required | New display name, unique within your tenant. 1–80 characters. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The renamed provider.
+
+Response schema: `Provider`.
+
+```json
+{
+  "id": "prv_7Tn4Kd9QwE2sLx5R",
+  "name": "Primary OpenRouter",
+  "providerType": "openrouter",
+  "baseUrl": null,
+  "keyFragment": "9f2c",
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:05:00.000Z"
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_request`](/api-reference/protocols/errors#invalid_request) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
+| `409` | [`provider_name_conflict`](/api-reference/protocols/errors#provider_name_conflict) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
   --data '{"name":"Primary OpenRouter"}'
 ```
 
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/providers#update), [Python](/sdk/python/providers#update).
-
 ### DELETE /v1/providers/:id [#delete-provider]
 
-Deletes a provider and its key. You cannot delete a provider an agent uses now; one used by older versions or pins needs your confirmation.
+Delete a provider.
+
+Deletes a provider and its key. While a current agent uses the provider, deletion fails with `provider_in_use` and the agent IDs in `details.agentIds`; point those agents at another provider first. When only older agent versions, pinned sessions, or tasks use it, deletion fails with `provider_historical_use` and their IDs in `details`, unless you send `confirmVersionInvalidation=true`.
 
 #### Request
 
-Requires bearer authentication and a Provider `id` path parameter. Optional query `confirmVersionInvalidation=true` confirms that pinned sessions, tasks, and version restores that use this provider may stop working. It never overrides use by a current agent.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | path | required | ID of the provider. |
+| `confirmVersionInvalidation` | string | query |  | `true` confirms that pinned sessions, tasks, and version restores that use this provider may stop working. It never overrides use by a current agent. One of `true`, `false`. Defaults to `false`. |
 
 #### Response
 
-Returns `204 No Content` with an empty body.
+Returns `204 No Content`. The provider was deleted.
 
 #### Errors
 
-Use by a current agent returns `provider_in_use` with `details.agentIds`. Use by older versions returns `provider_historical_use` with `details.agentVersions`, `details.sessionIds`, and `details.taskIds`. A missing provider, or one in another tenant, returns `provider_not_found`.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
+| `409` | [`provider_in_use`](/api-reference/protocols/errors#provider_in_use), [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF?confirmVersionInvalidation=true" \
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/providers#delete), [Python](/sdk/python/providers#delete).
-
-## GET /v1/providers/:id/thinking-levels [#get-thinking-levels]
-
-Lists the thinking levels a model supports. Requires bearer authentication and
-the `model` query parameter, the provider's own model ID. Returns `200 OK` with
-`{ "known": true, "levels": ["off", "low", "medium", "high"] }`, or
-`{ "known": false, "levels": [] }` when capabilities cannot be discovered.
-A known empty list means only the provider's default is available. It works
-for model IDs you typed yourself and for custom providers. A provider you
-cannot reach returns `provider_not_found`, and invalid input returns
-`validation_failed`. If the capabilities cannot be looked up, you get
-`known: false`. See [Thinking level](/agents/providers-and-models#thinking-level)
-for how levels are chosen.
 
 ## Next [#next]
 

@@ -5,6 +5,10 @@ description: Run stateless text or structured generation.
 
 # Generation
 
+## Overview [#overview]
+
+Get a one-off answer from an agent without starting a session. Use generation for single-shot text or JSON that matches a schema when you do not need to continue the conversation.
+
 ## Stateless Tool approval [#stateless-tool-approval]
 
 Stateless generation follows the agent's `approvalInChat` policy, but nobody
@@ -12,65 +16,60 @@ can approve a tool call mid-request. Calls that need manual approval, fail
 automatic review, or are escalated by it are blocked. The agent keeps working
 with the calls it is allowed to make and is told which actions were blocked. See [Tool approvals](/agents/tools/tool-approvals).
 
-## Overview [#overview]
-
-Get a one-off answer from an agent without starting a session. Use generation for single-shot text or JSON that matches a schema when you do not need to continue the conversation.
-
 ## Endpoints [#endpoints]
 
 ### POST /v1/agents/:agentId/generation [#generate]
 
-Runs one agent turn without saving a session. Text and structured output both stream as plain text.
+Run stateless generation.
+
+Runs one turn of the agent without saving a session and streams the answer as plain text. Send exactly one of `prompt` or `promptId`; `variables` is allowed only with `promptId`. With object output, the stream is JSON text that matches your schema. A failure before the stream starts returns a JSON error. Once the stream has started, a failure ends it early and the status stays 200.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. `agentId` is a required `ag_…` path parameter. You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-
-Provide exactly one of `prompt` or `promptId`. `variables` is allowed only with `promptId`.
-
-| Body field  | Type                  | Required    | Description                                                   |
-| ----------- | --------------------- | ----------- | ------------------------------------------------------------- |
-| `prompt`    | string                | alternative | Non-empty literal prompt                                      |
-| `promptId`  | string                | alternative | Stored Prompt ID                                              |
-| `variables` | object<string,string> | no          | Exact stored Prompt variables                                 |
-| `output`    | object                | yes         | `{ "type": "text" }` or `{ "type": "object", "schema": {…} }` |
-| `userId`    | string                | no          | Usage attribution; defaults to `""`                           |
-| `metadata`  | object                | no          | Usage metadata; defaults to `{}`                              |
-| `version`   | integer               | no          | Immutable Agent Version; defaults to the current Version      |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `prompt` | string | body |  | The prompt to answer. Send either `prompt` or `promptId`. |
+| `promptId` | string | body |  | ID of a saved prompt to use instead of `prompt`. |
+| `variables` | object | body |  | Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables. |
+| `output` | object | body | required | What to stream back: `{"type":"text"}` for text, or `{"type":"object","schema":{…}}` for JSON that matches a JSON Schema. |
+| `version` | integer | body |  | Agent version to run. Leave it out to run the current version. 1–2147483647. |
+| `userId` | string | body |  | Your end user's ID, used for usage attribution. Defaults to `""`. |
+| `metadata` | object | body |  | Your own key-value data, recorded with the usage. Defaults to `{}`. |
 
 #### Response
 
-Returns `200 OK` as `text/plain` with an AI SDK text stream. Text mode streams text; object mode streams JSON text. See the [streaming protocol](/api-reference/protocols/streaming) for transport and cancellation behavior.
+Returns `200 OK` as `text/plain`. Streamed generation output.
 
 ```text
-Password resets are available from Settings > Security.
+Open Settings, choose Security, and select Reset password.
 ```
 
 #### Errors
 
-`400 validation_failed` covers invalid prompt/output selection; `provider_required` means the agent version has no provider and model; nothing runs and nothing is billed. Prompt variables use `prompt_variable_missing` or `prompt_variable_unknown`. `402 subscription_required` or `usage_credit_required` blocks billable execution. `404 not_found` applies to a missing Agent, Provider, Prompt, or Workspace, while `agent_version_not_found` identifies a missing Pin. `409 agent_disabled` can reject execution. `429 quota_exceeded` or `rate_limited`, plus a retryable `service_unavailable`, can reject the request before it runs. A failure detected before streaming returns its non-2xx status with the standard JSON error envelope. Once the `200` plain-text stream starts, a failure ends the body early. The status stays `200`, no JSON error body is sent, and there is no error chunk like the ones session streams use. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_required`](/api-reference/protocols/errors#provider_required), [`prompt_variable_missing`](/api-reference/protocols/errors#prompt_variable_missing), [`prompt_variable_unknown`](/api-reference/protocols/errors#prompt_variable_unknown) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required), [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required), [`merchant_subscription_required`](/api-reference/protocols/errors#merchant_subscription_required), [`merchant_balance_required`](/api-reference/protocols/errors#merchant_balance_required) | An active subscription or usage credit is required |
+| `403` | [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) | The request conflicts with the resource's current state |
+| `429` | [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded), [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --no-buffer --request POST \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/generation" \
+curl --no-buffer --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/generation" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"prompt":"Explain password resets in one sentence.","output":{"type":"text"}}'
+  --data '{"prompt":"Explain how to reset a password in one sentence.","output":{"type":"text"}}'
 ```
-
-#### SDK and related guides
-
-SDK: [completion](/sdk/typescript/client#completion) for text and [object](/sdk/typescript/client#object) for structured output. See [Generation and streaming](/agents/output/generation-and-streaming) and [Generate structured output](/agents/output/structured-output).
-
-Python SDK: [completion](/sdk/python/client#completion) for text
-and [object](/sdk/python/client#object) for structured output.
 
 ## Next [#next]
 

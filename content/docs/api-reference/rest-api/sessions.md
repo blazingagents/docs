@@ -5,6 +5,10 @@ description: Hold conversations with an agent, read their history, and decide to
 
 # Sessions
 
+## Overview [#overview]
+
+A session is a conversation Blazing Agents keeps for you, so each new turn sees everything said before. Use these endpoints to start a conversation, continue it, read its history, delete it, and handle tool approvals. A session is saved as soon as its first turn is accepted, before the model runs. Continuing a session never creates one that is missing.
+
 ## Policy-driven approvals [#policy-driven-approvals]
 
 Sessions follow the agent's `approvalInChat` policy. Whether a tool call waits
@@ -16,137 +20,45 @@ Approval records also carry `tool`, `assistantMessageId`, `createdAt`, and
 `decidedAt`. Some of these fields are optional, so do not require them; see
 [tool approval metadata](/api-reference/protocols/objects-and-schemas#tool-approval-metadata).
 
-## Overview [#overview]
-
-A session is a conversation Blazing Agents keeps for you, so each new turn sees everything said before. Use these endpoints to start a conversation, continue it, read its history, delete it, and handle tool approvals. A session is saved as soon as its first turn is accepted, before the model runs. Continuing a session never creates one that is missing.
-
 ## Endpoints [#endpoints]
-
-### POST /v1/agents/:agentId/sessions [#create-session-turn]
-
-Starts a session and runs its first turn. A rejected request creates no session; a turn that fails while running still leaves a usable session.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, and an `ag_…` `agentId` path parameter. Provide exactly one of `message` or `promptId`; `variables` is allowed only with `promptId`. You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-
-| Body field  | Type                  | Required    | Description                                                              |
-| ----------- | --------------------- | ----------- | ------------------------------------------------------------------------ |
-| `message`   | AI SDK `UIMessage`    | alternative | Must have `id`, `role`, and non-empty `parts`; file parts must be images |
-| `promptId`  | string                | alternative | Stored Prompt ID                                                         |
-| `variables` | object<string,string> | no          | Exact Prompt variables                                                   |
-| `trigger`   | string                | no          | Defaults to `submit-message`; regeneration is invalid here               |
-| `messageId` | string                | no          | Used only with regeneration on resume                                    |
-| `userId`    | string                | no          | Session and usage attribution; defaults to `""`                          |
-| `metadata`  | object                | no          | Session and usage metadata; defaults to `{}`                             |
-| `version`   | integer               | no          | Pin an immutable Agent Version; omission leaves the Session unpinned     |
-
-Leave out `version` to use the agent's current version on every turn. Send one to pin the session to that version for all later turns.
-
-#### Response
-
-Returns `201 Created` and `Location: /v1/agents/:agentId/sessions/:sessionId`.
-
-The body is an AI SDK UI message SSE stream of `UIMessageChunk` events. The response includes `Content-Type: text/event-stream` and `X-Vercel-AI-UI-Message-Stream: v1`.
-
-#### Errors
-
-`400 validation_failed` covers malformed/mixed input; `provider_required` means the agent version has no provider and model; no session is created and nothing is billed. Prompt variables and other state failures use their specific codes. `402 subscription_required` or `usage_credit_required` blocks billable execution. `404 not_found` applies to a missing Agent, Provider, or Prompt, while `agent_version_not_found` identifies a missing Pin and `workspace_not_found` identifies a missing Workspace. `409 agent_disabled` can reject execution. `429 quota_exceeded` or `rate_limited`, plus retryable `service_unavailable`, can reject the request before it runs. Failures before the stream starts use the JSON error body; failures after it starts arrive as an AI SDK error chunk. A turn that fails or is canceled after it starts still counts toward usage and leaves the transcript unchanged. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --include --no-buffer --request POST \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{"message":{"id":"msg_client_1","role":"user","parts":[{"type":"text","text":"Hello"}]}}'
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/client#chat) / [Python](/sdk/python/client#chat). See [Sessions and turns](/platform/sessions-and-turns).
-
-### POST /v1/agents/:agentId/sessions/:sessionId [#resume-session-turn]
-
-Continues a session with a new turn. A missing or deleted session returns `404` and is never created.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, an `ag_…` `agentId`, and an `ss_…` `sessionId`. You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-| Path     | `sessionId`     | yes      | Session ID (`ss_…`).                      |
-
-The body matches [Create a Session turn](/api-reference/rest-api/sessions#create-session-turn) except that `version` is rejected. A pinned session keeps its version; an unpinned one uses the agent's current version on each turn. To regenerate an answer, set `trigger: "regenerate-message"` and optionally `messageId`; the transcript is cut back to that message and the answer is generated again. You still send a `message` or a `promptId`.
-
-#### Response
-
-Returns `200 OK` with an AI SDK UI message SSE stream, `Content-Type: text/event-stream`, and `X-Vercel-AI-UI-Message-Stream: v1`. Unlike create, resume does not return a `Location` header.
-
-#### Errors
-
-`400 validation_failed` covers invalid input; `provider_required` means the pinned version has no provider and model; nothing runs and nothing is billed. Prompt variables, Version mismatch, and regeneration state use their specific codes. `402 subscription_required` or `usage_credit_required` blocks billable execution. `404 not_found` applies to an unknown/deleted Session or missing Agent, Provider, Prompt, or Workspace. `409 agent_disabled` can reject execution. `429 quota_exceeded` or `rate_limited`, plus retryable `service_unavailable`, can reject the request before it runs. A turn that fails or is canceled after it starts still counts toward usage and leaves the transcript unchanged. A failed or canceled regeneration keeps the previous answer. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --no-buffer --request POST \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{"message":{"id":"msg_client_2","role":"user","parts":[{"type":"text","text":"Tell me more."}]}}'
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/client#chat) / [Python](/sdk/python/client#chat). See [Sessions and turns](/platform/sessions-and-turns).
 
 ### GET /v1/agents/:agentId/sessions [#list-sessions]
 
-Lists an agent's sessions, most recently updated first. An unknown agent ID, or one in another tenant, returns an empty page.
+List an agent's sessions.
+
+Lists an agent's sessions, most recently updated first, one page at a time. Each session shows its message count and a preview of its last message. An agent that does not exist in your tenant returns an empty page.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and an `ag_…` `agentId` path parameter. You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-
-| Query parameter | Type    | Default | Description                                            |
-| --------------- | ------- | ------- | ------------------------------------------------------ |
-| `cursor`        | string  | none       | Opaque cursor from `nextCursor`                        |
-| `limit`         | integer | 50      | 1–200                                                  |
-| `userId`        | string  | none       | Attribution filter; `""` selects tenant-level Sessions |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `cursor` | string | query |  | Cursor from the previous page's `nextCursor`. Leave it out for the first page. |
+| `limit` | integer | query |  | Number of items per page, from 1 to 200. Defaults to 50. 1–200. Defaults to `50`. |
+| `userId` | string | query |  | Return only this end user's sessions. Send an empty value for sessions without an end user. |
 
 #### Response
 
-Returns `200 OK` with [cursor pagination](/api-reference/protocols/pagination-and-filtering).
+Returns `200 OK` as `application/json`. A page of the agent's sessions.
 
-Response schema: [`sessionsListResponseSchema`](/api-reference/protocols/objects-and-schemas#sessions-list-response).
+Response schema: `SessionList`.
 
 ```json
 {
   "data": [
     {
-      "id": "ss_1234567890ABCDEF",
-      "agentVersion": 3,
+      "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
+      "agentVersion": null,
       "messageCount": 4,
-      "lastMessagePreview": "Tell me more.",
-      "userId": "",
-      "metadata": {},
-      "createdAt": "2026-07-10T10:00:00Z",
-      "updatedAt": "2026-07-10T10:05:00Z"
+      "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
+      "userId": "user_42",
+      "metadata": {
+        "plan": "pro"
+      },
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:05:00.000Z"
     }
   ],
   "nextCursor": null
@@ -155,76 +67,112 @@ Response schema: [`sessionsListResponseSchema`](/api-reference/protocols/objects
 
 #### Errors
 
-`400 validation_failed` for malformed parameters; `400 invalid_cursor` for an
-opaque cursor that cannot be decoded. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --get \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "limit=50"
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
+### POST /v1/agents/:agentId/sessions [#create-session-turn]
 
-SDKs: [TypeScript](/sdk/typescript/sessions#list) / [Python](/sdk/python/sessions#list). See [Sessions and turns](/platform/sessions-and-turns).
+Create a session and run the first turn.
+
+Starts a session and runs its first turn. The new session's URL is in the `Location` header. A rejected request creates no session; a turn that fails while running still leaves a session you can continue. Send `version` to pin the session to that agent version for every turn, or leave it out to use the agent's current version each time. `trigger: "regenerate-message"` is not allowed here. Send exactly one of `message` or `promptId`; `variables` is allowed only with `promptId`. The answer streams back as an AI SDK UI message stream. A failure before the stream starts returns a JSON error. Once the stream has started, a failure arrives as an error chunk; the turn still counts toward usage, and the conversation is left as it was.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `message` | any | body |  | The message to send, as an AI SDK `UIMessage` with `role: "user"`, an `id`, and non-empty `parts`. Parts can be text or images. Send either `message` or `promptId`. |
+| `promptId` | string | body |  | ID of a saved prompt to send instead of `message`. |
+| `variables` | object | body |  | Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables. |
+| `trigger` | string | body |  | `submit-message` (the default) sends a new message. `regenerate-message` generates the answer again and is allowed only when continuing a session. One of `submit-message`, `regenerate-message`. Defaults to `submit-message`. |
+| `messageId` | string | body |  | With `regenerate-message`, the message to cut the conversation back to before the answer is generated again. |
+| `version` | integer | body |  | Agent version to pin the session to. Allowed only when starting a session. Leave it out to use the agent's current version on every turn. 1–2147483647. |
+| `userId` | string | body |  | Your end user's ID. Starting a session records it on the session, and every turn in that session keeps the session's end user. Defaults to `""`. |
+| `metadata` | object | body |  | Your own key-value data. Recorded on a new session and on the turn's usage. Defaults to `{}`. |
+
+#### Response
+
+Returns `201 Created` as `text/event-stream`. Server-sent events, each carrying one AI SDK UI message chunk. Sets `Location`: URL of the new session.
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`provider_required`](/api-reference/protocols/errors#provider_required), [`prompt_variable_missing`](/api-reference/protocols/errors#prompt_variable_missing), [`prompt_variable_unknown`](/api-reference/protocols/errors#prompt_variable_unknown) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required), [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required), [`merchant_subscription_required`](/api-reference/protocols/errors#merchant_subscription_required), [`merchant_balance_required`](/api-reference/protocols/errors#merchant_balance_required) | An active subscription or usage credit is required |
+| `403` | [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) | The request conflicts with the resource's current state |
+| `429` | [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded), [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --no-buffer --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"message":{"id":"msg_client_1","role":"user","parts":[{"type":"text","text":"How do I reset my password?"}]},"userId":"user_42","metadata":{"plan":"pro"}}'
+```
 
 ### GET /v1/sessions/latest [#list-latest-sessions]
 
-Lists your tenant's most recently updated sessions. Set `byAgent=true` to get only the latest session for each agent.
+List latest sessions.
+
+Lists your tenant's sessions across all agents, most recently updated first, skipping sessions with no messages. Set `byAgent=true` to get only each agent's latest session, which is handy for an inbox of agents. Each item also shows the agent's current `model`, `thinkingLevel`, and `status`, and disabled agents are included.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). Only your tenant's sessions are considered.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-
-| Query parameter | Type    | Default | Description                                            |
-| --------------- | ------- | ------- | ------------------------------------------------------ |
-| `cursor`        | string  | none       | Opaque cursor from `nextCursor`                        |
-| `limit`         | integer | 50      | 1–200                                                  |
-| `userId`        | string  | none       | Attribution filter; `""` selects tenant-level Sessions |
-| `byAgent`       | boolean | `false` | When true, return at most one latest Session per Agent  |
-
-With `byAgent=false`, several sessions can belong to the same agent. With `byAgent=true`, each agent appears at most once, and only if it has a session that is not deleted, not empty, and matches your filters. Use it to build an inbox of agents instead of calling `GET /v1/agents/:agentId/sessions?limit=1` for each one. With `userId`, only that end user's sessions count.
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `byAgent` | string | query |  | `true` returns at most one session per agent: its latest. Defaults to `false`. One of `true`, `false`. Defaults to `false`. |
+| `cursor` | string | query |  | Cursor from the previous page's `nextCursor`. Leave it out for the first page. |
+| `limit` | integer | query |  | Number of items per page, from 1 to 200. Defaults to 50. 1–200. Defaults to `50`. |
+| `userId` | string | query |  | Return only this end user's sessions. Send an empty value for sessions without an end user. |
 
 #### Response
 
-Returns `200 OK` with [cursor pagination](/api-reference/protocols/pagination-and-filtering). Items are ordered by `updatedAt` descending, then `id` ascending. Each item is a session list item plus its `agentId`, nullable `model`, nullable `thinkingLevel`, and `status` (`"active"` or `"disabled"`). These show the agent as it is now, not the session's pinned version or earlier turns. Disabled agents are included.
+Returns `200 OK` as `application/json`. A page of your latest sessions.
 
-Response schema: [`latestSessionsListResponseSchema`](/api-reference/protocols/objects-and-schemas#latest-sessions-list-response).
+Response schema: `LatestSessionList`.
 
 ```json
 {
   "data": [
     {
-      "id": "ss_1234567890ABCDEF",
-      "agentId": "ag_1234567890ABCDEF",
-      "model": "openai/gpt-6-luna",
-      "thinkingLevel": "high",
-      "status": "disabled",
-      "agentVersion": 3,
-      "messageCount": 4,
-      "lastMessagePreview": "Tell me more.",
-      "userId": "",
-      "metadata": {},
-      "createdAt": "2026-07-10T10:00:00Z",
-      "updatedAt": "2026-07-10T10:05:00Z"
-    },
-    {
-      "id": "ss_0987654321FEDCBA",
-      "agentId": "ag_0987654321FEDCBA",
+      "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
       "agentVersion": null,
-      "messageCount": 2,
-      "lastMessagePreview": "Thanks!",
-      "userId": "",
-      "metadata": {},
-      "createdAt": "2026-07-09T08:00:00Z",
-      "updatedAt": "2026-07-09T08:02:00Z"
+      "messageCount": 4,
+      "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
+      "userId": "user_42",
+      "metadata": {
+        "plan": "pro"
+      },
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:05:00.000Z",
+      "agentId": "ag_4kP9sT2vXq7LmN3a",
+      "model": "openai/gpt-6-luna",
+      "thinkingLevel": null,
+      "status": "active"
     }
   ],
   "nextCursor": null
@@ -233,51 +181,44 @@ Response schema: [`latestSessionsListResponseSchema`](/api-reference/protocols/o
 
 #### Errors
 
-`400 validation_failed` for malformed parameters; `400 invalid_cursor` for an
-opaque cursor that cannot be decoded; `401 unauthorized` for a missing or
-invalid credential. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --get \
-  "$BLAZING_AGENTS_BASE_URL/v1/sessions/latest" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "limit=10" \
-  --data-urlencode "byAgent=false"
+curl "$BLAZING_AGENTS_BASE_URL/v1/sessions/latest" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/sessions#list-latest) / [Python](/sdk/python/sessions#list-latest). See [Sessions and Turns](/platform/sessions-and-turns) and [Tenancy and end-user attribution](/platform/tenancy-and-attribution).
 
 ### GET /v1/agents/:agentId/sessions/:sessionId/messages [#list-session-messages]
 
-Lists a session's messages as AI SDK `UIMessage` objects. Pages run newest first, with messages in chronological order inside each page.
+List session messages.
+
+Lists a session's messages as AI SDK `UIMessage` objects. The first page holds the newest messages, and messages within a page are in chronological order. Use `cursor` to walk back to older messages, or save `latestCursor` and pass it as `after` later to fetch only new messages. Send at most one of `cursor` or `after`.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication), an `ag_…` `agentId`, and an `ss_…` `sessionId`. You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-| Path     | `sessionId`     | yes      | Session ID (`ss_…`).                      |
-
-| Query parameter | Type    | Default | Description                         |
-| --------------- | ------- | ------- | ----------------------------------- |
-| `cursor`        | string  | none       | Walk backward to older messages     |
-| `after`         | string  | none       | Poll forward after a `latestCursor` |
-| `limit`         | integer | 50      | 1–200                               |
-
-`cursor` and `after` are mutually exclusive.
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `after` | string | query |  | A `latestCursor` you saved earlier. Returns messages added after it, to poll for new messages. |
+| `cursor` | string | query |  | Cursor from the previous page's `nextCursor`, to walk back to older messages. |
+| `limit` | integer | query |  | Number of messages per page, from 1 to 200. Defaults to 50. 1–200. Defaults to `50`. |
 
 #### Response
 
-Returns `200 OK`.
+Returns `200 OK` as `application/json`. A page of the session's messages.
 
-Response schema: [`sessionMessagesResponseSchema`](/api-reference/protocols/objects-and-schemas#session-messages-response).
+Response schema: `SessionMessageList`.
 
 ```json
 {
@@ -285,103 +226,196 @@ Response schema: [`sessionMessagesResponseSchema`](/api-reference/protocols/obje
     {
       "id": "msg_client_1",
       "role": "user",
-      "parts": [{ "type": "text", "text": "Hello" }]
+      "parts": [
+        {
+          "type": "text",
+          "text": "How do I reset my password?"
+        }
+      ]
     },
     {
-      "id": "msg_response",
+      "id": "msg_9Kd3Vx7PqT2bLn5W",
       "role": "assistant",
-      "parts": [{ "type": "text", "text": "Hello!" }]
+      "parts": [
+        {
+          "type": "text",
+          "text": "Open Settings, choose Security, and select Reset password."
+        }
+      ]
     }
   ],
   "nextCursor": null,
-  "latestCursor": "opaque-tail-cursor"
+  "latestCursor": "eyJzZXEiOjJ9"
 }
 ```
 
 #### Errors
 
-`400 validation_failed` for invalid IDs, limits, or incompatible cursor
-directions; `400 invalid_cursor` for an opaque cursor that cannot be decoded.
-`404 not_found` applies to a missing, foreign, or deleted Session. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --get \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "limit=50"
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/sessions#messages) / [Python](/sdk/python/sessions#messages). See [Sessions and turns](/platform/sessions-and-turns).
-
-### DELETE /v1/agents/:agentId/sessions/:sessionId [#delete-session]
-
-Deletes a session so it can no longer be read. `deleteArtifacts=true` also
-deletes its artifacts permanently; `deleteArtifacts=false` keeps them.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication), an
-`ag_…` `agentId`, an `ss_…` `sessionId`, and
-`deleteArtifacts=true|false`.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-| Path     | `sessionId`     | yes      | Session ID (`ss_…`).                      |
-| Query    | `deleteArtifacts` | yes    | Delete (`true`) or preserve (`false`) Artifacts. |
-
-#### Response
-
-Returns `204 No Content` with an empty body.
-
-#### Errors
-
-`400 validation_failed` for malformed IDs. `404 not_found` for a missing, foreign, or already-deleted Session. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF?deleteArtifacts=false" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
+### POST /v1/agents/:agentId/sessions/:sessionId [#resume-session-turn]
 
-SDKs: [TypeScript](/sdk/typescript/sessions#delete) / [Python](/sdk/python/sessions#delete). See [Sessions and turns](/platform/sessions-and-turns).
+Resume a session with the next turn.
 
-### GET /v1/agents/:agentId/sessions/:sessionId/tool-approvals [#list-tool-approvals]
-
-Lists a session's pending and decided tool approvals.
+Continues a session with a new turn. A session that does not exist or was deleted returns `404`; it is never created. `version` is not allowed: a pinned session keeps its version, and an unpinned one uses the agent's current version. To generate an answer again, set `trigger: "regenerate-message"` and optionally `messageId`; the conversation is cut back to that message (by default, the last answer) and the answer is generated again, and a failed regeneration keeps the previous answer. Returns `409 session_busy` while another turn is running or a tool approval is waiting for a decision. Send exactly one of `message` or `promptId`; `variables` is allowed only with `promptId`. The answer streams back as an AI SDK UI message stream. A failure before the stream starts returns a JSON error. Once the stream has started, a failure arrives as an error chunk; the turn still counts toward usage, and the conversation is left as it was.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-| Path     | `sessionId`     | yes      | Session ID (`ss_…`).                      |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `message` | any | body |  | The message to send, as an AI SDK `UIMessage` with `role: "user"`, an `id`, and non-empty `parts`. Parts can be text or images. Send either `message` or `promptId`. |
+| `promptId` | string | body |  | ID of a saved prompt to send instead of `message`. |
+| `variables` | object | body |  | Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables. |
+| `trigger` | string | body |  | `submit-message` (the default) sends a new message. `regenerate-message` generates the answer again and is allowed only when continuing a session. One of `submit-message`, `regenerate-message`. Defaults to `submit-message`. |
+| `messageId` | string | body |  | With `regenerate-message`, the message to cut the conversation back to before the answer is generated again. |
+| `version` | integer | body |  | Agent version to pin the session to. Allowed only when starting a session. Leave it out to use the agent's current version on every turn. 1–2147483647. |
+| `userId` | string | body |  | Your end user's ID. Starting a session records it on the session, and every turn in that session keeps the session's end user. Defaults to `""`. |
+| `metadata` | object | body |  | Your own key-value data. Recorded on a new session and on the turn's usage. Defaults to `{}`. |
 
 #### Response
 
-| Status   | Body                                                                                      | Lifecycle effect |
-| -------- | ----------------------------------------------------------------------------------------- | ---------------- |
-| `200 OK` | [ToolApprovalsResponse](/api-reference/protocols/objects-and-schemas#tool-approvals-response) | Read-only.       |
-
-Listing approvals does not claim or decide any tool call.
-
-Response schema: [`toolApprovalsResponseSchema`](/api-reference/protocols/objects-and-schemas#tool-approvals-response).
+Returns `200 OK` as `text/event-stream`. Server-sent events, each carrying one AI SDK UI message chunk.
 
 #### Errors
 
-`404 not_found`. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`provider_required`](/api-reference/protocols/errors#provider_required), [`prompt_variable_missing`](/api-reference/protocols/errors#prompt_variable_missing), [`prompt_variable_unknown`](/api-reference/protocols/errors#prompt_variable_unknown) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required), [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required), [`merchant_subscription_required`](/api-reference/protocols/errors#merchant_subscription_required), [`merchant_balance_required`](/api-reference/protocols/errors#merchant_balance_required) | An active subscription or usage credit is required |
+| `403` | [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`message_not_found`](/api-reference/protocols/errors#message_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`session_busy`](/api-reference/protocols/errors#session_busy), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) | The request conflicts with the resource's current state |
+| `429` | [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded), [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --no-buffer --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"message":{"id":"msg_client_2","role":"user","parts":[{"type":"text","text":"What if I no longer have my email?"}]}}'
+```
+
+### DELETE /v1/agents/:agentId/sessions/:sessionId [#delete-session]
+
+Delete a session.
+
+Deletes a session. Afterwards it can no longer be read or continued, and every request for it returns `404`. Set `deleteArtifacts` to choose whether its artifacts are deleted too. While a tool approval is waiting for a decision, or the turn it resumes is still running, the session cannot be deleted.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `deleteArtifacts` | string | query | required | `true` also deletes the session's artifacts permanently; `false` keeps them. One of `true`, `false`. |
+
+#### Response
+
+Returns `204 No Content`. The session was deleted.
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`session_busy`](/api-reference/protocols/errors#session_busy) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF?deleteArtifacts=false" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### GET /v1/agents/:agentId/sessions/:sessionId/tool-approvals [#list-tool-approvals]
+
+List tool approvals.
+
+Lists the session's pending and decided tool approvals, with the continuation that resumes the turn once they are decided, if there is one. Listing does not decide or claim any tool call.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The session's tool approvals.
+
+Response schema: `ToolApprovalList`.
+
+```json
+{
+  "data": [
+    {
+      "approvalId": "apr_3Fp9Lx2WqD6sNc8J",
+      "decision": "pending",
+      "tool": {
+        "type": "builtin",
+        "name": "bash"
+      },
+      "toolName": "bash",
+      "toolCallId": "call_8Hn4Tb1ZrM5kQv2X",
+      "input": {
+        "command": "rm reports/2025-q4.csv"
+      },
+      "reason": null,
+      "assistantMessageId": "msg_9Kd3Vx7PqT2bLn5W",
+      "createdAt": "2026-07-10T10:05:00.000Z",
+      "decidedAt": null
+    }
+  ],
+  "continuation": {
+    "id": "tac_5Wq8Hn2KxR7mTb4C",
+    "state": "waiting"
+  }
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -390,97 +424,96 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/sessions#tool-approvals) / [Python](/sdk/python/sessions#tool-approvals). See [Tool approvals](/agents/tools/tool-approvals) and [Build a chat endpoint](/platform/sessions-and-turns).
-
 ### POST /v1/agents/:agentId/sessions/:sessionId/tool-approvals/:approvalId [#decide-tool-approval]
 
-Approves or denies one pending tool call. The decision applies only to that exact call.
+Decide a tool approval.
+
+Approves or denies one pending tool call. The decision applies only to that exact call, and every other rule still applies. While other approvals from the same turn are still pending, the continuation stays `waiting`. Once the last one is decided it becomes `queued` and the agent carries on; join the continuation to stream the rest of the turn.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-| Path     | `sessionId`     | yes      | Session ID (`ss_…`).                      |
-| Path     | `approvalId`    | yes      | Tool approval ID.                         |
-
-| Location | Field          | Required | Description                              |
-| -------- | -------------- | -------- | ---------------------------------------- |
-| Body     | `approved`     | yes      | `true` to approve; `false` to deny.      |
-| Body     | `reason`       | no       | Decision reason, up to 1,000 characters. |
-| Header   | `Content-Type` | yes      | `application/json`.                      |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `approvalId` | string | path | required | ID of the tool approval, from its `approvalId`. |
+| `approved` | boolean | body | required | `true` to approve the tool call; `false` to deny it. |
+| `reason` | string | body |  | Why you made the decision, up to 1,000 characters. 1–1000 characters. |
 
 #### Response
 
-| Status         | Body                                                                                                     | Lifecycle effect                                          |
-| -------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `202 Accepted` | [ToolApprovalDecisionResponse](/api-reference/protocols/objects-and-schemas#tool-approval-decision-response) | Persists the decision and exposes a continuation to join. |
+Returns `202 Accepted` as `application/json`. The continuation that resumes the turn, and its state.
 
-Approving a call allows only that call; every other rule still applies.
+Response schema: `ToolApprovalDecision`.
 
-Response schema: [`toolApprovalDecisionResponseSchema`](/api-reference/protocols/objects-and-schemas#tool-approval-decision-response).
+```json
+{
+  "continuationId": "tac_5Wq8Hn2KxR7mTb4C",
+  "state": "queued"
+}
+```
 
 #### Errors
 
-`400 validation_failed`; `404 not_found`; `409
-tool_approval_decision_conflict` when the approval was already decided. See
-[REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`tool_approval_decision_conflict`](/api-reference/protocols/errors#tool_approval_decision_conflict), [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/apr_1234567890ABCDEF" \
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/$APPROVAL_ID" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"approved":true,"reason":"Reviewed"}'
+  --data '{"approved":true,"reason":"Reviewed the file; it is safe to delete."}'
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/sessions#decide-tool-approval) / [Python](/sdk/python/sessions#decide-tool-approval). See [Tool approvals](/agents/tools/tool-approvals) and [Build a chat endpoint](/platform/sessions-and-turns).
 
 ### GET /v1/agents/:agentId/sessions/:sessionId/tool-approval-continuations/:continuationId [#join-tool-approval-continuation]
 
-Streams the rest of the turn after a tool approval decision. Saved chunks replay first, then live output or the final state.
+Join a tool-approval continuation.
+
+Streams the rest of the turn after its tool approvals are decided, as an AI SDK UI message stream. Output saved so far replays first, then live output follows until the turn ends, so you can join again at any time. Returns `409 session_busy` while an approval is still waiting for a decision. A failure before the stream starts returns a JSON error; later failures arrive as error chunks in the stream.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field            | Required | Description                               |
-| -------- | ---------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization`  | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`        | yes      | Agent ID (`ag_…`).                        |
-| Path     | `sessionId`      | yes      | Session ID (`ss_…`).                      |
-| Path     | `continuationId` | yes      | Tool-approval continuation ID.            |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `continuationId` | string | path | required | ID of the continuation, from the decision's `continuationId` or the approval list's `continuation.id`. |
 
 #### Response
 
-| Status   | Body                           | Lifecycle effect                                                       |
-| -------- | ------------------------------ | ---------------------------------------------------------------------- |
-| `200 OK` | AI SDK UI message event stream | Claims or follows the durable continuation until it succeeds or fails. |
-
-The response is SSE with `Content-Type: text/event-stream`, `X-Vercel-AI-UI-Message-Stream: v1`, `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no`. `409 session_busy` applies only while the continuation is `waiting`. When it is queued or running, or you join again later, you get the saved chunks first, then live output or the final state.
+Returns `200 OK` as `text/event-stream`. Server-sent events, each carrying one AI SDK UI message chunk.
 
 #### Errors
 
-`404 not_found`; `409 session_busy`; errors before the stream starts use the JSON error body, and later failures arrive as error chunks. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`tool_approval_continuation_not_found`](/api-reference/protocols/errors#tool_approval_continuation_not_found) | The resource was not found |
+| `409` | [`session_busy`](/api-reference/protocols/errors#session_busy) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --no-buffer "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/cont_1234567890ABCDEF" \
+curl --no-buffer "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/sessions#join-tool-approval-continuation) / [Python](/sdk/python/sessions#join-tool-approval-continuation). See [Tool approvals](/agents/tools/tool-approvals) and [Build a chat endpoint](/platform/sessions-and-turns).
 
 ## Next [#next]
 

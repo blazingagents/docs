@@ -11,38 +11,113 @@ Memories are short notes an agent keeps between sessions, such as a user's prefe
 
 ## Endpoints [#endpoints]
 
-### POST /v1/agents/:agentId/memories [#create-memory]
+### GET /v1/agents/:agentId/memories [#list-memories]
 
-Adds a memory to an agent. When the agent already has 500, the least recently used memory can be removed to make room.
+List an agent's memories.
+
+Lists or searches an agent's memories, newest first, one page at a time. Pass `nextCursor` back as `cursor` for the next page. Reading memories here does not change their `lastAccessedAt`.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-
-| Location | Field          | Required | Description                              |
-| -------- | -------------- | -------- | ---------------------------------------- |
-| Body     | `text`         | yes      | Non-empty UTF-8 text, at most 10 KiB.    |
-| Body     | `userId`       | no       | Immutable Attribution; defaults to `""`. |
-| Header   | `Content-Type` | yes      | `application/json`.                      |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `userId` | string | query |  | Return only memories for this end user. Send an empty string for general memories, or leave it out for all memories. |
+| `search` | string | query |  | Return only memories whose text matches these words. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
+| `limit` | integer | query |  | Maximum number of memories to return. 1–100. Defaults to `50`. |
 
 #### Response
 
-| Status        | Body                                                                       | Lifecycle effect                                                                           |
-| ------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `201 Created` | [MemoryResponse](/api-reference/protocols/objects-and-schemas#memory-response) | Creates the Memory and may evict the least-recently-accessed row at the 500-per-Agent cap. |
+Returns `200 OK` as `application/json`. A page of memories.
 
-The response includes `Location: /v1/agents/:agentId/memories/:memoryId`.
+Response schema: `MemoryList`.
 
-Response schema: [`memoryResponseSchema`](/api-reference/protocols/objects-and-schemas#memory-response).
+```json
+{
+  "data": [
+    {
+      "id": "mem_6Jd2Pq8LzR4wYk1C",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+      "agentId": "ag_4kP9sT2vXq7LmN3a",
+      "userId": "user_42",
+      "text": "Prefers concise answers.",
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:00:00.000Z",
+      "lastAccessedAt": "2026-07-10T10:00:00.000Z"
+    }
+  ],
+  "nextCursor": null
+}
+```
 
 #### Errors
 
-`400 validation_failed`; `404 not_found` for the Agent. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/agents/:agentId/memories [#create-memory]
+
+Create a memory.
+
+Adds a memory to an agent. An agent keeps up to 500 memories; when it is full, the least recently used memory is removed to make room. The `Location` header points to the new memory.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `text` | string | body | required | The note to remember, up to 10 KiB. |
+| `userId` | string | body |  | The end user this memory belongs to. Only turns that pass the same `userId` see it. Leave it out or send an empty string for a general memory that every turn of the agent sees. It cannot change after creation. Defaults to `""`. |
+
+#### Response
+
+Returns `201 Created` as `application/json`. The created memory. Sets `Location`: URL of the created memory.
+
+Response schema: `Memory`.
+
+```json
+{
+  "memory": {
+    "id": "mem_6Jd2Pq8LzR4wYk1C",
+    "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+    "agentId": "ag_4kP9sT2vXq7LmN3a",
+    "userId": "user_42",
+    "text": "Prefers concise answers.",
+    "createdAt": "2026-07-10T10:00:00.000Z",
+    "updatedAt": "2026-07-10T10:00:00.000Z",
+    "lastAccessedAt": "2026-07-10T10:00:00.000Z"
+  }
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -50,87 +125,55 @@ Response schema: [`memoryResponseSchema`](/api-reference/protocols/objects-and-s
 curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"text":"Prefers concise answers.","userId":"user-42"}'
+  --data '{"text":"Prefers concise answers.","userId":"user_42"}'
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/memories#create) / [Python](/sdk/python/memories#create). See [Memory](/agents/memory) and [Add durable Memory](/agents/memory).
-
-### GET /v1/agents/:agentId/memories [#list-memories]
-
-Lists or searches an agent's memories without changing when they were last used.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-
-| Location | Field    | Required | Description                             |
-| -------- | -------- | -------- | --------------------------------------- |
-| Query    | `userId` | no       | Exact Attribution filter.               |
-| Query    | `search` | no       | Non-empty full-text search.             |
-| Query    | `cursor` | no       | Opaque cursor.                          |
-| Query    | `limit`  | no       | Page size, default `50`, maximum `100`. |
-
-#### Response
-
-| Status   | Body                                                                                    | Lifecycle effect                                           |
-| -------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `200 OK` | [MemoriesListResponse](/api-reference/protocols/objects-and-schemas#memories-list-response) | Read-only; list and search do not update `lastAccessedAt`. |
-
-Use `nextCursor` for the next page.
-
-Response schema: [`memoriesListResponseSchema`](/api-reference/protocols/objects-and-schemas#memories-list-response).
-
-#### Errors
-
-`400 validation_failed` for invalid parameters; `400 invalid_cursor` for an
-opaque cursor that cannot be decoded; and `404 not_found` for the Agent. See
-[REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --get "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "userId=user-42" \
-  --data-urlencode "search=concise"
-```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/memories#list) / [Python](/sdk/python/memories#list). See [Memory](/agents/memory) and [Add durable Memory](/agents/memory).
 
 ### GET /v1/agents/:agentId/memories/:memoryId [#get-memory]
 
-Gets one memory without changing when it was last used.
+Get a memory.
+
+Retrieves one memory. Reading it here does not change its `lastAccessedAt`.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-| Path     | `memoryId`      | yes      | Memory ID (`mem_…`).                      |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent that owns the memory. |
+| `memoryId` | string | path | required | ID of the memory. |
 
 #### Response
 
-| Status   | Body                                                                       | Lifecycle effect                             |
-| -------- | -------------------------------------------------------------------------- | -------------------------------------------- |
-| `200 OK` | [MemoryResponse](/api-reference/protocols/objects-and-schemas#memory-response) | Read-only; does not update `lastAccessedAt`. |
+Returns `200 OK` as `application/json`. The memory.
 
-Response schema: [`memoryResponseSchema`](/api-reference/protocols/objects-and-schemas#memory-response).
+Response schema: `Memory`.
+
+```json
+{
+  "memory": {
+    "id": "mem_6Jd2Pq8LzR4wYk1C",
+    "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+    "agentId": "ag_4kP9sT2vXq7LmN3a",
+    "userId": "user_42",
+    "text": "Prefers concise answers.",
+    "createdAt": "2026-07-10T10:00:00.000Z",
+    "updatedAt": "2026-07-10T10:00:00.000Z",
+    "lastAccessedAt": "2026-07-10T10:00:00.000Z"
+  }
+}
+```
 
 #### Errors
 
-`404 not_found` when the memory does not belong to that agent or does not exist. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -139,40 +182,53 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories/mem_123456
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/memories#get) / [Python](/sdk/python/memories#get). See [Memory](/agents/memory) and [Add durable Memory](/agents/memory).
-
 ### PATCH /v1/agents/:agentId/memories/:memoryId [#update-memory]
 
-Replaces one memory's text and marks it as used now.
+Update a memory.
+
+Replaces a memory's text and marks it as used now, which moves it to the back of the line for removal when the agent is full. Its `userId` cannot change.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-| Path     | `memoryId`      | yes      | Memory ID (`mem_…`).                      |
-
-| Location | Field          | Required | Description                       |
-| -------- | -------------- | -------- | --------------------------------- |
-| Body     | `text`         | yes      | Replacement text, at most 10 KiB. |
-| Header   | `Content-Type` | yes      | `application/json`.               |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent that owns the memory. |
+| `memoryId` | string | path | required | ID of the memory. |
+| `text` | string | body | required | Replacement text for the memory, up to 10 KiB. |
 
 #### Response
 
-| Status   | Body                                                                       | Lifecycle effect                                      |
-| -------- | -------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `200 OK` | [MemoryResponse](/api-reference/protocols/objects-and-schemas#memory-response) | Updates text and access time; `userId` cannot change. |
+Returns `200 OK` as `application/json`. The updated memory.
 
-Response schema: [`memoryResponseSchema`](/api-reference/protocols/objects-and-schemas#memory-response).
+Response schema: `Memory`.
+
+```json
+{
+  "memory": {
+    "id": "mem_6Jd2Pq8LzR4wYk1C",
+    "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+    "agentId": "ag_4kP9sT2vXq7LmN3a",
+    "userId": "user_42",
+    "text": "Prefers answers under five lines.",
+    "createdAt": "2026-07-10T10:00:00.000Z",
+    "updatedAt": "2026-07-10T10:15:00.000Z",
+    "lastAccessedAt": "2026-07-10T10:15:00.000Z"
+  }
+}
+```
 
 #### Errors
 
-`400 validation_failed`; `404 not_found`. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -183,33 +239,35 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/mem
   --data '{"text":"Prefers answers under five lines."}'
 ```
 
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/memories#update) / [Python](/sdk/python/memories#update). See [Memory](/agents/memory) and [Add durable Memory](/agents/memory).
-
 ### DELETE /v1/agents/:agentId/memories/:memoryId [#delete-memory]
 
-Permanently deletes one memory.
+Delete a memory.
+
+Permanently deletes a memory.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
-| Path     | `memoryId`      | yes      | Memory ID (`mem_…`).                      |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent that owns the memory. |
+| `memoryId` | string | path | required | ID of the memory. |
 
 #### Response
 
-| Status           | Body  | Lifecycle effect             |
-| ---------------- | ----- | ---------------------------- |
-| `204 No Content` | Empty | Permanently removes the row. |
+Returns `204 No Content`. The memory was deleted.
 
 #### Errors
 
-`404 not_found`. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
@@ -217,10 +275,6 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). You ca
 curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories/mem_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
-
-#### SDK and related guides
-
-SDKs: [TypeScript](/sdk/typescript/memories#delete) / [Python](/sdk/python/memories#delete). See [Memory](/agents/memory) and [Add durable Memory](/agents/memory).
 
 ## Next [#next]
 

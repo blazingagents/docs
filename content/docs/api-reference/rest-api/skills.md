@@ -19,270 +19,557 @@ responses include the skill's metadata and its current list of files.
 
 ## Endpoints [#endpoints]
 
-### POST /v1/agents/:agentId/skills [#create-skill]
+### GET /v1/agents/:agentId/skills [#list-skills]
 
-Creates a skill from a `SKILL.md` document and returns its file list.
+List an agent's skills.
+
+Lists the agent's skills, newest first, without their file lists. Pass `nextCursor` as `cursor` to get the next page.
 
 #### Request
 
-Requires JSON with `path: "SKILL.md"` and `content` that starts with frontmatter.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
+| `limit` | integer | query |  | Maximum number of skills to return. 1–100. Defaults to `50`. |
 
 #### Response
 
-Returns `201 Created` with an `application/json` Skill detail.
+Returns `200 OK` as `application/json`. A page of skills.
 
-Response schema: `skillResponseSchema`.
+Response schema: `SkillList`.
 
-SDK: [TypeScript](/sdk/typescript/skills#create) /
-[Python](/sdk/python/skills#create).
+```json
+{
+  "data": [
+    {
+      "id": "skill_6Wd2Lq8RtY4nBk7P",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+      "agentId": "ag_4kP9sT2vXq7LmN3a",
+      "name": "refund-policy",
+      "description": "Answer refund questions using the current refund policy.",
+      "metadata": {
+        "owner": "support"
+      },
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:00:00.000Z"
+    }
+  ],
+  "nextCursor": null
+}
+```
 
 #### Errors
 
-`400 validation_failed`; `404 not_found` for a missing agent; `409 skill_name_conflict`.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/agents/:agentId/skills [#create-skill]
+
+Create a skill.
+
+Creates a skill on the agent from a `SKILL.md` document and returns it with its file list. The frontmatter's `name` must be unique among the agent's skills. An agent can have up to 100 skills.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `path` | string | body | required | Always `SKILL.md`. |
+| `content` | string | body | required | The `SKILL.md` document. It must start with YAML frontmatter that sets `name` and `description`. |
+
+#### Response
+
+Returns `201 Created` as `application/json`. The created skill.
+
+Response schema: `Skill`.
+
+```json
+{
+  "id": "skill_6Wd2Lq8RtY4nBk7P",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "refund-policy",
+  "description": "Answer refund questions using the current refund policy.",
+  "metadata": {
+    "owner": "support"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z",
+  "files": [
+    {
+      "path": "SKILL.md",
+      "sizeBytes": 168
+    }
+  ]
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_limit_reached`](/api-reference/protocols/errors#skill_limit_reached) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict) | The request conflicts with the resource's current state |
+| `413` | [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large) | The request body is too large |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"path":"SKILL.md","content":"---\nname: deploy\ndescription: Deploy the application.\n---\n"}'
+  --data '{"path":"SKILL.md","content":"---\nname: refund-policy\ndescription: Answer refund questions using the current refund policy.\n---\n\nCheck the order date, then quote the matching rule from `policy.md`.\n"}'
 ```
 
 ### POST /v1/agents/:agentId/skills/upload [#upload-skill]
 
-Imports a whole skill from an archive and returns its file list.
+Upload a skill archive.
+
+Creates a skill on the agent from a `zip`, `tar`, or `tar.gz` archive and returns it with its file list. Set `type` to the archive's format. The archive must contain `SKILL.md` at its root, and its frontmatter's `name` must be unique among the agent's skills. An archive can be up to 10 MiB and hold up to 100 files totalling up to 10 MiB unpacked, without links or special files. An agent can have up to 100 skills.
 
 #### Request
 
-Requires multipart form fields `type` (`zip`, `tar`, or `tar.gz`) and `file`.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a multipart form body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `type` | string | form | required | Format of the archive in `file`. One of `zip`, `tar`, `tar.gz`. |
+| `file` | file | form | required | The skill archive. It must contain `SKILL.md` at its root. |
 
 #### Response
 
-Returns `201 Created` with an `application/json` Skill detail.
+Returns `201 Created` as `application/json`. The created skill.
 
-Response schema: `skillResponseSchema`.
+Response schema: `Skill`.
 
-SDK: [TypeScript](/sdk/typescript/skills#upload) /
-[Python](/sdk/python/skills#upload).
-
-#### Errors
-
-`400 validation_failed`; `404 not_found` for a missing agent; `409 skill_name_conflict`.
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/upload" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --form "type=tar.gz" \
-  --form "file=@skill.tar.gz"
+```json
+{
+  "id": "skill_6Wd2Lq8RtY4nBk7P",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "refund-policy",
+  "description": "Answer refund questions using the current refund policy.",
+  "metadata": {
+    "owner": "support"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z",
+  "files": [
+    {
+      "path": "SKILL.md",
+      "sizeBytes": 168
+    },
+    {
+      "path": "policy.md",
+      "sizeBytes": 2048
+    }
+  ]
+}
 ```
 
-### GET /v1/agents/:agentId/skills [#list-skills]
-
-Lists an agent's skills, one page at a time.
-
-#### Request
-
-Accepts opaque `cursor` and `limit` from 1 through 100.
-
-#### Response
-
-Returns `200 OK` with an `application/json` cursor-paginated list.
-
-Response schema: `skillsListResponseSchema`.
-
-SDK: [TypeScript](/sdk/typescript/skills#list) /
-[Python](/sdk/python/skills#list).
-
 #### Errors
 
-`400 validation_failed`; `404 not_found` for a missing agent.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`skill_invalid_archive`](/api-reference/protocols/errors#skill_invalid_archive), [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), [`skill_limit_reached`](/api-reference/protocols/errors#skill_limit_reached) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict) | The request conflicts with the resource's current state |
+| `413` | [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large) | The request body is too large |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --get "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills" \
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/upload" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "limit=50"
+  --form "type=zip" \
+  --form "file=@./file"
 ```
 
 ### GET /v1/agents/:agentId/skills/:skillId [#get-skill]
 
-Returns a skill's metadata and current file list.
+Get a skill.
+
+Returns a skill with its current file list.
 
 #### Request
 
-Requires valid Agent and Skill IDs.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `skillId` | string | path | required | ID of the skill. |
 
 #### Response
 
-Returns `200 OK` with an `application/json` Skill detail.
+Returns `200 OK` as `application/json`. The skill.
 
-Response schema: `skillResponseSchema`.
+Response schema: `Skill`.
 
-SDK: [TypeScript](/sdk/typescript/skills#get) /
-[Python](/sdk/python/skills#get).
+```json
+{
+  "id": "skill_6Wd2Lq8RtY4nBk7P",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "refund-policy",
+  "description": "Answer refund questions using the current refund policy.",
+  "metadata": {
+    "owner": "support"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z",
+  "files": [
+    {
+      "path": "SKILL.md",
+      "sizeBytes": 168
+    },
+    {
+      "path": "policy.md",
+      "sizeBytes": 2048
+    }
+  ]
+}
+```
 
 #### Errors
 
-`400 validation_failed`; `404 skill_not_found`.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`skill_not_found`](/api-reference/protocols/errors#skill_not_found) | The resource was not found |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/skill_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
 ### DELETE /v1/agents/:agentId/skills/:skillId [#delete-skill]
 
-Deletes a skill and all its files.
+Delete a skill.
+
+Permanently deletes a skill and all its files. You cannot delete an agent's last skill while one of its approval policies has an override for the `activate_skill` tool, or for the `read` tool when the agent lacks the `workspace` tool group. Remove the override first.
 
 #### Request
 
-Requires valid Agent and Skill IDs.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `skillId` | string | path | required | ID of the skill. |
 
 #### Response
 
-Returns `204 No Content` with an empty body.
-
-SDK: [TypeScript](/sdk/typescript/skills#delete) /
-[Python](/sdk/python/skills#delete).
+Returns `204 No Content`. The skill was deleted.
 
 #### Errors
 
-`400 validation_failed`; `404 skill_not_found`.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`skill_not_found`](/api-reference/protocols/errors#skill_not_found) | The resource was not found |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID" \
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/skill_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### GET /v1/agents/:agentId/skills/:skillId/files?path=\<path\> [#get-skill-file]
+### GET /v1/agents/:agentId/skills/:skillId/files [#get-skill-file]
 
-Downloads the raw bytes of a skill file.
+Read a skill file.
+
+Returns the raw bytes of the skill file at `path` as `application/octet-stream`.
 
 #### Request
 
-Requires valid Agent and Skill IDs plus the `path` query parameter naming a
-non-empty file path, for example `?path=assets/icon.bin`.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `skillId` | string | path | required | ID of the skill. |
+| `path` | string | query | required | The file's path relative to the skill's root, such as `policy.md` or `scripts/refund.sh`. |
 
 #### Response
 
-Returns `200 OK` with `Content-Type: application/octet-stream` and raw bytes.
-
-SDK: [TypeScript](/sdk/typescript/skills#get-file) /
-[Python](/sdk/python/skills#read-file).
+Returns `200 OK` as `application/octet-stream`. The file's raw bytes.
 
 #### Errors
 
-`400 validation_failed`; `404 skill_not_found`.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`skill_not_found`](/api-reference/protocols/errors#skill_not_found) | The resource was not found |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=assets/icon.bin" \
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/skill_1234567890ABCDEF/files?path=policy.md" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --output icon.bin
+  --output file
 ```
 
-### PUT /v1/agents/:agentId/skills/:skillId/files?path=\<path\> [#put-skill-file]
+### PUT /v1/agents/:agentId/skills/:skillId/files [#put-skill-file]
 
-Creates or replaces a skill file from raw bytes.
+Write a skill file.
+
+Creates or replaces the skill file at `path` with the raw request body and returns the updated skill. Replacing `SKILL.md` rereads its frontmatter, so the skill's `name`, `description`, and `metadata` follow it; the skill keeps its ID, and the new `name` must be unique among the agent's skills. A skill can hold up to 100 files totalling up to 10 MiB.
 
 #### Request
 
-The `path` query parameter names the target file and the body is the exact
-file content. Replacing `SKILL.md` rereads its frontmatter and keeps the skill
-ID.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a binary body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `skillId` | string | path | required | ID of the skill. |
+| `path` | string | query | required | The file's path relative to the skill's root, such as `policy.md` or `scripts/refund.sh`. |
+| `(body)` | file | body | required | Raw `application/octet-stream` request body. |
 
 #### Response
 
-Returns `200 OK` with an `application/json` updated Skill detail.
+Returns `200 OK` as `application/json`. The updated skill.
 
-Response schema: `skillResponseSchema`.
+Response schema: `Skill`.
 
-SDK: [TypeScript](/sdk/typescript/skills#put-file) /
-[Python](/sdk/python/skills#replace-file).
-
-#### Errors
-
-`400 validation_failed`; `404 skill_not_found`; `409 skill_name_conflict`.
-
-#### cURL
-
-```bash
-curl --request PUT \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=scripts/deploy.sh" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-binary "@deploy.sh"
+```json
+{
+  "id": "skill_6Wd2Lq8RtY4nBk7P",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "refund-policy",
+  "description": "Answer refund questions using the current refund policy.",
+  "metadata": {
+    "owner": "support"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z",
+  "files": [
+    {
+      "path": "SKILL.md",
+      "sizeBytes": 168
+    },
+    {
+      "path": "policy.md",
+      "sizeBytes": 2048
+    }
+  ]
+}
 ```
 
-### DELETE /v1/agents/:agentId/skills/:skillId/files?path=\<path\> [#delete-skill-file]
-
-Deletes a supporting file. The root `SKILL.md` cannot be deleted.
-
-#### Request
-
-The `path` query parameter names a relative file path other than the root `SKILL.md`.
-
-#### Response
-
-Returns `200 OK` with an `application/json` updated Skill detail.
-
-Response schema: `skillResponseSchema`.
-
-SDK: [TypeScript](/sdk/typescript/skills#delete-file) /
-[Python](/sdk/python/skills#delete-file).
-
 #### Errors
 
-`400 validation_failed`; `400 invalid_request` when deleting root `SKILL.md`;
-`404 skill_not_found`. Deleting a file that does not exist succeeds.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`skill_not_found`](/api-reference/protocols/errors#skill_not_found) | The resource was not found |
+| `409` | [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict) | The request conflicts with the resource's current state |
+| `413` | [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large) | The request body is too large |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request DELETE \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=scripts/deploy.sh" \
+curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/skill_1234567890ABCDEF/files?path=policy.md" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --data-binary "@./file"
+```
+
+### DELETE /v1/agents/:agentId/skills/:skillId/files [#delete-skill-file]
+
+Delete a skill file.
+
+Deletes the skill file at `path` and returns the updated skill. Deleting a file that does not exist succeeds. You cannot delete the root `SKILL.md`; delete the skill instead.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `skillId` | string | path | required | ID of the skill. |
+| `path` | string | query | required | The file's path relative to the skill's root, such as `policy.md` or `scripts/refund.sh`. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The updated skill.
+
+Response schema: `Skill`.
+
+```json
+{
+  "id": "skill_6Wd2Lq8RtY4nBk7P",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "refund-policy",
+  "description": "Answer refund questions using the current refund policy.",
+  "metadata": {
+    "owner": "support"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z",
+  "files": [
+    {
+      "path": "SKILL.md",
+      "sizeBytes": 168
+    }
+  ]
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_request`](/api-reference/protocols/errors#invalid_request) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`skill_not_found`](/api-reference/protocols/errors#skill_not_found) | The resource was not found |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/skill_1234567890ABCDEF/files?path=policy.md" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
 ### POST /v1/agents/:agentId/skills/:skillId/copies [#copy-skill]
 
-Copies a skill to each destination agent and returns a result for each one.
+Copy a skill to other agents.
+
+Copies a skill, with all its files, to each agent in `agentIds`. Each copy is a new skill with its own ID. The response has one result per destination, in request order: `created` with the new skill, or `failed` with an error such as `skill_name_conflict` or `skill_limit_reached`. One failed destination does not stop the others.
 
 #### Request
 
-Requires JSON containing one or more unique destination `agentIds`.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `skillId` | string | path | required | ID of the skill. |
+| `agentIds` | string[] | body | required | IDs of the agents to copy the skill to, each listed once. Send 1 to 30. |
 
 #### Response
 
-Returns `200 OK` with an `application/json` ordered result per destination;
-each result is `created` or `failed`.
+Returns `200 OK` as `application/json`. One result per destination agent.
 
-Response schema: `skillCopyResultsSchema`.
+Response schema: `SkillCopyResultList`.
 
-SDK: [TypeScript](/sdk/typescript/skills#copy) /
-[Python](/sdk/python/skills#copy).
+```json
+[
+  {
+    "agentId": "ag_9Xm3Fp7KdR2vHs5T",
+    "status": "created",
+    "skill": {
+      "id": "skill_1Nc5Gv9JwZ3hQe8M",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+      "agentId": "ag_9Xm3Fp7KdR2vHs5T",
+      "name": "refund-policy",
+      "description": "Answer refund questions using the current refund policy.",
+      "metadata": {
+        "owner": "support"
+      },
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:00:00.000Z",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sizeBytes": 168
+        },
+        {
+          "path": "policy.md",
+          "sizeBytes": 2048
+        }
+      ]
+    }
+  },
+  {
+    "agentId": "ag_2Bt6Yh4MsW8kLc1V",
+    "status": "failed",
+    "error": {
+      "code": "skill_name_conflict",
+      "message": "Skill name already exists for this Agent"
+    }
+  }
+]
+```
 
 #### Errors
 
-`400 validation_failed`; `404 skill_not_found`.
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`skill_not_found`](/api-reference/protocols/errors#skill_not_found) | The resource was not found |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --request POST \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/copies" \
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/skill_1234567890ABCDEF/copies" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"agentIds":["ag_1234567890ABCDEF"]}'
+  --data '{"agentIds":["ag_9Xm3Fp7KdR2vHs5T","ag_2Bt6Yh4MsW8kLc1V"]}'
 ```
 
 ## Next [#next]

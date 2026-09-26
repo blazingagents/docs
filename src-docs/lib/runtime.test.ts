@@ -400,14 +400,13 @@ describe("documentation runtime artifacts", () => {
       status: "201",
     });
     expect(operationPageData.operation?.responseMetadata).toMatchObject({
-      schema: { name: "agentResponseSchema" },
+      schema: { name: "Agent" },
     });
     expect(operationPageData.toc.map(({ title }) => title)).toEqual([
       "Request",
       "Response",
       "Errors",
       "cURL",
-      "SDK and related guides",
     ]);
     expect(getDocumentationHead({ loaderData: pageData }).meta).toContainEqual({
       content: "article",

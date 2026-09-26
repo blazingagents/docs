@@ -11,193 +11,284 @@ See how much your agents use: tokens, requests, and run time, added up over UTC 
 
 ## Endpoints [#endpoints]
 
-### GET /v1/usage/overview [#get-usage-overview]
+### GET /v1/usage [#get-usage]
 
-Returns everything a usage dashboard needs in one response: totals, a daily series, and top agents, users, and models.
+Get tenant usage.
+
+Returns your tenant's token, request, and run-time totals for a UTC date range, split into buckets by `groupBy`. Send both `from` and `to` or neither; without them you get the last 30 days ending today, and `to` can be at most 31 days after `from`. The response is not paginated.
 
 #### Request
 
 Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-
-| Query parameter | Type         | Default      | Description                    |
-| --------------- | ------------ | ------------ | ------------------------------ |
-| `from`, `to`    | `YYYY-MM-DD` | last 30 days | Supply both or neither         |
-| `limit`         | integer      | 5            | 1–20 rows per ranked breakdown |
-
-The inclusive date range uses the same 31-day maximum as other usage queries.
-
-#### Response
-
-Returns `200 OK` with [dashboard usage totals and breakdowns](/api-reference/protocols/objects-and-schemas#usage-overview-response).
-
-Response schema: [`usageOverviewResponseSchema`](/api-reference/protocols/objects-and-schemas#usage-overview-response).
-
-```json
-{
-  "totals": {
-    "inputTokens": 120,
-    "outputTokens": 80,
-    "requestCount": 2,
-    "durationMs": 1400
-  },
-  "daily": [
-    {
-      "day": "2026-07-10",
-      "agentId": null,
-      "sessionId": null,
-      "userId": null,
-      "provider": null,
-      "model": null,
-      "inputTokens": 120,
-      "outputTokens": 80,
-      "requestCount": 2,
-      "durationMs": 1400
-    }
-  ],
-  "byAgent": [],
-  "byUser": [],
-  "byModel": [],
-  "activeAgentCount": 1
-}
-```
-
-`daily` has one entry for every day in the range, oldest first, including days with no usage. `byAgent` and `byUser` are sorted by total tokens, highest first, and cut off at `limit`; ties are broken by ID. `byModel` is sorted and cut off the same way, then can add one bucket with `provider: null` and `model: null` for all the models left out, so the model rows still add up to the totals. Tenant-level usage (`userId: ""`) can appear in `byUser`. `activeAgentCount` counts every agent with usage in the range, not only those shown.
-
-#### Errors
-
-`400 validation_failed` for a partial, reversed, or oversized range or an invalid limit. See [REST errors](/api-reference/protocols/errors).
-
-#### cURL
-
-```bash
-curl --get "$BLAZING_AGENTS_BASE_URL/v1/usage/overview" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "from=2026-07-10" \
-  --data-urlencode "to=2026-07-10" \
-  --data-urlencode "limit=5"
-```
-
-#### SDK and related guides
-
-SDK: [TypeScript `overview`](/sdk/typescript/usage#overview-method) or [Python `overview`](/sdk/python/usage#overview-method). See [Usage and quotas](/platform/usage-and-quotas).
-
-### GET /v1/usage [#get-usage]
-
-Returns your tenant's usage totals and buckets for a range of up to 31 days.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
-
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-
-| Query parameter | Type         | Default      | Description                                   |
-| --------------- | ------------ | ------------ | --------------------------------------------- |
-| `from`, `to`    | `YYYY-MM-DD` | last 30 days | Supply both or neither                        |
-| `agentId`       | string       | none            | Agent filter                                  |
-| `sessionId`     | string       | none            | Session filter; `""` means stateless turns    |
-| `userId`        | string       | none            | Attribution filter; `""` means tenant-level   |
-| `groupBy`       | string       | `day`        | `day`, `agent`, `model`, `session`, or `user` |
-| `limit`         | integer      | 50           | 1–200; top-N only for `groupBy=session`       |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `from` | string | query |  | First UTC day to include, as `YYYY-MM-DD`. Send it with `to`, or leave both out for the last 30 days ending today. |
+| `to` | string | query |  | Last UTC day to include, as `YYYY-MM-DD`. It must not be before `from` and can be at most 31 days after it. |
+| `agentId` | string | query |  | Return only usage by this agent. |
+| `sessionId` | string | query |  | Return only usage in this session. Send an empty string for calls made without a session. |
+| `userId` | string | query |  | Return only usage for this end user. Send an empty string for tenant-level usage. |
+| `groupBy` | string | query |  | How to group the buckets: `day`, `agent`, `model`, `session`, or `user`. `session` returns the top sessions by total tokens; the others return every group. One of `day`, `agent`, `model`, `session`, `user`. Defaults to `day`. |
+| `limit` | integer | query |  | Number of sessions to return with `groupBy=session`, from 1 to 200. Other groupings ignore it. 1–200. Defaults to `50`. |
 
 #### Response
 
-Returns `200 OK` with [usage buckets and totals](/api-reference/protocols/objects-and-schemas#usage-response).
+Returns `200 OK` as `application/json`. Usage buckets and totals.
 
-Response schema: [`usageResponseSchema`](/api-reference/protocols/objects-and-schemas#usage-response).
+Response schema: `Usage`.
 
 ```json
 {
   "buckets": [
     {
+      "day": "2026-07-09",
+      "agentId": null,
+      "sessionId": null,
+      "userId": null,
+      "provider": null,
+      "model": null,
+      "inputTokens": 18240,
+      "outputTokens": 6120,
+      "requestCount": 14,
+      "durationMs": 41300
+    },
+    {
       "day": "2026-07-10",
       "agentId": null,
       "sessionId": null,
       "userId": null,
       "provider": null,
       "model": null,
-      "inputTokens": 120,
-      "outputTokens": 80,
-      "requestCount": 2,
-      "durationMs": 1400
+      "inputTokens": 9600,
+      "outputTokens": 3050,
+      "requestCount": 8,
+      "durationMs": 22750
     }
   ],
   "totals": {
-    "inputTokens": 120,
-    "outputTokens": 80,
-    "requestCount": 2,
-    "durationMs": 1400
+    "inputTokens": 27840,
+    "outputTokens": 9170,
+    "requestCount": 22,
+    "durationMs": 64050
   }
 }
 ```
 
 #### Errors
 
-`400 validation_failed` for a partial, reversed, or oversized range or an
-invalid filter, grouping, or limit. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --get "$BLAZING_AGENTS_BASE_URL/v1/usage" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "from=2026-07-01" \
-  --data-urlencode "to=2026-07-10" \
-  --data-urlencode "groupBy=day"
+curl "$BLAZING_AGENTS_BASE_URL/v1/usage" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
+### GET /v1/usage/overview [#get-usage-overview]
 
-SDK: [TypeScript `get`](/sdk/typescript/usage#get) or [Python
-`get`](/sdk/python/usage#get). See [Usage and
-quotas](/platform/usage-and-quotas).
+Get a usage overview.
 
-### GET /v1/agents/:agentId/usage [#get-agent-usage]
-
-Returns usage for the agent in the path. An `agentId` in the query string is ignored.
+Returns everything a usage dashboard needs in one response: totals, a daily series, and your top agents, users, and models. Send both `from` and `to` or neither; without them you get the last 30 days ending today, and `to` can be at most 31 days after `from`. `daily` has one entry for every day in the range, oldest first, including days with no usage. `byAgent`, `byUser`, and `byModel` are sorted by total tokens, highest first, and cut off at `limit`. `byModel` can add one bucket with `provider` and `model` set to `null` for the models left out, so its rows still add up to the totals. `activeAgentCount` counts every agent with usage in the range, not only those shown.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and an `ag_…` `agentId` path parameter. It accepts `from`, `to`, `sessionId`, `userId`, `groupBy`, and `limit` exactly as [Get tenant usage](/api-reference/rest-api/usage#get-usage). You can reach only resources your tenant owns.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
-| Location | Field           | Required | Description                               |
-| -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
-| Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `from` | string | query |  | First UTC day to include, as `YYYY-MM-DD`. Send it with `to`, or leave both out for the last 30 days ending today. |
+| `to` | string | query |  | Last UTC day to include, as `YYYY-MM-DD`. It must not be before `from` and can be at most 31 days after it. |
+| `limit` | integer | query |  | Rows to return in each ranked breakdown (`byAgent`, `byUser`, `byModel`), from 1 to 20. 1–20. Defaults to `5`. |
 
 #### Response
 
-Returns `200 OK` with `{ buckets, totals }`; see [Usage response](/api-reference/protocols/objects-and-schemas#usage-response).
+Returns `200 OK` as `application/json`. The usage overview.
 
-Response schema: [`usageResponseSchema`](/api-reference/protocols/objects-and-schemas#usage-response).
+Response schema: `UsageOverview`.
+
+```json
+{
+  "totals": {
+    "inputTokens": 27840,
+    "outputTokens": 9170,
+    "requestCount": 22,
+    "durationMs": 64050
+  },
+  "daily": [
+    {
+      "day": "2026-07-09",
+      "agentId": null,
+      "sessionId": null,
+      "userId": null,
+      "provider": null,
+      "model": null,
+      "inputTokens": 18240,
+      "outputTokens": 6120,
+      "requestCount": 14,
+      "durationMs": 41300
+    },
+    {
+      "day": "2026-07-10",
+      "agentId": null,
+      "sessionId": null,
+      "userId": null,
+      "provider": null,
+      "model": null,
+      "inputTokens": 9600,
+      "outputTokens": 3050,
+      "requestCount": 8,
+      "durationMs": 22750
+    }
+  ],
+  "byAgent": [
+    {
+      "day": null,
+      "agentId": "ag_4kP9sT2vXq7LmN3a",
+      "sessionId": null,
+      "userId": null,
+      "provider": null,
+      "model": null,
+      "inputTokens": 27840,
+      "outputTokens": 9170,
+      "requestCount": 22,
+      "durationMs": 64050
+    }
+  ],
+  "byUser": [
+    {
+      "day": null,
+      "agentId": null,
+      "sessionId": null,
+      "userId": "app:user-42",
+      "provider": null,
+      "model": null,
+      "inputTokens": 20100,
+      "outputTokens": 6800,
+      "requestCount": 15,
+      "durationMs": 45200
+    },
+    {
+      "day": null,
+      "agentId": null,
+      "sessionId": null,
+      "userId": "",
+      "provider": null,
+      "model": null,
+      "inputTokens": 7740,
+      "outputTokens": 2370,
+      "requestCount": 7,
+      "durationMs": 18850
+    }
+  ],
+  "byModel": [
+    {
+      "day": null,
+      "agentId": null,
+      "sessionId": null,
+      "userId": null,
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna",
+      "inputTokens": 27840,
+      "outputTokens": 9170,
+      "requestCount": 22,
+      "durationMs": 64050
+    }
+  ],
+  "activeAgentCount": 1
+}
+```
 
 #### Errors
 
-`400 validation_failed` for a malformed agent ID or invalid query. An agent
-with no usage, including one that does not exist, returns zero totals and empty
-buckets rather than `404`. See [REST errors](/api-reference/protocols/errors).
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
 #### cURL
 
 ```bash
-curl --get \
-  "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/usage" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --data-urlencode "groupBy=model"
+curl "$BLAZING_AGENTS_BASE_URL/v1/usage/overview" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-#### SDK and related guides
+### GET /v1/agents/:agentId/usage [#get-agent-usage]
 
-SDK: [TypeScript `getForAgent`](/sdk/typescript/usage#get-for-agent)
-or [Python
-`get_for_agent`](/sdk/python/usage#get-for-agent). See [Usage and
-quotas](/platform/usage-and-quotas).
+Get agent usage.
+
+Returns usage for one agent, with the same range rules, filters, and grouping as `GET /v1/usage`. An `agentId` in the query string is ignored. An agent with no usage, including one that does not exist, returns zero totals and no buckets.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `from` | string | query |  | First UTC day to include, as `YYYY-MM-DD`. Send it with `to`, or leave both out for the last 30 days ending today. |
+| `to` | string | query |  | Last UTC day to include, as `YYYY-MM-DD`. It must not be before `from` and can be at most 31 days after it. |
+| `sessionId` | string | query |  | Return only usage in this session. Send an empty string for calls made without a session. |
+| `userId` | string | query |  | Return only usage for this end user. Send an empty string for tenant-level usage. |
+| `groupBy` | string | query |  | How to group the buckets: `day`, `agent`, `model`, `session`, or `user`. `session` returns the top sessions by total tokens; the others return every group. One of `day`, `agent`, `model`, `session`, `user`. Defaults to `day`. |
+| `limit` | integer | query |  | Number of sessions to return with `groupBy=session`, from 1 to 200. Other groupings ignore it. 1–200. Defaults to `50`. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. Usage buckets and totals for the agent.
+
+Response schema: `Usage`.
+
+```json
+{
+  "buckets": [
+    {
+      "day": null,
+      "agentId": "ag_4kP9sT2vXq7LmN3a",
+      "sessionId": null,
+      "userId": null,
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna",
+      "inputTokens": 27840,
+      "outputTokens": 9170,
+      "requestCount": 22,
+      "durationMs": 64050
+    }
+  ],
+  "totals": {
+    "inputTokens": 27840,
+    "outputTokens": 9170,
+    "requestCount": 22,
+    "durationMs": 64050
+  }
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/usage" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
 
 ## Next [#next]
 
