@@ -2663,24 +2663,25 @@
         "assignedIds": [],
         "kind": "h2"
       },
-      "cards": [
-        "/cli/setup-and-authentication",
-        "/cli/chat",
-        "/cli/run",
-        "/cli/assist",
-        "/cli/scripting-and-ci"
-      ],
+      "cards": [],
       "callout": null,
-      "componentCounts": {
-        "Cards": 1,
-        "Card": 5
-      },
+      "componentCounts": {},
       "fences": {
         "endpointCurls": false,
         "items": [
           {
             "language": "bash",
             "metadata": {}
+          },
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "yaml",
+            "metadata": {
+              "title": "config.yaml"
+            }
           }
         ]
       },
@@ -4484,9 +4485,9 @@
     },
     {
       "file": "cli/assist.md",
-      "name": "ba assist and Admin Agent",
+      "name": "ba assist",
       "publishable": true,
-      "title": "ba assist and Admin Agent",
+      "title": "ba assist",
       "url": "/cli/assist"
     },
     {

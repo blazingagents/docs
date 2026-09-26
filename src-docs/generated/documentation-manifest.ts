@@ -9209,7 +9209,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "cli/index.mdx",
             "type": "page",
             "name": "CLI",
-            "description": "Install the ba command and choose an interactive, administrative, or automated workflow.",
+            "description": "Chat with your agents, run them from scripts and CI, and manage your tenant from the terminal.",
             "url": "/cli",
             "$ref": "cli/index.mdx"
           },
@@ -9217,7 +9217,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "cli/setup-and-authentication.mdx",
             "type": "page",
             "name": "CLI setup and authentication",
-            "description": "Authenticate the CLI safely from a workstation or a headless CI environment.",
+            "description": "Sign the CLI in on your own machine, or give it a key in CI.",
             "url": "/cli/setup-and-authentication",
             "$ref": "cli/setup-and-authentication.mdx"
           },
@@ -9225,7 +9225,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "cli/chat.md",
             "type": "page",
             "name": "ba chat",
-            "description": "Start or resume an interactive terminal conversation with an ordinary Agent.",
+            "description": "Hold a conversation with one of your agents in the terminal, and pick it up again later.",
             "url": "/cli/chat",
             "$ref": "cli/chat.md"
           },
@@ -9233,15 +9233,15 @@ export const documentationTree: SerializedPageTree = {
             "$id": "cli/run.md",
             "type": "page",
             "name": "ba run",
-            "description": "Execute one deterministic, non-interactive Agent Turn for a script or pipeline.",
+            "description": "Run one agent turn from a script or pipe and get the answer on stdout.",
             "url": "/cli/run",
             "$ref": "cli/run.md"
           },
           {
             "$id": "cli/assist.md",
             "type": "page",
-            "name": "ba assist and Admin Agent",
-            "description": "Administer Tenant resources through the platform-managed Admin Agent and durable Tool approval.",
+            "name": "ba assist",
+            "description": "Manage agents, prompts, tasks, and more by asking a built-in assistant in plain language.",
             "url": "/cli/assist",
             "$ref": "cli/assist.md"
           },
@@ -9249,7 +9249,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "cli/scripting-and-ci.md",
             "type": "page",
             "name": "Scripting and CI",
-            "description": "Run one secret-safe, predictable, non-interactive Agent Turn in an automation job.",
+            "description": "Run an agent from a CI job or script and use its answer in the next step.",
             "url": "/cli/scripting-and-ci",
             "$ref": "cli/scripting-and-ci.md"
           }

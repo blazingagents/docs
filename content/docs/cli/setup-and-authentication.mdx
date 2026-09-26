@@ -1,60 +1,77 @@
 ---
 title: CLI setup and authentication
-description: Authenticate the CLI safely from a workstation or a headless CI environment.
+description: Sign the CLI in on your own machine, or give it a key in CI.
 ---
 
 # CLI setup and authentication
 
-Use the native credential store for an interactive workstation and an environment API key for CI or another headless environment. Both authenticate the CLI to one resolved API origin.
+Sign in once on your machine and the CLI keeps your API key in the operating system's credential store. In CI or on a server, give it the key through an environment variable instead. Either way, the key never lands in a config file.
 
 ## Before you begin [#before-you-begin]
 
-Install the [CLI](/cli) and review [API key security](/platform/security-and-credentials#dashboard-api-key-management). Native login supports macOS Keychain, Windows Credential Manager, and glibc Linux with libsecret plus an unlocked desktop D-Bus Secret Service. Musl Linux and headless native stores are unsupported.
+[Install the CLI](/cli#install-the-cli). Signing in on a machine needs one of these credential stores:
+
+- macOS Keychain
+- Windows Credential Manager
+- Linux (glibc) with libsecret and an unlocked desktop keyring
+
+Alpine and other musl-based Linux, and machines with no desktop session, have no supported store. Use the [environment variable](#authenticate-in-ci) there.
 
 <Steps>
   <Step>
     ## Sign in on a workstation [#sign-in-on-a-workstation]
 
-    Run `ba --login` in an interactive terminal. It prints the canonical dashboard API-key URL before the hidden prompt: production uses `https://www.blazingagents.com/app/keys`, while a local `http://localhost:8787` API origin uses `http://localhost:5173/app/keys`. The CLI suggests a name such as `Blazing Agents CLI (<hostname>)`. Create that CLI API key in the dashboard, then paste its show-once value at the invisible prompt. The CLI validates it with an ordinary Tenant read and stores only the API origin and key value.
+    Run `ba --login` in an interactive terminal. It prints the link to [API keys](https://www.blazingagents.com/app/keys) in the dashboard and suggests a key name like `Blazing Agents CLI (your-hostname)`. Create that key, copy it, and paste it at the prompt. The prompt does not echo what you type.
 
-    Logging in again is a no-op when a native credential already exists for the resolved origin; it does not print the dashboard URL, prompt, call the API, or replace local state.
+    ```bash
+    ba --login
+    ```
+
+    The CLI checks the key with Blazing Agents, saves it, and prints `Logged in to https://api.blazingagents.com.` If you are already signed in, it says so and changes nothing.
 
   </Step>
   <Step>
     ## Verify authentication [#verify-authentication]
 
-    `ba --status` reports the API origin, configuration source (`flag`, `environment`, `yaml`, or `default`), credential source (`environment`, `native credential store`, or `none`), and remote validity (`valid`, `invalid`, or `not checked`). It validates the selected credential remotely and never prints its token or dashboard key metadata.
+    ```bash
+    ba --status
+    ```
+
+    ```text
+    API origin: https://api.blazingagents.com
+    Configuration source: default
+    Credential source: native credential store
+    Remote validity: valid
+    ```
+
+    `Credential source` tells you where the key came from: `environment (BLAZING_AGENTS_API_KEY)`, `native credential store`, or `none`. `Remote validity` shows whether Blazing Agents accepted it. The command exits with `1` when there is no key or the key is invalid, and never prints the key itself.
 
   </Step>
   <Step>
     ## Sign out [#sign-out]
 
-    `ba --logout` removes only the origin-scoped native credential, even when an environment override is active. The remote CLI API key remains active; the command gives you the dashboard key-page URL for optional revocation. A local deletion failure leaves the remote key active and reports the failure. It also warns when `BLAZING_AGENTS_API_KEY` remains active.
+    ```bash
+    ba --logout
+    ```
+
+    This removes the key from your machine only. The key still works until you revoke it on the [API keys](https://www.blazingagents.com/app/keys) page, and the CLI prints that link. If `BLAZING_AGENTS_API_KEY` is set, the CLI warns you that later commands still use it.
 
   </Step>
 </Steps>
 
-```bash
-ba --login
-ba --status
-ba --logout
-```
-
-Status should show the origin, sources, and validity without showing the API key token or dashboard key metadata.
-
 ## Authenticate in CI [#authenticate-in-ci]
 
-Set `BLAZING_AGENTS_API_KEY` from the CI system's secret manager. It takes precedence over the native store, is not persisted, and must not appear in command lines, logs, YAML, or repository files. When `CI` is set and the variable is missing or empty, the CLI fails before loading the native store or prompting.
+Set `BLAZING_AGENTS_API_KEY` from your CI system's secret store. It takes priority over a stored key, and the CLI never saves it.
 
-See [Scripting and CI](/cli/scripting-and-ci) for a complete job.
+When the `CI` variable is set and `BLAZING_AGENTS_API_KEY` is missing or empty, the CLI stops right away with `Authentication is required in CI. Set BLAZING_AGENTS_API_KEY.` It never waits for a prompt. See [scripting and CI](/cli/scripting-and-ci) for a complete job.
 
 ## Troubleshoot the credential store [#troubleshoot-the-credential-store]
 
-<Callout type="warn" title="No plaintext credential fallback">
-  If the native store is unavailable or an entry is invalid, the CLI fails. It never writes a credential to plaintext configuration or falls back to another store.
+<Callout type="warn" title="No plaintext fallback">
+  If the credential store is locked or unavailable, the CLI fails instead of writing your key to a file.
 </Callout>
 
-Unlock the desktop session and verify the platform service before retrying:
+Unlock your desktop session, then check that the store is running:
 
 ```bash tab="macOS" tab-group="credential-store-os"
 security show-keychain-info "$HOME/Library/Keychains/login.keychain-db"
@@ -71,17 +88,10 @@ test -n "$DBUS_SESSION_BUS_ADDRESS"
 secret-tool search service com.blazing-agents.cli
 ```
 
-On Linux, install libsecret and use an unlocked Secret Service collection in a desktop D-Bus session. For a corrupt or partially removed entry on any OS, revoke the CLI API key from the dashboard key page, remove the native entry using the service/account identifiers printed by the CLI, then sign in again.
+If the CLI reports that the stored credential is invalid, revoke the key in the dashboard, delete the entry the error message names from your credential store, and run `ba --login` again.
 
-## Related capabilities [#related-capabilities]
+## Next [#next]
 
-- [Security and credentials](/platform/security-and-credentials)
-- [Tenancy and end-user Attribution](/platform/tenancy-and-attribution)
-- [Dashboard API-key management](/platform/security-and-credentials#dashboard-api-key-management)
-
-## Reference [#reference]
-
-- [API-key security](/platform/security-and-credentials#dashboard-api-key-management)
-- [REST authentication](/api-reference/rest-api/authentication)
-- [TypeScript SDK](/sdk/typescript)
-- [Python SDK](/sdk/python)
+- [`ba chat`](/cli/chat) to talk to an agent.
+- [Scripting and CI](/cli/scripting-and-ci) for a complete pipeline job.
+- [Security and credentials](/platform/security-and-credentials) for rotating and revoking API keys.
