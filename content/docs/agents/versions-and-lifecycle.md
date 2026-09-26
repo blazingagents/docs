@@ -1,58 +1,17 @@
 ---
 title: Versions and lifecycle
-description: Inspect, pin, restore, disable, and enable Agent configuration safely.
+description: Roll back a bad change, pin a known-good agent config, and pause an agent without deleting it.
 ---
 
 # Versions and lifecycle
 
-Every Agent has immutable, monotonically numbered Versions and a separate
-active or disabled status. Use Versions to audit or select configuration;
-disable an Agent to stop new work without deleting it.
+Every change to an agent is saved as a numbered version. When an edit makes answers worse, you can see exactly what changed and roll back in one call. You can also pin a session or task to a version you trust, and disable an agent to stop new work while you investigate.
 
-## Tool approval policies [#tool-approval-policies]
+## Roll back to an earlier version [#roll-back-to-an-earlier-version]
 
-`approvalInChat` and `approvalInTasks` are independent versioned Agent settings,
-initially full with no overrides. See [Tool approvals](/agents/tools/tool-approvals)
-for exact Tool matching, validation, and human/automatic review behavior. Restoring
-a Version must copy both policies along with its other configuration; older SDK
-restoration helpers may omit them. Use an SDK release with policy restoration
-support or include both saved policies explicitly in a REST update.
+This finds the version before the latest one and restores it. Set `AGENT_ID` to an agent you have updated at least once.
 
-## How Versions are created [#how-versions-are-created]
-
-Agent creation writes Version `1`. Every accepted ordinary update stores the
-complete resulting configuration as the next Version, even for a same-value
-update. Versions cannot be edited or deleted. Avatar, enable, and disable
-operations do not create Versions.
-
-Thinking level, including Provider default (`null`), is part of each Version.
-Pins and resolved Task snapshots retain that Version's level after later
-Agent edits. Interactive, stateless, scheduled, run-now, and approval
-continuation Turns carry the resolved selection. Restoration validates the
-complete saved Provider, Model, and Thinking level before creating a new
-Version; rejected restoration leaves current configuration and history intact.
-
-## Latest resolution and Version Pins [#latest-resolution-and-version-pins]
-
-An unpinned request resolves the latest Version when its Turn is admitted. A
-caller can pin a Session, Task definition, or stateless generation request.
-
-- A Session's configured Pin is immutable; an unpinned Session resolves latest
-  for each Turn.
-- A Task's Pin is mutable. Enqueuing a run resolves the Pin or then-current
-  latest Version and records it on that run.
-- Per-Turn Usage and every Task run record the Version actually resolved.
-
-Provider credentials, MCP Connection state, the Workspace attachment, and
-Memories remain live. A Version is an Agent-configuration boundary, not a
-hermetic deployment snapshot.
-
-## Inspect and restore [#inspect-and-restore]
-
-Restore copies a historical Version through the ordinary update path, creating
-a newer Version without rewriting history.
-
-```typescript
+```typescript tab="TypeScript" tab-group="sdk-language"
 import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
@@ -60,36 +19,87 @@ const client = new BlazingAgents({
 });
 const agentId = process.env.AGENT_ID!;
 
-const page = await client.agents.listVersions({ agentId, limit: 10 });
-const version = page.data[0]?.version;
-if (!version) throw new Error("No Agent Versions found");
+const { data } = await client.agents.listVersions({ agentId, limit: 2 });
+const previous = data[1];
+if (!previous) throw new Error("This agent has only one version");
 
-const inspected = await client.agents.getVersion({ agentId, version });
 const restored = await client.agents.restoreVersion({
   agentId,
-  version: inspected.version,
+  version: previous.version,
 });
-if (restored.version <= inspected.version) {
-  throw new Error("Restore did not create a newer Version");
-}
+console.log(`Restored version ${previous.version} as version ${restored.version}`);
 ```
 
-Version lists are newest first and cursor-paginated. The Admin Agent's
-Provider/model Versions can be inspected but not restored.
+```python tab="Python"
+import os
+
+from blazing_agents import BlazingAgents
+
+client = BlazingAgents()
+agent_id = os.environ["AGENT_ID"]
+
+versions = client.agents.list_versions(agent_id, limit=2).data
+if len(versions) < 2:
+    raise RuntimeError("This agent has only one version")
+previous = versions[1]
+
+restored = client.agents.restore_version(agent_id, previous.version)
+print(f"Restored version {previous.version} as version {restored.version}")
+```
+
+Restoring never rewrites history. It copies the old configuration into a new latest version, so you can roll forward again the same way. Versions are listed newest first.
+
+## What a version holds [#what-a-version-holds]
+
+Creating an agent saves version `1`. Each update saves the full resulting configuration as the next version, even when nothing actually changed. Versions cannot be edited or deleted.
+
+A version holds the agent's name, provider and model, thinking level, instructions, tool groups, MCP connection list, [tool approval](/agents/tools/tool-approvals) policies, memory injection setting, [compaction settings](/agents/agents#automatic-context-compaction), and metadata. Restoring checks the old provider, model, and thinking level again, and fails without changing anything if they are no longer valid.
+
+Some things live outside versions and always use their current state: the provider's key, MCP connection credentials, the attached workspace, [skills](/agents/skills), and [memories](/agents/memory). Restoring does not change the workspace, `userId`, status, or avatar, and enabling, disabling, or changing the avatar does not create a version.
+
+## Pin a version [#pin-a-version]
+
+Calls without a version use the latest one at the moment the turn starts. Pass `version` to run a specific one instead, such as the version you restored above:
+
+```typescript tab="TypeScript" tab-group="sdk-language"
+const result = await client.completion({
+  agentId,
+  version: previous.version,
+  prompt: "Reply with OK.",
+});
+console.log(await result.text);
+```
+
+```python tab="Python"
+print(
+    client.completion(
+        agent_id=agent_id, version=previous.version, prompt="Reply with OK."
+    )
+)
+```
+
+- **Sessions.** Pass `version` when you start a session with `client.chat()`. Every turn in that session uses it, and you cannot change it later. A session started without a version uses the latest one on each turn.
+- **Tasks.** A task's pinned version can change. Each run records the version it actually used. See [tasks](/automation/tasks).
+- **Usage.** Each turn's usage record shows the version that ran.
 
 ## Enable and disable [#enable-and-disable]
 
-`disable` and `enable` are idempotent and reversible. A disabled Agent rejects
-new Turns with `agent_disabled` but remains readable and editable. In-flight
-Turns finish. Session resumes, stateless generation, manual Task runs, and
-Tool-approval continuations are blocked. Scheduled fires are skipped without a
-Task-run row; the next eligible fire can run after enable.
+Disable an agent to stop new work without losing anything:
 
-See [Sessions and Turns](/platform/sessions-and-turns) and
-[Automation](/automation/tasks) for those execution paths.
+```typescript tab="TypeScript" tab-group="sdk-language"
+await client.agents.disable({ agentId });
+await client.agents.enable({ agentId });
+```
 
-## SDK and API [#sdk-and-api]
+```python tab="Python"
+client.agents.disable(agent_id)
+client.agents.enable(agent_id)
+```
 
-- [TypeScript Agents SDK](/sdk/typescript/agents)
-- [Python Agents SDK](/sdk/python/agents)
-- [Agents REST API](/api-reference/rest-api/agents)
+A disabled agent rejects new chat turns, completions, manual task runs, and tool approval continuations with `agent_disabled`. Turns already running finish. Scheduled runs are skipped, not queued, and the next scheduled run after you enable the agent goes ahead. You can still read and edit a disabled agent. Calling either method twice is safe.
+
+## Next [#next]
+
+- [Sessions and turns](/platform/sessions-and-turns) to start pinned sessions.
+- [Tasks](/automation/tasks) to pin background work.
+- Agents SDK reference for [TypeScript](/sdk/typescript/agents#restore-version) or [Python](/sdk/python/agents#restore-version).

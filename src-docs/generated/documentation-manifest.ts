@@ -8643,7 +8643,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "agents/index.mdx",
             "type": "page",
             "name": "Agents",
-            "description": "Understand the resources, output modes, and Tools that define what a Blazing Agents Agent can do.",
+            "description": "Set up an agent once, then give it a model, instructions, files, skills, memory, and tools.",
             "url": "/agents",
             "$ref": "agents/index.mdx"
           },
@@ -8651,15 +8651,15 @@ export const documentationTree: SerializedPageTree = {
             "$id": "agents/agents.md",
             "type": "page",
             "name": "Agents",
-            "description": "Configure reusable Agent behavior, capabilities, attribution, and runtime resolution.",
+            "description": "Create an agent once, then reuse its model, instructions, and tools everywhere your app calls it.",
             "url": "/agents/agents",
             "$ref": "agents/agents.md"
           },
           {
             "$id": "agents/providers-and-models.md",
             "type": "page",
-            "name": "Providers and Models",
-            "description": "Save model credentials, discover native model IDs, and assign a valid pair to an Agent.",
+            "name": "Providers and models",
+            "description": "Connect your model account once, then choose the model each agent runs.",
             "url": "/agents/providers-and-models",
             "$ref": "agents/providers-and-models.md"
           },
@@ -8667,7 +8667,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "agents/prompts.md",
             "type": "page",
             "name": "Prompts",
-            "description": "Store named message templates and render validated variables for any generation mode.",
+            "description": "Save a message template with variables once, then fill it in on any call.",
             "url": "/agents/prompts",
             "$ref": "agents/prompts.md"
           },
@@ -8675,7 +8675,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "agents/versions-and-lifecycle.md",
             "type": "page",
             "name": "Versions and lifecycle",
-            "description": "Inspect, pin, restore, disable, and enable Agent configuration safely.",
+            "description": "Roll back a bad change, pin a known-good agent config, and pause an agent without deleting it.",
             "url": "/agents/versions-and-lifecycle",
             "$ref": "agents/versions-and-lifecycle.md"
           },
@@ -8683,7 +8683,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "agents/skills.md",
             "type": "page",
             "name": "Skills",
-            "description": "Package reusable Agent-owned instructions and supporting files for progressive loading.",
+            "description": "Teach an agent a workflow it loads only when a task needs it, so long instructions stay out of every prompt.",
             "url": "/agents/skills",
             "$ref": "agents/skills.md"
           },
@@ -8691,7 +8691,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "agents/memory.md",
             "type": "page",
             "name": "Memory",
-            "description": "Persist Agent-owned notes across Sessions with explicit Tools or automatic context injection.",
+            "description": "Let an agent remember facts about each user across sessions.",
             "url": "/agents/memory",
             "$ref": "agents/memory.md"
           },
