@@ -63,6 +63,8 @@ people who built it.
 
 - No `as` type casts in snippets (for example on `await request.json()`).
   Let inference or the SDK's own types carry the shape.
+- Never hand-parse the event stream in a snippet. Print the raw chunks or
+  relay `result.toResponse()`, and say the reader can take it from there.
 - Every snippet must run as written against the pinned SDK. The first
   snippet a reader sees must succeed, so an agent that generates text needs
   a provider and model.
