@@ -1,84 +1,54 @@
 ---
-title: Getting Started
-description: Set up the backend SDK, run a streamed Turn, and connect Blazing Agents to your application.
+title: Getting started
+description: Go from an API key to an agent that chats with your users inside your own app.
 ---
 
-# Getting Started
+# Getting started
 
-Install the backend SDK, create an Agent, complete one streamed Turn, and connect it safely to an application. This path keeps your Blazing Agents credential behind your authenticated backend from the start.
+Go from an empty folder to an agent that answers your users inside your own app. Each step ends with something you can run, and your API key stays on your backend the whole way.
 
-## The shortest path to a working Agent [#the-shortest-path-to-a-working-agent]
+## The path [#the-shortest-path-to-a-working-agent]
 
 <Steps>
   <Step>
     ### [Set up Blazing Agents](/getting-started/setup)
 
-    Finish with an authenticated SDK client that can list your tenant's Agents.
+    Get an API key, install the TypeScript or Python SDK, and confirm your code can reach Blazing Agents.
 
   </Step>
   <Step>
     ### [Run your first agent](/getting-started/quickstart)
 
-    Finish with an `ag_...` Agent ID, an `ss_...` Session ID, and a streamed answer.
+    Connect an OpenRouter model, create an agent, and watch its first answer stream into your terminal.
 
   </Step>
   <Step>
     ### [Connect Blazing Agents to your app](/getting-started/connect-your-app)
 
-    Finish with an authenticated backend endpoint that relays the stream and safely resumes a Session.
+    Add a chat endpoint to your backend that checks who the user is and remembers each conversation.
+
+  </Step>
+  <Step>
+    ### [Build a chatbot](/getting-started/chatbot)
+
+    Put a React chat UI with send, stop, and regenerate on top of that endpoint.
 
   </Step>
   <Step>
     ### [Choose what to build next](/getting-started/next-steps)
 
-    Finish by selecting the Agent, Platform, Automation, CLI, or SDK section that matches your product outcome.
+    Give your agent files, tools, memory, or background work.
 
   </Step>
 </Steps>
 
-## What you will build [#what-you-will-build]
+## How the pieces fit [#what-you-will-build]
 
-**Browser or mobile app → authenticated tenant backend → Blazing Agents**
+Your frontend sends messages to your backend. Your backend signs the user in, decides which conversations they may open, and calls Blazing Agents with your API key. Blazing Agents runs the agent and streams the answer back through your backend.
 
-The API key remains on the backend. Your backend authenticates each end-user, authorizes access to your application's resources, selects the Agent, and calls Blazing Agents.
+Your frontend never sees the API key. That matters because one key can reach every agent in your tenant.
 
-## Choose your next step [#choose-your-next-step]
+## Next [#next]
 
-<Cards>
-  <Card
-    title="Setup"
-    href="/getting-started/setup"
-    description="Install the SDK and verify one authenticated backend read."
-  />
-  <Card
-    title="Quickstart"
-    href="/getting-started/quickstart"
-    description="Create the smallest valid Agent and stream its first Turn."
-  />
-  <Card
-    title="Connect your app"
-    href="/getting-started/connect-your-app"
-    description="Put an authenticated backend between your users and Blazing Agents."
-  />
-  <Card
-    title="Next steps"
-    href="/getting-started/next-steps"
-    description="Choose a product or developer section by the outcome you need."
-  />
-</Cards>
-
-## Explore the product [#explore-the-product]
-
-- [Agents](/agents)
-- [Platform](/platform)
-- [Automation](/automation)
-
-## Reference [#reference]
-
-- [TypeScript SDK](/sdk/typescript)
-- [Python SDK](/sdk/python)
-- [SDK client](/sdk/typescript/client)
-- [Python SDK client](/sdk/python/client)
-- [`client.chat()`](/sdk/typescript/client#chat)
-- [Python `client.chat()`](/sdk/python/client#chat)
-- [Documentation overview](/)
+- [Why Blazing Agents](/why) to see what the platform handles for you.
+- [Examples](https://github.com/blazingagents/examples) for complete Next.js, TanStack Start, Vite + Hono, Express, and FastAPI apps.

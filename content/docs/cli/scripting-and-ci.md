@@ -1,89 +1,75 @@
 ---
 title: Scripting and CI
-description: Run one secret-safe, predictable, non-interactive Agent Turn in an automation job.
+description: Run an agent from a CI job or script and use its answer in the next step.
 ---
 
 # Scripting and CI
 
-Use `ba run` to execute one predictable non-interactive Turn while keeping credentials and diagnostics out of the result channel. This pattern fits any CI system that can install Node packages, inject secrets, and inspect an exit status.
+Run an agent as one step of a pipeline: summarize a release, review a diff, or draft a changelog, then hand the answer to the next step. `ba run` reads the prompt, prints only the answer on stdout, and reports success or failure through its exit status.
 
 ## Before you begin [#before-you-begin]
 
-Store a Tenant API key in the CI system's secret manager, identify an Agent by exact ID or resolvable full name, and make Node.js 24 plus npm available. Review [CLI setup and authentication](/cli/setup-and-authentication) and [`ba run`](/cli/run).
+You need an agent with a provider and model, an API key stored in your CI system's secrets, and Node.js 24 or later on the runner. Read [`ba run`](/cli/run) for every flag.
 
 ## Configure the job [#configure-the-job]
 
-Inject `BLAZING_AGENTS_API_KEY` as an environment secret. Optionally set `BLAZING_AGENTS_BASE_URL` for a non-default API origin. When `CI` is set, a missing API key fails before the native credential store loads; automation should never run `ba --login`.
+This GitHub Actions job asks an agent for a release summary and prints it:
 
-```yaml title="GitHub Actions step"
-- name: Run the release Agent
-  env:
-    BLAZING_AGENTS_API_KEY: ${{ secrets.BLAZING_AGENTS_API_KEY }}
-  run: |
-    npm install --global @blazingagents/cli@0.1.0
-    set +e
-    ba run ag_0123456789abcdef \
-      --prompt 'Summarize the release status' \
-      --json --tool-output off > result.json
-    status=$?
-    set -e
-    test "$status" -eq 0
-    jq -e '.output | strings | length > 0' result.json
+```yaml title=".github/workflows/release-summary.yml"
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Summarize the release
+        env:
+          BLAZING_AGENTS_API_KEY: ${{ secrets.BLAZING_AGENTS_API_KEY }}
+        run: |
+          npm install --global @blazingagents/cli@0.1.0
+          ba run ag_0123456789abcdef \
+            --prompt "Summarize the release status" \
+            --json > result.json
+          jq -r '.output' result.json
 ```
 
-The step should exit zero and `jq` should validate the buffered `output`. The secret is injected without being echoed, and Tool diagnostics remain on stderr rather than in `result.json`.
+The step prints the summary and passes. If the turn fails, `ba run` exits with a non-zero status and the step fails before `jq` runs.
+
+The key comes from `BLAZING_AGENTS_API_KEY` and is never saved or printed. GitHub Actions sets `CI`, so a missing key fails right away instead of waiting for a sign-in prompt. Never run `ba --login` in a pipeline. To use a different API address, also set `BLAZING_AGENTS_BASE_URL`.
 
 ## Send input [#send-input]
 
-Prefer `--prompt` for a short literal. Pipe or redirect non-TTY stdin for generated text or a file so the content does not need shell quoting. For stored Prompt variables, follow the complete [`--prompt-id` and `--var` rules](/cli/run#choose-one-input).
+Use `--prompt` for a short, fixed prompt. For generated text or a file, pipe it in so you do not have to quote it for the shell:
+
+```bash
+git log --oneline v1.2.2..HEAD | ba run "Release agent" --json > result.json
+```
+
+To reuse a [stored prompt](/agents/prompts) with variables, use `--prompt-id` and `--var`. See [choosing one input](/cli/run#choose-one-input).
 
 ## Keep output machine-readable [#keep-output-machine-readable]
 
-Use `--json` for one buffered document or `--schema <file>` for a stateless, schema-validated JSON value. Stdout then contains only the successful result; authentication errors, Tool summaries, approval notices, and failures use stderr. Add `--tool-output off` to suppress successful Tool summaries while keeping warnings and failures.
+With `--json` or `--schema <file>`, stdout holds exactly one JSON document, and only when the turn succeeds. Errors, tool summaries, and approval notices go to stderr, so they never end up in `result.json`. Use `--schema` when the next step needs fields rather than prose; the CLI checks the answer against your schema before printing it.
 
-Buffered failure or cancellation leaves stdout empty. Plain mode can preserve partial text and is therefore unsuitable when a consumer requires an all-or-nothing document.
+Avoid plain text mode when a later step needs all or nothing. If a plain run fails halfway, stdout may already hold part of the answer.
 
 ## Handle exit statuses and cancellation [#handle-exit-statuses-and-cancellation]
 
-Treat `0` as success, `1` as an operational failure, `2` as invalid local input, `130` as SIGINT, and `143` as SIGTERM. Both signals abort the active SDK request. Do not automatically retry: the platform may have completed a Tool side effect before the process observed failure or cancellation.
+`0` means success, `1` means the turn failed, and `2` means the command line or input was wrong. `130` and `143` mean the job was interrupted or terminated, which also cancels the turn. See the [full list](/cli/run#exit-statuses-and-signals).
 
-## Verify the job [#verify-the-job]
-
-Capture the process status before parsing output, require status `0`, and validate only the field your next step consumes. Do not print the full environment or API key, and avoid dumping entire result documents when they can contain application data.
+Do not retry a failed run automatically. A tool may already have done its work before the failure, and a retry would do it again.
 
 ## Production notes [#production-notes]
 
-- Keep stateless execution as the default; use `--session` only when the job intentionally appends to known server-owned history.
-- Set `--user-id` and `--metadata` only for the intended end-user Attribution; they do not change an existing Session's Attribution.
-- Rotate the secret by deploying a replacement API key, verifying it, and then deleting the old key.
-- `ba run` reports durable Tool approval but never decides it. BA Assist cannot recover an ordinary Agent Session; implement a human flow that [lists](/sdk/typescript/sessions#tool-approvals), [decides](/sdk/typescript/sessions#decide-tool-approval), and [joins](/sdk/typescript/sessions#join-tool-approval-continuation) the approval through the SDK or matching REST operations, or design unattended work to avoid manual approval.
-- Keep logs bounded with buffered output and `--tool-output off`; Tool failures and approval notices remain visible on stderr.
+- **Keep runs stateless.** Each run stands alone by default. Use `--session` only when a job should add to a known conversation.
+- **Plan for approvals.** A pipeline has nobody to approve a tool call. In a stateless run the call is blocked; in a session run `ba run` exits with `1`. Set the agent's [approval policy](/agents/tools/tool-approvals) so the tools a job needs are allowed.
+- **Label usage.** Pass `--user-id` so the job's usage shows up separately when you [group usage by user](/platform/usage-and-quotas).
+- **Rotate the key.** Create a new API key, update the CI secret, confirm a run passes, then delete the old key.
+- **Keep logs small.** Print only the fields the next step needs, not the whole result, which can contain your application's data.
 
-## Related capabilities [#related-capabilities]
+## Next [#next]
 
-- [Security and credentials](/platform/security-and-credentials)
-- [Tenancy and end-user Attribution](/platform/tenancy-and-attribution)
-- [Structured output](/agents/output/structured-output)
-- [Tool approvals](/agents/tools/tool-approvals)
-- [Limits and reliability](/platform/limits-and-reliability)
-
-## Reference [#reference]
-
-- [`ba run`](/cli/run)
-- [SDK `completion`](/sdk/typescript/client#completion)
-- [SDK `object`](/sdk/typescript/client#object)
-- [SDK `chat`](/sdk/typescript/client#chat)
-- [SDK `toolApprovals`](/sdk/typescript/sessions#tool-approvals)
-- [SDK `decideToolApproval`](/sdk/typescript/sessions#decide-tool-approval)
-- [SDK `joinToolApprovalContinuation`](/sdk/typescript/sessions#join-tool-approval-continuation)
-- [Python SDK `completion`](/sdk/python/client#completion)
-- [Python SDK `object`](/sdk/python/client#object)
-- [Python SDK `chat`](/sdk/python/client#chat)
-- [Python SDK `tool_approvals`](/sdk/python/sessions#tool-approvals)
-- [Python SDK `decide_tool_approval`](/sdk/python/sessions#decide-tool-approval)
-- [Python SDK `join_tool_approval_continuation`](/sdk/python/sessions#join-tool-approval-continuation)
-- [REST generate](/api-reference/rest-api/generation#generate)
-- [REST resume Session Turn](/api-reference/rest-api/sessions#resume-session-turn)
-- [REST list Tool approvals](/api-reference/rest-api/sessions#list-tool-approvals)
-- [REST decide Tool approval](/api-reference/rest-api/sessions#decide-tool-approval)
-- [REST join Tool-approval continuation](/api-reference/rest-api/sessions#join-tool-approval-continuation)
+- [`ba run`](/cli/run) for every flag and output mode.
+- [Structured output](/agents/output/structured-output) to design a schema for `--schema`.
+- [Security and credentials](/platform/security-and-credentials) for storing and rotating API keys.

@@ -1,59 +1,54 @@
 ---
 title: ba chat
-description: Start or resume an interactive terminal conversation with an ordinary Agent.
+description: Hold a conversation with one of your agents in the terminal, and pick it up again later.
 ---
 
 # ba chat
 
-`ba chat <agent> [--session <id>]` opens an interactive TUI for an ordinary hosted Agent. Use `ba run` instead for pipes, scripts, and CI.
-
-## Before you begin [#before-you-begin]
-
-Complete [CLI setup and authentication](/cli/setup-and-authentication). Both stdin and stdout must be TTYs.
-
-Select the Agent by exact ID or full name. Exact-case full names win; one case-insensitive full-name match is also accepted. Partial and fuzzy names do not match, and multiple case-insensitive matches fail with the exact candidate names and IDs. The Admin Agent is available only through `ba assist`.
+Talk to one of your agents in the terminal while you work on its instructions, tools, or skills. Every conversation is saved as a session, so you can come back to it later from the CLI, the SDK, or the dashboard.
 
 ## Start a chat [#start-a-chat]
 
-Without `--session`, the CLI opens an empty local TUI. The platform mints and materializes a Session after the first message is admitted, before model execution. A failed or canceled Turn can therefore leave an empty Session. Resend submits a new attempt; it does not regenerate a failed message.
+Complete [CLI setup and authentication](/cli/setup-and-authentication) first. Then pass the agent's name or ID (see [choosing an agent](/cli#operational-boundaries)):
 
 ```bash
-ba chat 'Release Agent'
+ba chat "Quickstart agent"
+```
+
+A chat window opens. Type a message and press Enter; the answer streams in, with Markdown, reasoning, and any tool calls the agent makes. The session starts with your first message.
+
+When you exit, the CLI prints what you need to come back:
+
+```text
+Agent:   Quickstart agent (ag_...)
+Session: ss_...
+Usage:   812 input + 64 output tokens
+Resume:  ba chat ag_... --session ss_...
+```
+
+The token counts cover what this chat window sent and received.
+
+## Resume a session [#resume-a-session]
+
+Run the printed `Resume` command to continue the same conversation. The agent sees the whole history; the chat window itself starts empty.
+
+```bash
 ba chat ag_0123456789abcdef --session ss_0123456789abcdef
 ```
 
-Output streams in the TUI. On exit from an admitted chat, the CLI prints the Agent, Session ID, cumulative input/output token counts observed by that process, and an exact ID-based resume command.
+The session must belong to that agent. If it does not exist or belongs to another agent, the command fails and starts nothing new.
 
-## Resume a Session [#resume-a-session]
+## When a turn fails [#read-the-terminal-output]
 
-Pass `--session` only for an existing Session owned by the selected Agent. The CLI verifies ownership before opening the TUI; a missing or foreign Session fails without creating another Session.
-
-The platform owns canonical Session history. The TUI keeps a local view for rendering and sends only the newest user message for each Turn. The exit receipt remains the reliable command for returning to the same server-owned history.
-
-## Read the terminal output [#read-the-terminal-output]
-
-The TUI renders Markdown, reasoning, hosted Tool activity, stream errors, and output-token statistics. These are a local rendering of AI SDK UI-message chunks; the stored Session transcript remains canonical.
-
-A safe in-stream failure appears in the TUI and leaves the input available for retry. Once the first Turn is admitted, retries resume the Session ID returned by the platform.
+An error appears in the chat window and your message stays in the input, so you can edit it and send it again. A failed turn adds nothing to the saved conversation. If it was the first message, the session still exists and the next send uses it.
 
 ## Cancel or exit [#cancel-or-exit]
 
-Press Esc or Ctrl+C during an active Turn to abort its SDK request. When the TUI is idle, either exits successfully. Cancellation stops further client participation, but cannot undo a Tool side effect that completed before the abort reached the platform.
+Press Esc or Ctrl+C while an answer is streaming to stop it. Press either again when nothing is running to exit. Stopping cannot undo a tool call that already finished.
 
-## Related capabilities [#related-capabilities]
+`ba chat` needs an interactive terminal. For pipes, scripts, and CI, use [`ba run`](/cli/run). To talk to the built-in assistant that manages your tenant, use [`ba assist`](/cli/assist).
 
-- [Agents](/agents/agents)
-- [Sessions and Turns](/platform/sessions-and-turns)
-- [Generation and streaming](/agents/output/generation-and-streaming)
-- [Tools](/agents/tools/built-in-tools)
-- [Usage and quotas](/platform/usage-and-quotas)
+## Next [#next]
 
-## Reference [#reference]
-
-- [SDK `chat`](/sdk/typescript/client#chat)
-- [SDK `sessions.messages`](/sdk/typescript/sessions#messages)
-- [Python SDK `chat`](/sdk/python/client#chat)
-- [Python SDK `sessions.messages`](/sdk/python/sessions#messages)
-- [Create a Session Turn](/api-reference/rest-api/sessions#create-session-turn)
-- [Resume a Session Turn](/api-reference/rest-api/sessions#resume-session-turn)
-- [List Session messages](/api-reference/rest-api/sessions#list-session-messages)
+- [`ba run`](/cli/run) to run one turn from a script.
+- [Sessions and turns](/platform/sessions-and-turns) to read the same conversation from your app.

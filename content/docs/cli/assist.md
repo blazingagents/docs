@@ -1,101 +1,88 @@
 ---
-title: ba assist and Admin Agent
-description: Administer Tenant resources through the platform-managed Admin Agent and durable Tool approval.
+title: ba assist
+description: Manage agents, prompts, tasks, and more by asking a built-in assistant in plain language.
 ---
 
-# ba assist and Admin Agent
+# ba assist
 
-`ba assist [--session <id>]` opens an administrative conversation with the Tenant's single platform-managed Admin Agent. Unlike ordinary `ba chat`, BA Assist exposes a fixed catalog of hosted resource Tools and recovers durable approval state.
+Manage your tenant by asking for what you want. `ba assist` opens a chat with a built-in assistant that can create and change agents, prompts, tasks, workspaces, and skills, run tasks, and answer questions about usage. Anything that changes or deletes something that already exists waits for your yes.
 
 ## Before you begin [#before-you-begin]
 
-Complete [CLI setup and authentication](/cli/setup-and-authentication); stdin and stdout must both be TTYs. Before generation, the Admin Agent must have a Tenant-selected Provider and model. If it is unconfigured, `ba assist` stops and directs you to add a Provider in the dashboard and select its model on the Admin Agent. An API key grants Tenant-wide backend access, so follow the [security and credentials](/platform/security-and-credentials) and [Tenant isolation](/platform/tenancy-and-attribution) boundaries.
+Complete [CLI setup and authentication](/cli/setup-and-authentication) and use an interactive terminal.
+
+The assistant needs a model. In the dashboard, open **Agents**, find the agent marked **Powers BA Assist for this tenant**, and choose a provider and model for it. Until you do, `ba assist` stops and tells you what to set.
 
 ## Start or resume [#start-or-resume]
 
 ```bash
 ba assist
-ba assist --session ss_0123456789abcdef
 ```
 
-The CLI requires exactly one visible Admin Agent and never falls back to a tenant-created Agent. Without `--session`, an admitted first Turn materializes a new Admin Agent Session before model execution. With `--session`, it verifies that the Session belongs to that Admin Agent. On exit from materialized work, it prints the Session ID and exact `ba assist --session <id>` resume command.
+Ask in plain language, for example "List my agents and their models" or "Create a task that summarizes yesterday's support sessions every morning". When you exit, the CLI prints the session ID and the command to come back:
 
-## Supported administration [#supported-administration]
+```text
+Session: ss_...
+Resume:  ba assist --session ss_...
+```
 
-The Admin Agent can perform these implemented operations:
+`ba assist --session` opens only the assistant's own sessions. To continue a conversation with one of your agents, use [`ba chat`](/cli/chat).
 
-| Resource | Supported operations |
+## What it can do [#supported-administration]
+
+| Area | What you can ask for |
 | --- | --- |
 | Tenant settings | Read and update |
 | Agents | List, read, create, update, and delete |
-| Providers | List, read, and discover models for an already-stored Provider |
+| Providers | List, read, and list available models |
+| Workspaces | List, read, create, update, and delete |
+| Skills | List, read, create, upload, copy, and delete skills, and read, write, or delete their files |
 | Prompts | List, read, create, update, and delete |
 | Tasks | List, read, create, update, delete, and run |
 | Task runs | List, read, read messages, and cancel |
-| Usage | Query totals and grouped buckets |
+| Usage | Totals and breakdowns |
 | Sessions | List, read messages, and delete |
-| Artifacts | List safe metadata |
+| Artifacts | List |
 
-Tools execute on the platform under trusted Tenant, Admin Agent, and active Session scope. Lists are bounded, targeted mutations use platform IDs, and returned values omit credentials, internal object keys, signed URLs, and other internal-only fields. API-key management, Provider credential mutation, Skill mutation, avatar mutation, and Artifact content or deletion are unavailable.
+It cannot manage API keys, add providers or change provider keys, change avatars, or read or delete artifact contents. Its tools never return keys or other credentials. It also cannot change itself or delete the session you are talking to it in.
 
-## Configure Thinking level [#thinking-level]
+## Set an agent's thinking level [#thinking-level]
 
-Use `ba assist` to ask for an Agent's current Thinking level, create an Agent
-with a level, update a level, or clear it to Provider default. The Agent Tool
-uses `thinkingLevel: "high"` (or a custom string when capabilities are unknown)
-and `thinkingLevel: null` to clear. Updates require the ordinary Tool approval.
-For example: “Set Release Agent's Thinking level to high”, or “Clear Release
-Agent's Thinking level to Provider default”. Reading an Agent also returns its
-saved level. Configure the Admin Agent's own level through the dashboard or
-SDK; its administrative self-mutation restriction remains in place.
+Ask for it by name: "Set Release agent's thinking level to high" or "Clear Release agent's thinking level". Like any other update, it waits for your approval. `ba chat` and `ba run` then use the saved level. See [thinking level](/agents/providers-and-models#thinking-level) for what each level does.
 
-`ba chat` and `ba run` use the Agent's resolved Version setting; they do not
-provide a per-Turn override. See [Thinking level](/agents/providers-and-models#thinking-level).
+## Approve changes [#approval-policy]
 
-## Approval policy [#approval-policy]
+Reading, creating, listing models, running a task, and cancelling a task run happen right away. Updating or deleting something that exists, changing tenant settings, and writing or deleting skill files wait for you.
 
-Reads, creation, Provider model discovery, Task runs, and Task-run cancellation proceed without approval. Tenant updates and supported resource updates or deletes pause for explicit approval. The active BA Assist Session and the Admin Agent cannot delete or mutate themselves even after approval.
-
-The prompt shows the trusted Tool name and validated JSON input. Answer yes to approve that exact call or no to deny it; denial executes no Tool and still allows the Agent to respond.
-
-```text
-Expected: Tenant settings loaded.
-Tool: tenant {"action":"get"}
-Expected proposal: update an Agent name
-Tool: agents {"action":"updateById","agentId":"ag_AAAAAAAAAAAAAAAA","changes":{"name":"Release Agent"}}
-Approve? y/n
-n
-Expected: Denied; no update was executed.
-```
+When the assistant wants to make one of those changes, the chat shows the tool it wants to call and the exact input. Answer yes to run that exact call, or no to block it. Either way, the assistant carries on and tells you what happened.
 
 ## Recover pending approvals [#recover-pending-approvals]
 
-Resuming a Session first verifies it, loads durable approvals, and shows pending Tool names and inputs one at a time in stored order. Each decision persists before the next. After all decisions exist, BA Assist rejoins the single durable continuation and renders its progress before opening a clean TUI.
+If you leave while a change is waiting, it stays waiting. Resume the session and the CLI shows each pending change before the chat opens:
 
-A repeated matching decision rereads trusted state and rejoins the same continuation rather than executing twice. Resume again with the printed command if the continuation has not settled.
+```text
+Pending Tool approval
+Tool: agents
+Input:
+{
+  "action": "updateById",
+  "agentId": "ag_...",
+  "changes": {
+    "name": "Release agent"
+  }
+}
+Approve? y/n
+```
+
+After you answer every one, the CLI shows the rest of the work as it finishes, then opens the chat. Answering the same approval twice never runs the change twice.
 
 ## Interrupt safely [#interrupt-safely]
 
-Ctrl+C or Ctrl+D before a recovery decision leaves the approval pending and prints a resume receipt. After a decision admits the continuation, interruption detaches the local reader without canceling the durable platform work; resume to rejoin it. During an ordinary active TUI Turn, Esc or Ctrl+C aborts the client request, but cannot undo a Tool side effect already completed.
+- **At an approval prompt**, Ctrl+C or Ctrl+D leaves the change waiting and prints the resume command.
+- **After you answer**, Ctrl+C stops showing progress, but the work keeps going. Resume to see the result.
+- **While the assistant is answering**, Esc or Ctrl+C stops the answer. A change that already finished stays done.
 
-## Related capabilities [#related-capabilities]
+## Next [#next]
 
-- [Tool approvals](/agents/tools/tool-approvals)
-- [Tasks and schedules](/automation/tasks)
-- [Models and Providers](/agents/providers-and-models)
-- [Agents](/agents/agents)
-- [Sessions and Turns](/platform/sessions-and-turns)
-- [Security and credentials](/platform/security-and-credentials)
-- [`ba run`](/cli/run)
-
-## Reference [#reference]
-
-- [SDK `toolApprovals`](/sdk/typescript/sessions#tool-approvals)
-- [SDK `decideToolApproval`](/sdk/typescript/sessions#decide-tool-approval)
-- [SDK `joinToolApprovalContinuation`](/sdk/typescript/sessions#join-tool-approval-continuation)
-- [Python SDK `tool_approvals`](/sdk/python/sessions#tool-approvals)
-- [Python SDK `decide_tool_approval`](/sdk/python/sessions#decide-tool-approval)
-- [Python SDK `join_tool_approval_continuation`](/sdk/python/sessions#join-tool-approval-continuation)
-- [List Tool approvals](/api-reference/rest-api/sessions#list-tool-approvals)
-- [Decide a Tool approval](/api-reference/rest-api/sessions#decide-tool-approval)
-- [Join a Tool-approval continuation](/api-reference/rest-api/sessions#join-tool-approval-continuation)
+- [Tool approvals](/agents/tools/tool-approvals) to require approvals for your own agents.
+- [Tasks](/automation/tasks) to see what the assistant creates when you ask for background work.
