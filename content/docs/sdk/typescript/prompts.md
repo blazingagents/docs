@@ -27,7 +27,7 @@ Every method takes one input object and accepts an optional `abortSignal`.
 
 - Variable names match `[A-Za-z_][A-Za-z0-9_]*`. A template has up to 10 different variables and 10,240 characters.
 - Blazing Agents reads the variables from the template and returns them in `variables`.
-- When you run a prompt, pass every variable and no others, or the turn fails with `prompt_variable_missing` or `prompt_variable_unknown`.
+- When you run a prompt, pass every variable and no others, or the turn fails with [`prompt_variable_missing`](/api-reference/protocols/errors#prompt_variable_missing) or [`prompt_variable_unknown`](/api-reference/protocols/errors#prompt_variable_unknown).
 - Only the filled-in text is saved in the session, so editing or deleting a prompt later does not change past conversations.
 
 ## Available operations [#available-operations]
@@ -64,7 +64,7 @@ const prompt = await client.prompts.create({
 | `userId` | `string` | no | `""` | The end user it belongs to; cannot change later |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your labels |
 
-Deleting the linked agent also deletes the prompt. Your tenant can hold up to 100 prompts. Returns [`PromptResponse`](#promptresponse). Errors: `validation_failed`, `prompt_name_conflict`, `prompt_limit_reached`, and `not_found` when the agent does not exist.
+Deleting the linked agent also deletes the prompt. Your tenant can hold up to 100 prompts. Returns [`PromptResponse`](#promptresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`prompt_name_conflict`](/api-reference/protocols/errors#prompt_name_conflict), [`prompt_limit_reached`](/api-reference/protocols/errors#prompt_limit_reached), and [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
 
 ### `list()` [#list]
 

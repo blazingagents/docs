@@ -38,7 +38,7 @@ run_id = client.tasks.submit(task_id, idempotency_key="weekly-report:2026-07-20"
 print(run_id)
 ```
 
-You see a `tr_...` run ID. Save it with the task ID, then return. Build the key from something stable about the job, such as the week it covers. A task runs one job at a time, so starting a run with a different key while another is active returns `task_active_run_exists`.
+You see a `tr_...` run ID. Save it with the task ID, then return. Build the key from something stable about the job, such as the week it covers. A task runs one job at a time, so starting a run with a different key while another is active returns [`task_active_run_exists`](/api-reference/protocols/errors#task_active_run_exists).
 
 ## Check on it later [#check-on-it-later]
 

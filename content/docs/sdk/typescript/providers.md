@@ -57,7 +57,7 @@ const provider = await client.providers.create({
 | `apiKey` | `string` | yes | The provider's API key |
 | `baseUrl` | `string \| null` | yes | `null` for the provider's standard endpoint; required for `"custom"`; must be `null` for `"vercel_ai_gateway"` |
 
-Use `"custom"` with a `baseUrl` for any other OpenAI-compatible endpoint. The type, key, and base URL cannot change later, so create a new provider to rotate a key. Returns [`ProviderResponse`](#providerresponse). Errors: `validation_failed`.
+Use `"custom"` with a `baseUrl` for any other OpenAI-compatible endpoint. The type, key, and base URL cannot change later, so create a new provider to rotate a key. Returns [`ProviderResponse`](#providerresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_name_conflict`](/api-reference/protocols/errors#provider_name_conflict), [`provider_limit_reached`](/api-reference/protocols/errors#provider_limit_reached).
 
 ### `list()` [#list]
 
@@ -81,7 +81,7 @@ Reads one provider.
 const provider = await client.providers.get({ providerId });
 ```
 
-Returns [`ProviderResponse`](#providerresponse). Errors: `validation_failed`, `not_found`.
+Returns [`ProviderResponse`](#providerresponse). Errors: `validation_failed`, [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `listModels()` [#list-models]
 
@@ -95,7 +95,7 @@ const { models } = await client.providers.listModels({ providerId });
 
 Returns `{ models: Array<{ id: string }> }`, sorted by ID. Pass one of these IDs as an agent's `model`; agent create and update check the model against this same list.
 
-For `"vercel_ai_gateway"`, the list shows what the gateway offers, not what your key can use: credits, team policy, or routing can still make a turn fail. `"custom"` providers raise `model_discovery_unsupported`, and you type the model ID yourself. Errors: `not_found`, `model_discovery_unsupported`, `model_validation_unavailable`.
+For `"vercel_ai_gateway"`, the list shows what the gateway offers, not what your key can use: credits, team policy, or routing can still make a turn fail. `"custom"` providers raise [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported), and you type the model ID yourself. Errors: `not_found`, `model_discovery_unsupported`, [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable).
 
 ### `getThinkingLevels()` [#get-thinking-levels]
 
@@ -125,7 +125,7 @@ Renames a provider. The name is the only field you can change.
 const provider = await client.providers.update({ providerId, name: "OpenRouter production" });
 ```
 
-Returns [`ProviderResponse`](#providerresponse). Errors: `validation_failed`, `not_found`.
+Returns [`ProviderResponse`](#providerresponse). Errors: `validation_failed`, `not_found`, `provider_name_conflict`.
 
 ### `delete()` [#delete]
 
@@ -142,7 +142,7 @@ await client.providers.delete({ providerId, confirmVersionInvalidation: true });
 | `providerId` | `string` | yes | none | Provider ID (`prv_…`) |
 | `confirmVersionInvalidation` | `boolean` | no | `false` | Delete even though old agent versions or pinned sessions and tasks use it |
 
-Deletion fails with `provider_in_use` while any agent's current configuration uses the provider; move those agents first. It fails with `provider_historical_use` when only old versions, pinned sessions, or tasks refer to it; `details` lists them. Pass `confirmVersionInvalidation: true` to delete anyway. History stays readable, but running or restoring those versions then fails with `provider_not_found`.
+Deletion fails with [`provider_in_use`](/api-reference/protocols/errors#provider_in_use) while any agent's current configuration uses the provider; move those agents first. It fails with [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) when only old versions, pinned sessions, or tasks refer to it; `details` lists them. Pass `confirmVersionInvalidation: true` to delete anyway. History stays readable, but running or restoring those versions then fails with [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
 
 ## Response types [#response-types]
 
