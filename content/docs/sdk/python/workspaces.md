@@ -1,161 +1,139 @@
 ---
 title: Workspaces
-description: Create, inspect, update, iterate, and delete durable private Workspaces with the Python SDK.
+description: Create, list, update, and delete the persistent file systems your agents use.
 ---
 
 # Workspaces
 
-`client.workspaces` manages Tenant-owned durable private filesystems and their
-Attribution. Creating a Workspace stores its product record; private runtime
-provisioning remains lazy until its Cloudflare Sandbox container is needed.
-The asynchronous client exposes the same operation names. Await request
-methods and use `async for` for lazy iteration.
+`client.workspaces` manages workspaces: private file systems that keep your agents' files between sessions. Several agents in your tenant can share one workspace, and its network policy controls what those agents can reach from it.
 
-## Overview [#overview]
+Every agent gets its own workspace when you create it, so you only need this resource to share a workspace, restrict its network, or clean up. Creating a workspace costs nothing until an agent first uses its files.
 
-A Workspace can be shared by several Agents in the same Tenant. Its `user_id`
-is immutable End-user Attribution: omit it or pass `""` for a tenant-level
-Workspace. `name`, `metadata`, and `network_policy` remain mutable. The network
-policy applies to every Agent sharing the Workspace. Reassign every attached
-Agent before deleting a Workspace.
+Examples assume `client = BlazingAgents()`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names and use `async for` with `iter()`.
 
-Lists use opaque cursor pagination, are ordered newest first, and exclude the
-reserved Admin Workspace. Use `list()` for explicit page control or `iter()`
-to fetch later pages lazily. Every request accepts
-`extra_headers: Mapping[str, str] | None` and the exported `Timeout` type
-(`float | httpx.Timeout | None`).
+```python
+workspace = client.workspaces.create(
+    name="Release files",
+    network_policy={"mode": "allowlist", "allowed_hosts": ["registry.npmjs.org"]},
+)
+agent = client.agents.update("ag_0123456789abcdef", workspace_id=workspace.id)
+```
 
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`create()`](#create) | Create a Workspace record | `Workspace` |
-| [`list()`](#list) | Read one Workspace page | `WorkspacesPage` |
-| [`iter()`](#iter) | Lazily iterate Workspace pages | `Iterator[Workspace]` |
-| [`get()`](#get) | Retrieve one Workspace | `Workspace` |
-| [`update()`](#update) | Change its name or metadata | `Workspace` |
-| [`delete()`](#delete) | Start fenced deletion | `WorkspaceDeletionOutcome` |
+| [`create()`](#create) | Create a workspace | `Workspace` |
+| [`list()`](#list) | Get one page of workspaces | `WorkspacesPage` |
+| [`iter()`](#iter) | Iterate every workspace | `Iterator[Workspace]` |
+| [`get()`](#get) | Get one workspace | `Workspace` |
+| [`update()`](#update) | Change name, metadata, or network policy | `Workspace` |
+| [`delete()`](#delete) | Delete a workspace and its files | `WorkspaceDeletionOutcome` |
 
 ## Methods [#methods]
 
 ### `create()` [#create]
 
-**Signature:** `create(*, name: str = ..., user_id: str = ..., metadata: dict[str, object] = ..., network_policy: WorkspaceNetworkPolicy = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Workspace`
-
-Creates a Workspace without starting its Cloudflare Sandbox container. Omitted
-`name` becomes `None`, `user_id` becomes `""`, `metadata` becomes `{}`, and
-`network_policy` becomes `{"mode": "unrestricted"}`. Attribution cannot be
-changed later.
+Creates an empty workspace.
 
 ```python
 workspace = client.workspaces.create(
-    name="Release files",
-    user_id="user_42",
+    name="Customer files",
+    user_id="customer_123",
     metadata={"project": "docs"},
-    network_policy={
-        "mode": "allowlist",
-        "allowed_hosts": ["registry.npmjs.org"],
-    },
 )
 ```
 
-Returns [`Workspace`](#workspace). Server failures include
-`validation_failed`. See
-[`POST /v1/workspaces`](/api-reference/rest-api/workspaces#create-workspace).
+**Signature:** `create(*, name=..., user_id=..., metadata=..., network_policy=...) -> Workspace`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | `str` | `None` | Display name, 1 to 80 characters |
+| `user_id` | `str` | `""` | End user the workspace belongs to; `""` means tenant level. Fixed after creation |
+| `metadata` | `dict[str, object]` | `{}` | Your own data |
+| `network_policy` | `WorkspaceNetworkPolicy` | `{"mode": "unrestricted"}` | Outbound network access for every agent using the workspace |
+
+A network policy is one of `{"mode": "unrestricted"}`, `{"mode": "offline"}`, or `{"mode": "allowlist", "allowed_hosts": [...]}`.
+
+Returns [`Workspace`](#workspace). Raises `APIStatusError` with `validation_failed`.
 
 ### `list()` [#list]
 
-**Signature:** `list(*, cursor: str = ..., limit: int = ..., user_id: str = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> WorkspacesPage`
-
-Returns one newest-first page. `limit` defaults to 50 and accepts 1 through
-200. `cursor` is the opaque `next_cursor` from a previous page. Supplying
-`user_id=""` selects tenant-level Workspaces; omitting it applies no
-Attribution filter.
+Gets one page of workspaces, newest first.
 
 ```python
-page = client.workspaces.list(user_id="user_42", limit=50)
+page = client.workspaces.list(user_id="customer_123", limit=50)
 if page.next_cursor is not None:
-    next_page = client.workspaces.list(cursor=page.next_cursor, limit=50)
+    page = client.workspaces.list(cursor=page.next_cursor, limit=50)
 ```
 
-The response contains `data: list[Workspace]` and
-`next_cursor: str | None`. Server failures include `validation_failed` and
-`invalid_cursor`. See
-[`GET /v1/workspaces`](/api-reference/rest-api/workspaces#list-workspaces).
+**Signature:** `list(*, cursor=..., limit=..., user_id=...) -> WorkspacesPage`
+
+`limit` is 1 to 200 and defaults to 50. Pass the previous page's `next_cursor` as `cursor`. `user_id=""` returns tenant-level workspaces; omitting `user_id` returns all of them.
+
+Returns `WorkspacesPage` with `data: list[Workspace]` and `next_cursor: str | None`. Raises `validation_failed` or `invalid_cursor`.
 
 ### `iter()` [#iter]
 
-**Signature:** `iter(*, cursor: str = ..., limit: int = ..., user_id: str = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Iterator[Workspace]`
-
-Returns a lazy iterator. No request is made until iteration starts, and later
-pages are requested only as needed. The options have the same meanings as
-[`list()`](#list).
+Iterates every workspace, fetching pages as you go.
 
 ```python
-for workspace in client.workspaces.iter(user_id="user_42", limit=50):
-    print(workspace.id)
-
-# AsyncBlazingAgents uses the same operation name.
-async for workspace in async_client.workspaces.iter(
-    user_id="user_42",
-    limit=50,
-):
-    print(workspace.id)
+for workspace in client.workspaces.iter(user_id="customer_123"):
+    print(workspace.id, workspace.name)
 ```
 
-The asynchronous return is `AsyncIterator[Workspace]`; do not `await` the
-iterator factory. Page requests can raise the same errors as `list()`.
+**Signature:** `iter(*, cursor=..., limit=..., user_id=...) -> Iterator[Workspace]`
+
+Takes the same parameters as [`list()`](#list). No request is sent until you start iterating. On the async client, use `async for` directly on `iter(...)`; do not await it.
 
 ### `get()` [#get]
 
-**Signature:** `get(*, workspace_id: str, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Workspace`
+Gets one workspace.
 
-Retrieves one Workspace by its `ws_…` ID without starting its Cloudflare
-Sandbox container.
-Server failures include `validation_failed` and `workspace_not_found`. See
-[`GET /v1/workspaces/:workspaceId`](/api-reference/rest-api/workspaces#get-workspace).
+```python
+workspace = client.workspaces.get(workspace_id="ws_0123456789abcdef")
+```
+
+**Signature:** `get(*, workspace_id: str) -> Workspace`
+
+Returns [`Workspace`](#workspace). Raises `validation_failed` or `workspace_not_found`.
 
 ### `update()` [#update]
 
-**Signature:** `update(*, workspace_id: str, name: str | None = ..., metadata: dict[str, object] = ..., network_policy: WorkspaceNetworkPolicy = ..., extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> Workspace`
-
-Replaces supplied mutable fields without starting the Cloudflare Sandbox
-container. Omission
-leaves a field unchanged; `name=None` clears the display name. Supplied
-`metadata` completely replaces existing metadata, and `network_policy`
-replaces the Workspace-wide outbound policy. Attribution is immutable.
-Calling the method without a mutable field raises `ValueError` before a
-request is sent.
+Changes a workspace's name, metadata, or network policy.
 
 ```python
 workspace = client.workspaces.update(
     workspace_id=workspace.id,
     name=None,
-    metadata={"project": "docs", "stage": "release"},
     network_policy={"mode": "offline"},
 )
 ```
 
-Returns [`Workspace`](#workspace). Server failures include
-`validation_failed` and `workspace_not_found`. See
-[`PUT /v1/workspaces/:workspaceId`](/api-reference/rest-api/workspaces#update-workspace).
+**Signature:** `update(*, workspace_id: str, name=..., metadata=..., network_policy=...) -> Workspace`
+
+Omitted parameters keep their current value. `name=None` clears the name. `metadata` and `network_policy` replace the current values completely. `user_id` cannot change. Calling `update()` with nothing to change raises `ValueError` before any request.
+
+Returns [`Workspace`](#workspace). Raises `validation_failed` or `workspace_not_found`.
 
 ### `delete()` [#delete]
 
-**Signature:** `delete(*, workspace_id: str, extra_headers: Mapping[str, str] | None = None, timeout: Timeout = ...) -> WorkspaceDeletionOutcome`
-
-Deletes the Workspace, its Cloudflare Sandbox container, and its R2 backup. The exported
-`WorkspaceDeletionOutcome` is `Literal["completed", "pending"]`:
-`"completed"` represents an immediate `204`, while `"pending"` represents a
-`202` after durable Container or R2 cleanup begins.
+Deletes a workspace and all its files.
 
 ```python
 outcome = client.workspaces.delete(workspace_id=workspace.id)
 ```
 
-Reassign all attached Agents first. Server failures include `workspace_in_use`,
-`workspace_busy`, `workspace_not_found`, and `service_unavailable`. See
-[`DELETE /v1/workspaces/:workspaceId`](/api-reference/rest-api/workspaces#delete-workspace).
+**Signature:** `delete(*, workspace_id: str) -> WorkspaceDeletionOutcome`
+
+Move every agent to another workspace first. Returns `"completed"` when deletion finished right away, or `"pending"` when it was accepted and cleanup continues in the background.
+
+| Code | Meaning |
+| --- | --- |
+| `workspace_in_use` | Agents still use it; their IDs are in `error.details["agentIds"]` |
+| `workspace_busy` | An agent is working in it; retry when that work finishes |
+| `workspace_not_found` | No such workspace in your tenant |
+| `service_unavailable` | Temporary failure; retry with backoff |
 
 ## Response types [#response-types]
 
@@ -163,38 +141,16 @@ Reassign all attached Agents first. Server failures include `workspace_in_use`,
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | `str` | Workspace ID (`ws_…`) |
-| `tenant_id` | `str` | Owning Tenant ID |
-| `name` | `str \| None` | Optional display name |
-| `user_id` | `str` | Immutable End-user Attribution |
-| `metadata` | `dict[str, object]` | Mutable application metadata |
-| `network_policy` | `WorkspaceNetworkPolicy` | Workspace-wide outbound network policy |
-| `created_at` | `datetime` | Time created |
-| `updated_at` | `datetime` | Time last updated |
+| `id` | `str` | Workspace ID (`ws_...`) |
+| `tenant_id` | `str` | Your tenant ID |
+| `name` | `str \| None` | Display name |
+| `user_id` | `str` | End user, or `""` for tenant level |
+| `metadata` | `dict[str, object]` | Your own data |
+| `network_policy` | `WorkspaceNetworkPolicy` | Outbound network policy |
+| `created_at`, `updated_at` | `datetime` | Timestamps |
 
-`WorkspacesPage` contains `data: list[Workspace]` and
-`next_cursor: str | None`. Responses are Pydantic v2 models, retain unknown
-server fields, and expose the non-serialized `_request_id`.
+## Next [#next]
 
-## Errors [#errors]
-
-Request failures raise subclasses of `BlazingAgentsError`. Branch on stable
-`code`, not the message.
-
-| Code | Applies to | Action |
-| --- | --- | --- |
-| `validation_failed` | All methods | Correct the indicated input |
-| `invalid_cursor` | `list()`, `iter()` | Restart without the rejected cursor |
-| `workspace_not_found` | ID methods | Check the Workspace and Tenant |
-| `workspace_in_use` | `delete()` | Reassign Agents listed in `details.agentIds` |
-| `workspace_busy` | `delete()` | Retry after active Workspace work finishes |
-| `service_unavailable` | `delete()` | Retry explicitly with backoff |
-
-See [Python errors](/sdk/python/client#errors).
-
-## Related [#related]
-
-- [REST Workspaces](/api-reference/rest-api/workspaces)
-- [Workspace capability](/agents/workspaces)
-- [File operations](/agents/tools/built-in-tools)
+- [Workspaces guide](/agents/workspaces)
+- [Built-in tools](/agents/tools/built-in-tools)
 - [Agents](/sdk/python/agents)
