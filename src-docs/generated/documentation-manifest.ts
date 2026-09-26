@@ -8950,7 +8950,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/agents.md",
                 "type": "page",
                 "name": "Agents",
-                "description": "Create, configure, version, disable, and extend Agents with the TypeScript SDK.",
+                "description": "Create, configure, version, pause, and delete agents with the TypeScript SDK.",
                 "url": "/sdk/typescript/agents",
                 "$ref": "sdk/typescript/agents.md"
               },

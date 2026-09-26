@@ -1,73 +1,90 @@
 ---
 title: Agents
-description: Create, configure, version, disable, and extend Agents with the TypeScript SDK.
+description: Create, configure, version, pause, and delete agents with the TypeScript SDK.
 ---
 
 # Agents
 
-`client.agents` manages Tenant-owned Agent configuration, lifecycle, immutable Versions, avatars, and MCP Attachments.
-
-Every network method accepts one input object with optional `abortSignal`.
-`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
-types include that field too.
-
-## Overview [#overview]
-
-Creating or ordinarily updating an Agent creates an immutable Version. Disable, enable, avatar, and MCP Attachment changes do not. Array fields are complete selections, not patches. `userId` is immutable End-user Attribution. `providerId` and `model` form one optional pair: omit both or set both to `null` for an unconfigured Agent, and supply both to configure one. `workspaceId` always identifies one attached Workspace and can be changed but not cleared.
-
-Create requires `name`. When `workspaceId` is omitted, the operation atomically
-creates and attaches a normal Workspace with the Agent's initial name and
-Attribution. It remains independent after creation; Agent updates do not
-synchronize it. An explicit ID attaches an existing same-Tenant Workspace.
-The product row has no Container or compute cost until the first actual
-Workspace file or process operation.
-
-## Thinking level [#thinking-level]
-
-Create and update accept `thinkingLevel` as a nonempty string or null
-(`None` in Python). Creation defaults to Provider default; omission on update
-preserves the saved selection, and null clears it. Agent and AgentVersion
-responses include the field, and restoration copies it through normal
-validation. Known invalid combinations fail without changing configuration
-or Version history. Unknown capabilities allow custom strings, which can
-still fail during Provider execution. See [Thinking level](/agents/providers-and-models#thinking-level).
-
-## Automatic context compaction [#automatic-context-compaction]
-
-Create and update accept `autoCompaction` (creation default: `true`)
-and `compactionReserveTokens` (creation default: `16384`). The reserve accepts a
-nonnegative safe integer up to `9007199254740991`; omission on update preserves
-saved values. Agent and Agent Version responses include both fields, and restoration
-copies them. See [context compaction](/agents/agents#automatic-context-compaction)
-for thresholds, summary usage, unknown models, and failure behavior.
-
-## Tool approval policies [#tool-approval-policies]
-
-The backend accepts `approvalInChat` and `approvalInTasks` on create/update and
-returns both on Agents and Versions. The corresponding Typescript SDK fields
-are `approvalInChat` and `approvalInTasks` available starting in v0.8.0.
-Do not assume these fields or policy restoration are available in older installed
-SDKs. TypeScript v0.7.0 predates this support; upgrade to v0.8.0 or use the
-[REST contract](/api-reference/rest-api/agents#tool-approval-configuration).
-
-Each policy has required `default` and an override list of structured Tool
-references and decisions. Both modes use `full`, `deny`, `manual`, or `auto`.
-Defaults are full with no overrides. Omitted update fields stay unchanged;
-a supplied policy replaces the whole policy, and omitted/empty overrides clear
-its list. Policy-aware `restoreVersion()` must copy both saved policies through normal
-validation; older helpers can leave current policies in place instead.
-See [examples and validation](/agents/tools/tool-approvals#approval-policies).
-
-Version v0.8.0 exports `ApprovalDecision`, `ApprovalPolicy`, and
-`ToolReference` from the package root and `/contracts`; `/contracts` also exports
-`approvalDecisionSchema`, `approvalPolicySchema`, and `toolReferenceSchema`.
-`ApprovalPolicy` describes normalized output (required `overrides`), while
-`CreateAgentBody` and `UpdateAgentBody` permit omitted input overrides.
+`client.agents` creates and configures your agents, keeps a version for every configuration change, and lets you pause an agent or roll it back. To learn what an agent is and how to design one, read [Agents](/agents/agents).
 
 ```typescript
-// Requires @blazingagents/sdk v0.8.0 or later.
-await client.agents.update({
-  agentId,
+const agent = await client.agents.create({
+  name: "Release writer",
+  providerId: "prv_0123456789abcdef",
+  model: "openai/gpt-6-luna",
+  instructions: "Write concise release notes.",
+  tools: ["workspace"],
+});
+```
+
+Every method takes one input object and accepts an optional `abortSignal`. `create()` and `update()` save a new numbered version; the other methods do not. See [Versions and lifecycle](/agents/versions-and-lifecycle).
+
+## Available operations [#available-operations]
+
+| Method | Description | Returns |
+| --- | --- | --- |
+| [`create()`](#create) | Create an agent and its version 1 | `Agent` |
+| [`list()`](#list) | List agents | `AgentsResponse` |
+| [`get()`](#get) | Read an agent's current configuration | `Agent` |
+| [`update()`](#update) | Change configuration and save a new version | `Agent` |
+| [`delete()`](#delete) | Delete an agent for good | `void` |
+| [`disable()`](#disable) | Stop new turns | `Agent` |
+| [`enable()`](#enable) | Allow turns again | `Agent` |
+| [`uploadAvatar()`](#upload-avatar) | Set the avatar image | `Agent` |
+| [`removeAvatar()`](#remove-avatar) | Remove the avatar | `Agent` |
+| [`listVersions()`](#list-versions) | List saved versions | `AgentVersionsResponse` |
+| [`getVersion()`](#get-version) | Read one saved version | `AgentVersion` |
+| [`restoreVersion()`](#restore-version) | Copy an old version into a new one | `Agent` |
+| [`listMcpAttachments()`](#list-mcp-attachments) | Read what each MCP connection receives | `McpAttachmentsResponse` |
+| [`updateMcpAttachment()`](#update-mcp-attachment) | Choose what an MCP connection receives | `McpAttachmentResponse` |
+
+## Methods [#methods]
+
+### `create()` [#create]
+
+Creates an agent and saves its configuration as version 1.
+
+**Signature:** `create(input: CreateAgentBody & ResourceRequestOptions): Promise<Agent>`
+
+```typescript
+const agent = await client.agents.create({
+  name: "Release writer",
+  providerId: "prv_0123456789abcdef",
+  model: "openai/gpt-6-luna",
+  instructions: "Write concise release notes.",
+});
+```
+
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `name` | `string` | yes | — | 1 to 80 characters, unique in your tenant |
+| `providerId` | `string \| null` | no | `null` | Provider that runs the model; set together with `model` |
+| `model` | `string \| null` | no | `null` | Model ID as your provider names it |
+| `thinkingLevel` | `string \| null` | no | `null` | Reasoning level; `null` uses the provider's default. See [thinking level](/agents/providers-and-models#thinking-level) |
+| `instructions` | `string` | no | `""` | System instructions, up to 3,000 characters |
+| `tools` | `AgentToolGroupId[]` | no | `[]` | Tool groups: `"workspace"`, `"write_todos"`, `"memory"` |
+| `mcpConnectionIds` | `string[]` | no | `[]` | Up to 10 MCP connections |
+| `workspaceId` | `string` | no | new workspace | Existing workspace to share |
+| `memoryInjectionEnabled` | `boolean` | no | `false` | Add relevant memories to each turn automatically |
+| `autoCompaction` | `boolean` | no | `true` | Summarize older context when the conversation nears the model's limit |
+| `compactionReserveTokens` | `number` | no | `16384` | Tokens kept free below the model's context window |
+| `approvalInChat` | `ApprovalPolicy` | no | `{ default: "full" }` | Tool approval policy for chat and stateless turns |
+| `approvalInTasks` | `ApprovalPolicy` | no | `{ default: "full" }` | Tool approval policy for task runs |
+| `userId` | `string` | no | `""` | The end user this agent belongs to; cannot change later |
+| `metadata` | `Record<string, unknown>` | no | `{}` | Your own labels |
+
+Set `providerId` and `model` together, or leave both out to create an agent you configure later. Turns on an agent without a model fail with `provider_required`. Blazing Agents checks the model against your provider when you save.
+
+Without `workspaceId`, the agent gets a new workspace of its own named after it. Pass an ID to share an existing workspace. Changing the agent later does not rename its workspace.
+
+An `ApprovalPolicy` has a `default` decision and optional `overrides` for single tools. Decisions are `"full"`, `"deny"`, `"manual"`, or `"auto"`. See [tool approvals](/agents/tools/tool-approvals#approval-policies).
+
+```typescript
+await client.agents.create({
+  name: "Careful operator",
+  providerId: "prv_0123456789abcdef",
+  model: "openai/gpt-6-luna",
+  tools: ["workspace"],
   approvalInChat: {
     default: "full",
     overrides: [{ tool: { type: "builtin", name: "bash" }, decision: "manual" }],
@@ -76,292 +93,193 @@ await client.agents.update({
 });
 ```
 
-The Agent must already have the Workspace Tool group enabled for this `bash` rule.
-
-## Available operations [#available-operations]
-
-| Method | Description | Returns |
-| --- | --- | --- |
-| [`create()`](#create) | Create an Agent and Version 1 | `Agent` |
-| [`list()`](#list) | List and filter Agents | `AgentsResponse` |
-| [`get()`](#get) | Retrieve current configuration | `Agent` |
-| [`update()`](#update) | Update configuration and create a Version | `Agent` |
-| [`delete()`](#delete) | Permanently delete an Agent | `void` |
-| [`disable()`](#disable) | Reject future Turns | `Agent` |
-| [`enable()`](#enable) | Allow future Turns | `Agent` |
-| [`uploadAvatar()`](#upload-avatar) | Upload or replace the private avatar | `Agent` |
-| [`removeAvatar()`](#remove-avatar) | Remove the avatar | `Agent` |
-| [`listVersions()`](#list-versions) | List immutable Versions | `AgentVersionsResponse` |
-| [`getVersion()`](#get-version) | Retrieve an immutable Version | `AgentVersion` |
-| [`restoreVersion()`](#restore-version) | Copy an old Version into a new latest Version | `Agent` |
-| [`listMcpAttachments()`](#list-mcp-attachments) | List MCP Attachment settings | `McpAttachmentsResponse` |
-| [`updateMcpAttachment()`](#update-mcp-attachment) | Change end-user forwarding settings | `McpAttachmentResponse` |
-
-## Methods [#methods]
-
-### `create()` [#create]
-
-Creates an Agent and its first immutable Version.
-
-**Signature:** `create(input: CreateAgentBody & ResourceRequestOptions): Promise<Agent>`
-
-| Body field | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `name` | `string` | yes | — | Tenant-unique name, 1–80 characters |
-| `model` | `string \| null` | no | `null` | Provider-native model ID, paired with `providerId` |
-| `providerId` | `string \| null` | no | `null` | Stored Provider, paired with `model` |
-| `thinkingLevel` | `string \| null` | no | `null` | Reasoning choice; null uses Provider default |
-| `workspaceId` | `string` | no | new default Workspace | Existing same-Tenant Workspace to attach and share |
-| `approvalInChat` | `ApprovalPolicy` | Chat/stateless policy; requires policy-support release |
-| `approvalInTasks` | `ApprovalPolicy` | Task policy; requires policy-support release |
-| `autoCompaction` | `boolean` | no | `true` | Summarize older context automatically |
-| `compactionReserveTokens` | `number` | no | `16384` | Tokens reserved below the model window |
-| `memoryInjectionEnabled` | `boolean` | no | `false` | Automatic Memory context |
-| `tools` | `AgentToolGroupId[]` | no | `[]` | Complete tool-group selection |
-| `instructions` | `string` | no | `""` | Instructions, up to 3,000 characters |
-| `userId` | `string` | no | `""` | Immutable End-user Attribution |
-| `metadata` | `Record<string, unknown>` | no | `{}` | Application metadata |
-| `mcpConnectionIds` | `string[]` | no | `[]` | Up to 10 unique MCP Connection IDs |
-
-```typescript
-const agent = await client.agents.create({
-  name: "Release writer",
-  instructions: "Write concise release notes.",
-});
-```
-
-Returns [`Agent`](#agent). Raises `validation_failed`, `agent_name_conflict`, `provider_not_found`, `agent_mcp_connection_not_found`, or `agent_mcp_connections_invalid`. See [`POST /v1/agents`](/api-reference/rest-api/agents#create-agent).
+Returns [`Agent`](#agent). Errors: `validation_failed`, `agent_name_conflict`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`.
 
 ### `list()` [#list]
 
-Lists current Agents by most recent update. The result is unpaginated.
+Lists your agents, most recently updated first. The result is not paginated.
 
 **Signature:** `list(input?: AgentsListOptions): Promise<AgentsResponse>`
 
-| Option | Type | Required | Description |
-| --- | --- | --- | --- |
-| `userId` | `string` | no | Exact Attribution; use `""` for tenant-level Agents |
-| `workspaceId` | `string` | no | Return Agents attached to this Workspace |
-
 ```typescript
-const { agents } = await client.agents.list({ userId: "" });
+const { agents } = await client.agents.list({ userId: "user_123" });
 ```
 
-Returns `{ agents: Agent[] }`. Raises `validation_failed` for invalid options. See [`GET /v1/agents`](/api-reference/rest-api/agents#list-agents).
+| Option | Type | Required | Description |
+| --- | --- | --- | --- |
+| `userId` | `string` | no | Only agents for this end user; `""` for tenant-level agents |
+| `workspaceId` | `string` | no | Only agents that use this workspace |
+
+Returns `{ agents: Agent[] }`. Errors: `validation_failed`.
 
 ### `get()` [#get]
 
-Retrieves current Agent configuration without creating a Version.
+Reads an agent's current configuration.
 
 **Signature:** `get(input: { agentId: string } & ResourceRequestOptions): Promise<Agent>`
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
 
 ```typescript
 const agent = await client.agents.get({ agentId });
 ```
 
-Returns [`Agent`](#agent). Raises `validation_failed` for a malformed ID or `not_found` when unavailable. See [`GET /v1/agents/:agentId`](/api-reference/rest-api/agents#get-agent).
+Returns [`Agent`](#agent). Errors: `validation_failed`, `not_found`.
 
 ### `update()` [#update]
 
-Updates at least one mutable configuration field and creates the next immutable Version. Omitted fields stay unchanged; arrays replace their current values.
+Changes one or more settings and saves the result as the next version.
 
 **Signature:** `update(input: UpdateAgentBody & { agentId: string } & ResourceRequestOptions): Promise<Agent>`
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| Fields from `UpdateAgentBody` | — | no | Mutable configuration fields, at the top level alongside `agentId` |
-
-`UpdateAgentBody` accepts every [`create()`](#create) configuration field except `userId`; all fields are optional, but at least one is required. A Provider change must include `model`. Clear a configured Agent by sending both fields as `null`; clearing either field alone is rejected.
-
-For the Admin Agent, the same method accepts only `providerId`, `model`, and `thinkingLevel`.
-Each accepted settled-pair change creates the next ordinary Version; all other
-fields remain platform-managed.
 
 ```typescript
 const agent = await client.agents.update({
   agentId,
   instructions: "Write concise release notes and include migration steps.",
-  metadata: { team: "platform" },
 });
 ```
 
-Returns [`Agent`](#agent). Raises `validation_failed`, `not_found`, `agent_name_conflict`, `provider_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, or `admin_agent_managed`. See [`PUT /v1/agents/:agentId`](/api-reference/rest-api/agents#update-agent).
+Takes `agentId` plus any [`create()`](#create) field except `userId`. Pass at least one field.
+
+- Fields you leave out keep their current value.
+- Arrays such as `tools` and `mcpConnectionIds` replace the whole list.
+- A supplied approval policy replaces the whole policy; leaving out `overrides` clears them.
+- `thinkingLevel: null` goes back to the provider's default.
+- To switch providers, send `providerId` and `model` together. To unconfigure the agent, send both as `null`.
+- `workspaceId` moves the agent to another workspace. It cannot be cleared.
+
+Returns [`Agent`](#agent) with the new `version`. Errors: `validation_failed`, `not_found`, `agent_name_conflict`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, `admin_agent_managed`.
 
 ### `delete()` [#delete]
 
-Permanently deletes an Agent and its history, with an explicit choice to
-preserve or delete its Artifacts.
+Deletes an agent and its history for good. You choose whether its published artifacts go too.
 
 **Signature:** `delete(input: { agentId: string; includeArtifacts: boolean } & ResourceRequestOptions): Promise<void>`
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| `includeArtifacts` | `boolean` | yes | Delete (`true`) or preserve (`false`) the Agent's Artifacts |
 
 ```typescript
 await client.agents.delete({ agentId, includeArtifacts: false });
 ```
 
-Returns `void`. The attached Workspace is preserved. Raises
-`validation_failed`, `not_found`, or `admin_agent_managed`. See
-[`DELETE /v1/agents/:agentId`](/api-reference/rest-api/agents#delete-agent).
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `agentId` | `string` | yes | Agent ID (`ag_…`) |
+| `includeArtifacts` | `boolean` | yes | `true` deletes the agent's artifacts; `false` keeps them |
+
+The agent's workspace stays. Delete it with [`workspaces.delete()`](/sdk/typescript/workspaces#delete) if nothing else uses it. Errors: `validation_failed`, `not_found`, `admin_agent_managed`.
 
 ### `disable()` [#disable]
 
-Disables an Agent. New Turns fail with `agent_disabled`; in-flight Turns finish.
+Stops the agent from starting new turns. Turns already running finish.
 
 **Signature:** `disable(input: { agentId: string } & ResourceRequestOptions): Promise<Agent>`
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
-
 ```typescript
-const disabled = await client.agents.disable({ agentId });
+const agent = await client.agents.disable({ agentId });
 ```
 
-Returns [`Agent`](#agent) with `status: "disabled"`. Raises `not_found` or `admin_agent_managed`. See [`POST .../disable`](/api-reference/rest-api/agents#disable-agent).
+New turns fail with `agent_disabled`, and scheduled task runs are skipped. You can still read and update a disabled agent. Returns [`Agent`](#agent) with `status: "disabled"`. Errors: `not_found`, `admin_agent_managed`.
 
 ### `enable()` [#enable]
 
-Enables a disabled Agent. Skipped schedule fires are not replayed.
+Lets a disabled agent run turns again.
 
 **Signature:** `enable(input: { agentId: string } & ResourceRequestOptions): Promise<Agent>`
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
-
 ```typescript
-const active = await client.agents.enable({ agentId });
+const agent = await client.agents.enable({ agentId });
 ```
 
-Returns [`Agent`](#agent) with `status: "active"`. Raises `not_found` or `admin_agent_managed`. See [`POST .../enable`](/api-reference/rest-api/agents#enable-agent).
+Schedule fires skipped while the agent was disabled do not run later. Returns [`Agent`](#agent) with `status: "active"`. Errors: `not_found`, `admin_agent_managed`.
 
 ### `uploadAvatar()` [#upload-avatar]
 
-Uploads or replaces an Agent's private avatar. This does not create a Version.
+Sets or replaces the agent's avatar image.
 
 **Signature:** `uploadAvatar(input: { agentId: string; file: File } & ResourceRequestOptions): Promise<Agent>`
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| `file` | `File` | yes | PNG, JPEG, or WebP, at most 512 KiB |
-
 ```typescript
+import { readFile } from "node:fs/promises";
+
 const agent = await client.agents.uploadAvatar({
   agentId,
-  file: new File([avatarBytes], "avatar.webp", { type: "image/webp" }),
+  file: new File([await readFile("avatar.webp")], "avatar.webp", { type: "image/webp" }),
 });
 ```
 
-Returns [`Agent`](#agent) with a short-lived signed `avatarUrl`. Raises `validation_failed` for a missing, oversized, or unsupported file, plus `not_found` or `admin_agent_managed`. See [`POST .../avatar`](/api-reference/rest-api/agents#upload-agent-avatar).
+`file` is a PNG, JPEG, or WebP image of at most 512 KiB. Returns [`Agent`](#agent) with a short-lived `avatarUrl`; fetch the agent again for a fresh URL. Errors: `validation_failed`, `not_found`, `admin_agent_managed`.
 
 ### `removeAvatar()` [#remove-avatar]
 
-Idempotently removes an avatar without creating a Version.
+Removes the avatar. Calling it on an agent without one succeeds.
 
 **Signature:** `removeAvatar(input: { agentId: string } & ResourceRequestOptions): Promise<Agent>`
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
 
 ```typescript
 const agent = await client.agents.removeAvatar({ agentId });
 ```
 
-Returns [`Agent`](#agent) with `avatarUrl: null`. Raises `validation_failed`, `not_found`, or `admin_agent_managed`. See [`DELETE .../avatar`](/api-reference/rest-api/agents#delete-agent-avatar).
+Returns [`Agent`](#agent) with `avatarUrl: null`. Errors: `validation_failed`, `not_found`, `admin_agent_managed`.
 
 ### `listVersions()` [#list-versions]
 
-Lists immutable Agent Versions newest first.
+Lists an agent's saved versions, newest first.
 
 **Signature:** `listVersions(input: { agentId: string } & AgentVersionsListOptions): Promise<AgentVersionsResponse>`
+
+```typescript
+const page = await client.agents.listVersions({ agentId, limit: 20 });
+const older = page.nextCursor
+  ? await client.agents.listVersions({ agentId, cursor: page.nextCursor })
+  : null;
+```
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | `string` | yes | — | Agent ID (`ag_…`) |
-| `cursor` | `string` | no | — | Opaque cursor from the previous page |
-| `limit` | `number` | no | `50` | Page size from 1 through 200 |
+| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+| `limit` | `number` | no | `50` | 1 to 200 versions per page |
 
-```typescript
-const page = await client.agents.listVersions({ agentId, limit: 20 });
-```
-
-Returns [`AgentVersionsResponse`](#agentversionsresponse). Raises `validation_failed`, `invalid_cursor`, or `not_found`. See [`GET .../versions`](/api-reference/rest-api/agents#list-agent-versions).
+Returns [`AgentVersionsResponse`](#agentversionsresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
 
 ### `getVersion()` [#get-version]
 
-Retrieves one immutable numbered Version.
+Reads one saved version.
 
 **Signature:** `getVersion(input: { agentId: string; version: number } & ResourceRequestOptions): Promise<AgentVersion>`
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| `version` | `number` | yes | Positive Version number |
-
 ```typescript
-const version = await client.agents.getVersion({ agentId, version: 1 });
+const first = await client.agents.getVersion({ agentId, version: 1 });
 ```
 
-Returns [`AgentVersion`](#agentversion). Raises `validation_failed` for an invalid number or `not_found` when the Agent or Version is unavailable. See [`GET .../versions/:version`](/api-reference/rest-api/agents#get-agent-version).
+Returns [`AgentVersion`](#agentversion). Errors: `validation_failed`, `not_found`.
 
 ### `restoreVersion()` [#restore-version]
 
-SDK-only composition that calls `getVersion()` and copies its versioned fields through `update()`. It creates a new latest Version; it never rewrites history. Workspace attachment, Attribution, status, and avatar are not restored because they are not versioned.
+Copies an old version's configuration into a new latest version. History stays as it was.
 
 **Signature:** `restoreVersion(input: { agentId: string; version: number } & ResourceRequestOptions): Promise<Agent>`
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| `version` | `number` | yes | Positive source Version number |
-
 ```typescript
-const restored = await client.agents.restoreVersion({ agentId, version: 1 });
+const agent = await client.agents.restoreVersion({ agentId, version: 1 });
 ```
 
-Returns the new latest [`Agent`](#agent). It can raise the errors from `getVersion()` and `update()`, including reference errors when an old Provider or MCP Connection is no longer available.
+The SDK reads the version with [`getVersion()`](#get-version) and saves its fields with [`update()`](#update). The workspace, `userId`, status, and avatar are not part of a version, so they stay as they are. Returns the updated [`Agent`](#agent). It fails with the errors of either call, for example `provider_not_found` when the old provider was deleted.
 
 ### `listMcpAttachments()` [#list-mcp-attachments]
 
-Lists forwarding settings for the MCP Connections selected by an Agent.
+Shows, for each MCP connection the agent uses, whether it receives the end user's ID and which metadata keys.
 
 **Signature:** `listMcpAttachments(input: { agentId: string } & ResourceRequestOptions): Promise<McpAttachmentsResponse>`
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
 
 ```typescript
 const { mcpAttachments } = await client.agents.listMcpAttachments({ agentId });
 ```
 
-Returns `{ mcpAttachments: McpAttachmentResponse[] }`. Raises `validation_failed` or `not_found`. See [`GET .../mcp-attachments`](/api-reference/rest-api/agents#list-agent-mcp-attachments).
+Returns `{ mcpAttachments: McpAttachmentResponse[] }`. Errors: `validation_failed`, `not_found`.
 
 ### `updateMcpAttachment()` [#update-mcp-attachment]
 
-Changes end-user forwarding settings without changing MCP access control or creating an Agent Version.
+Chooses what one MCP connection receives about the end user on each tool call. It does not save a new version.
 
 **Signature:** `updateMcpAttachment(input: UpdateMcpAttachmentBody & { agentId: string; mcpConnectionId: string } & ResourceRequestOptions): Promise<McpAttachmentResponse>`
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID |
-| `mcpConnectionId` | `string` | yes | Selected MCP Connection ID |
-| `forwardUserId` | `boolean` | no | Forward the request's `userId` |
-| `forwardedMetadataKeys` | `string[]` | no | Up to 32 unique metadata keys, each at most 64 characters |
-
-At least one body field is required.
 
 ```typescript
 const attachment = await client.agents.updateMcpAttachment({
@@ -372,7 +290,14 @@ const attachment = await client.agents.updateMcpAttachment({
 });
 ```
 
-Returns [`McpAttachmentResponse`](#mcpattachmentresponse). Raises `validation_failed` or `not_found`. See [`PATCH .../mcp-attachments/:mcpConnectionId`](/api-reference/rest-api/agents#update-agent-mcp-attachment).
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `agentId` | `string` | yes | Agent ID (`ag_…`) |
+| `mcpConnectionId` | `string` | yes | An MCP connection in the agent's `mcpConnectionIds` |
+| `forwardUserId` | `boolean` | no | Send the turn's `userId` |
+| `forwardedMetadataKeys` | `string[]` | no | Turn metadata keys to send; up to 32 unique keys of at most 64 characters |
+
+Pass at least one of the two settings. Returns [`McpAttachmentResponse`](#mcpattachmentresponse). Errors: `validation_failed`, `not_found`. See [MCP tools](/agents/tools/mcp-tools).
 
 ## Response types [#response-types]
 
@@ -381,34 +306,33 @@ Returns [`McpAttachmentResponse`](#mcpattachmentresponse). Raises `validation_fa
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `string` | Agent ID (`ag_…`) |
-| `tenantId` | `string` | Owning Tenant ID |
-| `name` | `string` | Tenant-unique name |
-| `model` | `string \| null` | Provider-native model ID, or `null` when unconfigured |
-| `providerId` | `string \| null` | Stored Provider, or `null` when unconfigured |
-| `workspaceId` | `string` | Current Workspace attachment |
-| `approvalInChat` | `ApprovalPolicy` | Chat/stateless policy; requires policy-support release |
-| `approvalInTasks` | `ApprovalPolicy` | Task policy; requires policy-support release |
-| `autoCompaction` | `boolean` | Automatic compaction setting |
-| `compactionReserveTokens` | `number` | Compaction reserve in tokens |
-| `memoryInjectionEnabled` | `boolean` | Whether Memory is injected automatically |
-| `tools` | `AgentToolGroupId[]` | Selected tool groups |
+| `tenantId` | `string` | Your tenant ID |
+| `name` | `string` | Agent name |
+| `providerId` | `string \| null` | Provider, or `null` when unconfigured |
+| `model` | `string \| null` | Model ID, or `null` when unconfigured |
+| `thinkingLevel` | `string \| null` | Reasoning level, or `null` for the provider's default |
 | `instructions` | `string` | System instructions |
-| `userId` | `string` | Immutable End-user Attribution |
-| `metadata` | `Record<string, unknown>` | Application metadata |
-| `mcpConnectionIds` | `string[]` | Selected MCP Connections |
-| `avatarUrl` | `string \| null` | Short-lived signed URL when an avatar exists |
-| `version` | `number` | Current positive Version number |
-| `status` | `"active" \| "disabled"` | Execution status |
-| `createdAt` | `string` | ISO 8601 creation timestamp |
-| `updatedAt` | `string` | ISO 8601 update timestamp |
+| `tools` | `AgentToolGroupId[]` | Tool groups |
+| `mcpConnectionIds` | `string[]` | MCP connections |
+| `workspaceId` | `string` | The agent's workspace |
+| `memoryInjectionEnabled` | `boolean` | Automatic memory injection |
+| `autoCompaction` | `boolean` | Automatic context compaction |
+| `compactionReserveTokens` | `number` | Tokens kept free for compaction |
+| `approvalInChat` | `ApprovalPolicy` | Chat approval policy, with `overrides` always present |
+| `approvalInTasks` | `ApprovalPolicy` | Task approval policy, with `overrides` always present |
+| `userId` | `string` | The end user this agent belongs to, or `""` |
+| `metadata` | `Record<string, unknown>` | Your labels |
+| `avatarUrl` | `string \| null` | Short-lived avatar URL, or `null` |
+| `version` | `number` | Current version number |
+| `status` | `"active" \| "disabled"` | Whether new turns can start |
+| `createdAt` | `string` | ISO 8601 timestamp |
+| `updatedAt` | `string` | ISO 8601 timestamp |
 
-`AgentsResponse` is `{ agents: Agent[] }`.
-
-`AgentToolGroupId` is `"workspace" | "write_todos" | "memory"`.
+`AgentsResponse` is `{ agents: Agent[] }`. The package exports `Agent`, `ApprovalPolicy`, `ApprovalDecision`, and `ToolReference`.
 
 ### `AgentVersion` [#agentversion]
 
-`AgentVersion` contains `agentId`, `tenantId`, `version`, `name`, `model`, `providerId`, `thinkingLevel`, `approvalInChat`, `approvalInTasks`, `autoCompaction`, `compactionReserveTokens`, `memoryInjectionEnabled`, `tools`, `instructions`, `metadata`, `mcpConnectionIds`, and `createdAt`. It intentionally omits current `workspaceId`, `userId`, avatar, status, and update timestamp.
+A saved configuration. It has `agentId`, `tenantId`, `version`, `createdAt`, and the versioned fields: `name`, `providerId`, `model`, `thinkingLevel`, `instructions`, `tools`, `mcpConnectionIds`, `memoryInjectionEnabled`, `autoCompaction`, `compactionReserveTokens`, `approvalInChat`, `approvalInTasks`, and `metadata`.
 
 ### `AgentVersionsResponse` [#agentversionsresponse]
 
@@ -419,75 +343,36 @@ interface AgentVersionsResponse {
 }
 ```
 
+`nextCursor` is `null` on the last page.
+
 ### `McpAttachmentResponse` [#mcpattachmentresponse]
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `mcpConnectionId` | `string` | Attached MCP Connection ID |
-| `forwardUserId` | `boolean` | Whether requests forward End-user Attribution |
-| `forwardedMetadataKeys` | `string[]` | Metadata-key allowlist |
-| `createdAt` | `string` | ISO 8601 creation timestamp |
-| `updatedAt` | `string` | ISO 8601 update timestamp |
-
-See the canonical [Agent and MCP schemas](/api-reference/protocols/objects-and-schemas).
+| `mcpConnectionId` | `string` | MCP connection ID |
+| `forwardUserId` | `boolean` | Whether the end user's ID is sent |
+| `forwardedMetadataKeys` | `string[]` | Metadata keys that are sent |
+| `createdAt` | `string` | ISO 8601 timestamp |
+| `updatedAt` | `string` | ISO 8601 timestamp |
 
 ## Errors [#errors]
 
-SDK request failures throw `BlazingAgentsError`. Branch on its stable `code`, not its message.
+Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes you are most likely to handle:
 
-| Code | Typical methods | Meaning |
-| --- | --- | --- |
-| `validation_failed` | Methods with input | IDs, options, or bodies are invalid |
-| `not_found` | ID-based methods | The resource is unavailable in this Tenant |
-| `agent_name_conflict` | `create()`, `update()` | Another Agent has the name |
-| `provider_not_found` | Configuration writes and historical execution | The selected Provider is unavailable |
-| `agent_mcp_connection_not_found` | Configuration writes | A selected MCP Connection is unavailable |
-| `agent_mcp_connections_invalid` | Configuration writes | Selected MCP Connections are incompatible |
-| `admin_agent_managed` | Mutations | The platform manages this Admin Agent operation |
-| `invalid_cursor` | `listVersions()` | Restart pagination without the rejected cursor |
+| Code | Meaning |
+| --- | --- |
+| `validation_failed` | An ID or field is invalid; `param` names it |
+| `not_found` | No such agent, version, or connection in your tenant |
+| `agent_name_conflict` | Another agent already has this name |
+| `provider_not_found` | The provider does not exist |
+| `model_not_found` | The provider does not offer this model |
+| `agent_mcp_connection_not_found` | A listed MCP connection does not exist |
+| `agent_mcp_connections_invalid` | The MCP connection list is invalid |
+| `admin_agent_managed` | Blazing Agents manages this agent, so the change is not allowed |
+| `invalid_cursor` | Start paging again without the cursor |
 
-A disabled Agent remains readable and configurable; generation later fails with `agent_disabled`. See [SDK errors](/api-reference/protocols/errors).
-
-## End-to-end workflow [#end-to-end-workflow]
-
-Create an Agent, create and restore Versions, operate the kill switch, then delete it:
-
-```typescript
-import { BlazingAgents } from "@blazingagents/sdk";
-
-const client = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-});
-
-const agent = await client.agents.create({
-  name: "Release writer",
-  instructions: "Write concise release notes.",
-  metadata: { team: "platform" },
-});
-
-const updated = await client.agents.update({
-  agentId: agent.id,
-  instructions: "Include migration steps.",
-});
-console.log(updated.version);
-
-const versions = await client.agents.listVersions({
-  agentId: agent.id,
-  limit: 50,
-});
-const restored = await client.agents.restoreVersion({
-  agentId: agent.id,
-  version: versions.data.at(-1)!.version,
-});
-
-await client.agents.disable({ agentId: restored.id });
-await client.agents.enable({ agentId: restored.id });
-await client.agents.delete({ agentId: restored.id, includeArtifacts: false });
-```
-
-## Related [#related]
+## Next [#next]
 
 - [Agents](/agents/agents)
 - [Versions and lifecycle](/agents/versions-and-lifecycle)
-- [MCP connections](/agents/tools/mcp-tools)
-- [REST Agents](/api-reference/rest-api/agents)
+- [Providers and models](/agents/providers-and-models)
