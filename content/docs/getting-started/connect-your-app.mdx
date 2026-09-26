@@ -102,8 +102,8 @@ export DEMO_USER_TOKEN="demo-token"
             return JSONResponse({"error": "unauthorized"}, status_code=401)
 
         body = await request.json()
-        session = {"session_id": body["sessionId"]} if "sessionId" in body else {}
-        if session and owners.get(body["sessionId"]) != user_id:
+        session_id = body.get("sessionId")
+        if session_id and owners.get(session_id) != user_id:
             return JSONResponse({"error": "forbidden"}, status_code=403)
 
         stream = await client.chat(
@@ -111,7 +111,7 @@ export DEMO_USER_TOKEN="demo-token"
             message=body["message"],
             trigger=body.get("trigger", "submit-message"),
             user_id=user_id,
-            **session,
+            **({"session_id": session_id} if session_id else {}),
         )
         owners[stream.session_id] = user_id
         headers = {"cache-control": "no-cache", "x-vercel-ai-ui-message-stream": "v1"}
