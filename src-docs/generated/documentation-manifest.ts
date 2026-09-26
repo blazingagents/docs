@@ -8990,7 +8990,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/mcp-connections.md",
                 "type": "page",
                 "name": "MCP connections",
-                "description": "Manage, test, authorize, and reconnect tenant MCP Connections.",
+                "description": "Save, test, authorize, and replace remote MCP server connections with the TypeScript SDK.",
                 "url": "/sdk/typescript/mcp-connections",
                 "$ref": "sdk/typescript/mcp-connections.md"
               },
@@ -8998,7 +8998,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/memories.md",
                 "type": "page",
                 "name": "Memories",
-                "description": "Create, search, update, and delete Agent-owned persistent Memories.",
+                "description": "Add, search, edit, and delete an agent's memories with the TypeScript SDK.",
                 "url": "/sdk/typescript/memories",
                 "$ref": "sdk/typescript/memories.md"
               },
@@ -9006,7 +9006,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/artifacts.md",
                 "type": "page",
                 "name": "Artifacts",
-                "description": "List, inspect, create download URLs for, and delete files deliberately published by Agents.",
+                "description": "List, inspect, download, and delete the files your agents publish, with the TypeScript SDK.",
                 "url": "/sdk/typescript/artifacts",
                 "$ref": "sdk/typescript/artifacts.md"
               },

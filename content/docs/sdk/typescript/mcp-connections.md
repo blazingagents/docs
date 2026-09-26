@@ -1,59 +1,11 @@
 ---
 title: MCP connections
-description: Manage, test, authorize, and reconnect tenant MCP Connections.
+description: Save, test, authorize, and replace remote MCP server connections with the TypeScript SDK.
 ---
 
 # MCP connections
 
-`client.mcpConnections` manages Tenant-level remote Streamable HTTP MCP Connections. Credentials are write-only. Attach Connection IDs to an Agent through its configuration; MCP Attachments control which Attribution fields are forwarded.
-
-Every network method accepts one input object with optional `abortSignal`.
-`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
-types include that field too.
-
-## Overview [#overview]
-
-Authentication is a discriminated union:
-
-- `none` has no credential fields.
-- `bearer` requires `bearerToken`.
-- `oauth_client_credentials` requires `clientId` and `clientSecret`, with optional `scope`.
-- `oauth_authorization_code` accepts an optional `clientId` and `clientSecret` pair, with optional `scope`.
-
-Connection URLs must use HTTP(S) and cannot contain credentials, a query, or a fragment. For `none`, bearer, and client credentials, create and reconnect validate the live server before committing. Authorization-code OAuth instead stores `needs_auth` and requires a browser continuation.
-
-Most methods work with a Tenant API key. [`connect()`](#connect) is the exception: its client must carry a dashboard Supabase Auth JWT with an `authUserId`. A normal API key receives `unauthorized`. The returned URL starts the authenticated application flow; it is not the upstream Provider authorization URL.
-
-## Available operations [#available-operations]
-
-| Method | Description | Returns |
-| --- | --- | --- |
-| [`create()`](#create) | Store and, when possible, validate a Connection | `McpConnectionResponse` |
-| [`list()`](#list) | List the Tenant's Connections | `McpConnectionsResponse` |
-| [`get()`](#get) | Retrieve one Connection | `McpConnectionResponse` |
-| [`update()`](#update) | Rename a Connection | `McpConnectionResponse` |
-| [`delete()`](#delete) | Delete an unused Connection and revoke OAuth credentials | `void` |
-| [`test()`](#test) | Test a stored Connection and discover its tools | `McpConnectionTestResponse` |
-| [`connect()`](#connect) | Start authorization-code OAuth through the dashboard | `McpConnectionOauthConnectResponse` |
-| [`reconnect()`](#reconnect) | Replace a Connection's URL and credentials | `McpConnectionReconnectResult` |
-
-## Methods [#methods]
-
-### `create()` [#create]
-
-Creates a reusable MCP Connection. Secrets are encrypted and never returned.
-
-**Signature:** `create(input: CreateMcpConnectionBody & ResourceRequestOptions): Promise<McpConnectionResponse>`
-
-| Body field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | yes | Tenant-unique display name, 1–80 characters |
-| `url` | `string` | yes | Remote Streamable HTTP endpoint |
-| `authType` | `McpConnectionAuthType` | yes | Selects the remaining fields |
-| `bearerToken` | `string` | bearer only | Write-only bearer credential |
-| `clientId` | `string` | client credentials; optional pair for authorization code | Write-only OAuth client ID |
-| `clientSecret` | `string` | client credentials; optional pair for authorization code | Write-only OAuth client secret |
-| `scope` | `string` | no | OAuth scope for either OAuth mode |
+`client.mcpConnections` saves the remote MCP servers your agents can call, along with their credentials. You create a connection once, then give it to any agent through the agent's `mcpConnectionIds`. To learn how MCP tools reach your agent, read [MCP tools](/agents/tools/mcp-tools).
 
 ```typescript
 const connection = await client.mcpConnections.create({
@@ -62,13 +14,71 @@ const connection = await client.mcpConnections.create({
   authType: "bearer",
   bearerToken: process.env.MCP_BEARER_TOKEN!,
 });
+
+await client.agents.update({ agentId, mcpConnectionIds: [connection.id] });
 ```
 
-Returns [`McpConnectionResponse`](#mcpconnectionresponse). Authorization-code OAuth returns `needs_auth`; other modes return `connected` after live validation. Raises `validation_failed`, `mcp_connection_name_conflict`, `mcp_connection_limit_reached`, or a live setup error. A failed live setup leaves no Connection or credential stored. See [`POST /v1/mcp-connections`](/api-reference/rest-api/mcp-connections#create-mcp-connection).
+Every method takes one input object and accepts an optional `abortSignal`. Credentials are never returned; responses show at most four characters in `credentialFragment`.
+
+## Authentication types [#authentication-types]
+
+`authType` picks which credential fields the connection needs:
+
+| `authType` | Credential fields | What happens on save |
+| --- | --- | --- |
+| `"none"` | none | Blazing Agents connects to the server to check it |
+| `"bearer"` | `bearerToken` | Checks the server with the token |
+| `"oauth_client_credentials"` | `clientId`, `clientSecret`, optional `scope` | Gets a token and checks the server |
+| `"oauth_authorization_code"` | optional `clientId` and `clientSecret` together, optional `scope` | Saves with `status: "needs_auth"` until a person signs in |
+
+If the check fails, nothing is saved and the call throws. The `url` must be `http` or `https` without credentials, a query string, or a fragment. Servers must speak Streamable HTTP.
+
+## Available operations [#available-operations]
+
+| Method | Description | Returns |
+| --- | --- | --- |
+| [`create()`](#create) | Save a connection | `McpConnectionResponse` |
+| [`list()`](#list) | List connections | `McpConnectionsResponse` |
+| [`get()`](#get) | Read one connection | `McpConnectionResponse` |
+| [`update()`](#update) | Rename a connection | `McpConnectionResponse` |
+| [`delete()`](#delete) | Delete a connection | `void` |
+| [`test()`](#test) | Check the server and list its tools | `McpConnectionTestResponse` |
+| [`connect()`](#connect) | Start an OAuth sign-in | `McpConnectionOauthConnectResponse` |
+| [`reconnect()`](#reconnect) | Replace the URL and credentials | `McpConnectionReconnectResult` |
+
+## Methods [#methods]
+
+### `create()` [#create]
+
+Saves a connection and, except for authorization-code OAuth, checks that the server answers.
+
+**Signature:** `create(input: CreateMcpConnectionBody & ResourceRequestOptions): Promise<McpConnectionResponse>`
+
+```typescript
+const connection = await client.mcpConnections.create({
+  name: "Analytics",
+  url: "https://mcp.example.com/mcp",
+  authType: "oauth_client_credentials",
+  clientId: process.env.MCP_CLIENT_ID!,
+  clientSecret: process.env.MCP_CLIENT_SECRET!,
+  scope: "tools.read",
+});
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | yes | 1 to 80 characters, unique in your tenant |
+| `url` | `string` | yes | The server's MCP endpoint |
+| `authType` | `McpConnectionAuthType` | yes | See [authentication types](#authentication-types) |
+| `bearerToken` | `string` | for `"bearer"` | The token |
+| `clientId`, `clientSecret` | `string` | for `"oauth_client_credentials"` | OAuth client credentials |
+| `scope` | `string` | no | OAuth scope |
+
+Returns [`McpConnectionResponse`](#mcpconnectionresponse) with `status: "connected"`, or `"needs_auth"` for authorization-code OAuth. Your tenant can hold up to 50 connections. Errors: `validation_failed`, `mcp_connection_name_conflict`, `mcp_connection_limit_reached`, and the [check errors](#errors).
 
 ### `list()` [#list]
 
-Lists the Tenant's MCP Connections with every credential redacted.
+Lists your connections.
 
 **Signature:** `list(input?: ResourceRequestOptions): Promise<McpConnectionsResponse>`
 
@@ -76,155 +86,96 @@ Lists the Tenant's MCP Connections with every credential redacted.
 const { mcpConnections } = await client.mcpConnections.list();
 ```
 
-Returns `{ mcpConnections: McpConnectionResponse[] }`. Only standard authentication and service errors apply. See [`GET /v1/mcp-connections`](/api-reference/rest-api/mcp-connections#list-mcp-connections).
+Returns `{ mcpConnections: McpConnectionResponse[] }`.
 
 ### `get()` [#get]
 
-Retrieves one MCP Connection by its `mcp_…` ID.
+Reads one connection.
 
 **Signature:** `get(input: { mcpConnectionId: string } & ResourceRequestOptions): Promise<McpConnectionResponse>`
 
 ```typescript
-const connection = await client.mcpConnections.get({
-  mcpConnectionId: connectionId,
-});
+const connection = await client.mcpConnections.get({ mcpConnectionId });
 ```
 
-Returns [`McpConnectionResponse`](#mcpconnectionresponse). Raises `validation_failed` for a malformed ID or `not_found` when the Connection is unavailable. See [`GET /v1/mcp-connections/:id`](/api-reference/rest-api/mcp-connections#get-mcp-connection).
+Returns [`McpConnectionResponse`](#mcpconnectionresponse). Errors: `validation_failed`, `not_found`.
 
 ### `update()` [#update]
 
-Renames a Connection without changing its URL or credentials. Use `reconnect()` for connection details.
+Renames a connection. To change its URL or credentials, use [`reconnect()`](#reconnect).
 
 **Signature:** `update(input: UpdateMcpConnectionBody & { mcpConnectionId: string } & ResourceRequestOptions): Promise<McpConnectionResponse>`
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `id` | `string` | yes | MCP Connection ID (`mcp_…`) |
-| `name` | `string` | yes | New Tenant-unique name, 1–80 characters |
-
 ```typescript
-const renamed = await client.mcpConnections.update({
-  mcpConnectionId: connectionId,
+const connection = await client.mcpConnections.update({
+  mcpConnectionId,
   name: "Production issue tracker",
 });
 ```
 
-Returns [`McpConnectionResponse`](#mcpconnectionresponse). Raises `validation_failed`, `mcp_connection_name_conflict`, or `not_found`. See [`PATCH /v1/mcp-connections/:id`](/api-reference/rest-api/mcp-connections#update-mcp-connection).
+Returns [`McpConnectionResponse`](#mcpconnectionresponse). Errors: `validation_failed`, `mcp_connection_name_conflict`, `not_found`.
 
 ### `delete()` [#delete]
 
-Permanently deletes an unused Connection and revokes stored OAuth credentials. Detach it from every Agent first.
+Deletes a connection and revokes any OAuth tokens it holds.
 
 **Signature:** `delete(input: { mcpConnectionId: string } & ResourceRequestOptions): Promise<void>`
 
 ```typescript
-await client.mcpConnections.delete({ mcpConnectionId: connectionId });
+await client.mcpConnections.delete({ mcpConnectionId });
 ```
 
-Returns `void`. Raises `validation_failed`, `not_found`, or `mcp_connection_in_use` while an Agent references the Connection. See [`DELETE /v1/mcp-connections/:id`](/api-reference/rest-api/mcp-connections#delete-mcp-connection).
+Remove it from every agent's `mcpConnectionIds` first, or the call fails with `mcp_connection_in_use`. Errors: `validation_failed`, `not_found`, `mcp_connection_in_use`.
 
 ### `test()` [#test]
 
-Tests the stored endpoint and credential, discovers server and Tool details, and persists the resulting lifecycle state.
+Connects to the server with the saved credentials and lists its tools.
 
 **Signature:** `test(input: { mcpConnectionId: string } & ResourceRequestOptions): Promise<McpConnectionTestResponse>`
 
 ```typescript
-const result = await client.mcpConnections.test({
-  mcpConnectionId: connectionId,
-});
-
+const result = await client.mcpConnections.test({ mcpConnectionId });
 if (result.ok) {
-  console.log(result.server, result.toolNames);
+  console.log(result.server.name, result.toolNames);
 } else {
   console.error(result.error.code, result.error.message);
 }
 ```
 
-Returns [`McpConnectionTestResponse`](#mcpconnectiontestresponse). Success sets `status: "connected"` and clears `lastAuthErrorCode`. Authentication failure sets `needs_auth`; another live failure sets `error`. OAuth testing may refresh stored credentials. A completed live failure returns `ok: false`, not an exception. A missing Connection raises `not_found`. See [`POST /v1/mcp-connections/:id/test`](/api-reference/rest-api/mcp-connections#test-mcp-connection).
+A failed check returns `ok: false` instead of throwing, and updates the connection's `status`: `"connected"` on success, `"needs_auth"` when the credentials are rejected, `"error"` otherwise. Testing an OAuth connection may refresh its token. Returns [`McpConnectionTestResponse`](#mcpconnectiontestresponse). Errors: `not_found`.
 
 ### `connect()` [#connect]
 
-Creates a short-lived setup continuation for an authorization-code OAuth Connection and returns an application URL to open in a browser.
+Starts the sign-in for an authorization-code OAuth connection and returns a URL to open in a browser.
 
 **Signature:** `connect(input: { mcpConnectionId: string } & ResourceRequestOptions): Promise<McpConnectionOauthConnectResponse>`
 
 ```typescript
-const dashboardClient = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_DASHBOARD_JWT!,
-});
-
-const { authorizationUrl } = await dashboardClient.mcpConnections.connect({
-  mcpConnectionId: connectionId,
-});
-
-console.log("Open in the authenticated application:", authorizationUrl);
+const dashboardClient = new BlazingAgents({ apiKey: dashboardUserAccessToken });
+const { authorizationUrl } = await dashboardClient.mcpConnections.connect({ mcpConnectionId });
 ```
 
-This call requires a dashboard Supabase Auth JWT. The SDK constructor calls its credential option `apiKey`, but the value for this client must be that JWT; the method has no per-call second-credential option. The application page continues discovery, user approval, the upstream redirect, callback validation, and live Connection validation.
+The URL opens the connection's page in the Blazing Agents dashboard, where the person signs in to the MCP server's provider and approves access. The connection then turns `"connected"`. This call needs a signed-in dashboard user's access token in place of the API key; a client built with an API key gets `unauthorized`. Most apps send the person to the [dashboard](https://www.blazingagents.com/app) to finish OAuth instead.
 
-Returns [`McpConnectionOauthConnectResponse`](#mcpconnectionoauthconnectresponse). A normal Tenant API key raises `unauthorized`. Malformed input raises `validation_failed`; current service failures for a missing, foreign, wrong-auth-type, or wrong-state Connection surface as `internal`. See [`POST /v1/mcp-connections/:id/connect`](/api-reference/rest-api/mcp-connections#connect-mcp-connection).
+Returns [`McpConnectionOauthConnectResponse`](#mcpconnectionoauthconnectresponse). Errors: `unauthorized`, `validation_failed`.
 
 ### `reconnect()` [#reconnect]
 
-Replaces a Connection's URL, authentication mode, and credential. The name stays unchanged.
+Replaces a connection's URL, authentication type, and credentials, and keeps its name and ID.
 
 **Signature:** `reconnect(input: ReconnectMcpConnectionBody & { mcpConnectionId: string } & ResourceRequestOptions): Promise<McpConnectionReconnectResult>`
 
-The body matches [`create()`](#create) without `name`. `url` and `authType` are required; credential fields depend on `authType`.
-
 ```typescript
 const result = await client.mcpConnections.reconnect({
-  mcpConnectionId: connectionId,
+  mcpConnectionId,
   url: "https://mcp.example.com/v2/mcp",
-  authType: "oauth_client_credentials",
-  clientId: process.env.MCP_CLIENT_ID!,
-  clientSecret: process.env.MCP_CLIENT_SECRET!,
-  scope: "tools.read",
+  authType: "bearer",
+  bearerToken: process.env.MCP_BEARER_TOKEN!,
 });
-
-if (result.status === "needs_auth") {
-  console.log("Complete authorization-code OAuth in the dashboard.");
-}
+console.log(result.status);
 ```
 
-Returns [`McpConnectionReconnectResult`](#mcpconnectionreconnectresult). Authorization-code OAuth stores `needs_auth`; other modes validate before replacement and return `connected`. Raises `validation_failed`, `not_found`, live setup errors, or `mcp_connection_stale_credential_version` when credentials changed concurrently. Failed validation leaves the previous configuration unchanged. See [`POST /v1/mcp-connections/:id/reconnect`](/api-reference/rest-api/mcp-connections#reconnect-mcp-connection).
-
-## Request types [#request-types]
-
-### `CreateMcpConnectionBody` [#createmcpconnectionbody]
-
-```typescript
-type CreateMcpConnectionBody =
-  | { name: string; url: string; authType: "none" }
-  | {
-      name: string;
-      url: string;
-      authType: "bearer";
-      bearerToken: string;
-    }
-  | {
-      name: string;
-      url: string;
-      authType: "oauth_authorization_code";
-      clientId?: string;
-      clientSecret?: string;
-      scope?: string;
-    }
-  | {
-      name: string;
-      url: string;
-      authType: "oauth_client_credentials";
-      clientId: string;
-      clientSecret: string;
-      scope?: string;
-    };
-```
-
-For authorization-code OAuth, provide both `clientId` and `clientSecret` or omit both.
-
-`ReconnectMcpConnectionBody` is the same discriminated union without `name`. `UpdateMcpConnectionBody` is `{ name?: string }`, with at least one field required.
+Takes the [`create()`](#create) fields except `name`. Blazing Agents checks the new settings the same way as `create()` and keeps the old ones if the check fails. Agents that use the connection pick up the change without an update. Returns [`McpConnectionReconnectResult`](#mcpconnectionreconnectresult). Errors: `validation_failed`, `not_found`, `mcp_connection_stale_credential_version` (someone changed it at the same time; reload and retry), and the [check errors](#errors).
 
 ## Response types [#response-types]
 
@@ -232,30 +183,24 @@ For authorization-code OAuth, provide both `clientId` and `clientSecret` or omit
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | `string` | MCP Connection ID (`mcp_…`) |
-| `name` | `string` | Tenant-unique display name |
-| `url` | `string` | Normalized remote endpoint |
-| `authType` | `McpConnectionAuthType` | `none`, `bearer`, `oauth_authorization_code`, or `oauth_client_credentials` |
-| `status` | `McpConnectionStatus` | `connected`, `needs_auth`, or `error` |
-| `credentialFragment` | `string \| null` | Up to four redacted credential characters, or `null` |
-| `lastAuthErrorCode` | `McpConnectionTestErrorCode \| null` | Last persisted live-test error |
-| `oauthIssuer` | `string \| null` | Discovered OAuth issuer |
-| `oauthResource` | `string \| null` | Discovered protected resource |
-| `tokenExpiresAt` | `string \| null` | OAuth token expiry as ISO 8601, when known |
-| `createdAt` | `string` | ISO 8601 creation timestamp |
-| `updatedAt` | `string` | ISO 8601 update timestamp |
+| `id` | `string` | Connection ID (`mcp_…`) |
+| `name` | `string` | Connection name |
+| `url` | `string` | MCP endpoint |
+| `authType` | `McpConnectionAuthType` | Authentication type |
+| `status` | `"connected" \| "needs_auth" \| "error"` | Result of the last check |
+| `credentialFragment` | `string \| null` | Up to four characters of the credential |
+| `lastAuthErrorCode` | `McpConnectionTestErrorCode \| null` | Why the last check failed |
+| `oauthIssuer` | `string \| null` | OAuth issuer, when discovered |
+| `oauthResource` | `string \| null` | OAuth protected resource, when discovered |
+| `tokenExpiresAt` | `string \| null` | When the OAuth token expires, if known |
+| `createdAt` | `string` | ISO 8601 timestamp |
+| `updatedAt` | `string` | ISO 8601 timestamp |
 
 `McpConnectionsResponse` is `{ mcpConnections: McpConnectionResponse[] }`.
 
 ### `McpConnectionTestResponse` [#mcpconnectiontestresponse]
 
 ```typescript
-type McpConnectionTestErrorCode =
-  | "MCP_CONNECTION_AUTHENTICATION_FAILED"
-  | "MCP_CONNECTION_INVALID"
-  | "MCP_CONNECTION_UNREACHABLE"
-  | "MCP_CONNECTION_DISCOVERY_FAILED";
-
 type McpConnectionTestResponse =
   | {
       ok: true;
@@ -266,27 +211,23 @@ type McpConnectionTestResponse =
     }
   | {
       ok: false;
-      error: {
-        code: McpConnectionTestErrorCode;
-        message: string;
-      };
+      error: { code: McpConnectionTestErrorCode; message: string };
     };
-```
 
-Use the `ok` discriminant before reading live details or `error`.
+type McpConnectionTestErrorCode =
+  | "MCP_CONNECTION_AUTHENTICATION_FAILED"
+  | "MCP_CONNECTION_INVALID"
+  | "MCP_CONNECTION_UNREACHABLE"
+  | "MCP_CONNECTION_DISCOVERY_FAILED";
+```
 
 ### `McpConnectionReconnectResult` [#mcpconnectionreconnectresult]
 
 ```typescript
-type McpConnectionReconnectResult =
-  | {
-      status: "connected";
-      connection: McpConnectionResponse;
-    }
-  | {
-      status: "needs_auth";
-      connection: McpConnectionResponse;
-    };
+interface McpConnectionReconnectResult {
+  status: "connected" | "needs_auth";
+  connection: McpConnectionResponse;
+}
 ```
 
 ### `McpConnectionOauthConnectResponse` [#mcpconnectionoauthconnectresponse]
@@ -297,73 +238,27 @@ interface McpConnectionOauthConnectResponse {
 }
 ```
 
-The URL targets `/app/mcp-connections` with one opaque, short-lived setup token.
-
 ## Errors [#errors]
 
-SDK request failures throw `BlazingAgentsError`. Branch on its stable lowercase `code`, not the uppercase entity-owned code inside an `ok: false` test result.
+Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). `create()` and `reconnect()` throw these when the server check fails:
 
-| Code | Applies to | Action |
-| --- | --- | --- |
-| `validation_failed` | Mutations and malformed IDs | Correct the discriminated input |
-| `mcp_connection_name_conflict` | `create()`, `update()` | Choose a unique name |
-| `mcp_connection_limit_reached` | `create()` | Delete an unused Connection or raise the Tenant cap |
-| `mcp_connection_in_use` | `delete()` | Detach the Connection from every Agent |
-| `mcp_connection_stale_credential_version` | `reconnect()` | Reload and retry against current state |
-| `mcp_connection_authentication_failed` | Live create or reconnect | Correct or reauthorize credentials |
-| `mcp_connection_invalid` | Live create or reconnect | Correct the MCP endpoint or protocol response |
-| `mcp_connection_unreachable` | Live create or reconnect | Check endpoint reachability |
-| `mcp_connection_discovery_failed` | Live create or reconnect | Check OAuth or MCP discovery |
-| `not_found` | ID-based methods except current `connect()` behavior | Check the Connection ID and Tenant |
-| `unauthorized` | `connect()` with a normal API key | Use an authenticated dashboard JWT client |
+| Code | Meaning |
+| --- | --- |
+| `mcp_connection_authentication_failed` | The server rejected the credentials |
+| `mcp_connection_invalid` | The endpoint did not answer like an MCP server |
+| `mcp_connection_unreachable` | The server could not be reached |
+| `mcp_connection_discovery_failed` | OAuth or MCP discovery failed |
 
-`test()` represents expected live failures as `ok: false`. Authentication, transport, malformed-response, and service failures still throw. See [SDK errors](/api-reference/protocols/errors).
+Other connection codes:
 
-## End-to-end workflow [#end-to-end-workflow]
+| Code | Meaning |
+| --- | --- |
+| `mcp_connection_name_conflict` | Another connection has this name |
+| `mcp_connection_limit_reached` | Your tenant already has 50 connections |
+| `mcp_connection_in_use` | An agent still uses the connection |
+| `mcp_connection_stale_credential_version` | The connection changed during your call; reload and retry |
 
-Create a non-OAuth Connection, test it, reconnect it with a replacement credential, and inspect the stored state:
+## Next [#next]
 
-```typescript
-import { BlazingAgents } from "@blazingagents/sdk";
-
-const client = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-});
-
-const connection = await client.mcpConnections.create({
-  name: "Issue tracker",
-  url: "https://mcp.example.com/mcp",
-  authType: "bearer",
-  bearerToken: process.env.MCP_BEARER_TOKEN!,
-});
-
-const test = await client.mcpConnections.test({
-  mcpConnectionId: connection.id,
-});
-if (!test.ok) throw new Error(test.error.message);
-
-const replacement = await client.mcpConnections.reconnect({
-  mcpConnectionId: connection.id,
-  url: connection.url,
-  authType: "bearer",
-  bearerToken: process.env.MCP_REPLACEMENT_BEARER_TOKEN!,
-});
-
-const stored = await client.mcpConnections.get({
-  mcpConnectionId: connection.id,
-});
-console.log({
-  status: replacement.status,
-  tools: test.toolNames,
-  credentialFragment: stored.credentialFragment,
-});
-```
-
-For authorization-code OAuth, create with `authType: "oauth_authorization_code"`, then use a separate JWT-authenticated SDK client to call `connect()` and open its returned application URL.
-
-## Related [#related]
-
-- [MCP Connections](/agents/tools/mcp-tools)
-- [Connect an MCP server](/agents/tools/mcp-tools)
-- [REST MCP Connections](/api-reference/rest-api/mcp-connections)
-- [MCP OAuth](/api-reference/rest-api/mcp-oauth)
+- [MCP tools](/agents/tools/mcp-tools)
+- [Agents reference](/sdk/typescript/agents#update-mcp-attachment)

@@ -1,109 +1,102 @@
 ---
 title: Memories
-description: Create, search, update, and delete Agent-owned persistent Memories.
+description: Add, search, edit, and delete an agent's memories with the TypeScript SDK.
 ---
 
 # Memories
 
-`client.memories` manages durable text owned by one Agent. A Memory's `userId` Attribution is fixed at creation; use `""` for Agent-general Memory.
+`client.memories` reads and writes the notes an agent keeps across sessions. Agents save memories themselves through the `memory` tools; use these methods to seed facts, show a user what the agent remembers about them, or remove something. To learn how memory reaches the agent, read [Memory](/agents/memory).
 
-Every network method accepts one input object with optional `abortSignal`.
-`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
-types include that field too.
+```typescript
+await client.memories.create({
+  agentId,
+  userId: "user_42",
+  text: "Prefers concise release notes.",
+});
 
-## Overview [#overview]
+const { data } = await client.memories.list({ agentId, userId: "user_42", search: "release" });
+```
 
-Every method is nested under an `agentId`. A Memory cannot be moved to another Agent or End-user. Creating beyond the Agent's 500-Memory pool may evict the least recently accessed Memory across all `userId` partitions.
+Every method takes the owning `agentId` and accepts an optional `abortSignal`.
 
-Administrative `list()` and `get()` calls do not change `lastAccessedAt`. `update()` replaces the complete text and does update access recency.
+## How memories are kept [#how-memories-are-kept]
+
+- Each memory belongs to one agent and, through `userId`, to one of your end users or to no one (`""`). Neither can change later.
+- Text is up to 10 KiB of UTF-8.
+- An agent holds up to 500 memories across all users. When it is full, a new memory replaces the one used least recently.
+- `update()` counts as a use. Reading with `list()` or `get()` does not.
 
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`create()`](#create) | Create an Agent-owned Memory | `MemoryResponse` |
-| [`list()`](#list) | List or search an Agent's Memories | `MemoriesListResponse` |
-| [`get()`](#get) | Retrieve one Memory | `MemoryResponse` |
-| [`update()`](#update) | Replace a Memory's text | `MemoryResponse` |
-| [`delete()`](#delete) | Permanently delete a Memory | `void` |
+| [`create()`](#create) | Add a memory | `MemoryResponse` |
+| [`list()`](#list) | List or search memories | `MemoriesListResponse` |
+| [`get()`](#get) | Read one memory | `MemoryResponse` |
+| [`update()`](#update) | Replace a memory's text | `MemoryResponse` |
+| [`delete()`](#delete) | Delete a memory | `void` |
 
 ## Methods [#methods]
 
 ### `create()` [#create]
 
-Creates a text Memory under one Agent.
+Adds a memory to an agent.
 
 **Signature:** `create(input: CreateMemoryBody & { agentId: string } & ResourceRequestOptions): Promise<MemoryResponse>`
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Owning Agent ID (`ag_…`) |
-| `text` | `string` | yes | Non-empty UTF-8 text, at most 10 KiB |
-| `userId` | `string` | no | Immutable Attribution; defaults to `""` |
 
 ```typescript
 const { memory } = await client.memories.create({
   agentId,
+  userId: "user_42",
   text: "Prefers concise release notes.",
-  userId: "user-42",
 });
 ```
 
-Returns [`MemoryResponse`](#memoryresponse). Raises `validation_failed` for invalid input or `not_found` when the Agent is unavailable. See [`POST .../memories`](/api-reference/rest-api/memories#create-memory).
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | `string` | yes | — | Agent ID (`ag_…`) |
+| `text` | `string` | yes | — | The note, up to 10 KiB |
+| `userId` | `string` | no | `""` | The end user it is about; `""` for everyone |
+
+Returns [`MemoryResponse`](#memoryresponse). Errors: `validation_failed`, `not_found`.
 
 ### `list()` [#list]
 
-Lists or full-text searches an Agent's Memories. Omit `userId` to include every Attribution partition; pass `""` to select Agent-general Memory.
+Lists an agent's memories, or searches their text.
 
 **Signature:** `list(input: { agentId: string } & MemoriesListOptions): Promise<MemoriesListResponse>`
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Owning Agent ID (`ag_…`) |
-| `userId` | `string` | no | Exact Attribution filter |
-| `search` | `string` | no | Non-empty full-text query |
-| `cursor` | `string` | no | Opaque cursor from `nextCursor` |
-| `limit` | `number` | no | Page size, default 50 and maximum 100 |
-
 ```typescript
-const page = await client.memories.list({
-  agentId,
-  userId: "user-42",
-  search: "release",
-  limit: 25,
-});
+const page = await client.memories.list({ agentId, userId: "user_42", search: "release" });
 ```
 
-Returns [`MemoriesListResponse`](#memorieslistresponse). Raises `validation_failed` for invalid filters, `invalid_cursor` for an unusable cursor, or `not_found` when the Agent is unavailable. See [`GET .../memories`](/api-reference/rest-api/memories#list-memories).
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | `string` | yes | — | Agent ID (`ag_…`) |
+| `userId` | `string` | no | all users | Only this end user's memories; `""` for the shared ones |
+| `search` | `string` | no | — | Full-text search terms |
+| `limit` | `number` | no | `50` | 1 to 100 per page |
+| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+
+Returns [`MemoriesListResponse`](#memorieslistresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
 
 ### `get()` [#get]
 
-Retrieves one Memory without changing its access recency.
+Reads one memory.
 
 **Signature:** `get(input: { agentId: string; memoryId: string } & ResourceRequestOptions): Promise<MemoryResponse>`
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Owning Agent ID (`ag_…`) |
-| `memoryId` | `string` | yes | Memory ID (`mem_…`) |
 
 ```typescript
 const { memory } = await client.memories.get({ agentId, memoryId });
 ```
 
-Returns [`MemoryResponse`](#memoryresponse). Raises `validation_failed` for malformed IDs or `not_found` when the Agent/Memory pair is unavailable. See [`GET .../memories/:memoryId`](/api-reference/rest-api/memories#get-memory).
+Returns [`MemoryResponse`](#memoryresponse). Errors: `validation_failed`, `not_found`.
 
 ### `update()` [#update]
 
-Replaces a Memory's complete text and updates `lastAccessedAt`. Its Agent and `userId` remain unchanged.
+Replaces a memory's text.
 
 **Signature:** `update(input: UpdateMemoryBody & { agentId: string; memoryId: string } & ResourceRequestOptions): Promise<MemoryResponse>`
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Owning Agent ID (`ag_…`) |
-| `memoryId` | `string` | yes | Memory ID (`mem_…`) |
-| `text` | `string` | yes | Replacement text, at most 10 KiB |
 
 ```typescript
 const { memory } = await client.memories.update({
@@ -113,11 +106,11 @@ const { memory } = await client.memories.update({
 });
 ```
 
-Returns [`MemoryResponse`](#memoryresponse). Raises `validation_failed` for malformed IDs or text and `not_found` when the Agent/Memory pair is unavailable. See [`PATCH .../memories/:memoryId`](/api-reference/rest-api/memories#update-memory).
+`text` is required and replaces the old text. The agent and `userId` stay the same. Returns [`MemoryResponse`](#memoryresponse). Errors: `validation_failed`, `not_found`.
 
 ### `delete()` [#delete]
 
-Permanently deletes one Memory.
+Deletes a memory for good.
 
 **Signature:** `delete(input: { agentId: string; memoryId: string } & ResourceRequestOptions): Promise<void>`
 
@@ -125,7 +118,7 @@ Permanently deletes one Memory.
 await client.memories.delete({ agentId, memoryId });
 ```
 
-Returns `void`. Raises `validation_failed` for malformed IDs or `not_found` when the Agent/Memory pair is unavailable. See [`DELETE .../memories/:memoryId`](/api-reference/rest-api/memories#delete-memory).
+Errors: `validation_failed`, `not_found`.
 
 ## Response types [#response-types]
 
@@ -136,13 +129,13 @@ Returns `void`. Raises `validation_failed` for malformed IDs or `not_found` when
 | `Memory` field | Type | Description |
 | --- | --- | --- |
 | `id` | `string` | Memory ID (`mem_…`) |
-| `tenantId` | `string` | Owning Tenant ID |
-| `agentId` | `string` | Owning Agent ID |
-| `userId` | `string` | Immutable End-user Attribution or `""` |
-| `text` | `string` | Stored text |
-| `createdAt` | `string` | ISO 8601 creation timestamp |
-| `updatedAt` | `string` | ISO 8601 content update timestamp |
-| `lastAccessedAt` | `string` | ISO 8601 eviction-recency timestamp |
+| `tenantId` | `string` | Your tenant ID |
+| `agentId` | `string` | The agent that owns it |
+| `userId` | `string` | The end user it is about, or `""` |
+| `text` | `string` | The note |
+| `createdAt` | `string` | ISO 8601 timestamp |
+| `updatedAt` | `string` | When the text last changed |
+| `lastAccessedAt` | `string` | When it was last used |
 
 ### `MemoriesListResponse` [#memorieslistresponse]
 
@@ -153,57 +146,7 @@ interface MemoriesListResponse {
 }
 ```
 
-Pass a non-null `nextCursor` back to `list()` for the next page. See the canonical [Memory schemas](/api-reference/protocols/objects-and-schemas#memory-response).
-
-## Errors [#errors]
-
-SDK request failures throw `BlazingAgentsError`. Branch on its stable `code`, not its message.
-
-| Code | Applies to | Action |
-| --- | --- | --- |
-| `validation_failed` | All methods; list filters | Correct malformed IDs, empty/oversized text, limits, or search |
-| `invalid_cursor` | `list()` | Restart pagination without the stale or malformed cursor |
-| `not_found` | All methods | Check the Agent and Agent/Memory ownership pair |
-
-Authentication, transport, malformed-response, and service failures can also throw. See [SDK errors](/api-reference/protocols/errors).
-
-## End-to-end workflow [#end-to-end-workflow]
-
-Create attributed Memory, find and update it, then delete it:
-
-```typescript
-import { BlazingAgents } from "@blazingagents/sdk";
-
-const client = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-});
-const agentId = "ag_0123456789abcdef";
-
-const { memory } = await client.memories.create({
-  agentId,
-  userId: "user-42",
-  text: "Prefers concise release notes.",
-});
-
-const page = await client.memories.list({
-  agentId,
-  userId: "user-42",
-  search: "release",
-});
-
-const updated = await client.memories.update({
-  agentId,
-  memoryId: memory.id,
-  text: "Prefers release notes under five lines.",
-});
-
-console.log(page.data.length, updated.memory.lastAccessedAt);
-await client.memories.delete({ agentId, memoryId: memory.id });
-```
-
-## Related [#related]
+## Next [#next]
 
 - [Memory](/agents/memory)
-- [Add durable Memory](/agents/memory)
-- [REST Memories](/api-reference/rest-api/memories)
-- [Pagination and filtering](/api-reference/protocols/pagination-and-filtering)
+- [Agents reference](/sdk/typescript/agents#create)
