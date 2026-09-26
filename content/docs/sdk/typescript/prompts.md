@@ -58,8 +58,8 @@ const prompt = await client.prompts.create({
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `name` | `string` | yes | — | 1 to 80 characters, unique in your tenant |
-| `template` | `string` | yes | — | The template text |
+| `name` | `string` | yes | none | 1 to 80 characters, unique in your tenant |
+| `template` | `string` | yes | none | The template text |
 | `agentId` | `string \| null` | no | `null` | Agent to link it to, for your own grouping |
 | `userId` | `string` | no | `""` | The end user it belongs to; cannot change later |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your labels |

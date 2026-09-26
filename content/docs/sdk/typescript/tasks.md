@@ -65,9 +65,9 @@ const { task } = await client.tasks.create({
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `agentId` | `string` | yes | — | The agent that runs it; cannot change later |
-| `name` | `string` | yes | — | 1 to 80 characters |
-| `prompt` | `string` | yes | — | The instruction each run sends, up to 6,000 characters |
+| `agentId` | `string` | yes | none | The agent that runs it; cannot change later |
+| `name` | `string` | yes | none | 1 to 80 characters |
+| `prompt` | `string` | yes | none | The instruction each run sends, up to 6,000 characters |
 | `schedule` | `TaskScheduleInput \| null` | no | `null` | When to run; `null` runs only on demand. See [schedule types](#schedule-types) |
 | `enabled` | `boolean` | no | `true` | Whether the schedule fires |
 | `submit` | `boolean` | no | `false` | Also start a run right away |
@@ -90,10 +90,10 @@ for (const task of data) console.log(task.name, task.latestRun?.status);
 
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `agentId` | `string` | no | — | Only this agent's tasks |
-| `userId` | `string` | no | — | Only this end user's tasks; `""` for tenant-level ones |
+| `agentId` | `string` | no | none | Only this agent's tasks |
+| `userId` | `string` | no | none | Only this end user's tasks; `""` for tenant-level ones |
 | `limit` | `number` | no | `50` | 1 to 200 per page |
-| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+| `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Returns [`TasksListResponse`](#taskslistresponse). Errors: `validation_failed`, `invalid_cursor`.
 
@@ -168,7 +168,7 @@ const { data } = await client.tasks.listRuns({ taskId, limit: 10 });
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `limit` | `number` | no | `50` | 1 to 200 per page |
-| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+| `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Returns [`TaskRunsListResponse`](#taskrunresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
 
@@ -205,8 +205,8 @@ const newer = page.latestCursor
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `limit` | `number` | no | `50` | 1 to 200 per page |
-| `cursor` | `string` | no | — | Go back to older messages |
-| `after` | `string` | no | — | Fetch messages added since an earlier `latestCursor` |
+| `cursor` | `string` | no | none | Go back to older messages |
+| `after` | `string` | no | none | Fetch messages added since an earlier `latestCursor` |
 
 A run that has not started returns an empty page. Do not pass `cursor` and `after` together. Returns [`TaskRunMessagesResponse`](#taskrunmessagesresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
 

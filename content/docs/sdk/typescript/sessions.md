@@ -46,10 +46,10 @@ const next = page.nextCursor
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `agentId` | `string` | yes | — | Agent ID (`ag_…`) |
-| `userId` | `string` | no | — | Only this end user's sessions; `""` for tenant-level ones |
+| `agentId` | `string` | yes | none | Agent ID (`ag_…`) |
+| `userId` | `string` | no | none | Only this end user's sessions; `""` for tenant-level ones |
 | `limit` | `number` | no | `50` | 1 to 200 per page |
-| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+| `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 An agent ID that does not exist in your tenant returns an empty page. Returns [`SessionsListResponse`](#sessionslistresponse). Errors: `validation_failed`, `invalid_cursor`.
 
@@ -69,9 +69,9 @@ for (const session of inbox.data) {
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `byAgent` | `boolean` | no | `false` | Return at most one session per agent, its latest |
-| `userId` | `string` | no | — | Only this end user's sessions; `""` for tenant-level ones |
+| `userId` | `string` | no | none | Only this end user's sessions; `""` for tenant-level ones |
 | `limit` | `number` | no | `50` | 1 to 200 per page |
-| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+| `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Use `byAgent: true` to build an inbox with one row per agent, instead of calling `list()` for each agent. Sessions of disabled agents are included. Returns [`LatestSessionsListResponse`](#latestsessionslistresponse). Errors: `validation_failed`, `invalid_cursor`.
 
@@ -95,11 +95,11 @@ const newer = page.latestCursor
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `agentId` | `string` | yes | — | Agent ID (`ag_…`) |
-| `sessionId` | `string` | yes | — | Session ID (`ss_…`) |
+| `agentId` | `string` | yes | none | Agent ID (`ag_…`) |
+| `sessionId` | `string` | yes | none | Session ID (`ss_…`) |
 | `limit` | `number` | no | `50` | 1 to 200 per page |
-| `cursor` | `string` | no | — | Go back to older messages |
-| `after` | `string` | no | — | Fetch messages added since an earlier `latestCursor` |
+| `cursor` | `string` | no | none | Go back to older messages |
+| `after` | `string` | no | none | Fetch messages added since an earlier `latestCursor` |
 
 The first page holds the newest messages, in chronological order within the page. Pass `nextCursor` as `cursor` to go further back. Save `latestCursor` and pass it later as `after` to fetch only what is new. Do not pass `cursor` and `after` together.
 

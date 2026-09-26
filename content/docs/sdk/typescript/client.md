@@ -24,11 +24,11 @@ const client = new BlazingAgents({
 
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `apiKey` | `string` | yes | — | Your API key, sent on every request |
+| `apiKey` | `string` | yes | none | Your API key, sent on every request |
 | `baseUrl` | `string` | no | `https://api.blazingagents.com` | API origin; trailing slashes are removed |
-| `clientRequestId` | `string` | no | — | Your own correlation ID, sent as `X-Client-Request-Id` on every request |
+| `clientRequestId` | `string` | no | none | Your own correlation ID, sent as `X-Client-Request-Id` on every request |
 | `fetch` | `BlazingAgentsFetch` | no | `globalThis.fetch` | Replacement transport for logging, tests, or another runtime |
-| `onResponse` | `(response: ResponseObservation) => void` | no | — | Called for every response before the body is read |
+| `onResponse` | `(response: ResponseObservation) => void` | no | none | Called for every response before the body is read |
 
 Creating a client makes no network request. Requests send `Authorization: Bearer <apiKey>`.
 

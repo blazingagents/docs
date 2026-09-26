@@ -57,7 +57,7 @@ const agent = await client.agents.create({
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `name` | `string` | yes | — | 1 to 80 characters, unique in your tenant |
+| `name` | `string` | yes | none | 1 to 80 characters, unique in your tenant |
 | `providerId` | `string \| null` | no | `null` | Provider that runs the model; set together with `model` |
 | `model` | `string \| null` | no | `null` | Model ID as your provider names it |
 | `thinkingLevel` | `string \| null` | no | `null` | Reasoning level; `null` uses the provider's default. See [thinking level](/agents/providers-and-models#thinking-level) |
@@ -233,8 +233,8 @@ const older = page.nextCursor
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `agentId` | `string` | yes | — | Agent ID (`ag_…`) |
-| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+| `agentId` | `string` | yes | none | Agent ID (`ag_…`) |
+| `cursor` | `string` | no | none | `nextCursor` from the previous page |
 | `limit` | `number` | no | `50` | 1 to 200 versions per page |
 
 Returns [`AgentVersionsResponse`](#agentversionsresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.

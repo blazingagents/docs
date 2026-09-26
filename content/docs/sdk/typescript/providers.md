@@ -139,7 +139,7 @@ await client.providers.delete({ providerId, confirmVersionInvalidation: true });
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `providerId` | `string` | yes | — | Provider ID (`prv_…`) |
+| `providerId` | `string` | yes | none | Provider ID (`prv_…`) |
 | `confirmVersionInvalidation` | `boolean` | no | `false` | Delete even though old agent versions or pinned sessions and tasks use it |
 
 Deletion fails with `provider_in_use` while any agent's current configuration uses the provider; move those agents first. It fails with `provider_historical_use` when only old versions, pinned sessions, or tasks refer to it; `details` lists them. Pass `confirmVersionInvalidation: true` to delete anyway. History stays readable, but running or restoring those versions then fails with `provider_not_found`.

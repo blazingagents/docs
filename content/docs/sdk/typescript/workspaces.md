@@ -70,9 +70,9 @@ const { data, nextCursor } = await client.workspaces.list({ userId: "user_42" })
 
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `userId` | `string` | no | — | Only this end user's workspaces; `""` for tenant-level ones |
+| `userId` | `string` | no | none | Only this end user's workspaces; `""` for tenant-level ones |
 | `limit` | `number` | no | `50` | 1 to 200 per page |
-| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+| `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Returns [`WorkspacesListResponse`](#workspaceslistresponse). Errors: `validation_failed`, `invalid_cursor`.
 

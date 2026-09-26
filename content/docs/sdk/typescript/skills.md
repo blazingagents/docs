@@ -96,7 +96,7 @@ const { data, nextCursor } = await client.agent({ agentId }).skills.list();
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `limit` | `number` | no | `50` | 1 to 100 per page |
-| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+| `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Returns [`SkillsListResponse`](#skillslistresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
 

@@ -61,10 +61,10 @@ console.log(connection.webhookUrl);
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `name` | `string` | yes | — | 1 to 80 characters |
-| `agentId` | `string` | yes | — | The agent that answers; cannot change later |
-| `platform` | `"slack" \| "telegram"` | yes | — | Chat platform |
-| `credentials` | `object` | yes | — | Slack: `botToken` and `signingSecret`. Telegram: `botToken` |
+| `name` | `string` | yes | none | 1 to 80 characters |
+| `agentId` | `string` | yes | none | The agent that answers; cannot change later |
+| `platform` | `"slack" \| "telegram"` | yes | none | Chat platform |
+| `credentials` | `object` | yes | none | Slack: `botToken` and `signingSecret`. Telegram: `botToken` |
 | `configuration` | `object` | no | `{}` | Slack: `channelIds`. Telegram: `chatIds` and `businessMode` |
 | `enabled` | `boolean` | no | `true` | Start handling messages right away |
 

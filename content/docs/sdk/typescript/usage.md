@@ -70,9 +70,9 @@ const usage = await client.usage.get({
 | `from` | `string` | with `to` | 30 days ago | First UTC date |
 | `to` | `string` | with `from` | today | Last UTC date |
 | `groupBy` | `"day" \| "agent" \| "model" \| "session" \| "user"` | no | `"day"` | One bucket per value |
-| `agentId` | `string` | no | — | Only this agent |
-| `sessionId` | `string` | no | — | Only this session; `""` for turns without a session (`completion()` and `object()`) |
-| `userId` | `string` | no | — | Only this end user; `""` for tenant-level usage |
+| `agentId` | `string` | no | none | Only this agent |
+| `sessionId` | `string` | no | none | Only this session; `""` for turns without a session (`completion()` and `object()`) |
+| `userId` | `string` | no | none | Only this end user; `""` for tenant-level usage |
 | `limit` | `number` | no | `50` | 1 to 200; with `groupBy: "session"`, returns the top sessions by tokens |
 
 Returns [`UsageResponse`](#usageresponse). Errors: `validation_failed`.

@@ -54,8 +54,8 @@ const { memory } = await client.memories.create({
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `agentId` | `string` | yes | — | Agent ID (`ag_…`) |
-| `text` | `string` | yes | — | The note, up to 10 KiB |
+| `agentId` | `string` | yes | none | Agent ID (`ag_…`) |
+| `text` | `string` | yes | none | The note, up to 10 KiB |
 | `userId` | `string` | no | `""` | The end user it is about; `""` for everyone |
 
 Returns [`MemoryResponse`](#memoryresponse). Errors: `validation_failed`, `not_found`.
@@ -72,11 +72,11 @@ const page = await client.memories.list({ agentId, userId: "user_42", search: "r
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `agentId` | `string` | yes | — | Agent ID (`ag_…`) |
+| `agentId` | `string` | yes | none | Agent ID (`ag_…`) |
 | `userId` | `string` | no | all users | Only this end user's memories; `""` for the shared ones |
-| `search` | `string` | no | — | Full-text search terms |
+| `search` | `string` | no | none | Full-text search terms |
 | `limit` | `number` | no | `50` | 1 to 100 per page |
-| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+| `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Returns [`MemoriesListResponse`](#memorieslistresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
 
