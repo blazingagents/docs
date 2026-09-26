@@ -1,282 +1,165 @@
 ---
 title: Build a chatbot
-description: Send, Stop, edit, resend, and regenerate with SDK-native chat.
+description: Put a React chat UI with send, stop, resend, and regenerate on top of your chat endpoint.
 ---
 
-Use this reference when implementing send, Stop, text/image resend, editing,
-regeneration, or navigation after an interrupted BA interactive Turn.
+# Build a chatbot
 
-## Ownership and behavior
+Put a chat UI in front of your agent with the AI SDK `useChat` hook. Users can send, stop, edit and resend, regenerate the last answer, and start a new conversation. Blazing Agents keeps the history, so the page only tracks the session ID and the text being typed.
 
-BA owns durable Session history. The AI SDK owns live messages and streaming;
-TanStack Query (when used) owns saved reads/cache; local state owns draft text and
-prepared image URLs. Keep the returned Session ID even after a failed first Turn.
-Retain input until a successful terminal finish, and release it on disposal or
-credential retirement. Stop requests cancellation and ends local consumption.
-After failure or Stop, editing, discard, explicit resend, and navigation remain
-available. Suppress duplicate taps synchronously while a submission is active.
+## Before you begin [#before-you-begin]
 
-Resend uses ordinary submission and a new user-message ID. Regeneration explicitly
-replaces saved history, with the old answer preserved on failure/cancellation.
-Do not regenerate a failed prompt that was never saved. On reopening, load saved
-history normally: a disconnected response may already have committed. External
-Tool effects can repeat across attempts. Keep pending approvals and their exact-call
-continuation; encountering an approval chunk does not cancel consumption.
+Finish [Connect Blazing Agents to your app](/getting-started/connect-your-app). This page talks to that `/api/chat` endpoint, which works the same whether you wrote it in TypeScript or Python.
 
-## SDK-native example
+You need a React app served from the same origin as the endpoint, for example through your dev server's proxy. Install the chat hook:
 
-The [Vite + Hono example](https://github.com/blazingagents/examples/tree/main/vite-hono-ai-sdk)
-uses `@blazingagents/sdk` 0.2.0, `ai` 7.0.84, and `@ai-sdk/react` 4.0.87.
-The Next.js, TanStack Start, Express, and FastAPI examples use the same input
-retention and fresh-submission behavior. Their authenticated relay owns Session
-mapping and Tenant credentials. In a distributed end-user app, never embed a
-shared Tenant key in this component. The application token below belongs to your
-own authenticated backend.
+```bash
+npm install @blazingagents/sdk ai @ai-sdk/react
+```
 
-This complete component shows text resend. Keep prepared images in the same local
-input state and include their AI SDK file parts on each explicit send; retain
-those URLs on failure/Stop and clear them on success/disposal. Load saved history
-when reopening a Session; this minimal component displays the current local view.
+## Add the chat component [#sdk-native-example]
 
-```tsx
+`BlazingAgentsChatTransport` connects `useChat` to your endpoint. It sends only the newest message, picks up the new session ID from the first response, and sends that ID back on every later message.
+
+```tsx title="Chat.tsx"
 import { useChat } from "@ai-sdk/react";
 import { BlazingAgentsChatTransport } from "@blazingagents/sdk";
 import { generateId, type UIMessage } from "ai";
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useMemo, useRef, useState } from "react";
 
-export function App() {
-	const [token, setToken] = useState("");
-	const [chatInput, setChatInput] = useState("");
-	const [sessionId, setSessionId] = useState<string>();
-	const active = useRef(false);
-	const regenerating = useRef(false);
-	const completedMessages = useRef<UIMessage[]>([]);
-	useEffect(() => {
-		setSessionId(localStorage.getItem("blazing-agents-session") ?? undefined);
-	}, []);
-	const headers = useMemo(
-		() => ({ authorization: `Bearer ${token}` }),
-		[token],
-	);
-	const transport = useMemo(
-		() =>
-			new BlazingAgentsChatTransport({
-				api: "/api/chat",
-				headers,
-				sessionId,
-				onSessionId(id) {
-					localStorage.setItem("blazing-agents-session", id);
-					setSessionId(id);
-				},
-			}),
-		[headers, sessionId],
-	);
-	const chat = useChat({
-		transport,
-		onError() {
-			active.current = false;
-			chat.setMessages(completedMessages.current);
-		},
-		onFinish({ isAbort, isError, isDisconnect, finishReason, messages }) {
-			active.current = false;
-			if (
-				!(isAbort || isError || isDisconnect) &&
-				finishReason &&
-				finishReason !== "error"
-			) {
-				completedMessages.current = messages;
-				// biome-ignore lint/suspicious/noUnnecessaryConditions: Submit and regenerate handlers update this ref before completion.
-				if (!regenerating.current) setChatInput("");
-			} else {
-				chat.setMessages(completedMessages.current);
-			}
-		},
-	});
-	const busy = chat.status === "submitted" || chat.status === "streaming";
+export function Chat({ token }: { token: string }) {
+  const [input, setInput] = useState("");
+  const [sessionId, setSessionId] = useState(
+    () => localStorage.getItem("chat-session") ?? undefined,
+  );
+  const sending = useRef(false);
+  const regenerating = useRef(false);
+  const saved = useRef<UIMessage[]>([]);
 
-	function submitChat(event: FormEvent) {
-		event.preventDefault();
-		// biome-ignore lint/suspicious/noUnnecessaryConditions: Stream callbacks update the synchronous duplicate-submit guard.
-		if (active.current || !chatInput.trim()) return;
-		active.current = true;
-		regenerating.current = false;
-		chat.clearError();
-		void chat.sendMessage({
-			id: generateId(),
-			role: "user",
-			parts: [{ type: "text", text: chatInput }],
-		});
-	}
-	async function stopChat() {
-		await chat.stop();
-		active.current = false;
-		chat.setMessages(completedMessages.current);
-	}
-	function regenerate() {
-		if (
-			// biome-ignore lint/suspicious/noUnnecessaryConditions: Stream callbacks update the synchronous duplicate-submit guard.
-			active.current ||
-			!completedMessages.current.some((message) => message.role === "assistant")
-		)
-			return;
-		active.current = true;
-		regenerating.current = true;
-		chat.clearError();
-		void chat.regenerate();
-	}
-	function newSession() {
-		localStorage.removeItem("blazing-agents-session");
-		setSessionId(undefined);
-		completedMessages.current = [];
-		chat.setMessages([]);
-		chat.clearError();
-		setChatInput("");
-	}
-	return (
-		<main
-			style={{ fontFamily: "sans-serif", margin: "2rem auto", maxWidth: 720 }}
-		>
-			<h1>Blazing Agents + Vite + Hono</h1>
-			<label>
-				Application token{" "}
-				<input
-					value={token}
-					onChange={(event) => setToken(event.target.value)}
-				/>
-			</label>
-			<p>
-				Session: {sessionId ?? "new"}{" "}
-				<button type="button" onClick={newSession} disabled={busy}>
-					New Session
-				</button>
-			</p>
-			{chat.messages.map((message) => (
-				<p key={message.id}>
-					<strong>{message.role}:</strong>{" "}
-					{message.parts
-						.filter((part) => part.type === "text")
-						.map((part) => part.text)
-						.join("")}
-				</p>
-			))}
-			<form onSubmit={submitChat}>
-				<input
-					aria-label="Message"
-					value={chatInput}
-					disabled={busy}
-					onChange={(event) => setChatInput(event.target.value)}
-				/>
-				<button type="submit" disabled={busy || !chatInput.trim()}>
-					Send / resend
-				</button>
-				<button type="button" onClick={stopChat} disabled={!busy}>
-					Stop
-				</button>
-				<button type="button" onClick={() => setChatInput("")} disabled={busy}>
-					Discard input
-				</button>
-				<button
-					type="button"
-					onClick={regenerate}
-					disabled={
-						busy ||
-						!sessionId ||
-						!completedMessages.current.some(
-							(message) => message.role === "assistant",
-						)
-					}
-				>
-					Regenerate
-				</button>
-			</form>
-			{chat.error && <p role="alert">{chat.error.message}</p>}
-			<p>
-				After an error or Stop, edit or resend your input. Each send is a new
-				attempt and may repeat Tool effects. A lost response may already be
-				saved.
-			</p>
-		</main>
-	);
+  const transport = useMemo(
+    () =>
+      new BlazingAgentsChatTransport({
+        api: "/api/chat",
+        headers: { authorization: `Bearer ${token}` },
+        sessionId,
+        onSessionId(id) {
+          localStorage.setItem("chat-session", id);
+          setSessionId(id);
+        },
+      }),
+    [token, sessionId],
+  );
+
+  const chat = useChat({
+    transport,
+    onError() {
+      sending.current = false;
+      chat.setMessages(saved.current);
+    },
+    onFinish({ messages, finishReason, isAbort, isError, isDisconnect }) {
+      sending.current = false;
+      if (isAbort || isError || isDisconnect || !finishReason || finishReason === "error") {
+        chat.setMessages(saved.current);
+        return;
+      }
+      saved.current = messages;
+      if (!regenerating.current) setInput("");
+    },
+  });
+  const busy = chat.status === "submitted" || chat.status === "streaming";
+  const hasAnswer = saved.current.some((message) => message.role === "assistant");
+
+  function send(event: FormEvent) {
+    event.preventDefault();
+    if (sending.current || !input.trim()) return;
+    sending.current = true;
+    regenerating.current = false;
+    chat.clearError();
+    void chat.sendMessage({
+      id: generateId(),
+      role: "user",
+      parts: [{ type: "text", text: input }],
+    });
+  }
+
+  async function stop() {
+    await chat.stop();
+    sending.current = false;
+    chat.setMessages(saved.current);
+  }
+
+  function regenerate() {
+    if (sending.current || !hasAnswer) return;
+    sending.current = true;
+    regenerating.current = true;
+    chat.clearError();
+    void chat.regenerate();
+  }
+
+  function newConversation() {
+    localStorage.removeItem("chat-session");
+    setSessionId(undefined);
+    saved.current = [];
+    chat.setMessages([]);
+    chat.clearError();
+    setInput("");
+  }
+
+  return (
+    <main>
+      {chat.messages.map((message) => (
+        <p key={message.id}>
+          <strong>{message.role}:</strong>{" "}
+          {message.parts
+            .filter((part) => part.type === "text")
+            .map((part) => part.text)
+            .join("")}
+        </p>
+      ))}
+      <form onSubmit={send}>
+        <input
+          aria-label="Message"
+          value={input}
+          disabled={busy}
+          onChange={(event) => setInput(event.target.value)}
+        />
+        <button type="submit" disabled={busy || !input.trim()}>Send</button>
+        <button type="button" onClick={stop} disabled={!busy}>Stop</button>
+        <button type="button" onClick={regenerate} disabled={busy || !hasAnswer}>
+          Regenerate
+        </button>
+        <button type="button" onClick={newConversation} disabled={busy}>
+          New conversation
+        </button>
+      </form>
+      {chat.error && <p role="alert">{chat.error.message}</p>}
+    </main>
+  );
 }
 ```
 
-## Python relay submissions
+Render `<Chat token={...} />` with your user's sign-in token. With the demo endpoint from the previous page, that is the value of `DEMO_USER_TOKEN`. Send a message and the answer streams in. Reload the page and your next message continues the same conversation, because the session ID is in `localStorage`.
 
-The Python SDK returns raw SSE bytes. Relay them to the AI SDK consumer; HTTP 2xx
-or exhausting bytes alone does not establish successful generation. Preserve the
-returned ID before relaying. A later user-directed resend can call the same SDK
-method with changed text/images and a fresh ID, without a retry API.
+## How it behaves [#ownership-and-behavior]
 
-```python
-from uuid import uuid4
-from blazing_agents import BlazingAgents
+The component keeps a copy of the last conversation that finished successfully. When a turn fails or the user presses Stop, it goes back to that copy and leaves the typed text in the input, so the user can edit it and send again. Blazing Agents does the same on its side: a turn that fails or is cancelled adds nothing to the saved history.
 
-def submit(client: BlazingAgents, agent_id: str, text: str, session_id: str | None = None):
-    options = {"session_id": session_id} if session_id else {}
-    return client.chat(
-        agent_id=agent_id,
-        message={"id": uuid4().hex, "role": "user", "parts": [{"type": "text", "text": text}]},
-        **options,
-    )
+- **Send** always makes a new attempt with a new message ID. There is no separate retry call.
+- **Stop** cancels the turn. It cannot undo a tool call that already ran, and a resend can run that tool again.
+- **Regenerate** replaces the last saved answer. If regenerating fails or is stopped, the old answer stays. The button is only enabled after a successful answer, because a prompt that failed was never saved.
+- **New conversation** forgets the session ID. The next message starts a new session.
 
-# Your authenticated relay owns the stream and closes it after forwarding:
-# with submit(client, agent_id, retained_text, saved_session_id) as stream:
-#     save_session_id(stream.session_id)
-#     for chunk in stream:
-#         forward_to_ai_sdk(chunk)
-```
+This component shows only the messages from the current page visit. To show earlier messages after a reload, have your backend read them with `client.sessions.messages()` and pass them to `useChat` as `messages`. See [reading the transcript](/platform/sessions-and-turns#read-and-poll-the-transcript).
 
-## Chatbot FAQ
+## Things to know [#chatbot-faq]
 
-1. **Who owns saved history?** BA owns the durable Session transcript. The client
-   owns draft input and transient presentation; it does not resend full history.
-2. **When is a Session created?** After admission and before the first interactive
-   model loop. Use the server-returned ID; failure may leave an empty Session.
-3. **What counts as success?** The generation endpoint finishes successfully.
-   Clients do not perform a separate settlement check.
-4. **What is saved on failure or cancellation?** Executed-attempt usage remains
-   recorded; failed or confirmed canceled interactive execution leaves existing
-   transcript content unchanged.
-5. **Does every Tool error fail the Turn?** No. The Agent can recover from a Tool
-   error and complete successfully; such an exchange can be saved normally.
-6. **How does Retry work?** Retain the attempted text/images and submit again as
-   a new attempt when the user chooses. No outcome polling is required.
-7. **Can the user edit before retrying?** Yes. Submit the edited input normally;
-   an unsuccessful original prompt is not added to durable context.
-8. **Should retry reuse the user-message ID?** No. This design assigns a new ID
-   to each submission, including unchanged resend. IDs are not idempotency keys.
-9. **How is regeneration different?** It explicitly replaces selected saved
-   history. Failure/cancellation preserves the prior answer; success replaces it.
-10. **What does Stop guarantee?** It stops local consumption and requests
-    cancellation. It does not undo a completed server operation or Tool effect.
-11. **What if the connection drops after success?** The exchange may already be
-    saved. Load history normally when returning; resend is a new attempt, not
-    proof that the previous attempt failed.
-12. **What if no Session ID arrived?** A new submission may create a new Session.
-    There is no promise of discovering or deduplicating the unseen first one.
-13. **What should happen on a busy Session?** Display the error and permit a
-    later explicit resend. Do not permanently lock the composer or poll outcomes.
-14. **Can Tool effects happen twice?** Yes, if the user repeats an operation.
-    Transcript persistence does not roll back effects or guarantee exactly once.
-15. **Can users leave after an error or Stop?** Yes. Navigation does not depend on
-    a confirmed remote outcome. Submitted input is retained only within the
-    existing in-memory controller lifetime unless the product adds draft storage.
-16. **How are approvals handled?** Preserve pending requests and exact-call
-    continuation. Waiting for approval is not equivalent to failed execution.
-17. **Does this change background Tasks?** No. Task runs retain incremental
-    transcripts and their existing durable execution lifecycle.
-18. **Does this change stateless generation?** No. It still records usage without
-    creating a Session transcript.
-19. **What belongs in TanStack Query versus the AI SDK?** Saved reads/cache belong
-    in Query; live stream/messages belong in the AI SDK; drafts/media remain
-    local. None of these needs an ordinary-Turn outcome state machine.
-20. **Where do credentials belong?** Tenant credentials belong on the Tenant
-    backend for end-user apps. An explicitly authorized native operator client
-    using its own key is a distinct support boundary, not permission to embed a
-    shared Tenant key in a distributed application.
-21. **Do API routes or SDKs need a new retry operation?** No. Existing submission
-    operations support the intended user-directed behavior.
-22. **Is there a separate settlement definition of success?** No. Success means
-    the generation endpoint finishes successfully. The implementation must
-    address its current backup and cleanup error paths consistently with that
-    behavior; clients do not add a second success check.
+- **A dropped connection is not a failure.** If the network drops after the agent finished, the answer may already be saved. Reload history before assuming it was lost.
+- **Busy sessions.** While a tool call in the session waits for approval, new messages return a `session_busy` error. Show it and let the user send again later. If two messages race in the same session, one of them fails rather than mixing the histories.
+- **Images** go in the same message as extra file parts. See [send an image](/agents/output/generation-and-streaming#send-an-image).
+- **Tool approvals** arrive in the same stream when an agent needs a person to allow a tool call. Send the decision through your backend, not only with `addToolApprovalResponse`. See [render the resumed answer](/agents/tools/tool-approvals#render-the-resumed-answer).
+
+## Next [#next]
+
+- [Examples](https://github.com/blazingagents/examples) for complete Next.js, TanStack Start, Vite + Hono, Express, and FastAPI apps built this way.
+- [Sessions and turns](/platform/sessions-and-turns) for history, busy sessions, and regeneration.
+- [Choose what to build next](/getting-started/next-steps)

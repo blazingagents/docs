@@ -8584,13 +8584,13 @@ export const documentationTree: SerializedPageTree = {
       },
       {
         "type": "folder",
-        "name": "Getting Started",
+        "name": "Getting started",
         "children": [
           {
             "$id": "getting-started/index.mdx",
             "type": "page",
-            "name": "Getting Started",
-            "description": "Set up the backend SDK, run a streamed Turn, and connect Blazing Agents to your application.",
+            "name": "Getting started",
+            "description": "Go from an API key to an agent that chats with your users inside your own app.",
             "url": "/getting-started",
             "$ref": "getting-started/index.mdx"
           },
@@ -8614,7 +8614,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "getting-started/connect-your-app.mdx",
             "type": "page",
             "name": "Connect Blazing Agents to your app",
-            "description": "Relay a chat stream through your authenticated backend and safely resume its Session.",
+            "description": "Add a chat endpoint to your backend that checks who the user is, streams the answer, and remembers each conversation.",
             "url": "/getting-started/connect-your-app",
             "$ref": "getting-started/connect-your-app.mdx"
           },
@@ -8622,7 +8622,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "getting-started/chatbot.mdx",
             "type": "page",
             "name": "Build a chatbot",
-            "description": "Send, Stop, edit, resend, and regenerate with SDK-native chat.",
+            "description": "Put a React chat UI with send, stop, resend, and regenerate on top of your chat endpoint.",
             "url": "/getting-started/chatbot",
             "$ref": "getting-started/chatbot.mdx"
           },
@@ -8630,7 +8630,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "getting-started/next-steps.mdx",
             "type": "page",
             "name": "Choose what to build next",
-            "description": "Move from your first successful Turn to the Blazing Agents section that matches your goal.",
+            "description": "Pick the next thing to give your agent, from files and tools to background work and billing.",
             "url": "/getting-started/next-steps",
             "$ref": "getting-started/next-steps.mdx"
           }
@@ -9209,7 +9209,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "cli/index.mdx",
             "type": "page",
             "name": "CLI",
-            "description": "Install the ba command and choose an interactive, administrative, or automated workflow.",
+            "description": "Chat with your agents, run them from scripts and CI, and manage your tenant from the terminal.",
             "url": "/cli",
             "$ref": "cli/index.mdx"
           },
@@ -9217,7 +9217,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "cli/setup-and-authentication.mdx",
             "type": "page",
             "name": "CLI setup and authentication",
-            "description": "Authenticate the CLI safely from a workstation or a headless CI environment.",
+            "description": "Sign the CLI in on your own machine, or give it a key in CI.",
             "url": "/cli/setup-and-authentication",
             "$ref": "cli/setup-and-authentication.mdx"
           },
@@ -9225,7 +9225,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "cli/chat.md",
             "type": "page",
             "name": "ba chat",
-            "description": "Start or resume an interactive terminal conversation with an ordinary Agent.",
+            "description": "Hold a conversation with one of your agents in the terminal, and pick it up again later.",
             "url": "/cli/chat",
             "$ref": "cli/chat.md"
           },
@@ -9233,15 +9233,15 @@ export const documentationTree: SerializedPageTree = {
             "$id": "cli/run.md",
             "type": "page",
             "name": "ba run",
-            "description": "Execute one deterministic, non-interactive Agent Turn for a script or pipeline.",
+            "description": "Run one agent turn from a script or pipe and get the answer on stdout.",
             "url": "/cli/run",
             "$ref": "cli/run.md"
           },
           {
             "$id": "cli/assist.md",
             "type": "page",
-            "name": "ba assist and Admin Agent",
-            "description": "Administer Tenant resources through the platform-managed Admin Agent and durable Tool approval.",
+            "name": "ba assist",
+            "description": "Manage agents, prompts, tasks, and more by asking a built-in assistant in plain language.",
             "url": "/cli/assist",
             "$ref": "cli/assist.md"
           },
@@ -9249,7 +9249,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "cli/scripting-and-ci.md",
             "type": "page",
             "name": "Scripting and CI",
-            "description": "Run one secret-safe, predictable, non-interactive Agent Turn in an automation job.",
+            "description": "Run an agent from a CI job or script and use its answer in the next step.",
             "url": "/cli/scripting-and-ci",
             "$ref": "cli/scripting-and-ci.md"
           }

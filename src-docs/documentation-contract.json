@@ -73,18 +73,11 @@
         "assignedIds": [],
         "kind": "h2"
       },
-      "cards": [
-        "/getting-started/setup",
-        "/getting-started/quickstart",
-        "/getting-started/connect-your-app",
-        "/getting-started/next-steps"
-      ],
+      "cards": [],
       "callout": null,
       "componentCounts": {
         "Steps": 1,
-        "Step": 4,
-        "Cards": 1,
-        "Card": 4
+        "Step": 5
       },
       "fences": {
         "endpointCurls": false,
@@ -233,13 +226,49 @@
       "componentCounts": {
         "Callout": 1,
         "Steps": 1,
-        "Step": 5
+        "Step": 3
       },
       "fences": {
         "endpointCurls": false,
         "items": [
           {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "bash",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "bash",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
             "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language",
+              "title": "server.ts"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python",
+              "title": "server.py"
+            }
+          },
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "bash",
             "metadata": {}
           }
         ]
@@ -254,19 +283,9 @@
         "assignedIds": [],
         "kind": "h2"
       },
-      "cards": [
-        "/agents",
-        "/platform",
-        "/automation",
-        "/cli",
-        "/sdk",
-        "/api-reference"
-      ],
+      "cards": [],
       "callout": null,
-      "componentCounts": {
-        "Cards": 1,
-        "Card": 6
-      },
+      "componentCounts": {},
       "fences": {
         "endpointCurls": false,
         "items": []
@@ -2644,24 +2663,25 @@
         "assignedIds": [],
         "kind": "h2"
       },
-      "cards": [
-        "/cli/setup-and-authentication",
-        "/cli/chat",
-        "/cli/run",
-        "/cli/assist",
-        "/cli/scripting-and-ci"
-      ],
+      "cards": [],
       "callout": null,
-      "componentCounts": {
-        "Cards": 1,
-        "Card": 5
-      },
+      "componentCounts": {},
       "fences": {
         "endpointCurls": false,
         "items": [
           {
             "language": "bash",
             "metadata": {}
+          },
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "yaml",
+            "metadata": {
+              "title": "config.yaml"
+            }
           }
         ]
       },
@@ -4017,9 +4037,9 @@
     },
     {
       "file": "getting-started/index.mdx",
-      "name": "Getting Started",
+      "name": "Getting started",
       "publishable": true,
-      "title": "Getting Started",
+      "title": "Getting started",
       "url": "/getting-started"
     },
     {
@@ -4465,9 +4485,9 @@
     },
     {
       "file": "cli/assist.md",
-      "name": "ba assist and Admin Agent",
+      "name": "ba assist",
       "publishable": true,
-      "title": "ba assist and Admin Agent",
+      "title": "ba assist",
       "url": "/cli/assist"
     },
     {
