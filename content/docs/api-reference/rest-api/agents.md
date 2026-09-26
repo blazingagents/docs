@@ -29,7 +29,7 @@ on create. Leave it out of an update to keep it, or send `null` to clear it. A
 non-null value must be non-empty and needs a configured provider and model.
 Agent and version responses include it. A level the model is known not to
 support returns `validation_failed` with the valid choices, and nothing is
-saved. On the platform-managed admin agent you can change the thinking level
+saved. On the platform-managed `ba assist` agent you can change the thinking level
 along with its provider and model, but nothing else.
 
 ## Tool approval configuration [#tool-approval-configuration]
@@ -308,7 +308,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and JSO
 
 Send at least one field. Changing the provider requires `model` in the same request. Send both as `null` to clear them; a provider without a model, or the reverse, is rejected. There are no query parameters.
 
-On the platform-managed admin agent that `ba assist` uses, you can change only
+On the platform-managed agent that `ba assist` uses, you can change only
 `providerId`, `model`, and `thinkingLevel`. The same pairing rules apply, and
 each change saves a new version. A request that includes any other field
 returns `409 admin_agent_managed`.
@@ -348,7 +348,7 @@ Response schema: [`agentResponseSchema`](/api-reference/protocols/objects-and-sc
 
 #### Errors
 
-`400 validation_failed` for invalid/empty input. Specific configuration codes include `agent_name_conflict` and `provider_not_found`. `404 not_found` applies when the Agent is missing or foreign; `409 admin_agent_managed` rejects changes to the admin agent's other fields. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` for invalid/empty input. Specific configuration codes include `agent_name_conflict` and `provider_not_found`. `404 not_found` applies when the Agent is missing or foreign; `409 admin_agent_managed` rejects changes to the `ba assist` agent's other fields. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -386,7 +386,7 @@ Returns `204 No Content` with an empty body.
 
 #### Errors
 
-`400 validation_failed` for a malformed ID. `404 not_found` when the Agent is missing or foreign. `409 admin_agent_managed` for the admin agent. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` for a malformed ID. `404 not_found` when the Agent is missing or foreign. `409 admin_agent_managed` for the `ba assist` agent. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -426,7 +426,7 @@ Response schema: [`agentSchema`](/api-reference/protocols/objects-and-schemas#ag
 
 #### Errors
 
-`404 not_found` when the Agent is missing. `409 admin_agent_managed` for the admin agent. See [REST errors](/api-reference/protocols/errors).
+`404 not_found` when the Agent is missing. `409 admin_agent_managed` for the `ba assist` agent. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -506,7 +506,7 @@ Response schema: [`agentSchema`](/api-reference/protocols/objects-and-schemas#ag
 not a PNG, JPEG, or WebP image of at most 512 KiB; `415 invalid_request` when
 the request body is not `multipart/form-data`. A malformed Agent
 ID uses `400 validation_failed`; `404 not_found` applies when the Agent is
-missing or foreign; and `409 admin_agent_managed` for the admin agent. See
+missing or foreign; and `409 admin_agent_managed` for the `ba assist` agent. See
 [REST errors](/api-reference/protocols/errors).
 
 #### cURL
@@ -543,7 +543,7 @@ Response schema: [`agentSchema`](/api-reference/protocols/objects-and-schemas#ag
 
 #### Errors
 
-`400 validation_failed` for a malformed ID. `404 not_found` when the Agent is missing or foreign. `409 admin_agent_managed` for the admin agent. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` for a malformed ID. `404 not_found` when the Agent is missing or foreign. `409 admin_agent_managed` for the `ba assist` agent. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 

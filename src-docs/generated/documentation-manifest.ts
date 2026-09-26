@@ -1664,7 +1664,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/workspaces/create-workspace"
       },
       {
-        "description": "Lists workspaces newest first, one page at a time, optionally filtered by `userId`. The workspace reserved for the platform-managed admin agent is never listed.",
+        "description": "Lists workspaces newest first, one page at a time, optionally filtered by `userId`. The workspace reserved for the platform-managed `ba assist` agent is never listed.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/workspaces\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=50\" \\\n  --data-urlencode \"userId=user_42\"",
@@ -3362,7 +3362,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{ \"models\": [{ \"id\": \"openai/gpt-5-mini\" }, { \"id\": \"openai/gpt-6-luna\" }] }",
+            "code": "{ \"models\": [{ \"id\": \"openai/gpt-6-luna\" }] }",
             "language": "json",
             "contentType": "application/json",
             "note": "providerModelsResponseSchema",

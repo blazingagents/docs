@@ -160,7 +160,7 @@ Returns `200 OK` with the provider's model IDs.
 Response schema: [`providerModelsResponseSchema`](/api-reference/protocols/objects-and-schemas#provider-models-response).
 
 ```json
-{ "models": [{ "id": "openai/gpt-5-mini" }, { "id": "openai/gpt-6-luna" }] }
+{ "models": [{ "id": "openai/gpt-6-luna" }] }
 ```
 
 #### Errors

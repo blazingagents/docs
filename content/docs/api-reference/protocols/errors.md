@@ -64,7 +64,7 @@ more than one status when the outcome is more specific.
 | `service_unavailable` | 503 | The API is not admitting work. |
 | `checkout_evidence_mismatch` | 409 | The authoritative checkout evidence conflicts with the Tenant's stored checkout attempt or paid cycle. |
 | `agent_disabled` | 409 | Enable the Agent before starting a new Turn. |
-| `admin_agent_managed` | 409 | The platform manages this setting on the admin agent that `ba assist` uses. |
+| `admin_agent_managed` | 409 | The platform manages this setting on the platform-managed agent that `ba assist` uses. |
 | `agent_version_not_found` | 404 | Choose an existing Agent Version. |
 | `agent_mcp_connection_not_found` | 400 | An Agent references an unavailable MCP Connection. |
 | `agent_mcp_connections_invalid` | 400 | The Agent's MCP Connection selection is invalid. |

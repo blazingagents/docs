@@ -50,7 +50,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/workspaces" \
 ### GET /v1/workspaces [#list-workspaces]
 
 Lists workspaces newest first, one page at a time, optionally filtered by
-`userId`. The workspace reserved for the platform-managed admin agent is never
+`userId`. The workspace reserved for the platform-managed `ba assist` agent is never
 listed.
 
 #### Request

@@ -80,7 +80,7 @@ Response schema: [`createTaskResponseSchema`](/api-reference/protocols/objects-a
 
 #### Errors
 
-`400 validation_failed` for invalid fields or schedule. `404 agent_version_not_found` for a missing pinned version, `409 agent_disabled` when an immediate run hits a disabled agent, and `409 admin_agent_managed` because the platform-managed admin agent cannot run tasks. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` for invalid fields or schedule. `404 agent_version_not_found` for a missing pinned version, `409 agent_disabled` when an immediate run hits a disabled agent, and `409 admin_agent_managed` because the platform-managed `ba assist` agent cannot run tasks. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -254,7 +254,7 @@ Response schema: [`taskSchema`](/api-reference/protocols/objects-and-schemas#tas
 
 #### Errors
 
-`400 validation_failed` for invalid/empty fields or schedule. `404 not_found` applies to a missing Task; `404 agent_version_not_found` rejects a missing pin, and `409 admin_agent_managed` for the platform-managed admin agent. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` for invalid/empty fields or schedule. `404 not_found` applies to a missing Task; `404 agent_version_not_found` rejects a missing pin, and `409 admin_agent_managed` for the platform-managed `ba assist` agent. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
