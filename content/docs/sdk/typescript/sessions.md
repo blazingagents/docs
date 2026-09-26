@@ -1,133 +1,113 @@
 ---
 title: Sessions
-description: List Sessions, page transcripts, and complete Tool approval continuations.
+description: List sessions, load their messages, delete them, and answer tool approvals with the TypeScript SDK.
 ---
 
 # Sessions
 
-`client.sessions` reads and deletes stored Sessions and handles pending Tool approvals. Create or resume a Session with [`client.chat()`](/sdk/typescript/client#chat), not this resource.
+`client.sessions` reads the conversations Blazing Agents stores for you. Use it to show a user their past chats, reload a transcript, delete a conversation, and approve or deny a tool call the agent is waiting on. To start or continue a session, call [`client.chat()`](/sdk/typescript/client#chat). To learn how sessions and turns behave, read [Sessions and turns](/platform/sessions-and-turns).
 
-Every network method accepts one input object with optional `abortSignal`.
-`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
-types include that field too.
+```typescript
+const { data: sessions } = await client.sessions.list({ agentId, userId: "user_123" });
+const { data: messages } = await client.sessions.messages({
+  agentId,
+  sessionId: sessions[0].id,
+});
+```
 
-## Policy-driven approvals [#policy-driven-approvals]
-
-Interactive Sessions use the Agent's versioned `approvalInChat` policy. Manual
-review and automatic escalation reuse the existing list/decide/join lifecycle.
-See [review availability](/agents/tools/tool-approvals#review-availability) and
-[exact backend metadata optionality](/api-reference/protocols/objects-and-schemas#tool-approval-metadata).
-
-The backend adds structured `tool`, `assistantMessageId`, `createdAt`, and
-`decidedAt` metadata. These fields are supported starting in TypeScript SDK v0.8.0. The existing
-manual lifecycle remains usable without those fields.
-
-## Overview [#overview]
-
-Session and transcript lists use opaque cursors. Both list limits default to 50 and accept 1–200. Transcript `cursor` walks older pages; `after` polls forward from `latestCursor`. Do not pass both.
-
-Tool approval decisions are scoped to one exact Tool call. A decision produces a durable continuation: join it to replay persisted chunks and follow the resumed Turn to terminal state. Calling `toResponse()` consumes the returned stream.
+Every method takes one input object and accepts an optional `abortSignal`.
 
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`list()`](#list) | List an Agent's Sessions | `SessionsListResponse` |
-| [`listLatest()`](#list-latest) | List recent Sessions, optionally one per Agent | `LatestSessionsListResponse` |
-| [`messages()`](#messages) | Page or poll a Session transcript | `SessionMessagesResponse` |
-| [`delete()`](#delete) | Permanently delete a Session | `void` |
-| [`toolApprovals()`](#tool-approvals) | List pending and decided Tool calls | `ToolApprovalsResponse` |
-| [`decideToolApproval()`](#decide-tool-approval) | Approve or deny one Tool call | `ToolApprovalDecisionResponse` |
-| [`joinToolApprovalContinuation()`](#join-tool-approval-continuation) | Stream a durable approval continuation | `TerminalStreamResult` |
+| [`list()`](#list) | List one agent's sessions | `SessionsListResponse` |
+| [`listLatest()`](#list-latest) | List recent sessions across agents | `LatestSessionsListResponse` |
+| [`messages()`](#messages) | Load or poll a session's messages | `SessionMessagesResponse` |
+| [`delete()`](#delete) | Delete a session for good | `void` |
+| [`toolApprovals()`](#tool-approvals) | List the session's tool approvals | `ToolApprovalsResponse` |
+| [`decideToolApproval()`](#decide-tool-approval) | Approve or deny one tool call | `ToolApprovalDecisionResponse` |
+| [`joinToolApprovalContinuation()`](#join-tool-approval-continuation) | Stream the rest of the turn after approvals | `TerminalStreamResult` |
 
 ## Methods [#methods]
 
 ### `list()` [#list]
 
-Lists an Agent's Sessions by most recent update. An unknown or out-of-Tenant Agent ID returns an empty page.
+Lists one agent's sessions, most recently updated first.
 
 **Signature:** `list(input: { agentId: string } & SessionsListOptions): Promise<SessionsListResponse>`
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| `cursor` | `string` | no | Opaque `nextCursor` from the previous page |
-| `limit` | `number` | no | Page size, 1–200; defaults to 50 |
-| `userId` | `string` | no | End-user Attribution filter; pass `""` for Tenant-level Sessions and omit for all |
-
 ```typescript
-const page = await client.sessions.list({
-  agentId,
-  limit: 25,
-  userId: "customer_123",
-});
-
-if (page.nextCursor) {
-  await client.sessions.list({ agentId, cursor: page.nextCursor, limit: 25 });
-}
+const page = await client.sessions.list({ agentId, userId: "user_123", limit: 25 });
+const next = page.nextCursor
+  ? await client.sessions.list({ agentId, userId: "user_123", cursor: page.nextCursor })
+  : null;
 ```
 
-Returns [`SessionsListResponse`](#sessionslistresponse). Raises `validation_failed` for malformed parameters or `invalid_cursor` for an invalid opaque cursor. See [`GET /v1/agents/:agentId/sessions`](/api-reference/rest-api/sessions#list-sessions).
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | `string` | yes | — | Agent ID (`ag_…`) |
+| `userId` | `string` | no | — | Only this end user's sessions; `""` for tenant-level ones |
+| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+
+An agent ID that does not exist in your tenant returns an empty page. Returns [`SessionsListResponse`](#sessionslistresponse). Errors: `validation_failed`, `invalid_cursor`.
 
 ### `listLatest()` [#list-latest]
 
-Lists the most recently updated Sessions across the Tenant. By default, multiple rows may belong to the same Agent. Set `byAgent: true` for at most one latest Session per Agent and use that mode for an Agent Inbox instead of calling `list()` once per Agent.
+Lists the most recently updated sessions across all your agents.
 
-**Signature:** `listLatest(options?: LatestSessionsListOptions): Promise<LatestSessionsListResponse>`
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `cursor` | `string` | no | Opaque `nextCursor` from the previous page |
-| `limit` | `number` | no | Page size, 1–200; defaults to 50 |
-| `userId` | `string` | no | End-user Attribution filter; pass `""` for Tenant-level Sessions and omit for all |
-| `byAgent` | `boolean` | no | Defaults to `false`; when true, return at most one latest Session per Agent |
+**Signature:** `listLatest(input?: LatestSessionsListOptions): Promise<LatestSessionsListResponse>`
 
 ```typescript
-const inbox = await client.sessions.listLatest({
-  userId: "customer_123",
-  byAgent: true,
-});
-
+const inbox = await client.sessions.listLatest({ userId: "user_123", byAgent: true });
 for (const session of inbox.data) {
   console.log(session.agentId, session.lastMessagePreview);
 }
 ```
 
-Returns [`LatestSessionsListResponse`](#latestsessionslistresponse). Raises `validation_failed` for malformed parameters or `invalid_cursor` for an invalid opaque cursor. See [`GET /v1/sessions/latest`](/api-reference/rest-api/sessions#list-latest-sessions).
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `byAgent` | `boolean` | no | `false` | Return at most one session per agent, its latest |
+| `userId` | `string` | no | — | Only this end user's sessions; `""` for tenant-level ones |
+| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `cursor` | `string` | no | — | `nextCursor` from the previous page |
+
+Use `byAgent: true` to build an inbox with one row per agent, instead of calling `list()` for each agent. Sessions of disabled agents are included. Returns [`LatestSessionsListResponse`](#latestsessionslistresponse). Errors: `validation_failed`, `invalid_cursor`.
 
 ### `messages()` [#messages]
 
-Lists stored AI SDK-compatible messages. Backward pages are newest-first, with messages chronological within each page.
+Loads a session's stored messages in the AI SDK `UIMessage` shape, so you can pass them to `useChat` as initial messages.
 
 **Signature:** `messages(input: { agentId: string; sessionId: string } & SessionMessagesOptions): Promise<SessionMessagesResponse>`
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| `sessionId` | `string` | yes | Session ID (`ss_…`) |
-| `cursor` | `string` | no | Walk backward to older messages |
-| `after` | `string` | no | Poll forward from an earlier `latestCursor` |
-| `limit` | `number` | no | Page size, 1–200; defaults to 50 |
-
 ```typescript
-const page = await client.sessions.messages({ agentId, sessionId, limit: 25 });
+const page = await client.sessions.messages({ agentId, sessionId });
+
+const older = page.nextCursor
+  ? await client.sessions.messages({ agentId, sessionId, cursor: page.nextCursor })
+  : null;
 
 const newer = page.latestCursor
-  ? await client.sessions.messages({
-      agentId,
-      sessionId,
-      after: page.latestCursor,
-      limit: 25,
-    })
+  ? await client.sessions.messages({ agentId, sessionId, after: page.latestCursor })
   : null;
 ```
 
-Returns [`SessionMessagesResponse`](#sessionmessagesresponse). `cursor` and `after` are mutually exclusive. Raises `validation_failed`, `invalid_cursor`, or `not_found` for a missing, foreign, or deleted Session. See [`GET /v1/agents/:agentId/sessions/:sessionId/messages`](/api-reference/rest-api/sessions#list-session-messages).
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | `string` | yes | — | Agent ID (`ag_…`) |
+| `sessionId` | `string` | yes | — | Session ID (`ss_…`) |
+| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `cursor` | `string` | no | — | Go back to older messages |
+| `after` | `string` | no | — | Fetch messages added since an earlier `latestCursor` |
+
+The first page holds the newest messages, in chronological order within the page. Pass `nextCursor` as `cursor` to go further back. Save `latestCursor` and pass it later as `after` to fetch only what is new. Do not pass `cursor` and `after` together.
+
+Returns [`SessionMessagesResponse`](#sessionmessagesresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
 
 ### `delete()` [#delete]
 
-Permanently deletes a Session and its stored history, with an explicit choice
-to preserve or delete its Artifacts.
+Deletes a session and its messages for good. You choose whether its artifacts go too.
 
 **Signature:** `delete(input: { agentId: string; sessionId: string; deleteArtifacts: boolean } & ResourceRequestOptions): Promise<void>`
 
@@ -135,35 +115,26 @@ to preserve or delete its Artifacts.
 await client.sessions.delete({ agentId, sessionId, deleteArtifacts: false });
 ```
 
-Returns `void`. Raises `validation_failed` for malformed IDs or `not_found` when the Session is missing, foreign, or already deleted. See [`DELETE /v1/agents/:agentId/sessions/:sessionId`](/api-reference/rest-api/sessions#delete-session).
+`deleteArtifacts: true` also deletes the files the agent published in this session; `false` keeps them. Errors: `validation_failed`, `not_found`.
 
 ### `toolApprovals()` [#tool-approvals]
 
-Lists pending and decided Tool calls for a Session. Listing does not claim, approve, or deny a call.
+Lists the tool calls in the session that need, or had, a decision. Listing changes nothing.
 
 **Signature:** `toolApprovals(input: { agentId: string; sessionId: string } & ResourceRequestOptions): Promise<ToolApprovalsResponse>`
 
 ```typescript
-const approvals = await client.sessions.toolApprovals({ agentId, sessionId });
-const pending = approvals.data.filter((item) => item.decision === "pending");
+const { data, continuation } = await client.sessions.toolApprovals({ agentId, sessionId });
+const pending = data.filter((approval) => approval.decision === "pending");
 ```
 
-Returns [`ToolApprovalsResponse`](#toolapprovalsresponse). Raises `validation_failed` for malformed IDs or `not_found` when the Session is unavailable. See [`GET /v1/agents/:agentId/sessions/:sessionId/tool-approvals`](/api-reference/rest-api/sessions#list-tool-approvals).
+Show each pending call's `toolName` and `input` to the person deciding. `continuation` tracks the turn that resumes once every call is decided. Returns [`ToolApprovalsResponse`](#toolapprovalsresponse). Errors: `validation_failed`, `not_found`.
 
 ### `decideToolApproval()` [#decide-tool-approval]
 
-Approves or denies one pending Tool call. The decision authorizes only that exact call and does not bypass Tenant or product invariants.
+Approves or denies one pending tool call.
 
 **Signature:** `decideToolApproval(input: DecideToolApprovalBody & { agentId: string; sessionId: string; approvalId: string } & ResourceRequestOptions): Promise<ToolApprovalDecisionResponse>`
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| `sessionId` | `string` | yes | Session ID (`ss_…`) |
-| `approvalId` | `string` | yes | Approval ID returned by `toolApprovals()` |
-| `approved` | `boolean` | yes | `true` to approve or `false` to deny |
-| `reason` | `string` | no | Non-empty reason, up to 1,000 characters |
-| `abortSignal` | `AbortSignal` | no | Aborts the decision request |
 
 ```typescript
 const decision = await client.sessions.decideToolApproval({
@@ -175,20 +146,21 @@ const decision = await client.sessions.decideToolApproval({
 });
 ```
 
-Returns [`ToolApprovalDecisionResponse`](#toolapprovaldecisionresponse). Raises `validation_failed`, `not_found`, or `tool_approval_decision_conflict` when the call was already decided. An aborted request throws `request_aborted`. See [`POST /v1/agents/:agentId/sessions/:sessionId/tool-approvals/:approvalId`](/api-reference/rest-api/sessions#decide-tool-approval).
-
-### `joinToolApprovalContinuation()` [#join-tool-approval-continuation]
-
-Joins the durable continuation created by an approval decision. Persisted chunks replay before the SDK follows live work or returns terminal state.
-
-**Signature:** `joinToolApprovalContinuation(input: { agentId: string; sessionId: string; continuationId: string } & ResourceRequestOptions): Promise<TerminalStreamResult>`
-
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
 | `sessionId` | `string` | yes | Session ID (`ss_…`) |
-| `continuationId` | `string` | yes | Continuation ID returned by `decideToolApproval()` |
-| `abortSignal` | `AbortSignal` | no | Aborts joining or consuming the stream |
+| `approvalId` | `string` | yes | `approvalId` from `toolApprovals()` |
+| `approved` | `boolean` | yes | `true` to run the call, `false` to block it |
+| `reason` | `string` | no | Why you decided, up to 1,000 characters |
+
+The decision covers only that one call. When the last pending call is decided, Blazing Agents resumes the turn: approved calls run and denied calls return a denied result to the agent. Disconnecting from the stream does not stop it. Returns [`ToolApprovalDecisionResponse`](#toolapprovaldecisionresponse) with the `continuationId` to stream. Errors: `validation_failed`, `not_found`, `tool_approval_decision_conflict` (already decided).
+
+### `joinToolApprovalContinuation()` [#join-tool-approval-continuation]
+
+Streams the rest of the turn after its tool calls are decided, from the first chunk.
+
+**Signature:** `joinToolApprovalContinuation(input: { agentId: string; sessionId: string; continuationId: string } & ResourceRequestOptions): Promise<TerminalStreamResult>`
 
 ```typescript
 const continuation = await client.sessions.joinToolApprovalContinuation({
@@ -197,11 +169,12 @@ const continuation = await client.sessions.joinToolApprovalContinuation({
   continuationId: decision.continuationId,
 });
 
-const response = continuation.toResponse();
-const text = await response.text();
+const response = continuation.toResponse(); // return this from your route
 ```
 
-Returns [`TerminalStreamResult`](#terminalstreamresult). Raises `session_busy` only while approvals are still waiting for decisions, or `not_found` for unavailable state. Request failures can throw `request_aborted` or `network_error`; malformed SSE can throw `stream_error`, and later Turn failures arrive as stream error chunks. See [`GET /v1/agents/:agentId/sessions/:sessionId/tool-approval-continuations/:continuationId`](/api-reference/rest-api/sessions#join-tool-approval-continuation).
+The stream uses the same format as `chat()`, and you can join it more than once: each join replays what was already produced, then follows the turn live until it ends. Read the body once per join, through `toResponse()` or `toStream()`.
+
+Returns [`TerminalStreamResult`](#terminalstreamresult). Errors: `session_busy` while some calls still wait for a decision, `not_found`, and `stream_error` for a broken stream. A failure inside the resumed turn arrives as an `error` chunk in the stream.
 
 ## Response types [#response-types]
 
@@ -225,7 +198,7 @@ interface SessionListItem {
 }
 ```
 
-`agentVersion` is the configured immutable Version Pin, or `null` for an unpinned Session. Timestamps are ISO 8601 strings.
+`agentVersion` is the version the session is pinned to, or `null` when each turn uses the agent's current version.
 
 ### `LatestSessionsListResponse` [#latestsessionslistresponse]
 
@@ -243,7 +216,7 @@ interface LatestSessionListItem extends SessionListItem {
 }
 ```
 
-Items are ordered by `updatedAt` descending, then `id` ascending, across Agents. The Agent fields reflect current configuration and status, independently of a Session's pinned Version. Disabled Agents remain included. Requires SDK 0.5.0 or later.
+`model`, `thinkingLevel`, and `status` describe the agent as it is now, not the version the session is pinned to.
 
 ### `SessionMessagesResponse` [#sessionmessagesresponse]
 
@@ -259,46 +232,34 @@ interface SessionMessage {
   role: "system" | "user" | "assistant";
   parts: Array<{ type: string; [key: string]: unknown }>;
   metadata?: unknown;
-  [key: string]: unknown;
 }
 ```
-
-Pass `nextCursor` back as `cursor` to continue in the current direction. A non-empty page supplies `latestCursor` so a poller can later pass it as `after`.
 
 ### `ToolApprovalsResponse` [#toolapprovalsresponse]
 
 ```typescript
-type ToolApprovalDecision = "pending" | "approved" | "denied";
-type ToolApprovalContinuationState =
-  "waiting" | "queued" | "running" | "succeeded" | "failed";
-type JSONValue =
-  null | boolean | number | string | JSONValue[] | { [key: string]: JSONValue };
+interface ToolApprovalsResponse {
+  data: ToolApprovalState[];
+  continuation: { id: string; state: ToolApprovalContinuationState } | null;
+}
 
-// Metadata fields require the policy-support release (v0.8.0).
-// ToolReference is exported by that release.
 interface ToolApprovalState {
+  approvalId: string;
+  toolCallId: string;
+  toolName: string;
+  input: JSONValue;
+  decision: "pending" | "approved" | "denied";
+  reason: string | null;
   tool?: ToolReference | null;
   assistantMessageId?: string;
   createdAt?: string;
   decidedAt?: string | null;
-  approvalId: string;
-  decision: ToolApprovalDecision;
-  input: JSONValue;
-  reason: string | null;
-  toolCallId: string;
-  toolName: string;
 }
 
-interface ToolApprovalsResponse {
-  data: ToolApprovalState[];
-  continuation: {
-    id: string;
-    state: ToolApprovalContinuationState;
-  } | null;
-}
+type ToolApprovalContinuationState = "waiting" | "queued" | "running" | "succeeded" | "failed";
 ```
 
-`input` is the exact JSON input proposed for the Tool call. Review it before deciding.
+`input` is the exact JSON the agent wants to pass to the tool. `tool` identifies it as a built-in or MCP tool when known. The package exports `ToolApprovalState`, `ToolApprovalsResponse`, and `ToolReference`.
 
 ### `ToolApprovalDecisionResponse` [#toolapprovaldecisionresponse]
 
@@ -314,84 +275,25 @@ interface ToolApprovalDecisionResponse {
 ```typescript
 interface TerminalStreamResult {
   requestId?: string;
-  toResponse(): Response;
+  toResponse: () => Response;
+  toStream: () => ReadableStream<Uint8Array>;
 }
 ```
-
-`toResponse()` is a one-shot relay of the AI SDK UI-message SSE stream.
 
 ## Errors [#errors]
 
-SDK request failures throw `BlazingAgentsError`. Branch on its stable `code`, not its message.
+Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes you are most likely to handle:
 
-| Code | Applies to | Action |
-| --- | --- | --- |
-| `validation_failed` | All ID-based methods and invalid options | Correct the indicated input |
-| `invalid_cursor` | `list()`, `listLatest()`, `messages()` | Restart pagination from a known cursor |
-| `not_found` | Session and approval operations | Check the Agent, Session, approval, or continuation |
-| `tool_approval_decision_conflict` | `decideToolApproval()` | Refresh approvals; the call was already decided |
-| `session_busy` | `joinToolApprovalContinuation()` | Decide every waiting approval before joining |
-| `request_aborted` | Decision and continuation requests | Handle the caller's abort |
-| `network_error` | Any request | Retry according to application policy |
-| `stream_error` | Continuation stream parsing | Treat the continuation stream as failed |
+| Code | Meaning |
+| --- | --- |
+| `invalid_cursor` | Start paging again without the cursor |
+| `not_found` | No such session, approval, or continuation for this agent |
+| `tool_approval_decision_conflict` | The call was already decided; reload the approvals |
+| `session_busy` | Some calls still wait for a decision; decide them first |
+| `agent_disabled` | The agent is disabled, so the turn cannot resume |
 
-Starting an approval continuation for a disabled Agent can fail with `agent_disabled`. See [SDK errors](/api-reference/protocols/errors).
+## Next [#next]
 
-## End-to-end workflow [#end-to-end-workflow]
-
-Create a Session, inspect its transcript, review one pending Tool call, decide it, and join the continuation:
-
-```typescript
-import { BlazingAgents } from "@blazingagents/sdk";
-
-const client = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-});
-const agentId = "ag_0123456789abcdef";
-
-const chat = await client.chat({
-  agentId,
-  message: {
-    id: crypto.randomUUID(),
-    role: "user",
-    parts: [{ type: "text", text: "Inspect the project files." }],
-  },
-});
-const sessionId = await chat.sessionId;
-await chat.toResponse().text();
-
-const transcript = await client.sessions.messages({ agentId, sessionId });
-const approvals = await client.sessions.toolApprovals({ agentId, sessionId });
-const pending = approvals.data.find((item) => item.decision === "pending");
-
-if (pending) {
-  console.log({ tool: pending.toolName, input: pending.input });
-
-  const decision = await client.sessions.decideToolApproval({
-    agentId,
-    sessionId,
-    approvalId: pending.approvalId,
-    approved: true,
-    reason: "Reviewed by the application.",
-  });
-  const continuation = await client.sessions.joinToolApprovalContinuation({
-    agentId,
-    sessionId,
-    continuationId: decision.continuationId,
-  });
-  await continuation.toResponse().text();
-}
-
-console.log({
-  messages: transcript.data.length,
-  latestCursor: transcript.latestCursor,
-});
-```
-
-## Related [#related]
-
-- [Sessions and Turns](/platform/sessions-and-turns)
+- [Sessions and turns](/platform/sessions-and-turns)
 - [Tool approvals](/agents/tools/tool-approvals)
-- [Build a chat endpoint](/platform/sessions-and-turns)
-- [REST Sessions](/api-reference/rest-api/sessions)
-- [Pagination and filtering](/api-reference/protocols/pagination-and-filtering)
+- [Build a chatbot](/getting-started/chatbot)

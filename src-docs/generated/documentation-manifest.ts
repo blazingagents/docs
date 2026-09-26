@@ -8974,7 +8974,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/sessions.md",
                 "type": "page",
                 "name": "Sessions",
-                "description": "List Sessions, page transcripts, and complete Tool approval continuations.",
+                "description": "List sessions, load their messages, delete them, and answer tool approvals with the TypeScript SDK.",
                 "url": "/sdk/typescript/sessions",
                 "$ref": "sdk/typescript/sessions.md"
               },
@@ -8982,7 +8982,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/providers.md",
                 "type": "page",
                 "name": "Providers",
-                "description": "TypeScript SDK Provider CRUD and cost-free model discovery.",
+                "description": "Store model provider keys, list their models, and check reasoning levels with the TypeScript SDK.",
                 "url": "/sdk/typescript/providers",
                 "$ref": "sdk/typescript/providers.md"
               },
