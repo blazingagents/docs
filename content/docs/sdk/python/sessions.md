@@ -44,7 +44,7 @@ if page.next_cursor is not None:
 
 `user_id` keeps only one end user's sessions, and `""` keeps tenant-level ones; omit it to include all. `limit` is 1 to 200 and defaults to 50. An unknown agent returns an empty page.
 
-Returns `SessionsPage` with `data: list[Session]` and `next_cursor: str | None`. Raises `APIStatusError` with `validation_failed` or `invalid_cursor`.
+Returns `SessionsPage` with `data: list[Session]` and `next_cursor: str | None`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `iter()` [#iter]
 
@@ -96,7 +96,7 @@ if page.latest_cursor is not None:
 
 Without a cursor you get the newest messages, in chronological order. To page further back, pass `next_cursor` as `cursor`. To poll for new messages, save `latest_cursor` and pass it as `after`; when a forward page has more, pass its `next_cursor` as the next `after`. Do not pass both `cursor` and `after`. `limit` is 1 to 200 and defaults to 50.
 
-Returns `SessionMessagesPage` with `data: list[SessionMessage]`, `next_cursor`, and `latest_cursor`. Raises `validation_failed` when you combine `cursor` and `after`, `invalid_cursor`, or `not_found`.
+Returns `SessionMessagesPage` with `data: list[SessionMessage]`, `next_cursor`, and `latest_cursor`. Raises `validation_failed` when you combine `cursor` and `after`, `invalid_cursor`, or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `tool_approvals()` [#tool-approvals]
 
@@ -129,7 +129,7 @@ decision = client.sessions.decide_tool_approval(
 
 **Signature:** `decide_tool_approval(*, agent_id: str, session_id: str, approval_id: str, approved: bool, reason=...) -> ToolApprovalDecision`
 
-`reason` is optional; when given it must be 1 to 1,000 characters. Sending the same decision again is harmless. Reversing a decision raises `tool_approval_decision_conflict`.
+`reason` is optional; when given it must be 1 to 1,000 characters. Sending the same decision again is harmless. Reversing a decision raises [`tool_approval_decision_conflict`](/api-reference/protocols/errors#tool_approval_decision_conflict).
 
 Your decision lets the agent continue in the same session. Returns `ToolApprovalDecision` with `continuation_id` and its `state`: `"waiting"`, `"queued"`, `"running"`, `"succeeded"`, or `"failed"`. When the agent proposed several calls at once, the continuation stays `"waiting"` until you decide all of them. Also raises `validation_failed` or `not_found`.
 
@@ -151,7 +151,7 @@ with client.sessions.join_tool_approval_continuation(
 
 The stream first replays everything already produced, then follows live output to the end. The work runs whether or not you watch: closing the stream only stops your reader, and you can join again with the same ID. With the async client, call `stream = await client.sessions.join_tool_approval_continuation(...)`, then use `async with stream` and `async for`.
 
-Raises `session_busy` while the continuation is still `"waiting"` for other decisions, or `not_found`. Reading the stream can raise `StreamError`.
+Raises [`session_busy`](/api-reference/protocols/errors#session_busy) while the continuation is still `"waiting"` for other decisions, or `not_found`. Reading the stream can raise `StreamError`.
 
 ### `delete()` [#delete]
 

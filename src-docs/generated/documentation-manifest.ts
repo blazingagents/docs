@@ -9459,7 +9459,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/protocols/errors.md",
                 "type": "page",
                 "name": "Errors",
-                "description": "Handle REST error envelopes, typed SDK failures, and errors that occur after streaming begins.",
+                "description": "Look up any error code to see what happened and how to fix it, and handle errors from REST, the SDKs, and streams.",
                 "url": "/api-reference/protocols/errors",
                 "$ref": "api-reference/protocols/errors.md"
               },

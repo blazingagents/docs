@@ -47,7 +47,7 @@ memory = client.memories.create(agent_id=agent_id, text="Works in UTC.").memory
 
 **Signature:** `create(*, agent_id: str, text: str, user_id=...) -> MemoryResponse`
 
-`text` is non-empty and at most 10 KiB. `user_id` defaults to `""`. Returns `MemoryResponse`, whose `memory` field is the new [`Memory`](#memory). Raises `APIStatusError` with `validation_failed` or `not_found`.
+`text` is non-empty and at most 10 KiB. `user_id` defaults to `""`. Returns `MemoryResponse`, whose `memory` field is the new [`Memory`](#memory). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `list()` [#list]
 
@@ -66,7 +66,7 @@ page = client.memories.list(agent_id=agent_id, user_id="customer_123", search="r
 | `cursor` | `str` | `next_cursor` from the previous page |
 | `limit` | `int` | 1 to 100, default 50 |
 
-Returns `MemoriesPage` with `data: list[Memory]` and `next_cursor: str | None`. Raises `validation_failed`, `invalid_cursor`, or `not_found`.
+Returns `MemoriesPage` with `data: list[Memory]` and `next_cursor: str | None`. Raises `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `not_found`.
 
 ### `iter()` [#iter]
 

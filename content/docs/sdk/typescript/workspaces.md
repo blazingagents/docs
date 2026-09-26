@@ -56,7 +56,7 @@ const workspace = await client.workspaces.create({
 - `{ mode: "allowlist", allowedHosts: string[] }`: only the listed hosts, at least one.
 - `{ mode: "offline" }`: no outbound network.
 
-The policy applies to every agent that uses the workspace. Returns [`Workspace`](#workspace). Errors: `validation_failed`.
+The policy applies to every agent that uses the workspace. Returns [`Workspace`](#workspace). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed).
 
 ### `list()` [#list]
 
@@ -74,7 +74,7 @@ const { data, nextCursor } = await client.workspaces.list({ userId: "user_42" })
 | `limit` | `number` | no | `50` | 1 to 200 per page |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
-Returns [`WorkspacesListResponse`](#workspaceslistresponse). Errors: `validation_failed`, `invalid_cursor`.
+Returns [`WorkspacesListResponse`](#workspaceslistresponse). Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `get()` [#get]
 
@@ -86,7 +86,7 @@ Reads one workspace.
 const workspace = await client.workspaces.get({ workspaceId });
 ```
 
-Returns [`Workspace`](#workspace). Errors: `validation_failed`, `workspace_not_found`.
+Returns [`Workspace`](#workspace). Errors: `validation_failed`, [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found).
 
 ### `update()` [#update]
 
@@ -124,10 +124,10 @@ Move every agent that uses the workspace to another one first. Returns `"complet
 
 Errors:
 
-- `workspace_in_use`: agents still use it. `details.agentIds` lists them.
-- `workspace_busy`: the workspace is running a command. Try again shortly.
+- [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use): agents still use it. `details.agentIds` lists them.
+- [`workspace_busy`](/api-reference/protocols/errors#workspace_busy): the workspace is running a command. Try again shortly.
 - `workspace_not_found`: no such workspace in your tenant.
-- `service_unavailable`: try again with backoff.
+- [`service_unavailable`](/api-reference/protocols/errors#service_unavailable): try again with backoff.
 
 ## Response types [#response-types]
 
