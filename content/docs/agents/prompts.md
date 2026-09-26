@@ -1,41 +1,30 @@
 ---
 title: Prompts
-description: Store named message templates and render validated variables for any generation mode.
+description: Save a message template with variables once, then fill it in on any call.
 ---
 
 # Prompts
 
-A Prompt is a Tenant-owned named message template. Store one when multiple
-Turns should reuse the same input shape. Agent instructions define persistent
-behavior; a Prompt or literal message supplies input for one Turn.
+A prompt is a saved message template with `{{variables}}`. Store one when your app sends the same kind of request again and again, such as "summarize this release for this audience", and fill in the blanks on each call. You can edit the wording in one place without redeploying code that sends it.
 
-## Variables and rendering [#variables-and-rendering]
+Instructions and prompts do different jobs. An agent's instructions shape how it behaves on every turn. A prompt is the input for one turn.
 
-Write placeholders as `{{variable}}`. Whitespace inside the braces is trimmed;
-names start with an ASCII letter or underscore and continue with letters,
-digits, or underscores. Repeated names appear once in the `variables` inventory
-in first-seen order.
+## Create and use a prompt [#create-and-use-a-prompt]
 
-An invocation must supply all and only those variables. Missing values use
-`prompt_variable_missing`; unknown keys use `prompt_variable_unknown`. A Prompt
-without placeholders can omit `variables`.
+Set `AGENT_ID` to one of your `ag_...` agents.
 
-## Create and invoke a Prompt [#create-and-invoke-a-prompt]
-
-```typescript
+```typescript tab="TypeScript" tab-group="sdk-language"
 import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,
 });
+
 const prompt = await client.prompts.create({
   name: "Release summary",
   template: "Summarize {{ version }} for {{ audience }}.",
 });
-
-if (prompt.variables.join(",") !== "version,audience") {
-  throw new Error("Unexpected Prompt variables");
-}
+console.log(prompt.variables); // ["version", "audience"]
 
 const result = await client.completion({
   agentId: process.env.AGENT_ID!,
@@ -45,32 +34,52 @@ const result = await client.completion({
 console.log(await result.text);
 ```
 
-The same `promptId` and `variables` alternative works with stateful chat,
-stateless [generation and streaming](/agents/output/generation-and-streaming),
-and [structured output](/agents/output/structured-output). Choose either
-literal input or a Prompt; a mixed shape is rejected.
+```python tab="Python"
+import os
 
-Blazing Agents expands the template before execution. Only the rendered text
-enters a Session transcript, so later edits or deletion do not change history.
+from blazing_agents import BlazingAgents
 
-## Limits and lifecycle [#limits-and-lifecycle]
+client = BlazingAgents()
 
-A Tenant can store up to 100 Prompts. Names are unique per Tenant and at most
-80 characters. Templates are non-empty, at most 10,240 characters, and contain
-at most 10 distinct variables. `userId` is immutable Attribution; `name`,
-`template`, `metadata`, and the optional `agentId` link are mutable. Deletion is permanent.
+prompt = client.prompts.create(
+    name="Release summary",
+    template="Summarize {{ version }} for {{ audience }}.",
+)
+print(prompt.variables)  # ['version', 'audience']
 
-Set `agentId` when creating a Prompt to link it to an Agent in the same Tenant.
-Omit it or pass `null` to leave the Prompt unlinked; update with `null` to clear
-an existing link. Deleting an Agent also deletes its linked Prompts. Unlinked
-Prompts remain. The link supports organization and filtering; any Agent in
-the Tenant can still invoke the Prompt. Attribution remains independent.
+print(
+    client.completion(
+        agent_id=os.environ["AGENT_ID"],
+        prompt_id=prompt.id,
+        variables={"version": "2.4", "audience": "developers"},
+    )
+)
+```
 
-List filters accept `agentId` and `userId` together and return their intersection.
-Omitting both returns all Tenant Prompts.
+Prompt names are unique in your account, so use a new name before you run this again.
 
-## SDK and API [#sdk-and-api]
+## How variables work [#how-variables-work]
 
-- Prompts: [TypeScript SDK](/sdk/typescript/prompts) and [Python SDK](/sdk/python/prompts)
-- Invocation: [TypeScript client](/sdk/typescript/client) and [Python client](/sdk/python/client)
-- REST: [Prompts API](/api-reference/rest-api/prompts) and [Generation API](/api-reference/rest-api/generation)
+Write a variable as `{{name}}`. Spaces inside the braces are ignored. A name starts with a letter or underscore and contains only letters, digits, and underscores. The prompt's `variables` list shows each name once, in the order it first appears.
+
+Each call must supply every variable and nothing else. A missing value fails with `prompt_variable_missing`, and an extra one fails with `prompt_variable_unknown`. A prompt with no variables needs no `variables` field.
+
+Pass `promptId` and `variables` in place of a literal message on any call: [chat](/platform/sessions-and-turns), [completion](/agents/output/generation-and-streaming), or [structured output](/agents/output/structured-output). A call uses either a prompt or a literal message, never both.
+
+Blazing Agents fills in the template before the agent runs, and only the filled-in text is saved in the session. Editing or deleting the prompt later does not change past conversations.
+
+## Limits [#limits]
+
+- Up to 100 prompts per account.
+- Names up to 80 characters.
+- Templates up to 10,240 characters, with at most 10 distinct variables.
+
+## Organize prompts by agent [#organize-prompts-by-agent]
+
+Set `agentId` on a prompt to group it with an agent. You can then list one agent's prompts with `client.prompts.list({ agentId })`. The link is for organizing only, so any of your agents can still use the prompt. Deleting the agent deletes the prompts linked to it. For the full field and update rules, see the [TypeScript](/sdk/typescript/prompts) or [Python](/sdk/python/prompts) SDK.
+
+## Next [#next]
+
+- [Generation and streaming](/agents/output/generation-and-streaming) to stream a prompt's answer.
+- [Structured output](/agents/output/structured-output) to get JSON back from a prompt.
+- Prompts SDK reference for [TypeScript](/sdk/typescript/prompts) or [Python](/sdk/python/prompts).
