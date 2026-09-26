@@ -1,82 +1,74 @@
 ---
 title: Tenant
-description: Read and update Tenant display settings and soft quota configuration.
+description: Read and change your tenant's name, monthly quota, and billing switch with the TypeScript SDK.
 ---
 
 # Tenant
 
-`client.tenant` reads and updates settings for the Tenant authenticated by the client credential. It is a singleton resource: methods do not accept a Tenant ID.
+`client.tenant` reads and changes settings for the tenant your API key belongs to: its name, an optional monthly quota that stops new turns past a ceiling, and whether usage is billed to your end users. It takes no tenant ID, because a key belongs to exactly one tenant.
 
-Every network method accepts one input object with optional `abortSignal`.
-`ResourceRequestOptions` means `{ abortSignal?: AbortSignal }`; list-option
-types include that field too.
+```typescript
+const settings = await client.tenant.patch({
+  quota: { monthlyTokenLimit: 1_000_000, monthlyRequestLimit: null, resetDay: 1 },
+});
+console.log(settings.quota);
+```
 
-## Overview [#overview]
-
-Settings contain a display `name` and nullable `quota`. `quota: null` means no configured monthly quota. Within a quota, either token or request limit may be `null` to disable that measure; `resetDay` is always required and ranges from 1 through 28.
-
-`client.tenant` does not expose identity lookup. [`GET /v1/me`](/api-reference/rest-api/tenant#get-current-identity) requires a dashboard JWT and has no backend SDK method.
+Every method takes one input object and accepts an optional `abortSignal`.
 
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`get()`](#get) | Read the authenticated Tenant's settings | `TenantSettingsResponse` |
-| [`patch()`](#patch) | Update its name or complete quota configuration | `TenantSettingsResponse` |
+| [`get()`](#get) | Read your tenant's settings | `TenantSettingsResponse` |
+| [`patch()`](#patch) | Change the name, quota, or billing switch | `TenantSettingsResponse` |
 
 ## Methods [#methods]
 
 ### `get()` [#get]
 
-Returns the complete settings for the authenticated Tenant.
+Reads your tenant's settings.
 
 **Signature:** `get(input?: ResourceRequestOptions): Promise<TenantSettingsResponse>`
 
 ```typescript
 const settings = await client.tenant.get();
+console.log(settings.name, settings.quota?.monthlyTokenLimit);
 ```
 
-Returns [`TenantSettingsResponse`](#tenantsettingsresponse). Only standard authentication and service errors apply. See [`GET /v1/tenant`](/api-reference/rest-api/tenant#get-tenant-settings).
+Returns [`TenantSettingsResponse`](#tenantsettingsresponse).
 
 ### `patch()` [#patch]
 
-Changes the Tenant display name, quota, or both. Omitted top-level fields remain unchanged. A supplied quota is a complete replacement; pass `quota: null` to remove it.
+Changes one or more settings.
 
 **Signature:** `patch(input: UpdateTenantSettingsBody & ResourceRequestOptions): Promise<TenantSettingsResponse>`
 
-| Body field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | no | Display name, 1–80 characters |
-| `quota` | `Quota \| null` | no | Complete monthly quota, or `null` to clear it |
-| `quota.monthlyTokenLimit` | `number \| null` | with `quota` | Positive integer ceiling; `null` disables it |
-| `quota.monthlyRequestLimit` | `number \| null` | with `quota` | Positive integer ceiling; `null` disables it |
-| `quota.resetDay` | `number` | with `quota` | Integer from 1 through 28 |
-
-At least one top-level body field is required.
-
 ```typescript
-const settings = await client.tenant.patch({
-  quota: {
-    monthlyTokenLimit: 1_000_000,
-    monthlyRequestLimit: null,
-    resetDay: 1,
-  },
-});
+await client.tenant.patch({ quota: null });
 ```
 
-Returns [`TenantSettingsResponse`](#tenantsettingsresponse). Raises `validation_failed` for an empty body, invalid name, non-positive limit, or reset day outside 1–28. See [`PATCH /v1/tenant`](/api-reference/rest-api/tenant#update-tenant-settings).
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | no | 1 to 80 characters |
+| `quota` | `Quota \| null` | no | The whole monthly quota; `null` removes it |
+| `monetizationEnabled` | `boolean` | no | Bill usage to your end users through your merchant account |
+
+Pass at least one field; the ones you leave out stay as they are. A `quota` replaces the whole quota, so send all three of its fields:
+
+| `Quota` field | Type | Description |
+| --- | --- | --- |
+| `monthlyTokenLimit` | `number \| null` | Tokens per month; `null` for no token limit |
+| `monthlyRequestLimit` | `number \| null` | Turns per month; `null` for no turn limit |
+| `resetDay` | `number` | Day of the month, 1 to 28, when the count starts over |
+
+At least one limit must be a positive number. Once usage passes a limit, new turns fail with `quota_exceeded` and task runs end as `blocked`; turns already running finish. See [Usage and quotas](/platform/usage-and-quotas#quota-outcomes).
+
+Turning `monetizationEnabled` off drops usage events your merchant has not yet accepted. See [Monetization](/platform/monetization) before you change it.
+
+Returns [`TenantSettingsResponse`](#tenantsettingsresponse). Errors: `validation_failed`.
 
 ## Response types [#response-types]
-
-### `Quota` [#quota]
-
-```typescript
-interface Quota {
-  monthlyTokenLimit: number | null;
-  monthlyRequestLimit: number | null;
-  resetDay: number;
-}
-```
 
 ### `TenantSettingsResponse` [#tenantsettingsresponse]
 
@@ -84,56 +76,21 @@ interface Quota {
 interface TenantSettingsResponse {
   name: string;
   quota: Quota | null;
+  monetizationEnabled: boolean;
+  deletion: { requestedAt: string; deletesAt: string } | null;
+}
+
+interface Quota {
+  monthlyTokenLimit: number | null;
+  monthlyRequestLimit: number | null;
+  resetDay: number;
 }
 ```
 
-`UpdateTenantSettingsBody` is `{ name?: string; quota?: Quota | null }` with at least one field. See the canonical [Tenant settings schema](/api-reference/protocols/objects-and-schemas#tenant-settings-response).
+`quota` is `null` when you have not set one, so usage is unlimited. `deletion` is set when someone has asked to delete the tenant from the dashboard; `deletesAt` is when that happens, and it can be cancelled until then.
 
-## Errors [#errors]
+## Next [#next]
 
-SDK request failures throw `BlazingAgentsError`. Branch on its stable `code`, not its message.
-
-| Code | Applies to | Action |
-| --- | --- | --- |
-| `validation_failed` | `patch()` | Supply at least one valid setting and a complete valid quota |
-
-Authentication, transport, malformed-response, and service failures may also throw. See [SDK errors](/api-reference/protocols/errors).
-
-## End-to-end workflow [#end-to-end-workflow]
-
-Read the current singleton settings, configure a quota while leaving the name unchanged, and inspect the result:
-
-```typescript
-import { BlazingAgents } from "@blazingagents/sdk";
-
-const client = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-});
-
-const current = await client.tenant.get();
-const updated = await client.tenant.patch({
-  quota: {
-    monthlyTokenLimit: 1_000_000,
-    monthlyRequestLimit: 10_000,
-    resetDay: 1,
-  },
-});
-
-console.log({
-  nameUnchanged: updated.name === current.name,
-  monthlyTokenLimit: updated.quota?.monthlyTokenLimit,
-});
-```
-
-To clear the quota later:
-
-```typescript
-await client.tenant.patch({ quota: null });
-```
-
-## Related [#related]
-
-- [Tenancy and end-user Attribution](/platform/tenancy-and-attribution)
-- [Security and credentials](/platform/security-and-credentials)
-- [Build a multi-tenant application](/platform/tenancy-and-attribution)
-- [REST Tenant](/api-reference/rest-api/tenant)
+- [Usage and quotas](/platform/usage-and-quotas)
+- [Usage reference](/sdk/typescript/usage)
+- [Monetization](/platform/monetization)
