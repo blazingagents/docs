@@ -591,15 +591,13 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
           }
         ]
       },
-      "file": "agents/workspaces.md",
+      "file": "agents/workspaces.mdx",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -617,11 +615,13 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
           }
         ]
       },
-      "file": "agents/artifacts.md",
+      "file": "agents/artifacts.mdx",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -3950,14 +3950,14 @@
       "url": "/agents/memory"
     },
     {
-      "file": "agents/workspaces.md",
+      "file": "agents/workspaces.mdx",
       "name": "Workspaces",
       "publishable": true,
       "title": "Workspaces",
       "url": "/agents/workspaces"
     },
     {
-      "file": "agents/artifacts.md",
+      "file": "agents/artifacts.mdx",
       "name": "Artifacts",
       "publishable": true,
       "title": "Artifacts",

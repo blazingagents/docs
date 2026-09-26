@@ -14,7 +14,7 @@ export const documentationPages = [
     "url": "/agents/agents"
   },
   {
-    "path": "agents/artifacts.md",
+    "path": "agents/artifacts.mdx",
     "url": "/agents/artifacts"
   },
   {
@@ -66,7 +66,7 @@ export const documentationPages = [
     "url": "/agents/versions-and-lifecycle"
   },
   {
-    "path": "agents/workspaces.md",
+    "path": "agents/workspaces.mdx",
     "url": "/agents/workspaces"
   },
   {
@@ -8696,20 +8696,20 @@ export const documentationTree: SerializedPageTree = {
             "$ref": "agents/memory.md"
           },
           {
-            "$id": "agents/workspaces.md",
+            "$id": "agents/workspaces.mdx",
             "type": "page",
             "name": "Workspaces",
-            "description": "Use the Tenant-owned durable filesystem attached to one or more same-Tenant Agents.",
+            "description": "Give your agent a private file system and shell whose files survive between sessions.",
             "url": "/agents/workspaces",
-            "$ref": "agents/workspaces.md"
+            "$ref": "agents/workspaces.mdx"
           },
           {
-            "$id": "agents/artifacts.md",
+            "$id": "agents/artifacts.mdx",
             "type": "page",
             "name": "Artifacts",
-            "description": "Publish selected Workspace files as immutable outputs applications can list and download.",
+            "description": "Let your agent publish finished files that your application can list and download.",
             "url": "/agents/artifacts",
-            "$ref": "agents/artifacts.md"
+            "$ref": "agents/artifacts.mdx"
           },
           {
             "type": "folder",

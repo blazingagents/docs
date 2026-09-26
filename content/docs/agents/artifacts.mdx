@@ -1,0 +1,99 @@
+---
+title: Artifacts
+description: Let your agent publish finished files that your application can list and download.
+---
+
+# Artifacts
+
+Hand a finished file from your agent to your users. When the agent publishes a file from its [workspace](/agents/workspaces), you get an artifact: a fixed copy your backend can list and download. Everything the agent does not publish stays private in the workspace.
+
+## Publish and download a file [#publish-and-download-a-file]
+
+The agent publishes with the `publish_artifacts` tool, which comes with the `workspace` tool group. This example asks the agent to write and publish a report, then downloads it:
+
+```typescript tab="TypeScript"
+const turn = await client.chat({
+  agentId,
+  message: {
+    id: crypto.randomUUID(),
+    role: "user",
+    parts: [
+      {
+        type: "text",
+        text: "Write a short release summary to release.md, then publish it with publish_artifacts.",
+      },
+    ],
+  },
+});
+const sessionId = await turn.sessionId;
+await turn.toResponse().text();
+
+const { data } = await client.artifacts.list({ agentId, sessionId });
+const artifact = data.find((item) => item.filename === "release.md");
+if (!artifact) throw new Error("release.md was not published");
+
+const { url } = await client.artifacts.createDownloadUrl({
+  artifactId: artifact.artifactId,
+});
+console.log(await (await fetch(url)).text());
+```
+
+```python tab="Python"
+import uuid
+
+import httpx
+
+message = {
+    "id": str(uuid.uuid4()),
+    "role": "user",
+    "parts": [
+        {
+            "type": "text",
+            "text": "Write a short release summary to release.md, then publish it with publish_artifacts.",
+        }
+    ],
+}
+with client.chat(agent_id=agent_id, message=message) as stream:
+    session_id = stream.session_id
+    for _ in stream:
+        pass
+
+page = client.artifacts.list(agent_id=agent_id, session_id=session_id)
+artifact = next((a for a in page.data if a.filename == "release.md"), None)
+if artifact is None:
+    raise RuntimeError("release.md was not published")
+
+download = client.artifacts.create_download_url(artifact_id=artifact.artifact_id)
+print(httpx.get(str(download.url)).text)
+```
+
+Read the whole stream before you list artifacts. The turn finishes saving its results only when the stream ends.
+
+## What you get [#what-you-get]
+
+Each published file becomes a new artifact with its own ID, filename, media type, and size, even when an earlier artifact has the same name. The artifact is a copy: later edits to the workspace file do not change it, and deleting the artifact leaves the workspace file alone.
+
+An artifact belongs to the session that published it and carries that session's `userId` and `metadata`. List artifacts newest first, filtered by agent, by session, or both. A [task run](/automation/task-runs) starts its own session, so filter by the run's `sessionId` to find only that run's files.
+
+Only a session can own an artifact. Stateless generation with `client.completion()` or `client.object()` can use the other workspace tools but cannot publish.
+
+## Limits [#limits]
+
+- One `publish_artifacts` call publishes one to ten files.
+- Each file can be up to 10 MiB.
+- One session can publish at most 100 artifacts.
+- A download URL works for five minutes.
+
+## Deliver files safely [#deliver-files-safely]
+
+Your API key can read every artifact in your account, so check in your backend that the signed-in user may see an artifact before you create its download URL. Treat the URL like a password and keep it out of logs.
+
+Treat filenames, media types, and contents as untrusted, because the agent produced them. Downloads are always served as attachments, but your application should still validate what it opens or displays.
+
+Deleting an artifact is permanent. When you delete an agent or a session, you choose whether its artifacts are deleted or kept.
+
+## Next [#next]
+
+- [Workspaces](/agents/workspaces) for the files an agent keeps privately.
+- Artifact methods in the [TypeScript SDK](/sdk/typescript/artifacts) and [Python SDK](/sdk/python/artifacts).
+- [Service limits](/api-reference/protocols/service-limits#artifacts) for every artifact bound.
