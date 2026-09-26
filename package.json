@@ -8,6 +8,7 @@
     "check": "npm run typecheck && npm run test",
     "dev": "npm run generate && vite --config vite.docs.config.mts",
     "generate": "fumadocs-mdx source.config.ts .source && node scripts/generate-docs-manifest.mjs",
+    "lint:docs": "node scripts/lint-docs.mjs",
     "test": "npm run generate && vitest run --config vitest.docs.config.mts && node scripts/verify-docs-coverage.mjs",
     "typecheck": "npm run generate && tsc --noEmit -p tsconfig.docs.json",
     "verify-output": "node scripts/verify-docs-output.mjs"
