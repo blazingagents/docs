@@ -162,16 +162,19 @@ describe("generated REST API examples", () => {
     );
   });
 
-  test("uses the contract's examples and synthesizes the rest", () => {
+  test("uses the contract's examples and fills path IDs", () => {
     expect(operation("create-agent").examples[0]?.code).toContain(
       `"name":"Support Agent"`
     );
     expect(operation("delete-agent").examples[0]?.code).toContain(
       "?includeArtifacts=false"
     );
-    expect(
-      JSON.parse(operation("list-workspaces").responses[0]?.code ?? "")
-    ).toMatchObject({ nextCursor: "string" });
+    expect(operation("decide-tool-approval").examples[0]?.code).toContain(
+      "/tool-approvals/$APPROVAL_ID"
+    );
+    expect(operation("decide-tool-approval").examples[1]?.code).toContain(
+      'os.environ["APPROVAL_ID"]'
+    );
     expect(operation("create-agent").responseMetadata.schema).toEqual({
       name: "Agent",
     });

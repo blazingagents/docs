@@ -24,16 +24,18 @@ run ends up waiting for a person anyway, it fails. See
 
 List tasks.
 
+Lists your tasks, most recently updated first, one page at a time. Each task includes `latestRun` with the status of its most recent run, or `null` if it has never run. Filter by agent or by end user, and pass `nextCursor` as `cursor` to get the next page.
+
 #### Request
 
 Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `agentId` | string | query |  | `ag_…` ID. |
-| `userId` | string | query |  |  |
-| `cursor` | string \| null | query |  |  |
-| `limit` | integer | query |  | 1–200. Defaults to `50`. |
+| `agentId` | string | query |  | Return only tasks for this agent. |
+| `userId` | string | query |  | Return only tasks for this end user. An empty string returns tenant-level tasks. |
+| `cursor` | string \| null | query |  | `nextCursor` from the previous page. |
+| `limit` | integer | query |  | Tasks per page, 1 to 200. 1–200. Defaults to `50`. |
 
 #### Response
 
@@ -45,34 +47,37 @@ Response schema: `TaskList`.
 {
   "data": [
     {
-      "id": "tk_1234567890ABCDEF",
-      "tenantId": "ten_1234567890ABCDEF",
-      "agentId": "ag_1234567890ABCDEF",
-      "agentVersion": 1,
-      "name": "string",
-      "prompt": "string",
+      "id": "tk_6Wq3Hn8ZpL2vRt5C",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+      "agentId": "ag_4kP9sT2vXq7LmN3a",
+      "agentVersion": null,
+      "name": "Daily support summary",
+      "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
       "schedule": {
-        "kind": "once",
+        "kind": "cron",
         "config": {
-          "at": "2026-07-10T10:00:00Z"
+          "expression": "0 9 * * 1-5",
+          "timezone": "Europe/London"
         }
       },
       "enabled": true,
-      "activeRunId": "tr_1234567890ABCDEF",
-      "latestRunId": "tr_1234567890ABCDEF",
-      "userId": "string",
-      "metadata": {},
-      "deletedAt": "2026-07-10T10:00:00Z",
-      "createdAt": "2026-07-10T10:00:00Z",
-      "updatedAt": "2026-07-10T10:00:00Z",
+      "activeRunId": null,
+      "latestRunId": "tr_9Jd4Ks7NbV2xQm6P",
+      "userId": "",
+      "metadata": {
+        "team": "support"
+      },
+      "deletedAt": null,
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:03:00.000Z",
       "latestRun": {
-        "id": "tr_1234567890ABCDEF",
-        "status": "queued",
-        "finishedAt": "2026-07-10T10:00:00Z"
+        "id": "tr_9Jd4Ks7NbV2xQm6P",
+        "status": "succeeded",
+        "finishedAt": "2026-07-10T10:03:00.000Z"
       }
     }
   ],
-  "nextCursor": "string"
+  "nextCursor": null
 }
 ```
 
@@ -80,9 +85,9 @@ Response schema: `TaskList`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` |  | Validation failed |
-| `401` |  | Missing or invalid credential |
-| `404` |  | Not found in this tenant |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -97,21 +102,23 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tasks" \
 
 Create a task.
 
+Creates a task: a saved prompt your agent runs in the background. With a `schedule`, the task runs by itself; without one, it runs only when you start it. Send `submit: true` to start a run right away, which returns `202 Accepted` with the run's ID in `runId`; otherwise you get `201 Created` and `runId` is `null`. Retrying this request creates another task, so when retries must not start duplicate runs, create the task first and start runs with `POST /v1/tasks/{taskId}/runs` and an `idempotencyKey`. The platform-managed `ba assist` agent cannot run tasks.
+
 #### Request
 
 Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `agentId` | string | body | required | `ag_…` ID. |
-| `agentVersion` | integer \| null | body |  | 1–2147483647. Defaults to `null`. |
-| `name` | string | body | required | 1–80 characters. |
-| `prompt` | string | body | required | 1–6000 characters. |
-| `schedule` | object \| null | body |  | Defaults to `null`. |
-| `enabled` | boolean | body |  | Defaults to `true`. |
-| `submit` | boolean | body |  | Defaults to `false`. |
-| `userId` | string | body |  | Defaults to `""`. |
-| `metadata` | object | body |  | Defaults to `{}`. |
+| `agentId` | string | body | required | ID of the agent that runs the task. It cannot change later. |
+| `agentVersion` | integer \| null | body |  | Agent version to run. `null` runs whatever version is current when each run starts. 1–2147483647. Defaults to `null`. |
+| `name` | string | body | required | Display name, 1 to 80 characters. 1–80 characters. |
+| `prompt` | string | body | required | The prompt the agent receives on every run, 1 to 6,000 characters. 1–6000 characters. |
+| `schedule` | object \| null | body |  | When the task runs by itself: `once` at a time, every `everyMs` milliseconds (at least 60,000) for `interval`, or a five-field cron expression in an IANA timezone for `cron`. `null` means the task runs only when you start it. Defaults to `null`. |
+| `enabled` | boolean | body |  | Whether the schedule fires. A disabled task can still be started on demand. Defaults to `true`. |
+| `submit` | boolean | body |  | Start a run as soon as the task is created. Defaults to `false`. |
+| `userId` | string | body |  | Your end user's ID, used for attribution. An empty string means a tenant-level task. It cannot change after creation. Defaults to `""`. |
+| `metadata` | object | body |  | Your own key-value data, returned unchanged and copied to each run. Defaults to `{}`. |
 
 #### Response
 
@@ -122,60 +129,60 @@ Response schema: `CreatedTask`.
 ```json
 {
   "task": {
-    "id": "tk_1234567890ABCDEF",
-    "tenantId": "ten_1234567890ABCDEF",
-    "agentId": "ag_1234567890ABCDEF",
-    "agentVersion": 1,
-    "name": "string",
-    "prompt": "string",
+    "id": "tk_6Wq3Hn8ZpL2vRt5C",
+    "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+    "agentId": "ag_4kP9sT2vXq7LmN3a",
+    "agentVersion": null,
+    "name": "Daily support summary",
+    "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
     "schedule": {
-      "kind": "once",
+      "kind": "cron",
       "config": {
-        "at": "2026-07-10T10:00:00Z"
+        "expression": "0 9 * * 1-5",
+        "timezone": "Europe/London"
       }
     },
     "enabled": true,
-    "activeRunId": "tr_1234567890ABCDEF",
-    "latestRunId": "tr_1234567890ABCDEF",
-    "userId": "string",
-    "metadata": {},
-    "deletedAt": "2026-07-10T10:00:00Z",
-    "createdAt": "2026-07-10T10:00:00Z",
-    "updatedAt": "2026-07-10T10:00:00Z"
+    "activeRunId": null,
+    "latestRunId": null,
+    "userId": "",
+    "metadata": {
+      "team": "support"
+    },
+    "deletedAt": null,
+    "createdAt": "2026-07-10T10:00:00.000Z",
+    "updatedAt": "2026-07-10T10:00:00.000Z"
   },
-  "runId": "tr_1234567890ABCDEF"
+  "runId": null
 }
 ```
 
-Returns `202 Accepted` as `application/json`. The created task with its queued run id.
+Returns `202 Accepted` as `application/json`. The created task and the ID of its queued run.
 
 Response schema: `CreatedTask`.
 
 ```json
 {
   "task": {
-    "id": "tk_1234567890ABCDEF",
-    "tenantId": "ten_1234567890ABCDEF",
-    "agentId": "ag_1234567890ABCDEF",
-    "agentVersion": 1,
-    "name": "string",
-    "prompt": "string",
-    "schedule": {
-      "kind": "once",
-      "config": {
-        "at": "2026-07-10T10:00:00Z"
-      }
-    },
+    "id": "tk_6Wq3Hn8ZpL2vRt5C",
+    "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+    "agentId": "ag_4kP9sT2vXq7LmN3a",
+    "agentVersion": null,
+    "name": "Daily support summary",
+    "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
+    "schedule": null,
     "enabled": true,
-    "activeRunId": "tr_1234567890ABCDEF",
-    "latestRunId": "tr_1234567890ABCDEF",
-    "userId": "string",
-    "metadata": {},
-    "deletedAt": "2026-07-10T10:00:00Z",
-    "createdAt": "2026-07-10T10:00:00Z",
-    "updatedAt": "2026-07-10T10:00:00Z"
+    "activeRunId": "tr_9Jd4Ks7NbV2xQm6P",
+    "latestRunId": "tr_9Jd4Ks7NbV2xQm6P",
+    "userId": "",
+    "metadata": {
+      "team": "support"
+    },
+    "deletedAt": null,
+    "createdAt": "2026-07-10T10:00:00.000Z",
+    "updatedAt": "2026-07-10T10:00:00.000Z"
   },
-  "runId": "tr_1234567890ABCDEF"
+  "runId": "tr_9Jd4Ks7NbV2xQm6P"
 }
 ```
 
@@ -183,9 +190,13 @@ Response schema: `CreatedTask`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` |  | Validation failed |
-| `401` |  | Missing or invalid credential |
-| `404` |  | Not found in this tenant |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found) | The resource was not found |
+| `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) | The request conflicts with the resource's current state |
+| `429` | [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -195,12 +206,14 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/tasks" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"agentId":"ag_1234567890ABCDEF","name":"string","prompt":"string"}'
+  --data '{"agentId":"ag_4kP9sT2vXq7LmN3a","name":"Daily support summary","prompt":"Summarize yesterday'\''s open support cases and flag any that are overdue.","schedule":{"kind":"cron","config":{"expression":"0 9 * * 1-5","timezone":"Europe/London"}},"metadata":{"team":"support"}}'
 ```
 
 ### GET /v1/tasks/:taskId [#get-task]
 
 Get a task.
+
+Returns a task without running it. `activeRunId` is the run in progress, if any, and `latestRunId` is the most recent run.
 
 #### Request
 
@@ -208,7 +221,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `taskId` | string | path | required | `tk_…` ID. |
+| `taskId` | string | path | required | ID of the task. |
 
 #### Response
 
@@ -218,26 +231,29 @@ Response schema: `Task`.
 
 ```json
 {
-  "id": "tk_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "agentVersion": 1,
-  "name": "string",
-  "prompt": "string",
+  "id": "tk_6Wq3Hn8ZpL2vRt5C",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "agentVersion": null,
+  "name": "Daily support summary",
+  "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
   "schedule": {
-    "kind": "once",
+    "kind": "cron",
     "config": {
-      "at": "2026-07-10T10:00:00Z"
+      "expression": "0 9 * * 1-5",
+      "timezone": "Europe/London"
     }
   },
   "enabled": true,
-  "activeRunId": "tr_1234567890ABCDEF",
-  "latestRunId": "tr_1234567890ABCDEF",
-  "userId": "string",
-  "metadata": {},
-  "deletedAt": "2026-07-10T10:00:00Z",
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:00:00Z"
+  "activeRunId": null,
+  "latestRunId": null,
+  "userId": "",
+  "metadata": {
+    "team": "support"
+  },
+  "deletedAt": null,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
 }
 ```
 
@@ -245,9 +261,10 @@ Response schema: `Task`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` |  | Validation failed |
-| `401` |  | Missing or invalid credential |
-| `404` |  | Not found in this tenant |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -262,19 +279,21 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF" \
 
 Update a task.
 
+Updates a task. Send at least one field; fields you leave out keep their values. A run already in progress keeps the settings it started with. The agent and `userId` cannot change: to point a task at another agent, create a new task.
+
 #### Request
 
 Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `taskId` | string | path | required | `tk_…` ID. |
-| `agentVersion` | integer \| null | body |  | 1–2147483647. |
-| `name` | string | body |  | 1–80 characters. |
-| `prompt` | string | body |  | 1–6000 characters. |
-| `schedule` | object \| null | body |  |  |
-| `enabled` | boolean | body |  |  |
-| `metadata` | object | body |  |  |
+| `taskId` | string | path | required | ID of the task. |
+| `agentVersion` | integer \| null | body |  | Agent version to run. `null` runs whatever version is current when each run starts. 1–2147483647. |
+| `name` | string | body |  | Display name, 1 to 80 characters. 1–80 characters. |
+| `prompt` | string | body |  | The prompt the agent receives on every run, 1 to 6,000 characters. 1–6000 characters. |
+| `schedule` | object \| null | body |  | When the task runs by itself: `once` at a time, every `everyMs` milliseconds (at least 60,000) for `interval`, or a five-field cron expression in an IANA timezone for `cron`. `null` means the task runs only when you start it. |
+| `enabled` | boolean | body |  | Whether the schedule fires. A disabled task can still be started on demand. |
+| `metadata` | object | body |  | Your own key-value data. Replaces the current metadata. |
 
 #### Response
 
@@ -284,26 +303,30 @@ Response schema: `Task`.
 
 ```json
 {
-  "id": "tk_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "agentVersion": 1,
-  "name": "string",
-  "prompt": "string",
+  "id": "tk_6Wq3Hn8ZpL2vRt5C",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "agentVersion": null,
+  "name": "Daily support summary",
+  "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
   "schedule": {
-    "kind": "once",
+    "kind": "cron",
     "config": {
-      "at": "2026-07-10T10:00:00Z"
+      "expression": "0 9 * * 1-5",
+      "timezone": "Europe/London"
     }
   },
-  "enabled": true,
-  "activeRunId": "tr_1234567890ABCDEF",
-  "latestRunId": "tr_1234567890ABCDEF",
-  "userId": "string",
-  "metadata": {},
-  "deletedAt": "2026-07-10T10:00:00Z",
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:00:00Z"
+  "enabled": false,
+  "activeRunId": null,
+  "latestRunId": null,
+  "userId": "",
+  "metadata": {
+    "team": "support",
+    "pausedBy": "ops"
+  },
+  "deletedAt": null,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:15:00.000Z"
 }
 ```
 
@@ -311,9 +334,10 @@ Response schema: `Task`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` |  | Validation failed |
-| `401` |  | Missing or invalid credential |
-| `404` |  | Not found in this tenant |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -323,12 +347,14 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"agentVersion":1}'
+  --data '{"enabled":false,"metadata":{"team":"support","pausedBy":"ops"}}'
 ```
 
 ### DELETE /v1/tasks/:taskId [#delete-task]
 
 Delete a task.
+
+Deletes a task and stops its schedule. Its past runs and their transcripts are kept. A task with a queued or running run cannot be deleted: wait for the run to finish or cancel it first. After deletion, the task ID returns `404` everywhere.
 
 #### Request
 
@@ -336,19 +362,21 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `taskId` | string | path | required | `tk_…` ID. |
+| `taskId` | string | path | required | ID of the task. |
 
 #### Response
 
-Returns `204 No Content`. Deleted.
+Returns `204 No Content`. The task was deleted.
 
 #### Errors
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` |  | Validation failed |
-| `401` |  | Missing or invalid credential |
-| `404` |  | Not found in this tenant |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`task_active_run_exists`](/api-reference/protocols/errors#task_active_run_exists) | The request conflicts with the resource's current state |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

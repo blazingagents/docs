@@ -124,7 +124,8 @@ npm run sync:openapi
 npm run generate:rest-api
 ```
 
-The script reads `../ba-platform/servers/api/openapi.json` by default. Set
+The script reads `../ba-platform/servers/api/openapi.json`, relative to the
+main checkout, by default, so it also works from a git worktree. Set
 `BA_PLATFORM_OPENAPI` to use another path, and it fails if the source file is
 missing:
 

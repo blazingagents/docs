@@ -15,18 +15,20 @@ A prompt is a saved message template with `{{variable}}` placeholders. Store it 
 
 List prompts.
 
+Lists your prompts, most recently updated first, in a single response. Filter by end user, by linked agent, or both.
+
 #### Request
 
 Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `userId` | string | query |  |  |
-| `agentId` | string | query |  | `ag_…` ID. |
+| `userId` | string | query |  | Return only prompts for this end user. Send an empty string for tenant-level prompts, or leave it out for all prompts. |
+| `agentId` | string | query |  | Return only prompts linked to this agent. |
 
 #### Response
 
-Returns `200 OK` as `application/json`. The tenant's prompts.
+Returns `200 OK` as `application/json`. Your tenant's prompts.
 
 Response schema: `PromptList`.
 
@@ -34,18 +36,21 @@ Response schema: `PromptList`.
 {
   "prompts": [
     {
-      "id": "prompt_1234567890ABCDEF",
-      "tenantId": "ten_1234567890ABCDEF",
-      "agentId": "ag_1234567890ABCDEF",
-      "name": "string",
-      "template": "string",
+      "id": "prompt_5Wn3Hc7TbK2xQv9F",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+      "agentId": "ag_4kP9sT2vXq7LmN3a",
+      "name": "Refund reply",
+      "template": "Write a short, friendly reply to {{customerName}} about order {{orderId}}.",
       "variables": [
-        "string"
+        "customerName",
+        "orderId"
       ],
-      "userId": "string",
-      "metadata": {},
-      "createdAt": "2026-07-10T10:00:00Z",
-      "updatedAt": "2026-07-10T10:00:00Z"
+      "userId": "",
+      "metadata": {
+        "team": "support"
+      },
+      "createdAt": "2026-07-10T10:00:00.000Z",
+      "updatedAt": "2026-07-10T10:00:00.000Z"
     }
   ]
 }
@@ -55,9 +60,9 @@ Response schema: `PromptList`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` |  | Validation failed |
-| `401` |  | Missing or invalid credential |
-| `404` |  | Not found in this tenant |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -72,17 +77,19 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/prompts" \
 
 Create a prompt.
 
+Saves a message template and lists the variables it uses in `variables`. Your tenant can keep up to 100 prompts.
+
 #### Request
 
 Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `name` | string | body | required | 1–80 characters. |
-| `template` | string | body | required | 1–10240 characters. |
-| `agentId` | string \| null | body |  | `ag_…` ID. |
-| `userId` | string | body |  | Defaults to `""`. |
-| `metadata` | object | body |  | Defaults to `{}`. |
+| `name` | string | body | required | Display name, 1 to 80 characters, unique within your tenant. 1–80 characters. |
+| `template` | string | body | required | Message template, up to 10,240 characters. Mark each variable as `{{name}}`; names match `[A-Za-z_][A-Za-z0-9_]*`, and a template can use up to 10 of them. 1–10240 characters. |
+| `agentId` | string \| null | body |  | ID of an agent in your tenant to link the prompt to, or `null` for no link. Deleting the agent also deletes its linked prompts. |
+| `userId` | string | body |  | Your end user's ID, used for attribution. An empty string means a tenant-level prompt. It cannot change after creation. Defaults to `""`. |
+| `metadata` | object | body |  | Your own key-value data, returned unchanged. Defaults to `{}`. |
 
 #### Response
 
@@ -92,18 +99,21 @@ Response schema: `Prompt`.
 
 ```json
 {
-  "id": "prompt_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "name": "string",
-  "template": "string",
+  "id": "prompt_5Wn3Hc7TbK2xQv9F",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "Refund reply",
+  "template": "Write a short, friendly reply to {{customerName}} about order {{orderId}}.",
   "variables": [
-    "string"
+    "customerName",
+    "orderId"
   ],
-  "userId": "string",
-  "metadata": {},
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:00:00Z"
+  "userId": "",
+  "metadata": {
+    "team": "support"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
 }
 ```
 
@@ -111,10 +121,11 @@ Response schema: `Prompt`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` |  | Validation failed |
-| `401` |  | Missing or invalid credential |
-| `404` |  | Not found in this tenant |
-| `409` |  | Prompt name already exists |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`prompt_limit_reached`](/api-reference/protocols/errors#prompt_limit_reached) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`prompt_name_conflict`](/api-reference/protocols/errors#prompt_name_conflict) | The request conflicts with the resource's current state |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -124,12 +135,14 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/prompts" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"name":"string","template":"string"}'
+  --data '{"name":"Refund reply","template":"Write a short, friendly reply to {{customerName}} about order {{orderId}}.","agentId":"ag_4kP9sT2vXq7LmN3a","metadata":{"team":"support"}}'
 ```
 
 ### GET /v1/prompts/:promptId [#get-prompt]
 
 Get a prompt.
+
+Retrieves a prompt, including the variables its template uses.
 
 #### Request
 
@@ -137,7 +150,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `promptId` | string | path | required | `prompt_…` ID. |
+| `promptId` | string | path | required | ID of the prompt. |
 
 #### Response
 
@@ -147,18 +160,21 @@ Response schema: `Prompt`.
 
 ```json
 {
-  "id": "prompt_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "name": "string",
-  "template": "string",
+  "id": "prompt_5Wn3Hc7TbK2xQv9F",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "Refund reply",
+  "template": "Write a short, friendly reply to {{customerName}} about order {{orderId}}.",
   "variables": [
-    "string"
+    "customerName",
+    "orderId"
   ],
-  "userId": "string",
-  "metadata": {},
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:00:00Z"
+  "userId": "",
+  "metadata": {
+    "team": "support"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
 }
 ```
 
@@ -166,9 +182,10 @@ Response schema: `Prompt`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` |  | Validation failed |
-| `401` |  | Missing or invalid credential |
-| `404` |  | Not found in this tenant |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -183,17 +200,19 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/prompts/prompt_1234567890ABCDEF" \
 
 Update a prompt.
 
+Updates a prompt in place; prompts keep no earlier versions. Send at least one field. Fields you leave out keep their values. When the template changes, `variables` reflects the new template.
+
 #### Request
 
 Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `promptId` | string | path | required | `prompt_…` ID. |
-| `agentId` | string \| null | body |  | `ag_…` ID. |
-| `name` | string | body |  | 1–80 characters. |
-| `template` | string | body |  | 1–10240 characters. |
-| `metadata` | object | body |  |  |
+| `promptId` | string | path | required | ID of the prompt. |
+| `agentId` | string \| null | body |  | ID of an agent in your tenant to link the prompt to, or `null` for no link. Deleting the agent also deletes its linked prompts. |
+| `name` | string | body |  | Display name, 1 to 80 characters, unique within your tenant. 1–80 characters. |
+| `template` | string | body |  | Message template, up to 10,240 characters. Mark each variable as `{{name}}`; names match `[A-Za-z_][A-Za-z0-9_]*`, and a template can use up to 10 of them. 1–10240 characters. |
+| `metadata` | object | body |  | Your own key-value data, returned unchanged. Replaces the current value. |
 
 #### Response
 
@@ -203,18 +222,22 @@ Response schema: `Prompt`.
 
 ```json
 {
-  "id": "prompt_1234567890ABCDEF",
-  "tenantId": "ten_1234567890ABCDEF",
-  "agentId": "ag_1234567890ABCDEF",
-  "name": "string",
-  "template": "string",
+  "id": "prompt_5Wn3Hc7TbK2xQv9F",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "name": "Refund reply",
+  "template": "Write a short, friendly reply to {{customerName}} about order {{orderId}}. Mention the refund amount {{amount}}.",
   "variables": [
-    "string"
+    "customerName",
+    "orderId",
+    "amount"
   ],
-  "userId": "string",
-  "metadata": {},
-  "createdAt": "2026-07-10T10:00:00Z",
-  "updatedAt": "2026-07-10T10:00:00Z"
+  "userId": "",
+  "metadata": {
+    "team": "support"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:15:00.000Z"
 }
 ```
 
@@ -222,10 +245,11 @@ Response schema: `Prompt`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` |  | Validation failed |
-| `401` |  | Missing or invalid credential |
-| `404` |  | Not found in this tenant |
-| `409` |  | Prompt name already exists |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`prompt_name_conflict`](/api-reference/protocols/errors#prompt_name_conflict) | The request conflicts with the resource's current state |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -235,12 +259,14 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/prompts/prompt_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"agentId":"ag_1234567890ABCDEF"}'
+  --data '{"template":"Write a short, friendly reply to {{customerName}} about order {{orderId}}. Mention the refund amount {{amount}}."}'
 ```
 
 ### DELETE /v1/prompts/:promptId [#delete-prompt]
 
 Delete a prompt.
+
+Permanently deletes a prompt. Messages already sent with it stay in their transcripts, and later requests that pass its `promptId` return `not_found`.
 
 #### Request
 
@@ -248,19 +274,20 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `promptId` | string | path | required | `prompt_…` ID. |
+| `promptId` | string | path | required | ID of the prompt. |
 
 #### Response
 
-Returns `204 No Content`. Deleted.
+Returns `204 No Content`. The prompt was deleted.
 
 #### Errors
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` |  | Validation failed |
-| `401` |  | Missing or invalid credential |
-| `404` |  | Not found in this tenant |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

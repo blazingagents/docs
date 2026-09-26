@@ -1,8 +1,18 @@
+import { execFileSync } from "node:child_process";
 import { copyFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 
+/** The main checkout, so the sibling default also works from a git worktree. */
+const checkout = dirname(
+  execFileSync(
+    "git",
+    ["rev-parse", "--path-format=absolute", "--git-common-dir"],
+    { encoding: "utf8" }
+  ).trim()
+);
 const source = resolve(
-  process.env.BA_PLATFORM_OPENAPI ?? "../ba-platform/servers/api/openapi.json"
+  process.env.BA_PLATFORM_OPENAPI ??
+    resolve(checkout, "../ba-platform/servers/api/openapi.json")
 );
 const target = resolve("openapi/openapi.json");
 

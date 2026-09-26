@@ -13,42 +13,6 @@ const handWrittenPages = new Set(["index", "authentication"]);
 const pageOverrides = new Map([
   ["POST /v1/agents/{agentId}/generation", "generation"],
 ]);
-/**
- * Anchors for operations without an `operationId`, from tags the platform has
- * not converted to its contract conventions yet. Converted operations take
- * their anchor from the `operationId`; delete entries as their tags convert.
- */
-const anchorOverrides = new Map([
-  ["PATCH /v1/chat-connections/{id}", "rename-chat-connection"],
-  ["POST /v1/chat-connections/{id}/credentials", "rotate-chat-credentials"],
-  ["POST /v1/chat-connections/{id}/health", "check-chat-health"],
-  ["GET /v1/agents/{agentId}/sessions", "list-sessions"],
-  ["POST /v1/agents/{agentId}/sessions", "create-session-turn"],
-  ["POST /v1/agents/{agentId}/sessions/{sessionId}", "resume-session-turn"],
-  [
-    "GET /v1/agents/{agentId}/sessions/{sessionId}/tool-approval-continuations/{continuationId}",
-    "join-tool-approval-continuation",
-  ],
-  ["GET /v1/agents/{agentId}/skills", "list-skills"],
-  ["POST /v1/agents/{agentId}/skills/upload", "upload-skill"],
-  ["GET /v1/agents/{agentId}/skills/{skillId}/files", "get-skill-file"],
-  ["PUT /v1/agents/{agentId}/skills/{skillId}/files", "put-skill-file"],
-  ["POST /v1/agents/{agentId}/skills/{skillId}/copies", "copy-skill"],
-  ["GET /v1/agents/{agentId}/memories", "list-memories"],
-  ["PATCH /v1/providers/{id}", "update-provider"],
-  ["GET /v1/providers/{id}/models", "list-provider-models"],
-  ["GET /v1/providers/{id}/thinking-levels", "list-thinking-levels"],
-  ["GET /v1/usage", "get-usage"],
-  ["GET /v1/agents/{agentId}/usage", "get-agent-usage"],
-  ["POST /v1/tasks/{taskId}/runs", "create-task-run"],
-  ["GET /v1/tasks/{taskId}/runs", "list-task-runs"],
-  ["GET /v1/tasks/{taskId}/runs/{runId}/messages", "list-task-run-messages"],
-]);
-
-const SAMPLE_TIMESTAMP = "2026-07-10T10:00:00Z";
-/** The style guide's example model, for fields the spec gives no example. */
-const EXAMPLE_MODEL = "openai/gpt-6-luna";
-const MODEL_FIELD = /^model(?:Id)?$/;
 const ID_PATTERN = /^\^([a-z]+_)\[0-9A-Za-z\]\{16\}\$$/;
 const FRONTMATTER = /^---\ntitle: (?<title>.+)\ndescription: (?<description>.+)\n---\n/;
 const NEXT_SECTION = /^## Next \[#next\]/m;
@@ -57,14 +21,6 @@ const STATUS_TEXT = {
   201: "Created",
   202: "Accepted",
   204: "No Content",
-};
-const ERROR_CODES = {
-  400: "validation_failed",
-  401: "unauthorized",
-  404: "not_found",
-  413: "invalid_request",
-  429: "rate_limited",
-  503: "service_unavailable",
 };
 const METHODS = ["get", "post", "put", "patch", "delete"];
 const CAMEL_CASE_BOUNDARY = /([a-z0-9])([A-Z])/g;
@@ -92,76 +48,24 @@ function primaryType(schema) {
   return types[0] ?? (schema.properties ? "object" : undefined);
 }
 
-/** Builds a schema-shaped example; `minimal` keeps only what a request needs. */
-export function exampleFor(input, { minimal = false, name = "" } = {}, depth = 0) {
+/**
+ * A value for a path, query, or form parameter in the cURL example. The
+ * contract gives bodies and responses examples, but not every parameter:
+ * IDs follow their pattern, and other values become shell variables.
+ */
+function parameterExample(input, name) {
   const schema = resolveSchema(input);
+  const id = schema.pattern?.match(ID_PATTERN)?.[1];
   if (schema.example !== undefined) {
     return schema.example;
-  }
-  if (schema.examples?.length) {
-    return schema.examples[0];
-  }
-  const variant = schema.oneOf ?? schema.anyOf;
-  if (variant) {
-    return exampleFor(variant[0], { minimal, name }, depth + 1);
-  }
-  if (schema.const !== undefined) {
-    return schema.const;
   }
   if (schema.enum) {
     return schema.enum[0];
   }
-  if (schema.default !== undefined && !minimal) {
-    return schema.default;
-  }
-  const type = primaryType(schema);
-  if (!type) {
-    return [schema.type].flat().includes("null") ? null : {};
-  }
-  if (type === "object") {
-    if (depth > 6 || !schema.properties) {
-      return {};
-    }
-    const required = new Set(schema.required ?? []);
-    const keys = Object.keys(schema.properties);
-    const selected = minimal
-      ? keys.filter((key) => required.has(key))
-      : keys;
-    return Object.fromEntries(
-      (selected.length > 0 || !minimal ? selected : keys.slice(0, 1)).map(
-        (key) => [
-          key,
-          exampleFor(schema.properties[key], { minimal, name: key }, depth + 1),
-        ]
-      )
-    );
-  }
-  if (type === "array") {
-    if (minimal && !schema.minItems) {
-      return [];
-    }
-    return [exampleFor(schema.items, { minimal, name }, depth + 1)];
-  }
-  if (type === "integer" || type === "number") {
-    return schema.minimum ?? (schema.exclusiveMinimum ?? -1) + 1;
-  }
-  if (type === "boolean") {
-    return true;
-  }
-  const id = schema.pattern?.match(ID_PATTERN)?.[1];
   if (id) {
     return `${id}1234567890ABCDEF`;
   }
-  if (schema.format === "date-time") {
-    return SAMPLE_TIMESTAMP;
-  }
-  if (schema.format === "uri" || schema.format === "url" || /Url$/.test(name)) {
-    return "https://example.com";
-  }
-  if (schema.format === "binary") {
-    return "file";
-  }
-  return MODEL_FIELD.test(name) ? EXAMPLE_MODEL : "string";
+  return `$${name.replace(CAMEL_CASE_BOUNDARY, "$1_$2").toUpperCase()}`;
 }
 
 function typeLabel(input) {
@@ -224,15 +128,6 @@ function colonPath(path) {
   return path.replaceAll(/\{([^}]+)\}/g, ":$1");
 }
 
-function slug(summary) {
-  return summary
-    .toLowerCase()
-    .replaceAll("'s", "")
-    .split(/[^a-z0-9]+/)
-    .filter((word) => word && !["a", "an", "the"].includes(word))
-    .join("-");
-}
-
 function requestBody(operation) {
   const [contentType, media] = Object.entries(
     operation.requestBody?.content ?? {}
@@ -286,7 +181,7 @@ function successResponses(operation) {
       return {
         contentType,
         description: response.description,
-        example: media?.example ?? (json ? exampleFor(media.schema) : undefined),
+        example: media?.example,
         headers: Object.entries(response.headers ?? {}).map(
           ([name, header]) => ({ description: header.description, name })
         ),
@@ -300,15 +195,11 @@ function errorResponses(operation) {
   return Object.entries(operation.responses)
     .filter(([status]) => !status.startsWith("2"))
     .map(([status, response]) => ({
-      codes: response["x-error-codes"] ?? [],
+      codes: response["x-error-codes"],
       description: response.description,
       example: {
         error: {
-          code:
-            response["x-error-codes"]?.[0] ??
-            ERROR_CODES[status] ??
-            spec.components.schemas.ApiError.properties.error.properties.code
-              .enum[0],
+          code: response["x-error-codes"][0],
           message: `${response.description}.`,
         },
       },
@@ -320,9 +211,9 @@ function curlFor(operation, path, body, responses) {
   const parameters = operation.parameters ?? [];
   let url = path.replaceAll(/\{([^}]+)\}/g, (_match, name) =>
     String(
-      exampleFor(
+      parameterExample(
         parameters.find((parameter) => parameter.name === name)?.schema,
-        { name }
+        name
       )
     )
   );
@@ -330,7 +221,7 @@ function curlFor(operation, path, body, responses) {
     .filter((parameter) => parameter.in === "query" && parameter.required)
     .map(
       (parameter) =>
-        `${parameter.name}=${encodeURIComponent(String(exampleFor(parameter.schema, { name: parameter.name })))}`
+        `${parameter.name}=${encodeURIComponent(String(parameterExample(parameter.schema, parameter.name)))}`
     );
   if (query.length > 0) {
     url += `?${query.join("&")}`;
@@ -351,12 +242,12 @@ function curlFor(operation, path, body, responses) {
   if (body?.contentType === "application/json") {
     lines.push(
       '--header "Content-Type: application/json"',
-      `--data '${JSON.stringify(body.example ?? exampleFor(body.schema, { minimal: true }))}'`
+      `--data '${JSON.stringify(body.example).replaceAll("'", "'\\''")}'`
     );
   } else if (body?.contentType === "multipart/form-data") {
     for (const [name, schema] of Object.entries(body.schema.properties)) {
       if ((body.schema.required ?? []).includes(name)) {
-        const value = exampleFor(schema, { minimal: true });
+        const value = parameterExample(schema, name);
         lines.push(
           `--form "${name}=${resolveSchema(schema).format === "binary" ? `@./${name}` : value}"`
         );
@@ -399,8 +290,8 @@ export function loadRestApi() {
         const responses = successResponses(operation);
         return {
           anchor: operation.operationId
-            ? operation.operationId.replace(CAMEL_CASE_BOUNDARY, "$1-$2").toLowerCase()
-            : (anchorOverrides.get(key) ?? slug(operation.summary)),
+            .replace(CAMEL_CASE_BOUNDARY, "$1-$2")
+            .toLowerCase(),
           body,
           curl: curlFor(operation, path, body, responses),
           errors: errorResponses(operation),
@@ -412,8 +303,7 @@ export function loadRestApi() {
           path: colonPath(path),
           responses,
           summary: operation.summary,
-          /** Only converted operations carry descriptions written for tenants. */
-          ...(operation.operationId ? { description: operation.description } : {}),
+          description: operation.description,
         };
       }
     )
@@ -472,7 +362,7 @@ function renderOperation(operation) {
   return [
     `### ${operation.method} ${operation.path} [#${operation.anchor}]`,
     `${operation.summary}.`,
-    ...(operation.description ? [operation.description] : []),
+    operation.description,
     "#### Request",
     auth,
     ...table,
