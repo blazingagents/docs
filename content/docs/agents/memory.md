@@ -1,103 +1,112 @@
 ---
 title: Memory
-description: Persist Agent-owned notes across Sessions with explicit Tools or automatic context injection.
+description: Let an agent remember facts about each user across sessions.
 ---
 
 # Memory
 
-Memory is durable Agent-owned text that persists across Sessions. Use it for
-recall that changes over time. [Session messages](/platform/sessions-and-turns)
-are one conversation's transcript, while [Skills](/agents/skills) are reusable
-instruction material.
+Memory lets an agent keep short notes that outlast a single conversation, such as "prefers concise status updates" or "works in the Berlin office". A note can belong to the whole agent or to one of your end users. The agent can save and look up notes itself, or you can have every turn start with the relevant notes already in context.
 
-## Ownership and visibility [#ownership-and-visibility]
+Memory is for facts that change over time. A [session's messages](/platform/sessions-and-turns) cover one conversation, and [skills](/agents/skills) hold reusable instructions.
 
-Every Memory belongs to one Agent. `userId: ""` creates an Agent-general row;
-a non-empty value creates an end-user partition. A Turn sees general rows plus
-rows matching its `userId`. A Turn without `userId` sees only general rows.
+## Remember a user's preference [#remember-a-users-preference]
 
-Tenant API credentials can administer every Memory in that Tenant. Attribution
-filters data; it is not end-user authentication or an ACL. See
-[Tenancy and Attribution](/platform/tenancy-and-attribution).
+This turns on automatic memory, saves a note for one user, and then asks a fresh question as that user. Set `AGENT_ID` to one of your `ag_...` agents.
 
-## Choose a recall mode [#choose-a-recall-mode]
+```typescript tab="TypeScript" tab-group="sdk-language"
+import { BlazingAgents } from "@blazingagents/sdk";
 
-- `memoryInjectionEnabled` adds visible Memory to every Turn's context.
-- The `memory` Tool group exposes `save_memory`, `get_memory`,
-  `search_memories`, `update_memory`, and `delete_memory` to the model.
-
-These settings are independent and can be enabled separately or together.
-Automatic injection selects newest visible rows up to 4,000 words. The final
-row may be truncated to fit.
-
-## Save and recall across Sessions [#save-and-recall-across-sessions]
-
-This example creates a Memory through the SDK and verifies automatic recall in
-a second Session with the same Attribution scope:
-
-```typescript
-import assert from "node:assert/strict";
-
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
+const agentId = process.env.AGENT_ID!;
 const userId = "app-user-42";
+
 await client.agents.update({ agentId, memoryInjectionEnabled: true });
 
-const first = await client.chat({
-  agentId,
-  userId,
-  message: {
-    id: crypto.randomUUID(),
-    role: "user",
-    parts: [{ type: "text", text: "I prefer concise status updates." }],
-  },
-});
-await first.toResponse().text();
-const firstSessionId = await first.sessionId;
-
-const saved = await client.memories.create({
+await client.memories.create({
   agentId,
   userId,
   text: "Prefers concise status updates.",
 });
 
-const second = await client.chat({
+const result = await client.completion({
   agentId,
   userId,
-  message: {
-    id: crypto.randomUUID(),
-    role: "user",
-    parts: [{ type: "text", text: "How should you format my status updates?" }],
-  },
+  prompt: "How should you format my status updates?",
 });
-const reply = await second.toResponse().text();
-
-assert.notEqual(await second.sessionId, firstSessionId);
-assert.equal(saved.memory.userId, userId);
-assert.match(reply, /concise/i);
+console.log(await result.text);
 ```
 
-Omitting `sessionId` creates distinct Sessions. The stored record proves
-persistence; the response demonstrates injection into a later Turn.
+```python tab="Python"
+import os
 
-## Search and retention [#search-and-retention]
+from blazing_agents import BlazingAgents
 
-```typescript
-const matches = await client.memories.list({
+client = BlazingAgents()
+agent_id = os.environ["AGENT_ID"]
+user_id = "app-user-42"
+
+client.agents.update(agent_id, memory_injection_enabled=True)
+
+client.memories.create(
+    agent_id=agent_id,
+    user_id=user_id,
+    text="Prefers concise status updates.",
+)
+
+print(
+    client.completion(
+        agent_id=agent_id,
+        user_id=user_id,
+        prompt="How should you format my status updates?",
+    )
+)
+```
+
+The answer mentions keeping updates concise, even though the question never said so. The same note reaches every later turn, in any session, that passes `userId: "app-user-42"`.
+
+## Who sees which notes [#who-sees-which-notes]
+
+Each note belongs to one agent. A note saved with `userId: ""` is general and every turn of that agent sees it. A note saved with a user ID is visible only to turns that pass the same `userId`. A turn with no `userId` sees only general notes.
+
+A `userId` sorts notes. It is not a security boundary: your API key can read and change every note in your account, so your backend decides which user is which. See [tenancy and attribution](/platform/tenancy-and-attribution).
+
+## Choose how the agent recalls notes [#choose-how-the-agent-recalls-notes]
+
+- **Automatic.** With `memoryInjectionEnabled`, each turn starts with the newest visible notes, up to 4,000 words. The last note that fits may be cut short.
+- **Tools.** The `memory` tool group lets the agent save, look up, search, update, and delete notes on its own during a turn. Add it with `tools` on the [agent](/agents/agents#change-an-agent).
+
+Use either one or both. Automatic recall suits a handful of stable preferences. Tools suit an agent that should decide what is worth remembering.
+
+## Search and clean up [#search-and-clean-up]
+
+List a user's notes, optionally filtered by words they contain:
+
+```typescript tab="TypeScript" tab-group="sdk-language"
+const { data } = await client.memories.list({
   agentId,
   userId,
-  search: "concise status",
+  search: "status updates",
   limit: 10,
 });
+for (const memory of data) console.log(memory.id, memory.text);
 ```
 
-Search uses PostgreSQL lexical full-text matching, not semantic or vector
-search. One Agent-wide pool holds at most 500 rows across all end-user
-partitions. Creating at capacity evicts the least recently accessed row.
-Memory has no time-based retention; delete stale or sensitive rows explicitly.
-Deleting the Agent cascades to its Memories.
+```python tab="Python"
+page = client.memories.list(
+    agent_id=agent_id, user_id=user_id, search="status updates", limit=10
+)
+for memory in page.data:
+    print(memory.id, memory.text)
+```
 
-## SDK and API [#sdk-and-api]
+Search matches words, not meaning, so "status updates" finds notes containing those words but not "progress reports".
 
-- [TypeScript Memories SDK](/sdk/typescript/memories)
-- [Python Memories SDK](/sdk/python/memories)
-- Agent settings: [TypeScript](/sdk/typescript/agents) and [Python](/sdk/python/agents)
-- [Memories REST API](/api-reference/rest-api/memories)
+Each agent holds up to 500 notes across all its users. Saving a note at that limit removes the one used least recently. Notes never expire on their own, so delete stale or sensitive notes yourself. Deleting the agent deletes its notes.
+
+## Next [#next]
+
+- [Tenancy and attribution](/platform/tenancy-and-attribution) to pass the right `userId` for each end user.
+- [Built-in tools](/agents/tools/built-in-tools) for what the `memory` tools can do.
+- Memories SDK reference for [TypeScript](/sdk/typescript/memories) or [Python](/sdk/python/memories).
