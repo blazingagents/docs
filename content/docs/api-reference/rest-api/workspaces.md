@@ -1,23 +1,23 @@
 ---
 title: Workspaces
-description: Create, list, inspect, update, and delete Tenant-owned durable private Workspaces.
+description: Create, list, inspect, update, and delete the private file systems your agents work in.
 ---
 
 # Workspaces
 
 ## Overview [#overview]
 
-Workspaces hold durable private Agent files. Public operations create and
-manage the product resource; its Cloudflare Sandbox Container starts lazily
-only on the first actual Workspace file or process operation. Agent and Skill
-creation, Skill activation, and virtual Skill reads do not initialize it.
-Every operation is fenced to the authenticated Tenant.
+A workspace is a private file system your agents keep between sessions. Several
+agents can share one. These endpoints manage the workspace record: its name,
+metadata, and network policy. None of them start the workspace or add compute
+cost. The workspace starts only when an agent first reads, writes, or runs
+something in it. Every request is scoped to your tenant.
 
 ## Endpoints [#endpoints]
 
 ### POST /v1/workspaces [#create-workspace]
 
-Creates a Workspace without starting its Cloudflare Sandbox container.
+Creates a workspace. It starts only when an agent first uses it.
 
 #### Request
 
@@ -49,8 +49,9 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/workspaces" \
 
 ### GET /v1/workspaces [#list-workspaces]
 
-Lists Workspaces newest first with cursor pagination and optional Attribution
-filtering. The reserved Admin Workspace is excluded from every list result.
+Lists workspaces newest first, one page at a time, optionally filtered by
+`userId`. The workspace reserved for the platform-managed admin agent is never
+listed.
 
 #### Request
 
@@ -81,7 +82,7 @@ curl --get "$BLAZING_AGENTS_BASE_URL/v1/workspaces" \
 
 ### GET /v1/workspaces/:workspaceId [#get-workspace]
 
-Retrieves a Workspace without starting its Cloudflare Sandbox container.
+Retrieves a workspace without starting it.
 
 #### Request
 
@@ -109,14 +110,13 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" \
 
 ### PUT /v1/workspaces/:workspaceId [#update-workspace]
 
-Updates mutable Workspace fields without starting its Cloudflare Sandbox
-container.
+Updates a workspace's name, metadata, or network policy without starting it.
 
 #### Request
 
 Requires bearer authentication, a `ws_…` path parameter, and JSON. `name`
 accepts `null`; `metadata` and `networkPolicy` are replaced when supplied.
-Attribution is immutable.
+`userId` cannot be changed.
 
 #### Response
 
@@ -142,9 +142,8 @@ curl --request PUT \
 
 ### DELETE /v1/workspaces/:workspaceId [#delete-workspace]
 
-Deletes a Workspace, its Cloudflare Sandbox container, and its R2 backup.
-Attached Agents block deletion; reassign them first because Agents cannot be
-detached.
+Deletes a workspace and all its files. Agents always have a workspace, so move
+attached agents to another one first.
 
 #### Request
 
@@ -152,9 +151,8 @@ Requires bearer authentication and a `ws_…` `workspaceId` path parameter.
 
 #### Response
 
-Returns `204 No Content` with an empty body when deletion completes
-immediately, or `202 Accepted` with an empty body when durable Container or R2
-cleanup is pending.
+Returns `204 No Content` with an empty body when deletion finishes right away,
+or `202 Accepted` with an empty body when cleanup is still running.
 
 SDK: [TypeScript](/sdk/typescript/workspaces#delete) /
 [Python](/sdk/python/workspaces#delete).
@@ -172,9 +170,7 @@ curl --request DELETE \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-## Related [#related]
+## Next [#next]
 
-- [TypeScript SDK Workspaces](/sdk/typescript/workspaces)
-- [Python SDK Workspaces](/sdk/python/workspaces)
-- [Workspace object](/api-reference/protocols/objects-and-schemas#workspace)
-- [Workspaces](/agents/workspaces)
+- [Workspaces](/agents/workspaces) to share files between agents and sessions.
+- [Workspace object](/api-reference/protocols/objects-and-schemas#workspace) for every field.
