@@ -1,27 +1,27 @@
 ---
 title: Usage
-description: Query Tenant and Agent usage over bounded time ranges.
+description: See how many tokens, requests, and minutes your agents use, by day, agent, model, session, or user.
 ---
 
 # Usage
 
 ## Overview [#overview]
 
-Usage endpoints aggregate metered Agent activity into bounded UTC ranges. Use them to monitor Tenant totals or narrow reporting to an Agent, Session, or attribution value.
+See how much your agents use: tokens, requests, and run time, added up over UTC date ranges of up to 31 days. Look at your whole tenant or narrow it to one agent, session, or end user.
 
 ## Endpoints [#endpoints]
 
 ### GET /v1/usage/overview [#get-usage-overview]
 
-Returns the bounded usage data needed for an operational dashboard in one response.
+Returns everything a usage dashboard needs in one response: totals, a daily series, and top agents, users, and models.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary.
+Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 
 | Query parameter | Type         | Default      | Description                    |
 | --------------- | ------------ | ------------ | ------------------------------ |
@@ -65,7 +65,7 @@ Response schema: [`usageOverviewResponseSchema`](/api-reference/protocols/object
 }
 ```
 
-`daily` includes every day in the range, including zero-usage days, and is ordered ascending. `byAgent` and `byUser` are ordered by total tokens descending and capped by `limit`; their ID breaks ties. `byModel` uses the same ordering and cap, then may append one remainder bucket with `provider: null` and `model: null` that aggregates omitted models. Consequently, model totals remain exhaustive. Tenant-level Attribution (`userId: ""`) is eligible for `byUser`. `activeAgentCount` counts every distinct Agent with usage in the range before the ranking limit is applied.
+`daily` has one entry for every day in the range, oldest first, including days with no usage. `byAgent` and `byUser` are sorted by total tokens, highest first, and cut off at `limit`; ties are broken by ID. `byModel` is sorted and cut off the same way, then can add one bucket with `provider: null` and `model: null` for all the models left out, so the model rows still add up to the totals. Tenant-level usage (`userId: ""`) can appear in `byUser`. `activeAgentCount` counts every agent with usage in the range, not only those shown.
 
 #### Errors
 
@@ -87,22 +87,22 @@ SDK: [TypeScript `overview`](/sdk/typescript/usage#overview-method) or [Python `
 
 ### GET /v1/usage [#get-usage]
 
-Returns Tenant usage rollups for ranges of up to 31 days.
+Returns your tenant's usage totals and buckets for a range of up to 31 days.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 
 | Query parameter | Type         | Default      | Description                                   |
 | --------------- | ------------ | ------------ | --------------------------------------------- |
 | `from`, `to`    | `YYYY-MM-DD` | last 30 days | Supply both or neither                        |
-| `agentId`       | string       | —            | Agent filter                                  |
-| `sessionId`     | string       | —            | Session filter; `""` means stateless turns    |
-| `userId`        | string       | —            | Attribution filter; `""` means tenant-level   |
+| `agentId`       | string       | none            | Agent filter                                  |
+| `sessionId`     | string       | none            | Session filter; `""` means stateless turns    |
+| `userId`        | string       | none            | Attribution filter; `""` means tenant-level   |
 | `groupBy`       | string       | `day`        | `day`, `agent`, `model`, `session`, or `user` |
 | `limit`         | integer      | 50           | 1–200; top-N only for `groupBy=session`       |
 
@@ -156,20 +156,19 @@ curl --get "$BLAZING_AGENTS_BASE_URL/v1/usage" \
 
 SDK: [TypeScript `get`](/sdk/typescript/usage#get) or [Python
 `get`](/sdk/python/usage#get). See [Usage and
-quotas](/platform/usage-and-quotas) and [Monitor usage and
 quotas](/platform/usage-and-quotas).
 
 ### GET /v1/agents/:agentId/usage [#get-agent-usage]
 
-Returns usage rollups for the Agent in the path; any query-string `agentId` is ignored.
+Returns usage for the agent in the path. An `agentId` in the query string is ignored.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and an `ag_…` `agentId` path parameter. It accepts `from`, `to`, `sessionId`, `userId`, `groupBy`, and `limit` exactly as [Get tenant usage](/api-reference/rest-api/usage#get-usage). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and an `ag_…` `agentId` path parameter. It accepts `from`, `to`, `sessionId`, `userId`, `groupBy`, and `limit` exactly as [Get tenant usage](/api-reference/rest-api/usage#get-usage). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 
 #### Response
@@ -180,9 +179,9 @@ Response schema: [`usageResponseSchema`](/api-reference/protocols/objects-and-sc
 
 #### Errors
 
-`400 validation_failed` for a malformed Agent ID or invalid usage query. This
-aggregation does not require an Agent existence read; a scope with no rows
-returns zero totals and empty buckets. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` for a malformed agent ID or invalid query. An agent
+with no usage, including one that does not exist, returns zero totals and empty
+buckets rather than `404`. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -198,12 +197,9 @@ curl --get \
 SDK: [TypeScript `getForAgent`](/sdk/typescript/usage#get-for-agent)
 or [Python
 `get_for_agent`](/sdk/python/usage#get-for-agent). See [Usage and
-quotas](/platform/usage-and-quotas) and [Monitor usage and
 quotas](/platform/usage-and-quotas).
 
-## Related [#related]
+## Next [#next]
 
-- [TypeScript SDK](/sdk/typescript)
-- [Python SDK Usage](/sdk/python/usage)
-- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
-- [Errors](/api-reference/protocols/errors)
+- [Usage and quotas](/platform/usage-and-quotas) to track spend and set a quota.
+- [Tenant API](/api-reference/rest-api/tenant#update-tenant-settings) to change your quota.

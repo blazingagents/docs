@@ -7,28 +7,28 @@ description: Run stateless text or structured generation.
 
 ## Stateless Tool approval [#stateless-tool-approval]
 
-Stateless execution uses `approvalInChat` and has no human continuation path.
-Manual calls, automatic review failures, and automatic escalation are blocked;
-permitted work can continue with an explanation of blocked actions available to
-the model. See [Tool approvals](/agents/tools/tool-approvals).
+Stateless generation follows the agent's `approvalInChat` policy, but nobody
+can approve a tool call mid-request. Calls that need manual approval, fail
+automatic review, or are escalated by it are blocked. The agent keeps working
+with the calls it is allowed to make and is told which actions were blocked. See [Tool approvals](/agents/tools/tool-approvals).
 
 ## Overview [#overview]
 
-Generation runs a stateless Agent Turn without creating Session history. Use it for one-shot text or JSON-schema-constrained output when later continuation is unnecessary.
+Get a one-off answer from an agent without starting a session. Use generation for single-shot text or JSON that matches a schema when you do not need to continue the conversation.
 
 ## Endpoints [#endpoints]
 
 ### POST /v1/agents/:agentId/generation [#generate]
 
-Runs a stateless Agent Turn without Session history. Text and structured output both stream as plain text.
+Runs one agent turn without saving a session. Text and structured output both stream as plain text.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. `agentId` is a required `ag_…` path parameter. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. `agentId` is a required `ag_…` path parameter. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `agentId`       | yes      | Agent ID (`ag_…`).                        |
 
 Provide exactly one of `prompt` or `promptId`. `variables` is allowed only with `promptId`.
@@ -53,7 +53,7 @@ Password resets are available from Settings > Security.
 
 #### Errors
 
-`400 validation_failed` covers invalid prompt/output selection; `provider_required` rejects an unconfigured resolved Version before execution or billing side effects. Prompt variables use `prompt_variable_missing` or `prompt_variable_unknown`. `402 subscription_required` or `usage_credit_required` blocks billable execution. `404 not_found` applies to a missing Agent, Provider, Prompt, or Workspace, while `agent_version_not_found` identifies a missing Pin. `409 agent_disabled` can reject execution. `429 quota_exceeded` or `rate_limited`, plus retryable `service_unavailable`, may occur before admission. A failure detected before streaming returns its non-2xx status with the standard JSON error envelope. After the `200` plain-text stream starts, a failure terminates the body; it cannot change the status or emit a JSON envelope, and this endpoint does not use the UI-message error chunks produced by Session streams. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` covers invalid prompt/output selection; `provider_required` means the agent version has no provider and model; nothing runs and nothing is billed. Prompt variables use `prompt_variable_missing` or `prompt_variable_unknown`. `402 subscription_required` or `usage_credit_required` blocks billable execution. `404 not_found` applies to a missing Agent, Provider, Prompt, or Workspace, while `agent_version_not_found` identifies a missing Pin. `409 agent_disabled` can reject execution. `429 quota_exceeded` or `rate_limited`, plus a retryable `service_unavailable`, can reject the request before it runs. A failure detected before streaming returns its non-2xx status with the standard JSON error envelope. Once the `200` plain-text stream starts, a failure ends the body early. The status stays `200`, no JSON error body is sent, and there is no error chunk like the ones session streams use. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -72,9 +72,8 @@ SDK: [completion](/sdk/typescript/client#completion) for text and [object](/sdk/
 Python SDK: [completion](/sdk/python/client#completion) for text
 and [object](/sdk/python/client#object) for structured output.
 
-## Related [#related]
+## Next [#next]
 
-- [TypeScript SDK](/sdk/typescript)
-- [Python SDK](/sdk/python)
-- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
-- [Errors](/api-reference/protocols/errors)
+- [Generation and streaming](/agents/output/generation-and-streaming) to relay the stream to a frontend.
+- [Generate structured output](/agents/output/structured-output) to get JSON back.
+- [Sessions API](/api-reference/rest-api/sessions) when you need a conversation.

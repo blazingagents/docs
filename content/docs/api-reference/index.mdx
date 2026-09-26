@@ -1,13 +1,17 @@
 ---
 title: API Reference
-description: Use the REST endpoints and shared wire protocols behind Blazing Agents integrations.
+description: Call every Blazing Agents endpoint over HTTP and look up the shared wire formats.
 ---
 
 # API Reference
 
-Use the REST API directly when an SDK is not appropriate. The protocol pages
-define the shared objects, errors, streaming events, IDs, pagination, and
-service limits used across integrations.
+Call Blazing Agents over plain HTTP from any backend language. The REST pages
+list every endpoint with its request, response, errors, and a cURL example. The
+protocol pages cover the formats those endpoints share: objects, errors,
+streams, IDs, pagination, and limits.
+
+If you work in TypeScript or Python, the [TypeScript SDK](/sdk/typescript) and
+[Python SDK](/sdk/python) wrap the same endpoints and are the faster path.
 
 <Cards>
   <Card
@@ -18,6 +22,6 @@ service limits used across integrations.
   <Card
     title="Protocols and contracts"
     href="/api-reference/protocols"
-    description="Implement shared wire formats and operational contracts."
+    description="Look up the objects, errors, streams, and limits every endpoint shares."
   />
 </Cards>

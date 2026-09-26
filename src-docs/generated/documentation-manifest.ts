@@ -402,7 +402,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates an Agent. Names are unique per Tenant.",
+        "description": "Creates an agent. Names are unique within your tenant.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Support Agent\",\"workspaceId\":\"ws_1234567890ABCDEF\",\"tools\":[\"workspace\",\"write_todos\"],\"instructions\":\"Answer clearly.\",\"memoryInjectionEnabled\":true}'",
@@ -486,7 +486,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/agents/create-agent"
       },
       {
-        "description": "Lists Agents by most recent update.",
+        "description": "Lists agents, most recently updated first.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/agents\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"userId=\"",
@@ -570,7 +570,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/agents/list-agents"
       },
       {
-        "description": "Retrieves the current Agent configuration without creating a Version.",
+        "description": "Retrieves an agent's current configuration.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -660,7 +660,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/agents/get-agent"
       },
       {
-        "description": "Updates an Agent. Array fields replace their existing values.",
+        "description": "Updates an agent. Array fields replace their current values.",
         "examples": [
           {
             "code": "curl --request PUT \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"workspaceId\":\"ws_1234567890ABCDEF\",\"tools\":[\"workspace\"],\"metadata\":{\"team\":\"support\"}}'",
@@ -756,7 +756,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/agents/update-agent"
       },
       {
-        "description": "Permanently deletes an Agent while preserving its Workspace. `includeArtifacts=true` also hard-deletes its Artifacts; `includeArtifacts=false` preserves them.",
+        "description": "Permanently deletes an agent and keeps its workspace. `includeArtifacts=true` also deletes its artifacts; `includeArtifacts=false` keeps them.",
         "examples": [
           {
             "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF?includeArtifacts=false\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -845,7 +845,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/agents/delete-agent"
       },
       {
-        "description": "Disables an Agent, rejecting future Turns while in-flight Turns finish.",
+        "description": "Turns an agent off. New turns are rejected, and turns already running finish.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/disable\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -935,7 +935,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/agents/disable-agent"
       },
       {
-        "description": "Enables a disabled Agent. Skipped schedule fires are not replayed.",
+        "description": "Turns a disabled agent back on. Scheduled runs skipped while it was off do not run later.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/enable\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -1025,7 +1025,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/agents/enable-agent"
       },
       {
-        "description": "Uploads or replaces an Agent's private avatar. Responses contain a short-lived signed URL.",
+        "description": "Uploads or replaces an agent's avatar. Responses include a short-lived signed URL for it.",
         "examples": [
           {
             "code": "curl --request POST \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/avatar\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --form \"file=@./avatar.webp;type=image/webp\"",
@@ -1127,7 +1127,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/agents/upload-agent-avatar"
       },
       {
-        "description": "Removes an Agent's avatar and returns the updated Agent.",
+        "description": "Removes an agent's avatar and returns the updated agent.",
         "examples": [
           {
             "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/avatar\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -1223,7 +1223,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/agents/delete-agent-avatar"
       },
       {
-        "description": "Lists an Agent's immutable Versions newest first.",
+        "description": "Lists an agent's saved versions, newest first.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/versions\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=20\"",
@@ -1313,7 +1313,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/agents/list-agent-versions"
       },
       {
-        "description": "Retrieves an immutable Agent Version without copying currently referenced resources.",
+        "description": "Retrieves one saved agent version. It references providers and connections by ID; it does not copy them.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/versions/1\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -1403,7 +1403,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/agents/get-agent-version"
       },
       {
-        "description": "Lists the MCP Attachments that select an Agent's MCP tools.",
+        "description": "Lists the MCP connections attached to an agent.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/mcp-attachments\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -1487,7 +1487,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/agents/list-agent-mcp-attachments"
       },
       {
-        "description": "Updates end-user forwarding fields for one MCP Attachment without changing access control.",
+        "description": "Changes which end-user details one attached MCP connection receives. Access is not affected.",
         "examples": [
           {
             "code": "curl --request PATCH \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/mcp-attachments/mcp_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"forwardUserId\":true,\"forwardedMetadataKeys\":[\"locale\"]}'",
@@ -1584,7 +1584,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates a Workspace without starting its Cloudflare Sandbox container.",
+        "description": "Creates a workspace. It starts only when an agent first uses it.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/workspaces\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Release files\",\"userId\":\"user_42\",\"metadata\":{\"project\":\"docs\"},\"networkPolicy\":{\"mode\":\"allowlist\",\"allowedHosts\":[\"registry.npmjs.org\"]}}'",
@@ -1664,7 +1664,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/workspaces/create-workspace"
       },
       {
-        "description": "Lists Workspaces newest first with cursor pagination and optional Attribution filtering. The reserved Admin Workspace is excluded from every list result.",
+        "description": "Lists workspaces newest first, one page at a time, optionally filtered by `userId`. The workspace reserved for the platform-managed `ba assist` agent is never listed.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/workspaces\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=50\" \\\n  --data-urlencode \"userId=user_42\"",
@@ -1744,7 +1744,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/workspaces/list-workspaces"
       },
       {
-        "description": "Retrieves a Workspace without starting its Cloudflare Sandbox container.",
+        "description": "Retrieves a workspace without starting it.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -1830,7 +1830,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/workspaces/get-workspace"
       },
       {
-        "description": "Updates mutable Workspace fields without starting its Cloudflare Sandbox container.",
+        "description": "Updates a workspace's name, metadata, or network policy without starting it.",
         "examples": [
           {
             "code": "curl --request PUT \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"networkPolicy\":{\"mode\":\"offline\"}}'",
@@ -1916,7 +1916,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/workspaces/update-workspace"
       },
       {
-        "description": "Deletes a Workspace, its Cloudflare Sandbox container, and its R2 backup. Attached Agents block deletion; reassign them first because Agents cannot be detached.",
+        "description": "Deletes a workspace and all its files. Agents always have a workspace, so move attached agents to another one first.",
         "examples": [
           {
             "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -1958,7 +1958,7 @@ export const restApiOperations = [
         "operation": "delete-workspace",
         "path": "/v1/workspaces/:workspaceId",
         "responseMetadata": {
-          "description": "Returns 204 No Content with an empty body when deletion completes immediately, or 202 Accepted with an empty body when durable Container or R2 cleanup is pending."
+          "description": "Returns 204 No Content with an empty body when deletion finishes right away, or 202 Accepted with an empty body when cleanup is still running."
         },
         "responses": [
           {
@@ -2010,7 +2010,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates a Skill from root Markdown and returns its file inventory.",
+        "description": "Creates a skill from a `SKILL.md` document and returns its file list.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"path\":\"SKILL.md\",\"content\":\"---\\nname: deploy\\ndescription: Deploy the application.\\n---\\n\"}'",
@@ -2072,7 +2072,7 @@ export const restApiOperations = [
             "status": "400"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"agent_not_found\",\n    \"message\": \"The request could not be completed.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The request could not be completed.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "404"
@@ -2105,7 +2105,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/skills/create-skill"
       },
       {
-        "description": "Imports a complete Skill archive and returns its file inventory.",
+        "description": "Imports a whole skill from an archive and returns its file list.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/upload\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --form \"type=tar.gz\" \\\n  --form \"file=@skill.tar.gz\"",
@@ -2167,7 +2167,7 @@ export const restApiOperations = [
             "status": "400"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"agent_not_found\",\n    \"message\": \"The request could not be completed.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The request could not be completed.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "404"
@@ -2200,7 +2200,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/skills/upload-skill"
       },
       {
-        "description": "Lists an Agent's Skills in a cursor-paginated response.",
+        "description": "Lists an agent's skills, one page at a time.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=50\"",
@@ -2262,7 +2262,7 @@ export const restApiOperations = [
             "status": "400"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"agent_not_found\",\n    \"message\": \"The request could not be completed.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The request could not be completed.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "404"
@@ -2289,7 +2289,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/skills/list-skills"
       },
       {
-        "description": "Returns a Skill's metadata and current file inventory.",
+        "description": "Returns a skill's metadata and current file list.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -2378,7 +2378,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/skills/get-skill"
       },
       {
-        "description": "Deletes a Skill and all its files.",
+        "description": "Deletes a skill and all its files.",
         "examples": [
           {
             "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -2461,7 +2461,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/skills/delete-skill"
       },
       {
-        "description": "Downloads the raw bytes of a Skill file.",
+        "description": "Downloads the raw bytes of a skill file.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=assets/icon.bin\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --output icon.bin",
@@ -2545,7 +2545,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/skills/get-skill-file"
       },
       {
-        "description": "Creates or replaces a Skill file from raw bytes.",
+        "description": "Creates or replaces a skill file from raw bytes.",
         "examples": [
           {
             "code": "curl --request PUT \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=scripts/deploy.sh\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-binary \"@deploy.sh\"",
@@ -2640,7 +2640,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/skills/put-skill-file"
       },
       {
-        "description": "Deletes a supporting Skill file while protecting root `SKILL.md`.",
+        "description": "Deletes a supporting file. The root `SKILL.md` cannot be deleted.",
         "examples": [
           {
             "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=scripts/deploy.sh\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -2729,7 +2729,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/skills/delete-skill-file"
       },
       {
-        "description": "Copies a Skill independently to each destination Agent and returns per-destination results.",
+        "description": "Copies a skill to each destination agent and returns a result for each one.",
         "examples": [
           {
             "code": "curl --request POST \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/copies\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"agentIds\":[\"ag_1234567890ABCDEF\"]}'",
@@ -2825,40 +2825,40 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Returns the current dashboard administrator's Tenant identity. It requires a dashboard Supabase JWT, not a Tenant API key.",
+        "description": "Returns the tenant identity of the administrator signed in to the dashboard. It requires a dashboard JWT, not an API key.",
         "examples": [
           {
-            "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/me\" \\\n  --header \"Authorization: Bearer $SUPABASE_ACCESS_TOKEN\"",
+            "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/me\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_DASHBOARD_JWT\"",
             "label": "cURL",
             "language": "bash"
           },
           {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/me\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"SUPABASE_ACCESS_TOKEN\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/me\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_DASHBOARD_JWT\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
             "label": "Python",
             "language": "python"
           },
           {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/me\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.SUPABASE_ACCESS_TOKEN } });\nconsole.log(await response.text());",
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/me\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_DASHBOARD_JWT } });\nconsole.log(await response.text());",
             "label": "JavaScript",
             "language": "javascript"
           },
           {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/me\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"SUPABASE_ACCESS_TOKEN\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/me\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_DASHBOARD_JWT\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
             "label": "PHP",
             "language": "php"
           },
           {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/me\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"SUPABASE_ACCESS_TOKEN\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/me\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_DASHBOARD_JWT\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
             "label": "Go",
             "language": "go"
           },
           {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/me\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"SUPABASE_ACCESS_TOKEN\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/me\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_DASHBOARD_JWT\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
             "label": "Java",
             "language": "java"
           },
           {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/me\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"SUPABASE_ACCESS_TOKEN\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/me\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_DASHBOARD_JWT\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
             "label": "Ruby",
             "language": "ruby"
           }
@@ -2903,7 +2903,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/tenant/get-current-identity"
       },
       {
-        "description": "Returns Tenant display-name and monthly-quota settings. A `null` quota means unlimited usage.",
+        "description": "Returns your tenant's display name and monthly quota. A `null` quota means usage is unlimited.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/tenant\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -2981,7 +2981,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/tenant/get-tenant-settings"
       },
       {
-        "description": "Updates Tenant display-name or monthly-quota settings. Omitted settings remain unchanged.",
+        "description": "Updates your tenant's display name or monthly quota. Settings you leave out keep their values.",
         "examples": [
           {
             "code": "curl --request PATCH \"$BLAZING_AGENTS_BASE_URL/v1/tenant\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"quota\":{\"monthlyTokenLimit\":5000000,\"monthlyRequestLimit\":null,\"resetDay\":1}}'",
@@ -3072,7 +3072,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates a Provider. The authenticated credential selects the Tenant boundary.",
+        "description": "Creates a provider in your tenant.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/providers\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Production OpenRouter\",\"providerType\":\"openrouter\",\"baseUrl\":null,\"apiKey\":\"'\"$OPENROUTER_API_KEY\"'\"}'",
@@ -3114,7 +3114,7 @@ export const restApiOperations = [
         "operation": "create-provider",
         "path": "/v1/providers",
         "responseMetadata": {
-          "description": "Returns 201 Created with the redacted Provider.",
+          "description": "Returns 201 Created with the provider. The key is never returned; only its last characters appear as keyFragment.",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#provider-response",
             "name": "providerResponseSchema"
@@ -3156,7 +3156,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/providers/create-provider"
       },
       {
-        "description": "Lists the authenticated Tenant's Providers with keys redacted. Returns `200` with [`providersResponseSchema`](/api-reference/protocols/objects-and-schemas#providers-response).",
+        "description": "Lists your tenant's providers. Keys are never returned.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/providers\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -3198,7 +3198,7 @@ export const restApiOperations = [
         "operation": "list-providers",
         "path": "/v1/providers",
         "responseMetadata": {
-          "description": "Returns 200 OK with Provider list items containing only id, name, providerType, createdAt, and updatedAt. Use Get Provider for the base URL and key fragment.",
+          "description": "Returns 200 OK with list items containing only id, name, providerType, createdAt, and updatedAt. Get a single provider for its base URL and key fragment.",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#providers-response",
             "name": "providersResponseSchema"
@@ -3234,7 +3234,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/providers/list-providers"
       },
       {
-        "description": "Returns one redacted Provider or `404 provider_not_found` when it is missing or foreign.",
+        "description": "Returns one provider without its key, or `404 provider_not_found` when it is missing or in another tenant.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -3276,7 +3276,7 @@ export const restApiOperations = [
         "operation": "get-provider",
         "path": "/v1/providers/:id",
         "responseMetadata": {
-          "description": "Returns 200 OK with one redacted Provider.",
+          "description": "Returns 200 OK with one provider.",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#provider-response",
             "name": "providerResponseSchema"
@@ -3312,7 +3312,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/providers/get-provider"
       },
       {
-        "description": "Fetches the current Provider catalog without inference. IDs are trimmed, deduplicated, and lexically sorted.",
+        "description": "Lists the models the provider offers right now, without calling a model. IDs are trimmed, deduplicated, and sorted.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF/models\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -3354,7 +3354,7 @@ export const restApiOperations = [
         "operation": "list-provider-models",
         "path": "/v1/providers/:id/models",
         "responseMetadata": {
-          "description": "Returns 200 OK with the Provider-native model catalog.",
+          "description": "Returns 200 OK with the provider's model IDs.",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#provider-models-response",
             "name": "providerModelsResponseSchema"
@@ -3362,7 +3362,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{ \"models\": [{ \"id\": \"openai/gpt-5-mini\" }, { \"id\": \"openai/gpt-6-luna\" }] }",
+            "code": "{ \"models\": [{ \"id\": \"openai/gpt-6-luna\" }] }",
             "language": "json",
             "contentType": "application/json",
             "note": "providerModelsResponseSchema",
@@ -3396,7 +3396,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/providers/list-provider-models"
       },
       {
-        "description": "Renames a Provider. Only `name` is mutable; replace the Provider to change its type, API key, or base URL.",
+        "description": "Renames a provider. Only `name` can change; create a new provider to change its type, API key, or base URL.",
         "examples": [
           {
             "code": "curl --request PATCH \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Primary OpenRouter\"}'",
@@ -3480,7 +3480,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/providers/update-provider"
       },
       {
-        "description": "Deletes a Provider and encrypted key. Current Agent references return `provider_in_use`; historical Versions or Pins require explicit confirmation.",
+        "description": "Deletes a provider and its key. You cannot delete a provider an agent uses now; one used by older versions or pins needs your confirmation.",
         "examples": [
           {
             "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF?confirmVersionInvalidation=true\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -3558,7 +3558,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates a reusable MCP Connection. Credentials remain write-only.",
+        "description": "Creates an MCP connection you can attach to agents. Credentials are never returned.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/mcp-connections\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Docs\",\"url\":\"https://mcp.example.com/mcp\",\"authType\":\"none\"}'",
@@ -3648,7 +3648,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/mcp-connections/create-mcp-connection"
       },
       {
-        "description": "Lists MCP Connections with credentials redacted.",
+        "description": "Lists your MCP connections without their credentials.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/mcp-connections\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -3726,7 +3726,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/mcp-connections/list-mcp-connections"
       },
       {
-        "description": "Retrieves an MCP Connection with credentials redacted.",
+        "description": "Retrieves one MCP connection without its credentials.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -3810,7 +3810,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/mcp-connections/get-mcp-connection"
       },
       {
-        "description": "Renames an MCP Connection.",
+        "description": "Renames an MCP connection.",
         "examples": [
           {
             "code": "curl --request PATCH \"$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Docs production\"}'",
@@ -3906,7 +3906,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/mcp-connections/update-mcp-connection"
       },
       {
-        "description": "Deletes an MCP Connection and revokes stored OAuth credentials.",
+        "description": "Deletes an MCP connection and revokes its stored OAuth credentials.",
         "examples": [
           {
             "code": "curl --request DELETE \"$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -3995,7 +3995,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/mcp-connections/delete-mcp-connection"
       },
       {
-        "description": "Tests an MCP Connection and discovers its server and tools.",
+        "description": "Tests an MCP connection and lists its server details and tools.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF/test\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -4037,7 +4037,7 @@ export const restApiOperations = [
         "operation": "test-mcp-connection",
         "path": "/v1/mcp-connections/:id/test",
         "responseMetadata": {
-          "description": "Test always returns HTTP 200 after finding the stored connection and persists both fields: success returns ok: true, sets status: \"connected\", and clears lastAuthErrorCode; authentication rejection returns ok: false, sets status: \"needs_auth\", and records its code; other live validation or connectivity failures return ok: false, set status: \"error\", and record their code. OAuth testing may renew stored token material before reporting the result.",
+          "description": "A test of an existing connection always returns HTTP 200 and saves the outcome on the connection:",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#mcp-connection-test-response",
             "name": "mcpConnectionTestResponseSchema"
@@ -4079,7 +4079,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/mcp-connections/test-mcp-connection"
       },
       {
-        "description": "Starts authorization-code OAuth for an MCP Connection. Requires a dashboard session.",
+        "description": "Starts OAuth sign-in for an MCP connection. Requires a dashboard JWT.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF/connect\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_DASHBOARD_JWT\"",
@@ -4169,7 +4169,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/mcp-connections/connect-mcp-connection"
       },
       {
-        "description": "Replaces a disconnected MCP Connection's endpoint and credentials. Authorization-code OAuth must be completed separately.",
+        "description": "Replaces a connection's server URL and credentials. For authorization-code OAuth, finish sign-in with connect afterward.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF/reconnect\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"authType\":\"none\",\"url\":\"https://mcp.example.com/mcp\"}'",
@@ -4272,7 +4272,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Starts OAuth authorization for an MCP setup continuation. It requires a dashboard Supabase JWT, not an API key.",
+        "description": "Starts OAuth sign-in for a pending MCP connection. It requires a dashboard JWT, not an API key.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/mcp/oauth/authorize\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_DASHBOARD_JWT\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"setupToken\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"}'",
@@ -4363,7 +4363,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Runs a stateless Agent Turn without Session history. Text and structured output both stream as plain text.",
+        "description": "Runs one agent turn without saving a session. Text and structured output both stream as plain text.",
         "examples": [
           {
             "code": "curl --no-buffer --request POST \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/generation\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"prompt\":\"Explain password resets in one sentence.\",\"output\":{\"type\":\"text\"}}'",
@@ -4474,7 +4474,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates a Session and runs its first Turn. Validation/admission failures leave no Session; execution failures leave an empty, usable Session.",
+        "description": "Starts a session and runs its first turn. A rejected request creates no session; a turn that fails while running still leaves a usable session.",
         "examples": [
           {
             "code": "curl --include --no-buffer --request POST \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"message\":{\"id\":\"msg_client_1\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"Hello\"}]}}'",
@@ -4576,7 +4576,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/create-session-turn"
       },
       {
-        "description": "Runs a Turn from the Session's accepted history. Missing or deleted Sessions return `404` and are never created.",
+        "description": "Continues a session with a new turn. A missing or deleted session returns `404` and is never created.",
         "examples": [
           {
             "code": "curl --no-buffer --request POST \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"message\":{\"id\":\"msg_client_2\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"Tell me more.\"}]}}'",
@@ -4678,7 +4678,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/resume-session-turn"
       },
       {
-        "description": "Lists Sessions by most recent update. Unknown or foreign Agent IDs return an empty page.",
+        "description": "Lists an agent's sessions, most recently updated first. An unknown agent ID, or one in another tenant, returns an empty page.",
         "examples": [
           {
             "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=50\"",
@@ -4762,7 +4762,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/list-sessions"
       },
       {
-        "description": "Lists the Tenant's most recently updated Sessions. Set `byAgent=true` for one latest Session per Agent.",
+        "description": "Lists your tenant's most recently updated sessions. Set `byAgent=true` to get only the latest session for each agent.",
         "examples": [
           {
             "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/sessions/latest\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=10\" \\\n  --data-urlencode \"byAgent=false\"",
@@ -4804,7 +4804,7 @@ export const restApiOperations = [
         "operation": "list-latest-sessions",
         "path": "/v1/sessions/latest",
         "responseMetadata": {
-          "description": "Returns 200 OK with cursor pagination. Items are ordered by updatedAt descending, then id ascending. Each item is a Session list item plus its agentId, nullable model, nullable thinkingLevel, and status (\"active\" or \"disabled\"). These are the Agent's current values, independently of the Session's pinned Version or previous Turns. Disabled Agents remain included.",
+          "description": "Returns 200 OK with cursor pagination. Items are ordered by updatedAt descending, then id ascending. Each item is a session list item plus its agentId, nullable model, nullable thinkingLevel, and status (\"active\" or \"disabled\"). These show the agent as it is now, not the session's pinned version or earlier turns. Disabled agents are included.",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#latest-sessions-list-response",
             "name": "latestSessionsListResponseSchema"
@@ -4846,7 +4846,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/list-latest-sessions"
       },
       {
-        "description": "Lists stored AI SDK `UIMessage` objects. Pages are newest-first, with messages chronological within each page.",
+        "description": "Lists a session's messages as AI SDK `UIMessage` objects. Pages run newest first, with messages in chronological order inside each page.",
         "examples": [
           {
             "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=50\"",
@@ -4936,7 +4936,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/list-session-messages"
       },
       {
-        "description": "Soft-deletes a Session. `deleteArtifacts=true` also hard-deletes its Artifacts; `deleteArtifacts=false` preserves them.",
+        "description": "Deletes a session so it can no longer be read. `deleteArtifacts=true` also deletes its artifacts permanently; `deleteArtifacts=false` keeps them.",
         "examples": [
           {
             "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF?deleteArtifacts=false\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -5019,7 +5019,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/delete-session"
       },
       {
-        "description": "Lists pending and decided Tool approvals for a Session.",
+        "description": "Lists a session's pending and decided tool approvals.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -5103,7 +5103,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/list-tool-approvals"
       },
       {
-        "description": "Approves or denies one pending Tool call. The decision applies only to that exact call.",
+        "description": "Approves or denies one pending tool call. The decision applies only to that exact call.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/apr_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"approved\":true,\"reason\":\"Reviewed\"}'",
@@ -5199,7 +5199,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/decide-tool-approval"
       },
       {
-        "description": "Streams a decided Tool approval continuation over SSE. Persisted chunks replay before live or terminal state.",
+        "description": "Streams the rest of the turn after a tool approval decision. Saved chunks replay first, then live output or the final state.",
         "examples": [
           {
             "code": "curl --no-buffer \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/cont_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -5290,7 +5290,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Lists the Tenant's Artifacts newest first, optionally filtered by Agent and Session provenance.",
+        "description": "Lists your tenant's artifacts newest first. Filter by the agent or session that produced them.",
         "examples": [
           {
             "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/artifacts?agentId=ag_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -5374,7 +5374,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/artifacts/list-artifacts"
       },
       {
-        "description": "Returns one Tenant-owned Artifact's metadata without downloading its bytes.",
+        "description": "Returns one artifact's metadata without downloading its bytes.",
         "examples": [
           {
             "code": "curl --fail-with-body \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/artifacts/at_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -5416,7 +5416,7 @@ export const restApiOperations = [
         "operation": "get-artifact",
         "path": "/v1/artifacts/:artifactId",
         "responseMetadata": {
-          "description": "Returns 200 OK with the same public Artifact fields shown by the list endpoint. Storage paths, R2 keys, bucket details, and credentials are never included.",
+          "description": "Returns 200 OK with the same public Artifact fields shown by the list endpoint. Storage locations and credentials are never included.",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#artifactlistitem",
             "name": "artifactListItemSchema"
@@ -5464,7 +5464,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/artifacts/get-artifact"
       },
       {
-        "description": "Creates a direct R2 presigned URL that expires after five minutes.",
+        "description": "Creates a download URL that works for five minutes.",
         "examples": [
           {
             "code": "curl --request POST \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/artifacts/at_1234567890ABCDEF/download-url\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -5506,7 +5506,7 @@ export const restApiOperations = [
         "operation": "create-artifact-download-url",
         "path": "/v1/artifacts/:artifactId/download-url",
         "responseMetadata": {
-          "description": "Returns 200 OK with an absolute R2 URL and its expiry. Response schema: artifactDownloadUrlResponseSchema.",
+          "description": "Returns 200 OK with an absolute download URL and its expiry. Response schema: artifactDownloadUrlResponseSchema.",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#artifactdownloadurlresponse",
             "name": "artifactDownloadUrlResponseSchema"
@@ -5514,7 +5514,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"url\": \"https://example.r2.cloudflarestorage.com/tenants/ten_1234567890ABCDEF/artifacts/at_1234567890ABCDEF/report.pdf?X-Amz-Signature=…\",\n  \"expiresAt\": \"2026-07-31T12:05:00.000Z\"\n}",
+            "code": "{\n  \"url\": \"https://downloads.example.com/at_1234567890ABCDEF/report.pdf?signature=…\",\n  \"expiresAt\": \"2026-07-31T12:05:00.000Z\"\n}",
             "language": "json",
             "contentType": "application/json",
             "note": "artifactDownloadUrlResponseSchema",
@@ -5554,7 +5554,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/artifacts/create-artifact-download-url"
       },
       {
-        "description": "Hard-deletes an Artifact row and its immutable R2 object without changing the Workspace source file. Repeating the deletion returns `404 not_found`.",
+        "description": "Permanently deletes an artifact and its bytes. The source file in the workspace is not touched. Deleting the same artifact again returns `404 not_found`.",
         "examples": [
           {
             "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/artifacts/at_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -5644,7 +5644,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates one text Memory for an Agent. At the 500-Memory cap, the least recently accessed Memory may be evicted.",
+        "description": "Adds a memory to an agent. When the agent already has 500, the least recently used memory can be removed to make room.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"text\":\"Prefers concise answers.\",\"userId\":\"user-42\"}'",
@@ -5734,7 +5734,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/memories/create-memory"
       },
       {
-        "description": "Lists or searches an Agent's Memory without updating access recency.",
+        "description": "Lists or searches an agent's memories without changing when they were last used.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"userId=user-42\" \\\n  --data-urlencode \"search=concise\"",
@@ -5824,7 +5824,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/memories/list-memories"
       },
       {
-        "description": "Gets one Memory without updating its access recency.",
+        "description": "Gets one memory without changing when it was last used.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories/mem_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -5908,7 +5908,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/memories/get-memory"
       },
       {
-        "description": "Replaces one Memory's text and updates its access time.",
+        "description": "Replaces one memory's text and marks it as used now.",
         "examples": [
           {
             "code": "curl --request PATCH \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories/mem_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"text\":\"Prefers answers under five lines.\"}'",
@@ -5998,7 +5998,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/memories/update-memory"
       },
       {
-        "description": "Permanently deletes one Memory.",
+        "description": "Permanently deletes one memory.",
         "examples": [
           {
             "code": "curl --request DELETE \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/memories/mem_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -6082,7 +6082,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates a reusable Prompt and infers variables from its template.",
+        "description": "Creates a prompt and finds the variables in its template.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/prompts\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Welcome\",\"template\":\"Welcome, {{name}}!\"}'",
@@ -6172,7 +6172,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/prompts/create-prompt"
       },
       {
-        "description": "Lists Prompts by most recent update. Results are not paginated.",
+        "description": "Lists prompts, most recently updated first, in a single response.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/prompts\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"userId=\"",
@@ -6256,7 +6256,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/prompts/list-prompts"
       },
       {
-        "description": "Gets one Prompt.",
+        "description": "Gets one prompt.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/prompts/prompt_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -6346,7 +6346,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/prompts/get-prompt"
       },
       {
-        "description": "Updates a Prompt in place and re-infers variables when its template changes.",
+        "description": "Updates a prompt and finds its variables again when the template changes.",
         "examples": [
           {
             "code": "curl --request PATCH \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/prompts/prompt_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"template\":\"Hello, {{name}}!\"}'",
@@ -6442,7 +6442,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/prompts/update-prompt"
       },
       {
-        "description": "Permanently deletes a Prompt without changing previously rendered transcripts.",
+        "description": "Permanently deletes a prompt. Messages already sent with it stay in their transcripts.",
         "examples": [
           {
             "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/prompts/prompt_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -6532,7 +6532,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Returns the bounded usage data needed for an operational dashboard in one response.",
+        "description": "Returns everything a usage dashboard needs in one response: totals, a daily series, and top agents, users, and models.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/usage/overview\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"from=2026-07-10\" \\\n  --data-urlencode \"to=2026-07-10\" \\\n  --data-urlencode \"limit=5\"",
@@ -6616,7 +6616,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/usage/get-usage-overview"
       },
       {
-        "description": "Returns Tenant usage rollups for ranges of up to 31 days.",
+        "description": "Returns your tenant's usage totals and buckets for a range of up to 31 days.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/usage\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"from=2026-07-01\" \\\n  --data-urlencode \"to=2026-07-10\" \\\n  --data-urlencode \"groupBy=day\"",
@@ -6700,7 +6700,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/usage/get-usage"
       },
       {
-        "description": "Returns usage rollups for the Agent in the path; any query-string `agentId` is ignored.",
+        "description": "Returns usage for the agent in the path. An `agentId` in the query string is ignored.",
         "examples": [
           {
             "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/usage\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"groupBy=model\"",
@@ -6763,6 +6763,12 @@ export const restApiOperations = [
             "status": "400"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The request could not be completed.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "404"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"Unauthorized\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -6791,7 +6797,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Creates a Task for on-demand or scheduled execution.",
+        "description": "Creates a task to run on demand or on a schedule.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/tasks\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"agentId\":\"ag_1234567890ABCDEF\",\"name\":\"Daily summary\",\"prompt\":\"Summarize open support cases.\",\"schedule\":{\"kind\":\"cron\",\"config\":{\"expression\":\"0 9 * * 1-5\",\"timezone\":\"Europe/London\"}}}'",
@@ -6887,7 +6893,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/tasks/create-task"
       },
       {
-        "description": "Lists non-deleted Tasks with latest run status and cursor pagination.",
+        "description": "Lists tasks with their latest run status, one page at a time.",
         "examples": [
           {
             "code": "curl --get \"$BLAZING_AGENTS_BASE_URL/v1/tasks\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"agentId=ag_1234567890ABCDEF\" \\\n  --data-urlencode \"limit=50\"",
@@ -6971,7 +6977,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/tasks/list-tasks"
       },
       {
-        "description": "Retrieves a non-deleted Task without triggering execution.",
+        "description": "Retrieves a task without running it.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -7061,7 +7067,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/tasks/get-task"
       },
       {
-        "description": "Updates mutable Task fields. Schedule and enabled-state changes synchronize durably.",
+        "description": "Updates a task. Schedule and enabled changes take effect for future runs.",
         "examples": [
           {
             "code": "curl --request PATCH \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"enabled\":false,\"metadata\":{\"pausedBy\":\"ops\"}}'",
@@ -7157,7 +7163,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/tasks/update-task"
       },
       {
-        "description": "Soft-deletes a Task while preserving existing runs and Sessions.",
+        "description": "Deletes a task. Its past runs and sessions are kept.",
         "examples": [
           {
             "code": "curl --request DELETE \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -7253,7 +7259,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Enqueues an immediate Task run. An optional idempotency key reuses the existing run.",
+        "description": "Queues a task run now. Send an idempotency key to get the same run back on a retry.",
         "examples": [
           {
             "code": "curl --request POST \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"idempotencyKey\":\"daily-summary-2026-07-10\"}'",
@@ -7349,7 +7355,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/task-runs/create-task-run"
       },
       {
-        "description": "Lists a Task's runs newest first with cursor pagination.",
+        "description": "Lists a task's runs newest first, one page at a time.",
         "examples": [
           {
             "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"limit=50\"",
@@ -7439,7 +7445,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/task-runs/list-task-runs"
       },
       {
-        "description": "Retrieves durable Task run state without restarting execution.",
+        "description": "Retrieves a task run's current state.",
         "examples": [
           {
             "code": "curl \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs/tr_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -7481,7 +7487,7 @@ export const restApiOperations = [
         "operation": "get-task-run",
         "path": "/v1/tasks/:taskId/runs/:runId",
         "responseMetadata": {
-          "description": "Returns 200 OK with a complete Task run object. sessionId remains null until the worker attaches a fresh Session. error is populated for a failed run.",
+          "description": "Returns 200 OK with a complete Task run object. sessionId stays null until the run starts its session. error is populated for a failed run.",
           "schema": {
             "href": "/api-reference/protocols/objects-and-schemas#task-run-response",
             "name": "taskRunResponseSchema"
@@ -7529,7 +7535,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/task-runs/get-task-run"
       },
       {
-        "description": "Lists a Task run's Session transcript. It returns an empty page until a Session exists.",
+        "description": "Lists a task run's transcript. It returns an empty page until the run starts its session.",
         "examples": [
           {
             "code": "curl --get \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs/tr_1234567890ABCDEF/messages\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --data-urlencode \"after=eyJzZXEiOjF9\" \\\n  --data-urlencode \"limit=50\"",
@@ -7619,7 +7625,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/task-runs/list-task-run-messages"
       },
       {
-        "description": "Requests cooperative cancellation of an active Task run. The transition occurs asynchronously.",
+        "description": "Asks an active task run to stop. The run stops shortly after, not immediately.",
         "examples": [
           {
             "code": "curl --request POST \\\n  \"$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs/tr_1234567890ABCDEF/cancel\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -7661,7 +7667,7 @@ export const restApiOperations = [
         "operation": "cancel-task-run",
         "path": "/v1/tasks/:taskId/runs/:runId/cancel",
         "responseMetadata": {
-          "description": "Returns 204 No Content with an empty body after an owned Task is found. A missing or foreign run, a run belonging to another Task, a non-active run, and a terminal run are deliberately non-enumerating no-ops."
+          "description": "Returns 204 No Content with an empty body once the task is found. If the run is missing, belongs to another task or tenant, or has already finished, nothing happens and you still get 204, so the response never reveals which runs exist."
         },
         "responses": [
           {
@@ -7709,7 +7715,7 @@ export const restApiOperations = [
   {
     "operations": [
       {
-        "description": "Create a connection.",
+        "description": "Creates a connection.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Support\",\"agentId\":\"ag_1234567890ABCDEF\",\"platform\":\"telegram\",\"configuration\":{\"businessMode\":false},\"credentials\":{\"botToken\":\"123456789:REPLACE_WITH_BOT_TOKEN\"}}'",
@@ -7751,7 +7757,7 @@ export const restApiOperations = [
         "operation": "create-chat-connection",
         "path": "/v1/chat-connections",
         "responseMetadata": {
-          "description": "201 Created — A connection object."
+          "description": "Returns 201 Created: a connection object."
         },
         "responses": [
           {
@@ -7789,7 +7795,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/chat-connections/create-chat-connection"
       },
       {
-        "description": "List connections.",
+        "description": "Lists connections.",
         "examples": [
           {
             "code": "curl --request GET \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -7831,7 +7837,7 @@ export const restApiOperations = [
         "operation": "list-chat-connections",
         "path": "/v1/chat-connections",
         "responseMetadata": {
-          "description": "200 OK — {chatConnections: [...]} in creation order."
+          "description": "Returns 200 OK: {chatConnections: [...]} in creation order."
         },
         "responses": [
           {
@@ -7863,7 +7869,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/chat-connections/list-chat-connections"
       },
       {
-        "description": "Read a connection.",
+        "description": "Reads a connection.",
         "examples": [
           {
             "code": "curl --request GET \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -7905,7 +7911,7 @@ export const restApiOperations = [
         "operation": "get-chat-connection",
         "path": "/v1/chat-connections/:id",
         "responseMetadata": {
-          "description": "200 OK — A connection object."
+          "description": "Returns 200 OK: a connection object."
         },
         "responses": [
           {
@@ -7937,7 +7943,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/chat-connections/get-chat-connection"
       },
       {
-        "description": "Update a connection.",
+        "description": "Updates a connection.",
         "examples": [
           {
             "code": "curl --request PATCH \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"name\":\"Support\"}'",
@@ -7979,7 +7985,7 @@ export const restApiOperations = [
         "operation": "rename-chat-connection",
         "path": "/v1/chat-connections/:id",
         "responseMetadata": {
-          "description": "200 OK — A connection object."
+          "description": "Returns 200 OK: a connection object."
         },
         "responses": [
           {
@@ -8017,7 +8023,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/chat-connections/rename-chat-connection"
       },
       {
-        "description": "Rotate credentials.",
+        "description": "Rotates credentials.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/credentials\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"platform\":\"telegram\",\"botToken\":\"123456789:REPLACE_WITH_BOT_TOKEN\"}'",
@@ -8059,7 +8065,7 @@ export const restApiOperations = [
         "operation": "rotate-chat-credentials",
         "path": "/v1/chat-connections/:id/credentials",
         "responseMetadata": {
-          "description": "200 OK — A connection object."
+          "description": "Returns 200 OK: a connection object."
         },
         "responses": [
           {
@@ -8097,7 +8103,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/chat-connections/rotate-chat-credentials"
       },
       {
-        "description": "Check health.",
+        "description": "Checks health.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/health\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -8139,7 +8145,7 @@ export const restApiOperations = [
         "operation": "check-chat-health",
         "path": "/v1/chat-connections/:id/health",
         "responseMetadata": {
-          "description": "200 OK — A connection object, including refreshed health."
+          "description": "Returns 200 OK: a connection object, including refreshed health."
         },
         "responses": [
           {
@@ -8171,7 +8177,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/chat-connections/check-chat-health"
       },
       {
-        "description": "Enable intake.",
+        "description": "Starts accepting messages.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/enable\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -8213,7 +8219,7 @@ export const restApiOperations = [
         "operation": "enable-chat-connection",
         "path": "/v1/chat-connections/:id/enable",
         "responseMetadata": {
-          "description": "200 OK — A connection object."
+          "description": "Returns 200 OK: a connection object."
         },
         "responses": [
           {
@@ -8245,7 +8251,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/chat-connections/enable-chat-connection"
       },
       {
-        "description": "Disable intake.",
+        "description": "Stops accepting messages.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/disable\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -8287,7 +8293,7 @@ export const restApiOperations = [
         "operation": "disable-chat-connection",
         "path": "/v1/chat-connections/:id/disable",
         "responseMetadata": {
-          "description": "200 OK — A connection object."
+          "description": "Returns 200 OK: a connection object."
         },
         "responses": [
           {
@@ -8319,7 +8325,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/chat-connections/disable-chat-connection"
       },
       {
-        "description": "Delete a connection.",
+        "description": "Deletes a connection.",
         "examples": [
           {
             "code": "curl --request DELETE \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -8361,7 +8367,7 @@ export const restApiOperations = [
         "operation": "delete-chat-connection",
         "path": "/v1/chat-connections/:id",
         "responseMetadata": {
-          "description": "204 No Content — Empty body."
+          "description": "Returns 204 No Content: empty body."
         },
         "responses": [
           {
@@ -8390,7 +8396,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/chat-connections/delete-chat-connection"
       },
       {
-        "description": "Inspect deliveries.",
+        "description": "Lists delivery records.",
         "examples": [
           {
             "code": "curl --request GET \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/deliveries\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -8432,7 +8438,7 @@ export const restApiOperations = [
         "operation": "list-chat-deliveries",
         "path": "/v1/chat-connections/:id/deliveries",
         "responseMetadata": {
-          "description": "200 OK — {data, nextCursor} with delivery source IDs, status, attempt, diagnostic code, representation and known receipts. Credentials, message bodies and tool arguments are omitted."
+          "description": "Returns 200 OK: {data, nextCursor} with delivery source IDs, status, attempt, diagnostic code, representation and known receipts. Credentials, message bodies and tool arguments are omitted."
         },
         "responses": [
           {
@@ -8464,7 +8470,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/chat-connections/list-chat-deliveries"
       },
       {
-        "description": "Repair delivery.",
+        "description": "Repairs a stuck delivery.",
         "examples": [
           {
             "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/deliveries/cd_1234567890ABCDEF/repair\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"expectedAttempt\":1,\"previousSenderStopped\":true,\"acceptDuplicateRisk\":true}'",
@@ -8506,7 +8512,7 @@ export const restApiOperations = [
         "operation": "repair-chat-delivery",
         "path": "/v1/chat-connections/:id/deliveries/:deliveryId/repair",
         "responseMetadata": {
-          "description": "200 OK — The delivery result. Inspect its status: an HTTP success alone does not establish confirmed delivery."
+          "description": "Returns 200 OK: the delivery result. Inspect its status: a successful HTTP response alone does not mean the message was delivered."
         },
         "responses": [
           {
@@ -9262,7 +9268,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "api-reference/index.mdx",
             "type": "page",
             "name": "API Reference",
-            "description": "Use the REST endpoints and shared wire protocols behind Blazing Agents integrations.",
+            "description": "Call every Blazing Agents endpoint over HTTP and look up the shared wire formats.",
             "url": "/api-reference",
             "$ref": "api-reference/index.mdx"
           },
@@ -9298,7 +9304,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/workspaces.md",
                 "type": "page",
                 "name": "Workspaces",
-                "description": "Create, list, inspect, update, and delete Tenant-owned durable private Workspaces.",
+                "description": "Create, list, inspect, update, and delete the private file systems your agents work in.",
                 "url": "/api-reference/rest-api/workspaces",
                 "$ref": "api-reference/rest-api/workspaces.md"
               },
@@ -9322,7 +9328,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/providers.md",
                 "type": "page",
                 "name": "Providers",
-                "description": "Manage Tenant Provider credentials and discover Provider-native models.",
+                "description": "Store model provider keys and discover the models each provider offers.",
                 "url": "/api-reference/rest-api/providers",
                 "$ref": "api-reference/rest-api/providers.md"
               },
@@ -9330,7 +9336,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/mcp-connections.md",
                 "type": "page",
                 "name": "MCP connections",
-                "description": "Manage, test, connect, and reconnect Tenant MCP Connections.",
+                "description": "Connect remote MCP tool servers, then test, update, and reconnect them.",
                 "url": "/api-reference/rest-api/mcp-connections",
                 "$ref": "api-reference/rest-api/mcp-connections.md"
               },
@@ -9354,7 +9360,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/sessions.md",
                 "type": "page",
                 "name": "Sessions",
-                "description": "Run stateful Turns and manage Session history and Tool approvals.",
+                "description": "Hold conversations with an agent, read their history, and decide tool approvals.",
                 "url": "/api-reference/rest-api/sessions",
                 "$ref": "api-reference/rest-api/sessions.md"
               },
@@ -9370,7 +9376,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/memories.md",
                 "type": "page",
                 "name": "Memories",
-                "description": "Create, search, update, and delete Agent-owned Memory.",
+                "description": "Create, search, update, and delete the notes an agent remembers between sessions.",
                 "url": "/api-reference/rest-api/memories",
                 "$ref": "api-reference/rest-api/memories.md"
               },
@@ -9378,7 +9384,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/prompts.md",
                 "type": "page",
                 "name": "Prompts",
-                "description": "Manage reusable Tenant Prompt templates.",
+                "description": "Save message templates once and reuse them in sessions and generation.",
                 "url": "/api-reference/rest-api/prompts",
                 "$ref": "api-reference/rest-api/prompts.md"
               },
@@ -9386,7 +9392,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/usage.md",
                 "type": "page",
                 "name": "Usage",
-                "description": "Query Tenant and Agent usage over bounded time ranges.",
+                "description": "See how many tokens, requests, and minutes your agents use, by day, agent, model, session, or user.",
                 "url": "/api-reference/rest-api/usage",
                 "$ref": "api-reference/rest-api/usage.md"
               },
@@ -9394,7 +9400,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/tasks.md",
                 "type": "page",
                 "name": "Tasks",
-                "description": "Create and manage asynchronous Task definitions and schedules.",
+                "description": "Run agent work in the background, on demand or on a schedule.",
                 "url": "/api-reference/rest-api/tasks",
                 "$ref": "api-reference/rest-api/tasks.md"
               },
@@ -9402,7 +9408,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/task-runs.md",
                 "type": "page",
                 "name": "Task runs",
-                "description": "Start, inspect, poll, and cancel Task runs.",
+                "description": "Start a task run, watch its progress and transcript, and cancel it.",
                 "url": "/api-reference/rest-api/task-runs",
                 "$ref": "api-reference/rest-api/task-runs.md"
               },
@@ -9429,7 +9435,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/protocols/index.mdx",
                 "type": "page",
                 "name": "Protocols and contracts",
-                "description": "Find the reusable wire, schema, error, identifier, pagination, and limit contracts shared by the SDK and REST API.",
+                "description": "Look up the objects, errors, streams, IDs, pagination, and limits that every SDK method and endpoint shares.",
                 "url": "/api-reference/protocols",
                 "$ref": "api-reference/protocols/index.mdx"
               },
@@ -9461,7 +9467,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/protocols/resource-ids.md",
                 "type": "page",
                 "name": "Resource IDs",
-                "description": "Recognize opaque public resource identifiers and the separate server-owned HTTP request-attempt format.",
+                "description": "Recognize the ID formats Blazing Agents returns and treat them as opaque values.",
                 "url": "/api-reference/protocols/resource-ids",
                 "$ref": "api-reference/protocols/resource-ids.md"
               },

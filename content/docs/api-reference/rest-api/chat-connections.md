@@ -7,16 +7,18 @@ description: Create and manage Slack and Telegram connections and inspect delive
 
 ## Overview
 
-All endpoints require a Tenant bearer credential and active subscription. IDs use
-`cc_` plus 16 base62 characters. One installation belongs to one connection;
-an Agent can have several connections. Agent and platform identity are immutable.
-See [setup](/platform/chat-integrations) for callbacks and permissions.
+A chat connection puts one of your agents in a Slack workspace or a Telegram
+bot, so people can talk to it where they already chat. Each bot installation
+belongs to exactly one connection, and one agent can have several connections.
+You cannot change a connection's agent or platform identity after you create
+it. Every endpoint needs a bearer credential and an active subscription. See
+[setup](/platform/chat-integrations) for callbacks and permissions.
 
 A connection response contains `id`, `tenantId`, `agentId`, `name`, `platform`,
 `enabled`, `configuration` (including `platform`), read-only `webhookUrl`,
 verified `identity`, `health`,
 `credentialFragment` (last four token characters), `credentialVersion`,
-`createdAt`, and `updatedAt`. Full credentials are write-only.
+`createdAt`, and `updatedAt`. Full credentials are never returned.
 Health includes `checkedAt`, `tokenValid`, `identityVerified`, and `checks` with
 `code`, `status` (`pass`, `fail`, `unknown`), and optional `subject`.
 
@@ -24,7 +26,7 @@ Health includes `checkedAt`, `tokenValid`, `identityVerified`, and `checks` with
 
 ### POST /v1/chat-connections [#create-chat-connection]
 
-Create a connection.
+Creates a connection.
 
 #### Request
 
@@ -36,18 +38,19 @@ Create requires `name` (1–80 characters), `agentId`, `platform`, and
 | `slack` | optional `channelIds` | `botToken`, `signingSecret` |
 | `telegram` | optional `businessMode` and `chatIds` | `botToken` |
 
-Use strings for Telegram IDs. Destination lists accept at most 20 IDs and select
-health probes, not access restrictions. BA derives platform identity from the
-token and computes `webhookUrl` from its public API origin. Enabled Telegram
-creation registers that URL and a server-generated secret with Telegram.
+Send Telegram IDs as strings. Destination lists hold at most 20 IDs and only
+choose where health checks look; they do not restrict access. Blazing Agents
+reads the bot identity from the token and sets `webhookUrl` for you. Creating
+an enabled Telegram connection registers that URL and a generated secret with
+Telegram.
 The [TypeScript](/sdk/typescript/chat-integrations) and
 [Python](/sdk/python/chat-integrations) examples show a complete create request.
 
-Identity is verified before saving.
+The bot identity is verified before the connection is saved.
 
 #### Response
 
-`201 Created` — A connection object.
+Returns `201 Created`: a connection object.
 
 ```json
 {
@@ -98,7 +101,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections" \
 
 ### GET /v1/chat-connections [#list-chat-connections]
 
-List connections.
+Lists connections.
 
 #### Request
 
@@ -106,7 +109,7 @@ No body.
 
 #### Response
 
-`200 OK` — `{chatConnections: [...]}` in creation order.
+Returns `200 OK`: `{chatConnections: [...]}` in creation order.
 
 ```json
 {
@@ -159,15 +162,15 @@ curl --request GET "$BLAZING_AGENTS_BASE_URL/v1/chat-connections" \
 
 ### GET /v1/chat-connections/:id [#get-chat-connection]
 
-Read a connection.
+Reads a connection.
 
 #### Request
 
-No body. Health is the last saved observation.
+No body. `health` shows the result of the last check.
 
 #### Response
 
-`200 OK` — A connection object.
+Returns `200 OK`: a connection object.
 
 ```json
 {
@@ -216,7 +219,7 @@ curl --request GET "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890AB
 
 ### PATCH /v1/chat-connections/:id [#rename-chat-connection]
 
-Update a connection.
+Updates a connection.
 
 #### Request
 
@@ -227,7 +230,7 @@ webhook. `webhookUrl` is read-only.
 
 #### Response
 
-`200 OK` — A connection object.
+Returns `200 OK`: a connection object.
 
 ```json
 {
@@ -278,18 +281,18 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890
 
 ### POST /v1/chat-connections/:id/credentials [#rotate-chat-credentials]
 
-Rotate credentials.
+Rotates credentials.
 
 #### Request
 
 Send `platform` and the complete credentials for the same installation: Slack
-uses `botToken` and `signingSecret`; Telegram uses `botToken`. Enabled state and
-Sessions are preserved. Enabled Telegram rotation generates a new secret and
+uses `botToken` and `signingSecret`; Telegram uses `botToken`. The enabled state
+and sessions are kept. Enabled Telegram rotation generates a new secret and
 re-registers the webhook.
 
 #### Response
 
-`200 OK` — A connection object.
+Returns `200 OK`: a connection object.
 
 ```json
 {
@@ -340,15 +343,15 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
 
 ### POST /v1/chat-connections/:id/health [#check-chat-health]
 
-Check health.
+Checks health.
 
 #### Request
 
-No body. Runs fresh read-only platform probes and saves their results.
+No body. Runs new read-only checks against the platform and saves the results.
 
 #### Response
 
-`200 OK` — A connection object, including refreshed health.
+Returns `200 OK`: a connection object, including refreshed health.
 
 ```json
 {
@@ -397,18 +400,18 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
 
 ### POST /v1/chat-connections/:id/enable [#enable-chat-connection]
 
-Enable intake.
+Starts accepting messages.
 
 #### Request
 
-No body. Accepts future events; does not replay missed messages. For Telegram,
-BA registers the computed webhook first. A webhook registered elsewhere returns
+No body. Accepts new events; messages sent while disabled are not replayed. For
+Telegram, Blazing Agents registers the webhook first. A webhook registered elsewhere returns
 `409 chat_webhook_conflict`; other registration failures return
 `502 chat_webhook_registration_failed` and leave the connection disabled.
 
 #### Response
 
-`200 OK` — A connection object.
+Returns `200 OK`: a connection object.
 
 ```json
 {
@@ -457,17 +460,17 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
 
 ### POST /v1/chat-connections/:id/disable [#disable-chat-connection]
 
-Disable intake.
+Stops accepting messages.
 
 #### Request
 
-No body. Stops new messages and approval clicks; admitted work may finish.
+No body. Stops new messages and approval clicks; work already accepted can finish.
 Signed Slack URL verification still returns its challenge while disabled;
 other verified events are acknowledged and dropped.
 
 #### Response
 
-`200 OK` — A connection object.
+Returns `200 OK`: a connection object.
 
 ```json
 {
@@ -516,16 +519,16 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
 
 ### DELETE /v1/chat-connections/:id [#delete-chat-connection]
 
-Delete a connection.
+Deletes a connection.
 
 #### Request
 
-No body. Preserves BA Sessions. BA clears a matching Telegram webhook on a
-best-effort basis; it does not uninstall a Slack app.
+No body. Sessions are kept. Blazing Agents tries to clear a matching Telegram
+webhook; it does not uninstall a Slack app.
 
 #### Response
 
-`204 No Content` — Empty body.
+Returns `204 No Content`: empty body.
 
 #### cURL
 
@@ -536,7 +539,7 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_123456789
 
 ### GET /v1/chat-connections/:id/deliveries [#list-chat-deliveries]
 
-Inspect deliveries.
+Lists delivery records.
 
 #### Request
 
@@ -544,7 +547,7 @@ Optional `limit` (1–100, default 100) and opaque `cursor` query parameters. Ne
 
 #### Response
 
-`200 OK` — `{data, nextCursor}` with delivery source IDs, status, attempt, diagnostic code, representation and known receipts. Credentials, message bodies and tool arguments are omitted.
+Returns `200 OK`: `{data, nextCursor}` with delivery source IDs, status, attempt, diagnostic code, representation and known receipts. Credentials, message bodies and tool arguments are omitted.
 
 ```json
 {
@@ -562,15 +565,15 @@ curl --request GET "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890AB
 
 ### POST /v1/chat-connections/:id/deliveries/:deliveryId/repair [#repair-chat-delivery]
 
-Repair delivery.
+Repairs a stuck delivery.
 
 #### Request
 
-Send `{"expectedAttempt":1,"previousSenderStopped":true,"acceptDuplicateRisk":true}` using the observed attempt (0–99). Confirm the old sender has stopped before attesting; ask your operator to drain a crashed sender. Repair can duplicate output. It sends the saved reply or still-pending card without executing a Turn or tool.
+Send `{"expectedAttempt":1,"previousSenderStopped":true,"acceptDuplicateRisk":true}` using the observed attempt (0–99). Confirm the old sender has stopped before attesting; ask your operator to drain a crashed sender. Repair can duplicate output. It sends the saved reply or pending card without running a turn or tool.
 
 #### Response
 
-`200 OK` — The delivery result. Inspect its status: an HTTP success alone does not establish confirmed delivery.
+Returns `200 OK`: the delivery result. Inspect its status: a successful HTTP response alone does not mean the message was delivered.
 
 ```json
 {
@@ -592,3 +595,8 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
   --header "Content-Type: application/json" \
   --data '{"expectedAttempt":1,"previousSenderStopped":true,"acceptDuplicateRisk":true}'
 ```
+
+## Next
+
+- [Chat integrations](/platform/chat-integrations) to set up Slack or Telegram.
+- [TypeScript](/sdk/typescript/chat-integrations) or [Python](/sdk/python/chat-integrations) chat integration methods.

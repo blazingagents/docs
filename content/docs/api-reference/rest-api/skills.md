@@ -7,24 +7,25 @@ description: Manage Agent-owned Skills, supporting files, archives, and copies.
 
 ## Overview [#overview]
 
-Skills are Agent-owned directories with a required root `SKILL.md`. Every
-operation is scoped by both the authenticated Tenant and the Agent in the
-path. Postgres stores Skill metadata and R2 stores the authoritative files
-beneath the internal Tenant- and Agent-scoped key. Skill files are independent
-of Workspaces. At runtime,
-`/.ba-agents/{agentId}/skills/{skillId}/{relativePath}` is a virtual `read`
-locator, not an exposed R2 key or mounted file. JSON Skill responses include
-metadata plus the current file inventory.
+Skills teach an agent how to do a specific job. Each skill is a folder of files
+that belongs to one agent and must have a `SKILL.md` at its root. Create a
+skill from Markdown or upload an archive, then edit, copy, or delete its files.
+Every request is scoped to your tenant and to the agent in the path.
+
+Skill files are separate from the agent's workspace. During a turn, the agent
+reads them at `/.ba-agents/{agentId}/skills/{skillId}/{relativePath}` with its
+`read` tool; that path is not a real file in the workspace. JSON skill
+responses include the skill's metadata and its current list of files.
 
 ## Endpoints [#endpoints]
 
 ### POST /v1/agents/:agentId/skills [#create-skill]
 
-Creates a Skill from root Markdown and returns its file inventory.
+Creates a skill from a `SKILL.md` document and returns its file list.
 
 #### Request
 
-Requires JSON with `path: "SKILL.md"` and frontmatter-bearing `content`.
+Requires JSON with `path: "SKILL.md"` and `content` that starts with frontmatter.
 
 #### Response
 
@@ -37,7 +38,7 @@ SDK: [TypeScript](/sdk/typescript/skills#create) /
 
 #### Errors
 
-`400 validation_failed`; `404 agent_not_found`; `409 skill_name_conflict`.
+`400 validation_failed`; `404 not_found` for a missing agent; `409 skill_name_conflict`.
 
 #### cURL
 
@@ -50,7 +51,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills" \
 
 ### POST /v1/agents/:agentId/skills/upload [#upload-skill]
 
-Imports a complete Skill archive and returns its file inventory.
+Imports a whole skill from an archive and returns its file list.
 
 #### Request
 
@@ -67,7 +68,7 @@ SDK: [TypeScript](/sdk/typescript/skills#upload) /
 
 #### Errors
 
-`400 validation_failed`; `404 agent_not_found`; `409 skill_name_conflict`.
+`400 validation_failed`; `404 not_found` for a missing agent; `409 skill_name_conflict`.
 
 #### cURL
 
@@ -80,7 +81,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/upload"
 
 ### GET /v1/agents/:agentId/skills [#list-skills]
 
-Lists an Agent's Skills in a cursor-paginated response.
+Lists an agent's skills, one page at a time.
 
 #### Request
 
@@ -97,7 +98,7 @@ SDK: [TypeScript](/sdk/typescript/skills#list) /
 
 #### Errors
 
-`400 validation_failed`; `404 agent_not_found`.
+`400 validation_failed`; `404 not_found` for a missing agent.
 
 #### cURL
 
@@ -109,7 +110,7 @@ curl --get "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills" \
 
 ### GET /v1/agents/:agentId/skills/:skillId [#get-skill]
 
-Returns a Skill's metadata and current file inventory.
+Returns a skill's metadata and current file list.
 
 #### Request
 
@@ -137,7 +138,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID" \
 
 ### DELETE /v1/agents/:agentId/skills/:skillId [#delete-skill]
 
-Deletes a Skill and all its files.
+Deletes a skill and all its files.
 
 #### Request
 
@@ -164,7 +165,7 @@ curl --request DELETE \
 
 ### GET /v1/agents/:agentId/skills/:skillId/files?path=\<path\> [#get-skill-file]
 
-Downloads the raw bytes of a Skill file.
+Downloads the raw bytes of a skill file.
 
 #### Request
 
@@ -192,13 +193,13 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/skills/$SKILL_ID/files?path=a
 
 ### PUT /v1/agents/:agentId/skills/:skillId/files?path=\<path\> [#put-skill-file]
 
-Creates or replaces a Skill file from raw bytes.
+Creates or replaces a skill file from raw bytes.
 
 #### Request
 
 The `path` query parameter names the target file and the body is the exact
-file content. Replacing `SKILL.md` reparses its
-frontmatter and preserves the Skill ID.
+file content. Replacing `SKILL.md` rereads its frontmatter and keeps the skill
+ID.
 
 #### Response
 
@@ -224,11 +225,11 @@ curl --request PUT \
 
 ### DELETE /v1/agents/:agentId/skills/:skillId/files?path=\<path\> [#delete-skill-file]
 
-Deletes a supporting Skill file while protecting root `SKILL.md`.
+Deletes a supporting file. The root `SKILL.md` cannot be deleted.
 
 #### Request
 
-The `path` query parameter names a non-root, safe relative file path.
+The `path` query parameter names a relative file path other than the root `SKILL.md`.
 
 #### Response
 
@@ -242,7 +243,7 @@ SDK: [TypeScript](/sdk/typescript/skills#delete-file) /
 #### Errors
 
 `400 validation_failed`; `400 invalid_request` when deleting root `SKILL.md`;
-`404 skill_not_found`. Deleting an absent supporting file is idempotent.
+`404 skill_not_found`. Deleting a file that does not exist succeeds.
 
 #### cURL
 
@@ -254,7 +255,7 @@ curl --request DELETE \
 
 ### POST /v1/agents/:agentId/skills/:skillId/copies [#copy-skill]
 
-Copies a Skill independently to each destination Agent and returns per-destination results.
+Copies a skill to each destination agent and returns a result for each one.
 
 #### Request
 
@@ -284,8 +285,7 @@ curl --request POST \
   --data '{"agentIds":["ag_1234567890ABCDEF"]}'
 ```
 
-## Related [#related]
+## Next [#next]
 
-- [TypeScript SDK Skills](/sdk/typescript/skills)
-- [Python SDK Skills](/sdk/python/skills)
-- [Agents](/api-reference/rest-api/agents)
+- [Skills](/agents/skills) to write a skill your agent can use.
+- [Service limits](/api-reference/protocols/service-limits#skill-bundle) for size and file limits.

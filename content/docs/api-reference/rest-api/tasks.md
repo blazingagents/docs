@@ -1,42 +1,43 @@
 ---
 title: Tasks
-description: Create and manage asynchronous Task definitions and schedules.
+description: Run agent work in the background, on demand or on a schedule.
 ---
 
 # Tasks
 
 ## Tool approval policy [#tool-approval-policy]
 
-Task execution uses the resolved Agent Version's `approvalInTasks` policy. Tasks
-have no manual approval continuation path: manual calls and automatic escalation
-without a human are denied, with blocked work reported to the model. Other
-permitted work can continue. An unexpected pending human approval fails the Task.
-See [Tool approvals](/agents/tools/tool-approvals).
+Task runs follow the agent version's `approvalInTasks` policy. Nobody is
+there to approve a tool call during a run, so calls that need manual approval,
+or that automatic review escalates to a person, are denied. The agent is told
+which actions were blocked and keeps going with what it is allowed to do. If a
+run ends up waiting for a person anyway, it fails. See
+[Tool approvals](/agents/tools/tool-approvals).
 
 ## Overview [#overview]
 
-Tasks define reusable asynchronous Agent work with optional schedules. Use them for on-demand execution or recurring automation whose runs remain independently observable.
+A task is a saved prompt for an agent that runs in the background, on demand or on a schedule. Each run gets its own record and transcript, so you can check on it later. Use tasks for reports, syncs, and other work nobody waits on.
 
 ## Endpoints [#endpoints]
 
 ### POST /v1/tasks [#create-task]
 
-Creates a Task for on-demand or scheduled execution.
+Creates a task to run on demand or on a schedule.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. There are no path or query parameters. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and JSON. There are no path or query parameters. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 
 | Body field     | Type            | Required | Default |
 | -------------- | --------------- | -------- | ------- |
-| `agentId`      | string          | yes      | —       |
+| `agentId`      | string          | yes      | none       |
 | `agentVersion` | integer \| null | no       | `null`  |
-| `name`         | string          | yes      | —       |
-| `prompt`       | string          | yes      | —       |
+| `name`         | string          | yes      | none       |
+| `prompt`       | string          | yes      | none       |
 | `schedule`     | object \| null  | no       | `null`  |
 | `enabled`      | boolean         | no       | `true`  |
 | `submit`       | boolean         | no       | `false` |
@@ -79,7 +80,7 @@ Response schema: [`createTaskResponseSchema`](/api-reference/protocols/objects-a
 
 #### Errors
 
-`400 validation_failed` for invalid fields or schedule. `404 agent_version_not_found`, `409 agent_disabled`, and `409 admin_agent_managed` can reject the selected Agent Version or an immediate submission. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` for invalid fields or schedule. `404 agent_version_not_found` for a missing pinned version, `409 agent_disabled` when an immediate run hits a disabled agent, and `409 admin_agent_managed` because the platform-managed `ba assist` agent cannot run tasks. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -92,25 +93,25 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/tasks" \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/tasks#create) / [Python](/sdk/python/tasks#create). See [Tasks and schedules](/automation/tasks) and [Schedule recurring work](/automation/schedules).
+SDKs: [TypeScript](/sdk/typescript/tasks#create) / [Python](/sdk/python/tasks#create). See [Tasks and schedules](/automation/tasks).
 
 ### GET /v1/tasks [#list-tasks]
 
-Lists non-deleted Tasks with latest run status and cursor pagination.
+Lists tasks with their latest run status, one page at a time.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication). The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication). You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 
 | Query parameter | Type    | Default | Description                                 |
 | --------------- | ------- | ------- | ------------------------------------------- |
-| `agentId`       | string  | —       | Restrict to one Agent                       |
-| `userId`        | string  | —       | Attribution filter; `""` means tenant-level |
-| `cursor`        | string  | —       | Opaque cursor                               |
+| `agentId`       | string  | none       | Restrict to one Agent                       |
+| `userId`        | string  | none       | Attribution filter; `""` means tenant-level |
+| `cursor`        | string  | none       | Opaque cursor                               |
 | `limit`         | integer | 50      | 1–200                                       |
 
 #### Response
@@ -165,19 +166,19 @@ curl --get "$BLAZING_AGENTS_BASE_URL/v1/tasks" \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/tasks#list) / [Python](/sdk/python/tasks#list). See [Tasks and schedules](/automation/tasks) and [Schedule recurring work](/automation/schedules).
+SDKs: [TypeScript](/sdk/typescript/tasks#list) / [Python](/sdk/python/tasks#list). See [Tasks and schedules](/automation/tasks).
 
 ### GET /v1/tasks/:taskId [#get-task]
 
-Retrieves a non-deleted Task without triggering execution.
+Retrieves a task without running it.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a `tk_…` `taskId` path parameter. There are no query or body parameters. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a `tk_…` `taskId` path parameter. There are no query or body parameters. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
 
 #### Response
@@ -219,19 +220,19 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF" \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/tasks#get) / [Python](/sdk/python/tasks#get). See [Tasks and schedules](/automation/tasks) and [Schedule recurring work](/automation/schedules).
+SDKs: [TypeScript](/sdk/typescript/tasks#get) / [Python](/sdk/python/tasks#get). See [Tasks and schedules](/automation/tasks).
 
 ### PATCH /v1/tasks/:taskId [#update-task]
 
-Updates mutable Task fields. Schedule and enabled-state changes synchronize durably.
+Updates a task. Schedule and enabled changes take effect for future runs.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, and a `tk_…` `taskId`. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication), JSON, and a `tk_…` `taskId`. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
 
 | Body field     | Type            | Required | Description                     |
@@ -253,7 +254,7 @@ Response schema: [`taskSchema`](/api-reference/protocols/objects-and-schemas#tas
 
 #### Errors
 
-`400 validation_failed` for invalid/empty fields or schedule. `404 not_found` applies to a missing Task; `404 agent_version_not_found` rejects a missing pin, and `409 admin_agent_managed` protects the Admin Agent. See [REST errors](/api-reference/protocols/errors).
+`400 validation_failed` for invalid/empty fields or schedule. `404 not_found` applies to a missing Task; `404 agent_version_not_found` rejects a missing pin, and `409 admin_agent_managed` for the platform-managed `ba assist` agent. See [REST errors](/api-reference/protocols/errors).
 
 #### cURL
 
@@ -267,19 +268,19 @@ curl --request PATCH \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/tasks#update) / [Python](/sdk/python/tasks#update). See [Tasks and schedules](/automation/tasks) and [Schedule recurring work](/automation/schedules).
+SDKs: [TypeScript](/sdk/typescript/tasks#update) / [Python](/sdk/python/tasks#update). See [Tasks and schedules](/automation/tasks).
 
 ### DELETE /v1/tasks/:taskId [#delete-task]
 
-Soft-deletes a Task while preserving existing runs and Sessions.
+Deletes a task. Its past runs and sessions are kept.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a `tk_…` `taskId`. There are no query or body parameters. The credential selects the Tenant ownership boundary; reads and mutations are restricted to resources owned by that Tenant.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a `tk_…` `taskId`. There are no query or body parameters. You can reach only resources your tenant owns.
 
 | Location | Field           | Required | Description                               |
 | -------- | --------------- | -------- | ----------------------------------------- |
-| Header   | `Authorization` | yes      | Tenant API key or dashboard Supabase JWT. |
+| Header   | `Authorization` | yes      | Tenant API key or dashboard JWT. |
 | Path     | `taskId`        | yes      | Task ID (`tk_…`).                         |
 
 #### Response
@@ -302,10 +303,9 @@ curl --request DELETE \
 
 #### SDK and related guides
 
-SDKs: [TypeScript](/sdk/typescript/tasks#delete) / [Python](/sdk/python/tasks#delete). See [Tasks and schedules](/automation/tasks) and [Schedule recurring work](/automation/schedules).
+SDKs: [TypeScript](/sdk/typescript/tasks#delete) / [Python](/sdk/python/tasks#delete). See [Tasks and schedules](/automation/tasks).
 
-## Related [#related]
+## Next [#next]
 
-- [TypeScript SDK](/sdk/typescript)
-- [Objects and schemas](/api-reference/protocols/objects-and-schemas)
-- [Errors](/api-reference/protocols/errors)
+- [Tasks and schedules](/automation/tasks) to plan background work.
+- [Task runs API](/api-reference/rest-api/task-runs) to start and watch runs.
