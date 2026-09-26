@@ -1,5 +1,4 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   ERROR_CATALOG_PAGE,
@@ -7,14 +6,7 @@ import {
   renderErrorPage,
 } from "./error-catalog.mjs";
 
-const contract = JSON.parse(
-  readFileSync(
-    resolve(
-      process.env.BA_PLATFORM_OPENAPI ?? "../ba-platform/servers/api/openapi.json"
-    ),
-    "utf8"
-  )
-);
+const contract = JSON.parse(readFileSync("openapi/openapi.json", "utf8"));
 const contractCodes = new Set(
   contract.components.schemas.ApiError.properties.error.properties.code.enum
 );
