@@ -1,105 +1,171 @@
 ---
-title: Run your first Agent
-description: Create the smallest valid Agent and complete one streamed Turn.
+title: Run your first agent
+description: Connect a model, create an agent, and stream its first answer from one small program.
 ---
 
-# Run your first Agent
+# Run your first agent
 
-Run one TypeScript file that prints a streamed answer and the server-minted Session ID. The program saves a Provider, creates a configured Agent, then starts its first Turn.
+Build one small program that connects your OpenRouter key, creates an agent, and streams the agent's first answer to your terminal. You add to the same file in three steps and run it after each one, so you see every piece work before you move on.
 
 ## Before you begin [#before-you-begin]
 
-Complete [Set up Blazing Agents](/getting-started/setup), make the configured `client` available to this file, and set `OPENAI_API_KEY` in the backend environment. You do not need to configure a Skill, Workspace, MCP connection, Memory, or Task.
+Finish [Set up Blazing Agents](/getting-started/setup) and work in the same project folder and terminal. You also need an OpenRouter API key in that terminal:
+
+```bash
+export OPENROUTER_API_KEY="sk-or-..."
+```
+
+The program is safe to run again and again. It looks up the provider and agent by name and creates them only the first time.
 
 <Steps>
   <Step>
-    ## Create an Agent [#create-an-agent]
+    ## Connect a model provider [#connect-a-model-provider]
 
-    Save a Provider and select one of its current models. Agents may be created without these fields, but unconfigured Versions reject generation with `provider_required`.
+    A provider holds the model key your agents use. Blazing Agents stores the key for you, so your program sends it only once. Create `quickstart.ts` or `quickstart.py` with this code:
 
-  </Step>
-  <Step>
-    ## Run the first Turn [#run-the-first-turn]
+    ```typescript tab="TypeScript" tab-group="sdk-language" title="quickstart.ts"
+    import { BlazingAgents } from "@blazingagents/sdk";
 
-    Save this complete file as `quickstart.ts`:
-
-    ```typescript title="quickstart.ts"
-    import { type UIMessage } from "@blazingagents/sdk";
-    import { client } from "./client.ts";
-
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) throw new Error("OPENAI_API_KEY is required");
-
-    const provider = await client.providers.create({
-      name: `Quickstart OpenAI ${crypto.randomUUID()}`,
-      providerType: "openai",
-      baseUrl: null,
-      apiKey,
-    });
-    const { models } = await client.providers.listModels({
-      providerId: provider.id,
-    });
-    const model = models.find(({ id }) => id === "gpt-4.1");
-    if (!model) throw new Error("gpt-4.1 is unavailable");
-
-    const agent = await client.agents.create({
-      name: `Quickstart Agent ${crypto.randomUUID()}`,
-      providerId: provider.id,
-      model: model.id,
+    const client = new BlazingAgents({
+      apiKey: process.env.BLAZING_AGENTS_API_KEY!,
     });
 
-    const message = {
-      id: crypto.randomUUID(),
-      role: "user",
-      parts: [{ type: "text", text: "Reply with: First Turn complete." }],
-    } satisfies UIMessage;
-
-    const result = await client.chat({ agentId: agent.id, message });
-    const sessionId = await result.sessionId;
-
-    console.log(`Agent: ${agent.id}`);
-    console.log(`Session: ${sessionId}`);
-
-    await result.toResponse().text();
-    process.stdout.write("\n");
+    const providerName = "Quickstart OpenRouter";
+    const { providers } = await client.providers.list();
+    const provider =
+      providers.find(({ name }) => name === providerName) ??
+      (await client.providers.create({
+        name: providerName,
+        providerType: "openrouter",
+        baseUrl: null,
+        apiKey: process.env.OPENROUTER_API_KEY!,
+      }));
+    console.log(`Provider: ${provider.id}`);
     ```
 
-    `client.chat()` accepts one valid user `UIMessage`. Because the call omits `sessionId`, it starts a new Session and returns a decoded stream that the loop consumes once.
+    ```python tab="Python" title="quickstart.py"
+    import os
+    import sys
+    import uuid
+
+    from blazing_agents import BlazingAgents
+
+    client = BlazingAgents()
+
+    provider_name = "Quickstart OpenRouter"
+    providers = client.providers.list().providers
+    provider = next(
+        (p for p in providers if p.name == provider_name), None
+    ) or client.providers.create(
+        name=provider_name,
+        provider_type="openrouter",
+        api_key=os.environ["OPENROUTER_API_KEY"],
+    )
+    print(f"Provider: {provider.id}")
+    ```
+
+    Run it with `node quickstart.ts` or `python quickstart.py`. You see `Provider: prv_...`, and the same ID on every later run.
 
   </Step>
   <Step>
-    ## Verify the result [#verify-the-result]
+    ## Create an agent [#create-an-agent]
 
-    Run the file with your TypeScript runner. Standard output shows an `ag_...` Agent ID, an `ss_...` Session ID, and the streamed answer, including `First Turn complete.` when the model follows the instruction.
+    An agent pairs a provider with a model. Add this to the end of the file:
+
+    ```typescript tab="TypeScript" tab-group="sdk-language" title="quickstart.ts"
+    const agentName = "Quickstart agent";
+    const { agents } = await client.agents.list();
+    const agent =
+      agents.find(({ name }) => name === agentName) ??
+      (await client.agents.create({
+        name: agentName,
+        providerId: provider.id,
+        model: "openai/gpt-6-luna",
+      }));
+    console.log(`Agent: ${agent.id}`);
+    ```
+
+    ```python tab="Python" title="quickstart.py"
+    agent_name = "Quickstart agent"
+    agents = client.agents.list().agents
+    agent = next((a for a in agents if a.name == agent_name), None) or client.agents.create(
+        name=agent_name,
+        provider_id=provider.id,
+        model="openai/gpt-6-luna",
+    )
+    print(f"Agent: {agent.id}")
+    ```
+
+    Run the file again. You see the same `Provider: prv_...` line, then `Agent: ag_...`.
+
+    Blazing Agents checks the model against your provider when you create the agent. If you get `model_not_found`, pick another ID from `client.providers.listModels({ providerId })` in TypeScript or `client.providers.list_models(provider_id=...)` in Python.
+
+  </Step>
+  <Step>
+    ## Stream the first answer [#stream-the-first-answer]
+
+    Send the agent a message and print the answer as it arrives. Add this to the end of the file:
+
+    ```typescript tab="TypeScript" tab-group="sdk-language" title="quickstart.ts"
+    const result = await client.chat({
+      agentId: agent.id,
+      message: {
+        id: crypto.randomUUID(),
+        role: "user",
+        parts: [{ type: "text", text: "Say hello in one short sentence." }],
+      },
+    });
+    console.log(`Session: ${await result.sessionId}`);
+
+    for await (const chunk of result.toStream()) {
+      process.stdout.write(chunk);
+    }
+    // The stream is yours now: relay it to your app, parse it, or store it.
+    ```
+
+    ```python tab="Python" title="quickstart.py"
+    message = {
+        "id": str(uuid.uuid4()),
+        "role": "user",
+        "parts": [{"type": "text", "text": "Say hello in one short sentence."}],
+    }
+    with client.chat(agent_id=agent.id, message=message) as stream:
+        print(f"Session: {stream.session_id}")
+        for chunk in stream:
+            sys.stdout.buffer.write(chunk)
+        # The stream is yours now: relay it to your app, parse it, or store it.
+    ```
+
+    Run the file once more. After the IDs, the raw stream prints as it arrives:
+
+    ```text
+    Provider: prv_...
+    Agent: ag_...
+    Session: ss_...
+    data: {"type":"start",...}
+
+    data: {"type":"text-delta","id":"...","delta":"Hello"}
+
+    data: {"type":"text-delta","id":"...","delta":"!"}
+
+    ...
+
+    data: [DONE]
+    ```
+
+    These lines are AI SDK UI message events. In a web app your backend returns `result.toResponse()`, and the AI SDK `useChat` hook renders them as chat messages. Each run starts a new session, so you see a new `ss_...` ID every time.
 
   </Step>
 </Steps>
 
-## Understand what was created [#understand-what-was-created]
+## What happened [#what-happened]
 
-Omitting `sessionId` selects the create path. Blazing Agents mints the `ss_...` ID and returns it in the response `Location` header; the SDK exposes it as `result.sessionId` before the body finishes streaming.
+`client.chat()` without a `sessionId` starts a new session, a conversation that Blazing Agents keeps for you. You get the session ID before the answer finishes streaming, so you can save it right away. Pass it back as `sessionId` (`session_id` in Python) on the next call and the agent sees the whole conversation so far.
 
-The ID identifies a Session materialized after admission and before model execution. Success commits the full exchange, failure or cancellation leaves the transcript unchanged and can leave the Session empty. See [Sessions and Turns](/platform/sessions-and-turns) for the full lifecycle.
+The answer arrives as a stream of server-sent events in the AI SDK UI message format, and the program prints them untouched. The stream is yours: relay it to your app, parse it, or store it. In a web app, return `result.toResponse()` from your backend and the AI SDK `useChat` hook renders it for you.
 
-## Production notes [#production-notes]
+## Next [#next]
 
-- Store the Session ID as soon as `result.sessionId` resolves.
-- Pass the caller's `AbortSignal` as `abortSignal` when cancellation should stop the Turn.
-- Keep the API key on your backend and out of browser or mobile code.
-
-## Continue learning [#continue-learning]
-
-- [Connect Blazing Agents to your app](/getting-started/connect-your-app)
-- [Build a chat endpoint](/platform/sessions-and-turns#chat-endpoint-pattern)
-
-## Reference [#reference]
-
-- [Agents](/agents/agents)
-- [Sessions and Turns](/platform/sessions-and-turns)
-- [Generation and streaming](/agents/output/generation-and-streaming)
-- [`client.agents.create()`](/sdk/typescript/agents#create)
-- [Python `client.agents.create()`](/sdk/python/agents#create)
-- [`client.chat()`](/sdk/typescript/client#chat)
-- [Python `client.chat()`](/sdk/python/client#chat)
-- [`POST /v1/agents`](/api-reference/rest-api/agents#create-agent)
-- [Create a Session Turn](/api-reference/rest-api/sessions#create-session-turn)
+- [Connect Blazing Agents to your app](/getting-started/connect-your-app) to put a chat endpoint behind your own sign-in.
+- [Examples](https://github.com/blazingagents/examples) for complete Next.js, TanStack Start, Vite + Hono, Express, and FastAPI apps.
+- [Sessions and turns](/platform/sessions-and-turns) to continue, stop, and reload conversations.

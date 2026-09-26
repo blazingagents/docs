@@ -5,22 +5,65 @@
         "assignedIds": [],
         "kind": "h2"
       },
-      "cards": ["/agents", "/platform", "/automation"],
+      "cards": [
+        "/getting-started/connect-your-app",
+        "/agents/workspaces",
+        "/automation/tasks",
+        "/agents/tools",
+        "/platform/monetization"
+      ],
       "callout": null,
       "componentCounts": {
         "Cards": 1,
-        "Card": 3
+        "Card": 5
       },
       "fences": {
         "endpointCurls": false,
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
       "file": "index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "why.mdx",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -61,7 +104,7 @@
       "callout": null,
       "componentCounts": {
         "Steps": 1,
-        "Step": 4,
+        "Step": 3,
         "Callout": 1
       },
       "fences": {
@@ -72,8 +115,32 @@
             "metadata": {}
           },
           {
+            "language": "bash",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "bash",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language",
+              "title": "check.ts"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python",
+              "title": "check.py"
+            }
           }
         ]
       },
@@ -97,10 +164,57 @@
         "endpointCurls": false,
         "items": [
           {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
             "language": "typescript",
             "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language",
               "title": "quickstart.ts"
             }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python",
+              "title": "quickstart.py"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language",
+              "title": "quickstart.ts"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python",
+              "title": "quickstart.py"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language",
+              "title": "quickstart.ts"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python",
+              "title": "quickstart.py"
+            }
+          },
+          {
+            "language": "text",
+            "metadata": {}
           }
         ]
       },
@@ -3570,6 +3684,13 @@
       "url": "/"
     },
     {
+      "file": "why.mdx",
+      "name": "Why Blazing Agents",
+      "publishable": true,
+      "title": "Why Blazing Agents",
+      "url": "/why"
+    },
+    {
       "file": "getting-started/index.mdx",
       "name": "Getting Started",
       "publishable": true,
@@ -3585,9 +3706,9 @@
     },
     {
       "file": "getting-started/quickstart.mdx",
-      "name": "Run your first Agent",
+      "name": "Run your first agent",
       "publishable": true,
-      "title": "Run your first Agent",
+      "title": "Run your first agent",
       "url": "/getting-started/quickstart"
     },
     {
