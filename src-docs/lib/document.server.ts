@@ -1,6 +1,5 @@
 import { type DocsPage, source } from "./source.server.ts";
 
-/** The server-side contract produced by the generated Fumadocs source. */
 export type DocumentationPage = DocsPage;
 
 export function getDocumentationPage(

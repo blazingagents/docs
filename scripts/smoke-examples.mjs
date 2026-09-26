@@ -77,12 +77,7 @@ function pick(fences, lang, predicate = () => true) {
   return matches.map(({ body }) => body);
 }
 
-/**
- * SMOKE HARNESS REWRITE. Neither SDK reads a base URL from the environment, and
- * their fetch/http_client hooks need a constructor change too, so the snippets
- * (which rely on the production default) cannot reach a local API unedited.
- * This adds only the base URL to each client constructor.
- */
+/** Neither SDK reads a base URL from the environment, so the snippets cannot reach a local API unedited. */
 function pointAtBaseUrl(lang, code) {
   const pattern =
     lang === "typescript" ? /new BlazingAgents\(\{\n/g : /\b((?:Async)?BlazingAgents)\(\)(.*)$/gm;

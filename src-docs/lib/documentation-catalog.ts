@@ -31,7 +31,6 @@ const pagePaths = Object.freeze(
 );
 const operationPaths = Object.freeze([...operationsByUrl.keys()]);
 
-/** Immutable indexes and ordered path views over the generated docs manifest. */
 export const documentationCatalog = Object.freeze({
   markdownPaths: Object.freeze(
     pagePaths.map((path) => (path === "/" ? "/index.md" : `${path}.md`))
