@@ -12,7 +12,8 @@
     "sync:openapi": "node scripts/sync-openapi.mjs",
     "test": "npm run generate && vitest run --config vitest.docs.config.mts && node scripts/verify-docs-coverage.mjs",
     "typecheck": "npm run generate && tsc --noEmit -p tsconfig.docs.json",
-    "verify-output": "node scripts/verify-docs-output.mjs"
+    "verify-output": "node scripts/verify-docs-output.mjs",
+    "smoke:examples": "node scripts/smoke-examples.mjs"
   },
   "dependencies": {
     "@blazingagents/sdk": "0.10.0",

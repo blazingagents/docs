@@ -54,6 +54,38 @@ The development server runs at <http://localhost:3761>.
 | `npm run lint:docs` | Check `content/docs/` against the style guide's mechanical rules |
 | `npm run sync:openapi` | Copy the platform's API contract into `openapi/openapi.json` |
 
+## Smoke-testing the examples against a live API
+
+`npm run smoke:examples` runs the TypeScript and Python code on the setup page,
+the quickstart, and the home page chat route against a real API. It reads
+every snippet from the page, so there are no copies to keep in sync. It needs a
+live API, so it is not part of `npm run check`.
+
+```bash
+export BLAZING_AGENTS_BASE_URL="http://localhost:8787"
+export BLAZING_AGENTS_API_KEY="ba_..."
+export OPENROUTER_API_KEY="sk-or-..."
+nvm exec 24 npm run smoke:examples
+```
+
+- Run it under Node 24. It needs `python3` 3.11 or later (or set
+  `SMOKE_PYTHON`).
+- It installs the pinned `@blazingagents/sdk` and `ai` from `package.json`
+  and the published `blazing-agents` Python package in a temporary project.
+  Set `SMOKE_PYTHON_SDK=../python-sdk` (any pip requirement) to test a local
+  checkout.
+- Neither SDK reads a base URL from the environment, so the harness adds only
+  the `baseUrl`/`base_url` argument to each client constructor. The line is
+  marked `SMOKE HARNESS`.
+- Without `OPENROUTER_API_KEY`, the run stops at the first model step and exits
+  with status 2. That step is quickstart step 2, where `agents.create` checks
+  the model. The run uses a placeholder key for quickstart step 1 and deletes
+  that provider afterwards.
+- The quickstart's provider and agent stay in the tenant, as the page intends.
+  The home page's agent and provider are deleted after the route test. If
+  the tenant already has an agent named `Support agent`, the home page step
+  fails, as the page says it would.
+
 ## Repository structure
 
 | Path | Purpose |
