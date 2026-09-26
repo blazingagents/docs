@@ -2273,6 +2273,50 @@
           {
             "language": "python",
             "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
           }
         ]
       },
@@ -2299,6 +2343,14 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
           {
             "language": "python",
             "metadata": {}
@@ -2375,6 +2427,22 @@
           {
             "language": "python",
             "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
           }
         ]
       },
@@ -2388,6 +2456,7 @@
         "assignedIds": [
           "list",
           "iter",
+          "list-latest",
           "messages",
           "tool-approvals",
           "decide-tool-approval",
@@ -2402,6 +2471,18 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
           {
             "language": "python",
             "metadata": {}
@@ -2440,6 +2521,7 @@
           "list",
           "get",
           "list-models",
+          "get-thinking-levels",
           "update",
           "delete"
         ],
@@ -2450,7 +2532,40 @@
       "componentCounts": {},
       "fences": {
         "endpointCurls": false,
-        "items": []
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
       },
       "file": "sdk/python/providers.md",
       "filesTree": [],
@@ -2477,6 +2592,26 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
           {
             "language": "python",
             "metadata": {}
@@ -2529,6 +2664,22 @@
           {
             "language": "python",
             "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
           }
         ]
       },
@@ -2554,6 +2705,14 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
           {
             "language": "python",
             "metadata": {}
@@ -2648,6 +2807,10 @@
           {
             "language": "python",
             "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
           }
         ]
       },
@@ -2684,6 +2847,18 @@
           {
             "language": "python",
             "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
           }
         ]
       },
@@ -2695,6 +2870,7 @@
     {
       "anchors": {
         "assignedIds": [
+          "overview-method",
           "get",
           "get-for-agent"
         ],
@@ -2706,6 +2882,10 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
           {
             "language": "python",
             "metadata": {}
