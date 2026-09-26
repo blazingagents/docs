@@ -149,7 +149,7 @@ The component keeps a copy of the last conversation that finished successfully. 
 - **Regenerate** replaces the last saved answer. If regenerating fails or is stopped, the old answer stays. The button is only enabled after a successful answer, because a prompt that failed was never saved.
 - **New conversation** forgets the session ID. The next message starts a new session.
 
-This component shows only the messages from the current page visit. To show earlier messages after a reload, have your backend read them with `client.sessions.messages()` and pass them to `useChat` as `messages`. See [reading the transcript](/platform/sessions-and-turns#read-and-poll-the-transcript).
+This component shows only the messages from the current page visit. To show earlier messages after a reload, have your backend read them with `client.sessions.messages()` and pass them to `useChat` as `messages`. See [reading the transcript](/platform/sessions-and-turns#read-the-history).
 
 ## Things to know [#chatbot-faq]
 
