@@ -1,106 +1,91 @@
 ---
 title: Slack and Telegram
-description: Connect your own Slack app or Telegram bot to a hosted Agent.
+description: Put your agent in Slack or Telegram with your own bot, with history and approval buttons handled for you.
 ---
 
 # Slack and Telegram
 
-Connect your Slack app or Telegram bot to an existing Agent. BA receives messages,
-keeps Session history, posts replies, and presents tool approval buttons in chat.
-You need a configured Agent, an active subscription, a Tenant API key, and bot
-credentials. Keep all credentials on your backend.
+Let people talk to your agent in Slack or Telegram through your own bot. Blazing Agents receives the messages, keeps each conversation's history, posts the replies, and shows tool approval buttons in the chat. You need an agent with a provider and model, an active subscription, and your bot's credentials. Keep every credential on your backend.
 
-BA runs Vercel Chat SDK for these connections. Use the TypeScript or Python SDK
-to manage connections, or call the
-[Chat Connections REST API](/api-reference/rest-api/chat-connections) directly.
+## Create a connection [#create-a-connection]
 
-## Connect Slack
+A connection links one bot to one agent. This example connects a Telegram bot. Set `AGENT_ID` and `TELEGRAM_BOT_TOKEN` first.
 
-1. Create and install a Slack app in your workspace. Collect its bot token and
-   signing secret.
-2. Add bot scopes `app_mentions:read`, `chat:write`, `channels:history`,
-   `groups:history`, `im:history`, `mpim:history`, `users:read`, `channels:read`,
-   `groups:read`, `im:read`, and `mpim:read`. Reinstall after changing scopes.
-3. Create a connection with `platform: "slack"` and copy the returned
-   `webhookUrl`.
-4. Set **both** Event Subscriptions and Interactivity Request URLs to that URL.
-   Enable both features. Subscribe to `app_mention`, `message.channels`,
-   `message.groups`, `message.im`, and `message.mpim`.
-   BA answers signed Slack URL verification while the connection is disabled,
-   so you can save the Request URLs before enabling intake.
-5. Invite the bot to each intended public or private channel. Mention it in a
-   thread, then send a follow-up; also test a DM and an approval button if your
-   Agent uses human tool approvals.
+```typescript tab="TypeScript"
+import { BlazingAgents } from "@blazingagents/sdk";
 
-## Connect Telegram
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
 
-1. Create a bot through BotFather and collect its token.
-2. Create a connection with `platform: "telegram"`. Set `businessMode: true`
-   only for a Telegram Business bot.
-3. Enable the connection. BA generates the webhook secret and registers the
-   computed `webhookUrl` with Telegram. If the bot already points to another
-   webhook, enabling returns `409 chat_webhook_conflict`; other registration
-   failures return `502 chat_webhook_registration_failed`.
-4. Start a DM with the bot or add it to your group. If you need unmentioned group
-   follow-ups, disable privacy through BotFather and verify the bot's membership.
-   Topic conversations require a forum-enabled supergroup.
-5. Send a message and a follow-up, then test an approval button if applicable.
+const connection = await client.chatConnections.create({
+  name: "Support bot",
+  agentId: process.env.AGENT_ID!,
+  platform: "telegram",
+  credentials: { botToken: process.env.TELEGRAM_BOT_TOKEN! },
+});
+console.log(connection.id, connection.webhookUrl);
+```
 
-### Server-owned callback URL
+```python tab="Python"
+import os
 
-BA computes the read-only `webhookUrl` from its public API origin and the
-connection ID. Clients never construct or update it. Slack requires you to paste
-the returned URL into the app. BA registers Telegram on enabled creation,
-enabling, credential rotation, and Business mode changes. A passing token check
-alone does not prove that callbacks work; require the `webhook_url` health check
-to pass.
+from blazing_agents import BlazingAgents
 
-## Conversations and approvals
+client = BlazingAgents()
 
-DMs retain personal conversation history; shared threads and Telegram forum topics
-retain their own Sessions. Mention the bot to begin a shared conversation, then
-continue in that conversation. Overlapping messages may be dropped while work is
-in progress; Telegram topics in the same forum also share this concurrency limit.
+connection = client.chat_connections.create(
+    name="Support bot",
+    agent_id=os.environ["AGENT_ID"],
+    platform="telegram",
+    credentials={"bot_token": os.environ["TELEGRAM_BOT_TOKEN"]},
+)
+print(connection.id, connection.webhook_url)
+```
 
-Sender and approver access is currently unrestricted: participants who can reach
-the bot can invoke it, and anyone with access to a bound approval card can decide.
-Choose the bot's destinations and Agent tools accordingly. `channelIds` and
-`chatIds` select health probes; they are not allowlists.
+The connection is enabled by default, and Blazing Agents registers its `webhookUrl` with Telegram for you. Message the bot and the agent replies. For Slack, pass `platform: "slack"` with a `botToken` and `signingSecret`, then paste the returned `webhookUrl` into your Slack app as described below.
 
-If you delete the BA Session, send `/reset` in that native conversation to start
-fresh. `/reset` does not replace an active Session.
+## Connect Slack [#connect-slack]
 
-## Manage and troubleshoot
+1. Create a Slack app and install it in your workspace. Copy its bot token and signing secret.
+2. Add the bot scopes `app_mentions:read`, `chat:write`, `channels:history`, `groups:history`, `im:history`, `mpim:history`, `users:read`, `channels:read`, `groups:read`, `im:read`, and `mpim:read`. Reinstall the app after you change scopes.
+3. Create a connection with `platform: "slack"` and copy the returned `webhookUrl`.
+4. In the Slack app, set **both** the Event Subscriptions and the Interactivity Request URLs to that URL, and turn both features on. Subscribe to `app_mention`, `message.channels`, `message.groups`, `message.im`, and `message.mpim`. Slack's URL check succeeds even while the connection is disabled, so you can save the URLs before you enable it.
+5. Invite the bot to each channel it should serve. Mention it in a thread, send a follow-up, and try a direct message. If your agent uses tool approvals, test an approval button too.
 
-- **No reply:** check connection and Agent enabled state, subscription, bot
-  membership, platform callback settings, and fresh connection health. `unknown`
-  means a check could not establish the result; verify that setting manually.
-- **Rotate credentials:** submit the full credential bundle for the same bot or
-  installation. Sessions remain attached. Telegram requires only the new bot
-  token; BA generates a new secret and re-registers the webhook when enabled.
-- **Disable:** stops new messages and approval clicks; admitted work may finish.
-  Signed Slack URL verification still works, but other events are acknowledged
-  and dropped. Enabling accepts future events without replaying missed messages.
-- **Delete:** disconnects the bot from BA and preserves BA Sessions. BA clears a
-  matching Telegram webhook; uninstalling a Slack app remains separate.
-- **Missing output after a completed Turn:** inspect deliveries. `confirmed` means
-  the adapter returned and its receipt was saved; `failed` means a known failure;
-  `ambiguous` means a send may have succeeded. `pending` has not been claimed.
-  Repair is explicit and may duplicate a previous send. It sends saved output,
-  without running the Agent or its tools again.
+## Connect Telegram [#connect-telegram]
 
-Slack may split long output and retain only the final receipt. Telegram may
-truncate long output. The BA Session retains the complete canonical reply.
+1. Create a bot with BotFather and copy its token.
+2. Create a connection with `platform: "telegram"`. Set `businessMode: true` only for a Telegram Business bot.
+3. Enable the connection if you created it disabled. Blazing Agents registers the webhook with Telegram. If the bot already points at another webhook, enabling returns `chat_webhook_conflict` (HTTP `409`). Other registration failures return `chat_webhook_registration_failed` (HTTP `502`).
+4. Start a direct message with the bot or add it to a group. To answer group messages that do not mention the bot, turn off privacy mode in BotFather. Topic threads need a forum-enabled supergroup.
+5. Send a message and a follow-up, then test an approval button if your agent uses them.
 
-## SDK examples and custom bots
+You never build the webhook URL yourself. Blazing Agents re-registers it with Telegram when you enable the connection, rotate its token, or change Business mode. A valid token alone does not prove messages arrive, so check that the `webhook_url` health check passes.
 
-Use the [TypeScript example](/sdk/typescript/chat-integrations) or
-[Python example](/sdk/python/chat-integrations) to create a managed connection.
-TypeScript exposes `chatConnections`; Python exposes `chat_connections`.
+## Conversations and approvals [#conversations-and-approvals]
 
-If you already host a Vercel Chat SDK bot, you can call BA's existing `completion`
-method from its message handler and post the returned text. That is a custom
-integration: your application owns webhook verification, conversation mapping,
-state, and delivery. Use BA's stateful chat and approval APIs if you need those
-behaviors. A stateless completion alone does not provide the managed connection's
-Session continuity or approval cards.
+Each direct message keeps its own history. Each shared thread and each Telegram forum topic keeps its own session too. Mention the bot to start a shared conversation, then keep replying in that thread. Messages sent while the agent is still working on a reply may be dropped, and topics in the same forum share this limit.
+
+Anyone who can reach the bot can talk to it, and anyone who can see an approval card can approve or deny it. Choose where you add the bot, and which tools the agent has, with that in mind. `channelIds` and `chatIds` only choose where health checks look. They are not allowlists.
+
+If you delete a conversation's session, send `/reset` in that chat to start fresh. `/reset` does not replace a session that still exists.
+
+## Manage and troubleshoot [#manage-and-troubleshoot]
+
+- **No reply:** check that the connection and the agent are enabled, your subscription is active, the bot is in the channel, and the platform's webhook settings are right. Run a fresh health check. A result of `unknown` means the check could not tell, so verify that setting by hand.
+- **Rotate credentials:** send the full set of credentials for the same bot or Slack installation. Conversations stay attached. For Telegram, send only the new bot token.
+- **Disable:** stops new messages and approval clicks. Work already started may finish. Enabling again accepts new messages but does not replay missed ones.
+- **Delete:** disconnects the bot and keeps its sessions. Blazing Agents removes the Telegram webhook it set. Uninstall the Slack app yourself.
+- **Reply missing after the agent finished:** [list the connection's deliveries](/api-reference/rest-api/chat-connections#list-chat-deliveries). `confirmed` means the platform accepted the message, `failed` means it did not, and `ambiguous` means it may have been sent. `pending` has not been attempted yet. [Repairing a delivery](/api-reference/rest-api/chat-connections#repair-chat-delivery) posts the saved reply without running the agent again, and it can post a duplicate.
+
+Slack may split a long reply into several messages, and Telegram may cut it short. The session always keeps the full reply.
+
+## Your own bot [#your-own-bot]
+
+If you already run your own bot, you can call `client.completion()` from its message handler and post the returned text. Your code then owns webhook checks, conversation mapping, history, and delivery. Use a session with `client.chat()` if you need history, and the tool approval APIs if you need approvals.
+
+## Next [#next]
+
+- [TypeScript chat connections](/sdk/typescript/chat-integrations) or [Python chat connections](/sdk/python/chat-integrations) for every method.
+- [Tool approvals](/agents/tools/tool-approvals) to control which tool calls need a person.

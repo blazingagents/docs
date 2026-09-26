@@ -1,39 +1,32 @@
 ---
 title: Platform
-description: Operate conversations, tenancy, security, usage, and reliability across Blazing Agents.
+description: Run conversations, keep users and credentials apart, track usage, and handle failures in production.
 ---
 
 # Platform
 
-Platform concepts govern execution and every resource in Blazing Agents. Start here to manage conversational state, enforce your application boundary, understand metering, and design reliable production integrations.
+Everything around the agent that you need in production: conversations that persist, per-user reporting, safe credentials, usage limits, billing your own users, and chat apps. Start with sessions if you are building a chat, and read the rest before you go live.
 
-## Explore Platform [#explore-platform]
+## Explore the platform [#explore-the-platform]
 
 <Cards>
-  <Card title="Sessions and Turns" href="/platform/sessions-and-turns" description="Store conversation history and understand the lifecycle of one Agent execution." />
-  <Card title="Tenancy and attribution" href="/platform/tenancy-and-attribution" description="Keep Tenant isolation separate from end-user labels used for filtering and reporting." />
-  <Card title="Security and credentials" href="/platform/security-and-credentials" description="Keep API, Provider, MCP, and service credentials inside their trust boundaries." />
-  <Card title="Usage and quotas" href="/platform/usage-and-quotas" description="Measure settled Turns and configure Tenant safety ceilings." />
-  <Card title="Bill your users for model tokens" href="/platform/monetization" description="Bill your own customers for model-token usage through your Polar or Dodo merchant account." />
-  <Card title="Limits and reliability" href="/platform/limits-and-reliability" description="Handle limits, typed failures, retries, cancellation, and recovery." />
+  <Card title="Sessions and turns" href="/platform/sessions-and-turns" description="Keep a conversation going across requests and read its history." />
+  <Card title="Tenancy and attribution" href="/platform/tenancy-and-attribution" description="Label activity with your own user IDs to filter and report per user." />
+  <Card title="Security and credentials" href="/platform/security-and-credentials" description="Keep your API key on your server and rotate it safely." />
+  <Card title="Usage and quotas" href="/platform/usage-and-quotas" description="See what every turn used and set monthly safety ceilings." />
+  <Card title="Bill your users for model tokens" href="/platform/monetization" description="Charge your customers for tokens through your own Polar or Dodo account." />
+  <Card title="Limits and reliability" href="/platform/limits-and-reliability" description="Retry safely, handle cancellation, and debug failures by symptom." />
+  <Card title="Slack and Telegram" href="/platform/chat-integrations" description="Put your agent in Slack or Telegram with your own bot." />
 </Cards>
 
-## How the controls fit together [#how-the-controls-fit-together]
+## How a request flows [#how-a-request-flows]
 
-1. A backend credential establishes the Tenant for a request.
-2. Optional end-user attribution labels supported resources and usage without granting access.
-3. A Turn executes, optionally inside a Session, and settles usage.
-4. Quotas, service limits, and lifecycle rules determine whether work starts, retries safely, or reaches a terminal outcome.
+1. Your backend signs in the user, checks what they may access, and calls Blazing Agents with your API key.
+2. You can pass a `userId` to label the work for reporting. It does not grant access.
+3. The agent runs a turn, inside a session if you want history, and its usage is recorded.
+4. Quotas and service limits decide whether the turn starts, and the error code tells you whether to retry.
 
-The public API is backend-only. Your application authenticates its users and authorizes access before it calls Blazing Agents.
+## Next [#next]
 
-## Related sections [#related-sections]
-
-- [Agents](/agents) covers what an Agent can use and produce.
-- [Automation](/automation) covers durable background and scheduled work.
-- [TypeScript SDK](/sdk/typescript) and [Python SDK](/sdk/python) provide exact client methods.
-- [API Reference](/api-reference) defines REST and protocol contracts.
-
-## Chat integrations
-
-Connect your own [Slack app or Telegram bot](/platform/chat-integrations) to an Agent.
+- [Agents](/agents) for what an agent can use and produce.
+- [Automation](/automation) to run agents in the background or on a schedule.

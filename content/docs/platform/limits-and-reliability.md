@@ -1,88 +1,103 @@
 ---
 title: Limits and reliability
-description: Design for bounded operations, typed failures, idempotent submission, cancellation, and durable recovery.
+description: Retry safely, submit background work without duplicates, handle cancellation, and debug failures by symptom.
 ---
 
 # Limits and reliability
 
-Blazing Agents enforces product bounds and durable execution controls, while the tenant's application remains responsible for safe retries and external side effects. Use these contracts to distinguish a platform guarantee from work your integration must reconcile.
+Build an integration that survives lost responses, retries, and cancellations without doing the same work twice. This page covers what Blazing Agents guarantees, what your code must handle, and how to debug a failure from its error code.
 
-## Interactive resend
+## Submit a task run once [#submit-a-task-run-once]
 
-For interactive chat, retain submitted text/images until successful response completion. After failure or Stop, permit editing, discard, navigation, and explicit ordinary resend with a fresh user-message ID. A busy Session is a displayed error, not a permanent composer lock. Do not automatically replay generation or poll an ordinary-Turn outcome. A lost response can hide a saved exchange; reopening reads history normally. Repeated submissions can repeat external Tool effects. See [the chatbot guide](/getting-started/chatbot).
+Networks drop responses, so your code may retry a request that already worked. For background work, pass an idempotency key. Every retry with the same key returns the same run instead of starting a new one. Set `TASK_ID` to an existing [task](/automation/tasks).
 
-The durable Task guarantees and polling below apply to Task runs.
-
-## Product limits and pagination [#product-limits-and-pagination]
-
-Resource counts, text and upload sizes, schedule intervals, usage windows, and page sizes are enforced by public schemas, services, and storage constraints. Use the canonical [service-limits table](/api-reference/protocols/service-limits) for current values instead of embedding them in application logic.
-
-Unbounded lists use opaque keyset cursors. Pass a returned `nextCursor` back to the same operation with the same filters; do not decode it or reuse it across collections. Transcript polling also supports a forward `after` cursor. See [pagination and filtering](/api-reference/protocols/pagination-and-filtering) for operation-specific behavior.
-
-## Failure and retry model [#failure-and-retry-model]
-
-Validation failures are caller-fixable and should not be retried unchanged. `unauthorized` requires a valid replacement credential, `not_found` requires rechecking Tenant scope and lifecycle, and `quota_exceeded` should wait for a quota or window change. Retry provider or `internal` failures only after identifying a transient cause and only when the operation is safe to repeat.
-
-Before a streaming response begins, REST failures use the normal typed error envelope. After a completion or object stream begins, transport or decoding failures surface as SDK `stream_error`; partial output may already have been observed. A caller abort before an HTTP exchange surfaces as `request_aborted`; another local fetch failure uses `network_error`. Chat streams carry native AI SDK error chunks after streaming starts.
-
-Never infer retry safety from an error code alone. Read operations are generally repeatable, while creates and external Tool calls can have effects even when their response is lost. Use a documented idempotency field where one exists.
-
-## Submit an idempotent Task run [#submit-an-idempotent-task-run]
-
-Use one stable key for all retries of the same logical Task submission:
-
-```typescript
+```typescript tab="TypeScript"
 import { BlazingAgents } from "@blazingagents/sdk";
 
-const apiKey = process.env.BLAZING_AGENTS_API_KEY;
-if (!apiKey) throw new Error("BLAZING_AGENTS_API_KEY is required");
-
-const client = new BlazingAgents({ apiKey });
-const taskId = "tk_0123456789abcdef";
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
+const taskId = process.env.TASK_ID!;
 const idempotencyKey = "daily-report:2026-07-20";
 
 const first = await client.tasks.createRun({ taskId, idempotencyKey });
-const replay = await client.tasks.createRun({ taskId, idempotencyKey });
-
-console.log(first.runId === replay.runId);
+const retry = await client.tasks.createRun({ taskId, idempotencyKey });
+console.log(first.runId === retry.runId);
 ```
 
-The expression prints `true`: the key deterministically selects one Task run identity, and a retry returns and re-enqueues that existing run rather than creating a duplicate. A Task can have only one active run, so choose a key per logical submission rather than reusing one for different work.
+```python tab="Python"
+import os
+
+from blazing_agents import BlazingAgents
+
+client = BlazingAgents()
+task_id = os.environ["TASK_ID"]
+idempotency_key = "daily-report:2026-07-20"
+
+first = client.tasks.submit(task_id, idempotency_key=idempotency_key)
+retry = client.tasks.submit(task_id, idempotency_key=idempotency_key)
+print(first.run_id == retry.run_id)
+```
+
+This prints `true`. Build the key from a stable business fact, such as the report date, and save it before you submit. A task runs one job at a time, so a submission with a different key while a run is active returns `task_active_run_exists` (HTTP `409`).
+
+## Decide whether to retry [#decide-whether-to-retry]
+
+The error code tells you what to fix. It does not tell you the retry is safe, so also ask whether the call could have had an effect.
+
+- **Validation errors:** fix the request. Retrying it unchanged fails the same way.
+- **`unauthorized`:** replace the API key.
+- **`not_found`:** check the ID and whether the resource was deleted.
+- **`quota_exceeded`:** wait for the quota window to reset, or raise the quota.
+- **`rate_limited`:** too many turns are running. Retry with backoff.
+- **Provider or `internal` errors:** retry only if the cause looks temporary and the call is safe to repeat.
+
+Reads are safe to repeat. Creates and tool calls can take effect even when you never see the response. Use an idempotency key where one exists, and apply bounded retries with backoff, jitter, and an overall deadline.
+
+## Errors during a stream [#errors-during-a-stream]
+
+An error before the stream starts arrives as a normal API error with a code. Once a chat stream has started, errors arrive as `error` events inside the stream, and some output may already have been shown. For interactive chat, keep the user's draft and let them resend. See [stop and resend](/platform/sessions-and-turns#stop-and-resend).
+
+In TypeScript, a broken connection after streaming starts raises `stream_error`, an abort before the request is sent raises `request_aborted`, and other network failures raise `network_error`. In Python, these are `StreamError` and `APIConnectionError`.
 
 ## Cancellation and deadlines [#cancellation-and-deadlines]
 
-Task cancellation records intent and is cooperative. The worker observes it at a cancellation boundary and aborts the live Turn; callers should poll until the Task run reaches a terminal status. A worker deadline also aborts the Turn and records a failed outcome.
+Cancelling a task run asks it to stop. The run stops at its next safe point, so keep checking until it reaches a final status. A run that hits its time limit also stops and ends as `failed`.
 
-For a Workspace-backed Turn, cancellation or deadline stops new dispatch but does not claim that an already accepted native operation has stopped immediately. Each operation is bounded independently, Cloudflare owns Container lifecycle, and completed filesystem changes or remote Tool effects may remain.
+A workspace command or file operation that has already started may finish after cancellation. Files it changed, and effects on remote systems, stay in place. Plan to clean up or reverse external effects yourself.
 
-## Durable recovery guarantees [#durable-recovery-guarantees]
+## What Blazing Agents guarantees [#what-blazing-agents-guarantees]
 
-DBOS durably records Task workflow progress, cleanup, and Sandbox deletion; it does not reserve Sandbox capacity around the Turn. Task user messages are persisted before generation; the terminal assistant message is persisted during final usage settlement, behind the active-run fence. A product-side Turn claim prevents recovery from rerunning model, Tool, filesystem, Artifact, Session, or usage effects after an unfinished attempt: a recorded completed outcome is reused, while an unfinished claim becomes an interrupted failure.
+A task run's turn executes at most once. If the platform restarts mid-run, a finished result is kept and reused. An unfinished turn ends as `failed` instead of running the model and tools a second time.
 
-These controls provide at-most-once Task Turn execution, not exactly-once external effects. Product-database and DBOS-system-database writes are not atomic; reconciliation repairs missed enqueue and scheduling work. Integrations must still reconcile ambiguous remote effects and use compensating actions where needed.
+At most once is not exactly once for the outside world. If a run fails partway, a tool may already have sent an email or written a file. Check for those effects before you submit the work again.
+
+## Limits and pagination [#limits-and-pagination]
+
+Resource counts, text and upload sizes, schedule intervals, usage windows, and page sizes all have limits. Read the current values in [service limits](/api-reference/protocols/service-limits) rather than hard-coding them.
+
+Lists return a `nextCursor`. Pass it back to the same call with the same filters to get the next page. Treat cursors as opaque strings, and do not reuse one with a different list.
 
 ## Troubleshoot by symptom [#troubleshoot-by-symptom]
 
-Start with a stable status or error code. Record request and resource IDs, never credentials or raw prompts, Tool input/output, message parts, or Workspace contents.
-
-| Symptom | Check | Supported recovery |
+| Symptom | Check | Fix |
 | --- | --- | --- |
-| HTTP `401` / `unauthorized` | Confirm the backend sent one Bearer credential without logging it. | Create and deploy a replacement key from the authenticated dashboard, then revoke the old key. |
-| `provider_required` | Read the Agent and resolved Version's Provider/model pair. | Attach a complete Provider/model pair to the Agent. |
-| `model_not_found` or `model_validation_unavailable` | List the Provider's current model catalog. | Select a current model; create a replacement Provider when its key, type, or base URL changes. |
-| `stream_error` after output begins | Record the generation kind, whether deltas arrived, and request ID. | Await the final `text` or `object` promise and retry only if the whole operation is safe to repeat. |
-| MCP test failure or connection `error` | Record connection ID, status, and sanitized test code. | Test, reconnect, or complete the OAuth connection flow described under [MCP Tools](/agents/tools/mcp-tools). |
-| `workspace_not_found` | Read the Agent's current Workspace attachment. | Attach an owned Workspace before invoking Workspace Tools. |
-| Task run `failed` or `canceled` | Read the run and transcript; redact the arbitrary `run.error`. | Submit a new run only after deciding its effects are safe to repeat. |
-| `quota_exceeded` or run `blocked` | Compare settled usage with Tenant quota settings. | Wait for the reset window or deliberately update the quota policy. |
+| `unauthorized` (HTTP `401`) | Your backend sends one valid key. | Create a new key in the dashboard, deploy it, then revoke the old one. |
+| `provider_required` | The agent, or its pinned version, has a provider and model. | Set a provider and model on the agent. |
+| `model_not_found` or `model_validation_unavailable` | The provider's current model list. | Pick a listed model. Create a new provider if the key, type, or base URL changed. |
+| `stream_error` after output began | Whether any text arrived, and the request ID. | Retry only if the whole call is safe to repeat. |
+| MCP connection test fails or shows `error` | The connection's status and test result. | Test, reconnect, or finish OAuth sign-in. See [MCP tools](/agents/tools/mcp-tools). |
+| `workspace_not_found` | The agent's workspace attachment. | Attach a workspace before using workspace tools. |
+| Task run `failed` or `canceled` | The run and its transcript. | Submit a new run once repeating its effects is safe. |
+| `quota_exceeded` or run `blocked` | Your usage against your quota. | Wait for the reset day or raise the quota. |
 
-Provider replacement needs extra care because immutable Agent Versions may still refer to the old Provider. Create and validate the replacement, page every Agent Version and Task run, move current Agents, update Task Pins, let old-Version runs settle or cancel them, and replace pinned Sessions. Keep the old Provider until every historical Pin that must remain executable has moved; deleting it can break future resolution for old Task, Session, and explicit stateless Pins.
+When you replace a provider, older agent versions may still point at the old one. Move your agents and any pinned tasks and sessions to the new provider first. Delete the old provider only after nothing you still need to run refers to it.
 
-## Collect safe diagnostics [#collect-safe-diagnostics]
+## Log errors safely [#log-errors-safely]
 
-SDK errors expose a stable `code`, optional HTTP `status`, `details`, `param`, `requestId`, and response headers. Log only fields appropriate for correlation:
+Log the error code, request ID, HTTP status, and the IDs of the resources involved. Leave out credentials, prompts, message content, and tool data.
 
-```typescript
+```typescript tab="TypeScript"
 import { BlazingAgentsError } from "@blazingagents/sdk";
 
 try {
@@ -92,43 +107,36 @@ try {
   console.error({
     code: error.code,
     requestId: error.requestId,
-    resourceId: taskId,
     status: error.status,
+    taskId,
   });
 }
 ```
 
-Treat human-readable SDK messages and Task `run.error` values as untrusted and potentially sensitive. Redact them before logging or sharing.
+```python tab="Python"
+from blazing_agents import APIStatusError
 
-## Production considerations [#production-considerations]
+try:
+    client.tasks.get(task_id)
+except APIStatusError as error:
+    print({
+        "code": error.code,
+        "request_id": error.request_id,
+        "status": error.status_code,
+        "task_id": task_id,
+    })
+```
 
-- Derive idempotency keys from stable business identities and persist them before submission.
-- Apply bounded retry counts, exponential backoff, jitter, and an overall deadline appropriate to the operation.
-- Poll Task runs until a terminal `blocked`, `succeeded`, `failed`, or `canceled` status, using forward transcript cursors when progress is needed.
-- Record request IDs, Task and run IDs, error codes, and lifecycle timestamps without logging credentials.
-- Alert when a Task run remains `queued` or `running` beyond the application's deadline, or does not reach a terminal state after cancellation.
-- Reconcile or compensate for external Tool and filesystem effects after cancellation, timeout, or an ambiguous response.
+Error messages and a task run's `error` field can contain sensitive text. Redact them before you log or share them.
 
-See [Usage and quotas](/platform/usage-and-quotas), [Tasks](/automation/tasks), and [Task runs](/automation/task-runs) for their complete lifecycle semantics.
+## Production notes [#production-notes]
 
-## Related concepts [#related-concepts]
+- Poll task runs until they reach `blocked`, `succeeded`, `failed`, or `canceled`.
+- Alert when a run stays `queued` or `running` past your deadline, or does not finish after you cancel it.
+- After a cancellation, timeout, or lost response, check for external effects and reverse them where needed.
 
-- [Task runs](/automation/task-runs)
-- [Usage and quotas](/platform/usage-and-quotas)
-- [Security and credentials](/platform/security-and-credentials)
+## Next [#next]
 
-## Reference [#reference]
-
-- [TypeScript SDK `createRun`](/sdk/typescript/tasks#create-run)
-- [TypeScript SDK `getRun`](/sdk/typescript/tasks#get-run)
-- [TypeScript SDK `cancelRun`](/sdk/typescript/tasks#cancel-run)
-- [TypeScript SDK `runMessages`](/sdk/typescript/tasks#run-messages)
-- [Python SDK `submit`](/sdk/python/tasks#submit)
-- [Python SDK `get_run`](/sdk/python/tasks#get-run)
-- [Python SDK `cancel_run`](/sdk/python/tasks#cancel-run)
-- [Python SDK `run_messages`](/sdk/python/tasks#run-messages)
-- [REST create Task run](/api-reference/rest-api/task-runs#create-task-run)
-- [REST cancel Task run](/api-reference/rest-api/task-runs#cancel-task-run)
-- [Errors](/api-reference/protocols/errors)
-- [Pagination and filtering](/api-reference/protocols/pagination-and-filtering)
-- [Service limits](/api-reference/protocols/service-limits)
+- [Task runs](/automation/task-runs) to submit, check, and cancel background work.
+- [Usage and quotas](/platform/usage-and-quotas) to understand `quota_exceeded` and `blocked`.
+- [Errors](/api-reference/protocols/errors) for every error code.

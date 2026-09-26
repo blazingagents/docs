@@ -1,73 +1,75 @@
 ---
 title: Tasks
-description: Define reusable background Agent work and control the configuration used by future runs.
+description: Save a job for an agent to run in the background, then start it on demand or on a schedule.
 ---
 
 # Tasks
 
-A Task is persisted configuration for running an Agent asynchronously. It stores the Agent, instruction, optional Version Pin, attribution, enabled state, and optional schedule. The Task is a definition; each execution is a separate [Task run](/automation/task-runs).
+Save a job once and let your agent run it whenever you need, with no user waiting. A task holds the agent, the instruction, and optionally a schedule. Each time it runs, you get a separate [task run](/automation/task-runs) with its own status and transcript.
 
-## Tool approval policy [#tool-approval-policy]
+## Create a task [#create-a-task]
 
-Task execution uses the resolved Agent Version's `approvalInTasks` policy. Tasks
-have no manual approval continuation path: manual calls and automatic escalation
-without a human are denied, with blocked work reported to the model. Other
-permitted work can continue. An unexpected pending human approval fails the Task.
-See [Tool approvals](/agents/tools/tool-approvals).
+Set `AGENT_ID` to an agent with a provider and model, such as the one from the [quickstart](/getting-started/quickstart).
 
-## Task definition [#task-definition]
+```typescript tab="TypeScript"
+import { BlazingAgents } from "@blazingagents/sdk";
 
-A Task has a `tk_…` ID and belongs to one Tenant and Agent. Its core fields are:
-
-| Field | Purpose |
-| --- | --- |
-| `agentId` | Selects the Agent that executes the work. |
-| `name` | Identifies the definition to operators. |
-| `prompt` | Supplies the fixed instruction for every run. |
-| `agentVersion` | Pins a Version, or remains `null` to resolve latest when a run is enqueued. |
-| `userId` and `metadata` | Attribute resulting runs, Sessions, usage, and Artifacts. |
-| `schedule` | Runs on demand when `null`, or delegates timing to [Schedules](/automation/schedules). |
-| `enabled` | Allows scheduled fires; it does not prevent an explicit on-demand run. |
-
-`activeRunId`, `latestRunId`, and recent terminal summaries expose execution state without turning the Task itself into an execution.
-
-## Create an on-demand Task [#create-an-on-demand-task]
-
-Create the definition first, then submit runs separately when idempotency matters:
-
-```typescript
-const { task } = await client.tasks.create({
-  agentId,
-  name: "Build weekly report",
-  prompt: "Build the weekly report and summarize the result.",
-  userId: "app:user-42",
-  metadata: { accountId: "account-7" },
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
 });
 
-console.log(task.id, task.schedule); // tk_…, null
+const { task } = await client.tasks.create({
+  agentId: process.env.AGENT_ID!,
+  name: "Weekly report",
+  prompt: "Build the weekly report and summarize the result.",
+  userId: "app:user-42",
+});
+console.log(task.id, task.schedule);
 ```
 
-Omitting `schedule` creates an on-demand Task. `agentVersion` defaults to `null`, so each future run resolves the Agent's latest Version when it is enqueued. Set a Version number when repeatability matters.
+```python tab="Python"
+import os
 
-## Update and delete a Task [#update-and-delete-a-task]
+from blazing_agents import BlazingAgents
 
-Mutable definition fields affect future runs only. Updating `agentVersion`, prompt, metadata, enabled state, or schedule does not rewrite an already admitted run. A queued or running run retains the Version and inputs captured when it was created.
+client = BlazingAgents()
 
-Deleting a Task removes its reusable definition and scheduled execution. Inspect active state and apply your application's cancellation policy before deletion; do not assume deletion reverses external Tool or filesystem effects.
+task = client.tasks.create(
+    agent_id=os.environ["AGENT_ID"],
+    name="Weekly report",
+    prompt="Build the weekly report and summarize the result.",
+    user_id="app:user-42",
+).task
+print(task.id, task.schedule)
+```
 
-## Attribution and ownership [#attribution-and-ownership]
+You see `tk_... null` (`None` in Python). With no schedule, the task runs only when you [start a run](/automation/task-runs). Add a [schedule](/automation/schedules) to run it on a clock instead.
 
-The Tenant credential owns every Task. `userId` is immutable attribution inherited by runs; it is not authorization. Resolve Task IDs through your backend's access rules before reading, updating, submitting, or deleting them. See [Tenancy and attribution](/platform/tenancy-and-attribution).
+## What a task controls [#what-a-task-controls]
 
-## Next steps [#next-steps]
+- **Agent and instruction.** Every run sends the same `prompt` to the same agent.
+- **Version.** By default each run uses the agent's latest configuration at the moment the run is queued. Set `agentVersion` to pin a known-good [version](/agents/versions-and-lifecycle) instead.
+- **Schedule and enabled state.** A schedule starts runs automatically. Setting `enabled: false` pauses scheduled runs, but you can still start a run yourself.
+- **User label.** The task's `userId` and `metadata` carry over to every run, its session, its usage, and its artifacts. See [tenancy and attribution](/platform/tenancy-and-attribution).
 
-- [Submit and inspect a Task run](/automation/task-runs).
-- [Configure one-time or recurring schedules](/automation/schedules).
-- [Understand usage and quotas](/platform/usage-and-quotas).
-- [Design retries and recovery](/platform/limits-and-reliability).
+The task also shows its current active run and latest run, so you can see what is happening without listing every run. For every field and default, see [`tasks.create()`](/sdk/typescript/tasks#create).
 
-## Reference [#reference]
+## Tool approvals in tasks [#tool-approvals-in-tasks]
 
-- [TypeScript Tasks SDK](/sdk/typescript/tasks)
-- [Python Tasks SDK](/sdk/python/tasks)
-- [Tasks REST API](/api-reference/rest-api/tasks)
+No one is present to approve a tool call during a task. Tasks follow the agent's `approvalInTasks` policy. A tool call that would need a person is denied, and the agent is told so it can continue with other work. If a run still ends up waiting for a person, it fails. See [tool approvals](/agents/tools/tool-approvals).
+
+## Change or delete a task [#change-or-delete-a-task]
+
+Changes apply to future runs only. A run that is already queued or running keeps the version and settings it started with. The `agentId` and `userId` cannot change after creation.
+
+Deleting a task removes it and its schedule. It does not undo anything earlier runs did, such as files written or messages sent. Cancel an active run first if you need it stopped.
+
+## Production notes [#production-notes]
+
+- Creating a task with `submit: true` also starts a run, but that path has no idempotency key, so a retry creates a second task and run. When duplicates matter, create the task first, then [start runs with an idempotency key](/automation/task-runs#start-a-run).
+- Your API key can reach every task in your account. Check in your backend that the current user may read, change, or run a task before you pass its ID.
+
+## Next [#next]
+
+- [Start and check a task run](/automation/task-runs).
+- [Run a task on a schedule](/automation/schedules).
