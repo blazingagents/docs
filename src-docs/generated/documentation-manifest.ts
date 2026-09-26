@@ -9071,7 +9071,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/index.mdx",
                 "type": "page",
                 "name": "Python SDK",
-                "description": "Install and use the Pythonic synchronous and asynchronous clients for the complete Blazing Agents API.",
+                "description": "Install the typed sync and async Python clients and call every Blazing Agents API from your backend.",
                 "url": "/sdk/python",
                 "$ref": "sdk/python/index.mdx"
               },
@@ -9079,7 +9079,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/client.md",
                 "type": "page",
                 "name": "Client",
-                "description": "Configure Python clients and use their root chat, completion, and structured-output methods.",
+                "description": "Configure the Python client, handle errors, and generate chat, text, and structured output.",
                 "url": "/sdk/python/client",
                 "$ref": "sdk/python/client.md"
               },
@@ -9087,7 +9087,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/agents.md",
                 "type": "page",
                 "name": "Agents",
-                "description": "Create, configure, version, disable, and extend Agents with the Python SDK.",
+                "description": "Create, configure, version, pause, and delete agents with the Python SDK.",
                 "url": "/sdk/python/agents",
                 "$ref": "sdk/python/agents.md"
               },
@@ -9095,7 +9095,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/workspaces.md",
                 "type": "page",
                 "name": "Workspaces",
-                "description": "Create, inspect, update, iterate, and delete durable private Workspaces with the Python SDK.",
+                "description": "Create, list, update, and delete the persistent file systems your agents use.",
                 "url": "/sdk/python/workspaces",
                 "$ref": "sdk/python/workspaces.md"
               },
@@ -9103,7 +9103,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/skills.md",
                 "type": "page",
                 "name": "Skills",
-                "description": "Create, upload, inspect, iterate, edit, copy, and delete Agent-owned Skills with the Python SDK.",
+                "description": "Create, upload, edit, copy, and delete an agent's skills with the Python SDK.",
                 "url": "/sdk/python/skills",
                 "$ref": "sdk/python/skills.md"
               },
@@ -9111,7 +9111,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/sessions.md",
                 "type": "page",
                 "name": "Sessions",
-                "description": "Page Sessions and transcripts, decide Tool approvals, and join durable continuations.",
+                "description": "List conversations, read transcripts, approve tool calls, and delete sessions with the Python SDK.",
                 "url": "/sdk/python/sessions",
                 "$ref": "sdk/python/sessions.md"
               },
@@ -9119,7 +9119,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/providers.md",
                 "type": "page",
                 "name": "Providers",
-                "description": "Python SDK Provider CRUD and cost-free model discovery.",
+                "description": "Store model provider keys, list their models, and check reasoning levels with the Python SDK.",
                 "url": "/sdk/python/providers",
                 "$ref": "sdk/python/providers.md"
               },
@@ -9127,7 +9127,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/mcp-connections.md",
                 "type": "page",
                 "name": "MCP connections",
-                "description": "Create, authorize, inspect, test, reconnect, and delete MCP Connections with the Python SDK.",
+                "description": "Connect remote MCP servers, test them, and rotate their credentials with the Python SDK.",
                 "url": "/sdk/python/mcp-connections",
                 "$ref": "sdk/python/mcp-connections.md"
               },
@@ -9135,7 +9135,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/memories.md",
                 "type": "page",
                 "name": "Memories",
-                "description": "Create, search, iterate, update, and delete Agent-owned Memories with the Python SDK.",
+                "description": "Create, search, update, and delete the notes an agent remembers, with the Python SDK.",
                 "url": "/sdk/python/memories",
                 "$ref": "sdk/python/memories.md"
               },
@@ -9143,7 +9143,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/artifacts.md",
                 "type": "page",
                 "name": "Artifacts",
-                "description": "List, inspect, create download URLs for, and delete published Artifacts with the Python SDK.",
+                "description": "List, inspect, download, and delete the files your agents publish, with the Python SDK.",
                 "url": "/sdk/python/artifacts",
                 "$ref": "sdk/python/artifacts.md"
               },
@@ -9151,7 +9151,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/tasks.md",
                 "type": "page",
                 "name": "Tasks",
-                "description": "Manage asynchronous Tasks, schedules, Task runs, transcripts, and cancellation.",
+                "description": "Run agents in the background, on demand or on a schedule, and follow each run with the Python SDK.",
                 "url": "/sdk/python/tasks",
                 "$ref": "sdk/python/tasks.md"
               },
@@ -9159,7 +9159,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/prompts.md",
                 "type": "page",
                 "name": "Prompts",
-                "description": "Create, inspect, update, and delete reusable message Prompts with the Python SDK.",
+                "description": "Save reusable message templates and run them with variables, using the Python SDK.",
                 "url": "/sdk/python/prompts",
                 "$ref": "sdk/python/prompts.md"
               },
@@ -9167,7 +9167,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/usage.md",
                 "type": "page",
                 "name": "Usage",
-                "description": "Query Tenant-wide and Agent-scoped usage with the Python SDK.",
+                "description": "Read token, request, and duration totals for your tenant or one agent with the Python SDK.",
                 "url": "/sdk/python/usage",
                 "$ref": "sdk/python/usage.md"
               },
@@ -9175,7 +9175,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/tenant.md",
                 "type": "page",
                 "name": "Tenant",
-                "description": "Read and update Tenant settings and soft quotas with the Python SDK.",
+                "description": "Read and change your tenant's name and monthly usage quota with the Python SDK.",
                 "url": "/sdk/python/tenant",
                 "$ref": "sdk/python/tenant.md"
               },
@@ -9183,7 +9183,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/chat-integrations.md",
                 "type": "page",
                 "name": "Chat integrations",
-                "description": "Configure Slack and Telegram connections with the Python SDK.",
+                "description": "Connect an agent to your own Slack app or Telegram bot with the Python SDK.",
                 "url": "/sdk/python/chat-integrations",
                 "$ref": "sdk/python/chat-integrations.md"
               }
