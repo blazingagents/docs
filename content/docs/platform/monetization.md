@@ -1,63 +1,73 @@
 ---
 title: Bill your users for model tokens
-description: Collect model-token usage and bill your own customers through your Polar or Dodo merchant account.
+description: Send each user's model-token usage to your Polar or Dodo account and charge them with your own prices.
 ---
 
 # Bill your users for model tokens
 
-Merchant monetization lets each Tenant bill its own customers for model-token usage through its own Polar or Dodo merchant account. Blazing Agents records usage per Turn, attributes it to your end user, and delivers one immutable usage event to your provider. Your provider owns invoicing, allowances, and money movement; Blazing Agents never touches your customers' payments and BA's own billing stays entirely separate.
+Charge your customers for the model tokens they use, through your own Polar or Dodo account. Blazing Agents measures every turn, tags it with your end user, and sends one usage event to your billing provider. You set prices, allowances, and invoices there. Blazing Agents never handles your customers' payments, and your own Blazing Agents bill stays separate.
 
-Merchant monetization is opt-in per Tenant (`monetizationEnabled`, off by default — enable it in the dashboard under **Settings** or **Monetization**, or via `PATCH /v1/tenant`). While off, nothing is sent to your provider: executions carry no merchant admission data and usage that settles late is discarded rather than delivered. Turning off discards every event your provider has not yet accepted and stops the eligibility guard; your connection and customer bindings are kept, but re-enabling does not resurrect discarded events or backfill usage.
+## Who does what [#who-does-what]
 
-## What each side owns [#what-each-side-owns]
+- **Blazing Agents** measures each turn's tokens, creates one usage event per turn, and keeps delivering it until your provider accepts it or you resolve it.
+- **Your backend** links each of your users (`userId`) to a customer in your billing provider.
+- **Polar or Dodo** turns events into charges: meters, prices, allowances, credit balances, and invoices.
 
-- **Blazing Agents** measures settled Turn usage, freezes one immutable Merchant usage event per Turn, keeps a delivery ledger, and retries delivery durably until the provider accepts the event or you resolve it.
-- **Your tenant backend** binds each end user (`userId`) to a provider customer, so usage is attributed to the right payer.
-- **Polar or Dodo** owns the meter, pricing, allowances or credit balances, and invoices. The event name and metadata it receives are documented below so you can wire meters without guessing.
+Monetization is off until you turn it on. While it is off, nothing is sent to your provider.
 
 ## Set up monetization [#set-up-monetization]
 
+You can do every step in the dashboard under **Monetization**, or from your backend with the TypeScript SDK as shown here. The Python SDK does not manage monetization yet.
+
 <Steps>
 <Step>
-### Connect your merchant account
+### Connect your billing account
 
-Create one Merchant connection per Tenant, in the dashboard under **Monetization** or through `POST /v1/merchant-connection`. A connection stores the provider, the environment (`sandbox` or `live`), and a write-only credential.
-
-- **Polar**: an Organization Access Token (`polar_oat_…`) scoped to the merchant organization. Grant `organizations:read`, `customers:read`, and `events:write`; add nothing else. The token's organization becomes the recorded `merchantAccountId`.
-- **Dodo**: an API key from your Dodo dashboard, in the mode matching the environment you select.
-
-The credential is verified against the provider before the connection activates, and only a short `keyFragment` is ever shown afterward.
-</Step>
-<Step>
-### Bind users to provider customers
-
-From your backend, when a user signs up or starts a paid plan, create the provider customer and bind your `userId` to it:
+Create one connection with your provider, the environment (`sandbox` or `live`), and a credential:
 
 ```typescript
 import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_API_KEY,
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
 });
 
-// After creating the customer in Polar or Dodo:
+await client.merchantConnection.create({
+  provider: "polar",
+  environment: "sandbox",
+  credential: process.env.POLAR_ACCESS_TOKEN!,
+});
+await client.tenant.patch({ monetizationEnabled: true });
+```
+
+- **Polar:** use an Organization Access Token (`polar_oat_...`) with `organizations:read`, `customers:read`, and `events:write`, and nothing else.
+- **Dodo:** use an API key from your Dodo dashboard in the mode that matches the environment.
+
+Blazing Agents checks the credential with your provider before the connection goes live. After that, only a short fragment of it is shown.
+</Step>
+<Step>
+### Link users to customers
+
+When a user signs up or starts a paid plan, create the customer in your provider, then link your `userId` to it:
+
+```typescript
 await client.merchantBindings.put({
-  userId: "user_123",
-  customerId: "cust_polar_or_dodo_id",
+  userId: "app:user-42",
+  customerId: "cus_from_polar_or_dodo",
 });
 ```
 
-The provider validates that the customer exists before the binding is stored. Usage for a `userId` with no binding is recorded as `unmapped` and held until you bind the user and release the events — it is never exported as zero usage. `PUT` replaces an existing binding, `DELETE` removes it, and `list` supports a `userId` filter.
+Blazing Agents checks that the customer exists. Usage for a user with no link is held as `unmapped`, never sent as zero. Link the user, then release those events.
 </Step>
 <Step>
-### Configure provider billing
+### Create a meter
 
-Point a meter at the `ba.model_tokens.v1` events using the recipes below so usage becomes charges, credits, or allowance consumption.
+In your provider, create a meter for events named `ba.model_tokens.v1`, using the recipes below. Attach it to a price or an allowance so usage turns into charges.
 </Step>
 <Step>
-### Optionally enable the eligibility guard
+### Optionally require a paid plan
 
-The guard checks the bound customer's provider-reported eligibility at every execution admission — before any model call. Configure it on the connection with `productIds` (an active subscription to at least one is required) and/or `meterId` (a positive balance on the meter or credit entitlement is required).
+Turn on the guard to check each user's plan or balance with your provider before every turn starts:
 
 ```typescript
 await client.merchantConnection.update({
@@ -69,71 +79,76 @@ await client.merchantConnection.update({
 });
 ```
 
-The guard is a provider-reported eligibility check, not a spending lock: it does not track mid-Turn consumption, and a provider outage fails closed with `merchant_eligibility_unavailable` rather than admitting or denying on stale data.
+See [guard rules](#guard-rules) for what each setting requires.
 </Step>
 </Steps>
 
 ## Provider meter recipes [#provider-meter-recipes]
 
-Every delivered event is named `ba.model_tokens.v1` and carries this flat metadata, so meters can filter and aggregate without nested paths:
+Every event is named `ba.model_tokens.v1` and carries this flat metadata, so meters can filter and sum without nested paths:
 
 | Metadata key | Type | Contents |
 | ------------ | ---- | -------- |
-| `input_tokens` | number | Prompt tokens for the Turn |
-| `output_tokens` | number | Completion tokens for the Turn |
+| `input_tokens` | number | Prompt tokens for the turn |
+| `output_tokens` | number | Completion tokens for the turn |
 | `total_tokens` | number | `input_tokens + output_tokens` |
-| `model` | string | Provider-native model ID |
+| `model` | string | The model ID |
 | `model_provider` | string | The upstream model provider |
-| `ba_event_id` | string | The immutable `mev_` event ID (also the provider dedup key) |
-| `turn_id` | string | The Turn that produced the usage |
-| `agent_id` | string | The Agent that ran the Turn |
-| `session_id` | string | The Session; omitted for stateless executions |
-| `status` | string | The Turn outcome (`succeeded`, `failed`, `cancelled`) |
+| `ba_event_id` | string | The `mev_` event ID, also used to drop duplicates |
+| `turn_id` | string | The turn that used the tokens |
+| `agent_id` | string | The agent that ran the turn |
+| `session_id` | string | The session, omitted for calls without one |
+| `status` | string | The turn outcome: `succeeded`, `failed`, or `cancelled` |
 
 ### Polar
 
-Create a Meter with a filter clause matching event name `ba.model_tokens.v1` and a **Sum** aggregation over `total_tokens`. For separate prompt/completion pricing, create meters aggregating `input_tokens` and `output_tokens` instead. Optional filter clauses can narrow by metadata keys directly — for example `model` for per-model pricing or `status` to bill only `succeeded` Turns. Then attach a metered price to a Product to charge per unit, or grant an allowance through the product's metered benefit.
+Create a meter that filters on event name `ba.model_tokens.v1` with a **Sum** over `total_tokens`. For separate prompt and completion prices, create one meter over `input_tokens` and one over `output_tokens`. Add filters on `model` for per-model prices, or on `status` to bill only `succeeded` turns. Then attach a metered price to a product, or grant an allowance with a metered benefit.
 
-Polar deduplicates on the event's `external_id`, which carries the `mev_` event ID, so redeliveries are safe. Events Polar accepts late still bill in the cycle in which they are ingested.
+Polar drops duplicates by the event's `external_id`, which holds the `mev_` ID, so a resent event is never billed twice. An event Polar accepts late is billed in the cycle it arrives.
 
 ### Dodo
 
-Create a Meter whose **Event Name** is `ba.model_tokens.v1` (case-sensitive) with a **Sum** aggregation **Over Property** `total_tokens`; use `input_tokens` or `output_tokens` for split metering. Attach the meter to a usage-based product and either set a per-unit price or toggle **Bill usage in Credits** and link a **Credit Entitlement** for prepaid allowances, choosing the meter-units-per-credit ratio and free threshold. Optional meter filters can match metadata properties such as `model` or `status`.
+Create a meter with **Event Name** `ba.model_tokens.v1` (case-sensitive) and a **Sum** **Over Property** `total_tokens`, or use `input_tokens` and `output_tokens` for split pricing. Attach it to a usage-based product, then set a per-unit price, or turn on **Bill usage in Credits** and link a **Credit Entitlement** for prepaid allowances. Meter filters can match `model` or `status`.
 
-Dodo deduplicates on `event_id` (the `mev_` event ID). Dodo rejects events older than one hour, so an event that cannot be delivered within that window is marked `expired` in the ledger and requires a provider-side correction rather than a retry.
+Dodo drops duplicates by `event_id`, the `mev_` ID. Dodo rejects events older than one hour, so an event that misses that window is marked `expired` and needs a correction in Dodo.
 
 ## Guard rules [#guard-rules]
 
-Choose the rule shape that matches your pricing model:
+| Rule | `productIds` | `meterId` | A turn is allowed when |
+| ---- | ------------ | --------- | ---------------------- |
+| Subscription only | one or more | `null` | The customer has an active subscription to a listed product. Otherwise: `merchant_subscription_required`. |
+| Balance only | empty | set | The meter or credit balance is above zero. Otherwise: `merchant_balance_required`. |
+| Both | one or more | set | Both conditions hold. |
 
-| Rule | `productIds` | `meterId` | Effect when enabled |
-| ---- | ------------ | --------- | ------------------- |
-| Subscription-only | one or more | `null` | Requires an active subscription to at least one listed product (`merchant_subscription_required` otherwise) |
-| Balance-only | empty | set | Requires a positive balance on the meter/credit entitlement (`merchant_balance_required` otherwise) |
-| Both | one or more | set | Requires both an active subscription and a positive balance |
+On Polar, `meterId` is the meter shown in the customer's state. On Dodo, it is the credit entitlement ID. A user with no linked customer gets `merchant_customer_unmapped`.
 
-On Polar, `meterId` is the meter whose balance appears on the customer state; on Dodo it is the credit entitlement ID whose per-customer balance is read. A `userId` with no bound customer is denied with `merchant_customer_unmapped`.
+The guard checks only when a turn starts. A turn can still run past a balance while it runs. If your provider cannot be reached, the turn is refused with `merchant_eligibility_unavailable`.
 
-## Delivery states and next actions [#delivery-states-and-next-actions]
+## Delivery states [#delivery-states]
 
-The ledger (`client.merchantUsageEvents.list()`) shows every event with a `status` and a computed `nextAction`:
+`client.merchantUsageEvents.list()` shows every event with a `status` and a suggested `nextAction`:
 
 | Status | Meaning | Next action |
 | ------ | ------- | ----------- |
-| `pending` | Queued or delivering | `wait` — or `retry` when the delivery workflow is exhausted |
-| `accepted` | Provider confirmed ingestion | none |
-| `uncertain` | A transient failure may have landed provider-side | `retry` — deduplication makes retry safe |
-| `failed` | Terminal provider rejection (e.g. dead credential) | `retry` after fixing the cause |
-| `unmapped` | No customer bound for the `userId` | `bind_and_release` — bind, then release |
-| `incomplete` | Payload could not be built for delivery | `investigate` |
-| `expired` | Dodo's one-hour ingestion window passed | `discard` + provider-side correction |
-| `discarded` | Operator-excluded or monetization switched off | none |
+| `pending` | Waiting or being delivered | `wait`, or `retry` once automatic delivery gives up |
+| `accepted` | Your provider confirmed it | none |
+| `uncertain` | A temporary failure, and the event may have arrived | `retry`, which is safe because duplicates are dropped |
+| `failed` | Your provider rejected it, for example because of a revoked credential | `retry` after you fix the cause |
+| `unmapped` | No customer linked to the `userId` | `bind_and_release`: link the user, then call `release` |
+| `incomplete` | The event could not be built | `investigate` |
+| `expired` | Dodo's one-hour window passed | `discard`, then correct it in Dodo |
+| `discarded` | You discarded it, or monetization was off | none |
 
-Events are immutable; corrections never rewrite a recorded timestamp or token count. For `uncertain` events you can confirm provider-side state first: Dodo events are retrievable by `event_id`, and Polar events can be searched by `ba_event_id` metadata.
+Events never change after they are created. For an `uncertain` event, you can check your provider first: Dodo can look up events by `event_id`, and Polar can search by the `ba_event_id` metadata.
 
-## Limits [#limits]
+## Things to know [#things-to-know]
 
-- Asynchronous provider eligibility is not a spending lock: a Turn can exceed a balance while running, and the guard only gates admission.
-- An ingestion receipt confirms the provider accepted the event; it is not invoice proof. Billing disputes are resolved at the provider.
-- `unmapped` and `incomplete` events are held in the ledger — never exported as zero usage — until bound, retried, or discarded.
-- Tenant deletion is scheduled 24 hours out and cancellable until the deadline; unresolved events are deleted with the tenant — usage still in flight when the deadline arrives goes unbilled.
+- Turning monetization off discards every event your provider has not accepted yet. Your connection and customer links stay, but turning it back on does not recover discarded events or backfill usage.
+- An accepted event means your provider received it. It is not proof of an invoice, so settle billing disputes in your provider.
+- `unmapped` and `incomplete` events wait in the list until you link, retry, or discard them.
+- Deleting your account is scheduled 24 hours ahead and can be cancelled until then. Unresolved events are deleted with the account, and usage still arriving at that point is not billed.
+
+## Next [#next]
+
+- [Tenancy and attribution](/platform/tenancy-and-attribution) to choose stable `userId` values.
+- [Usage and quotas](/platform/usage-and-quotas) to see the same usage in Blazing Agents.
