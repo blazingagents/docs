@@ -87,7 +87,7 @@ TypeScript gives you partial objects parsed from the JSON so far. Python gives y
 
 ## Write a schema that works [#write-a-schema-that-works]
 
-The schema must be a JSON Schema object with at least `type` or `properties`. An empty schema, an invalid one, or one that uses features the model cannot enforce is rejected with `validation_failed` before anything runs. Keep schemas small and specific: list `required` fields, use `enum` for fixed choices, and set `additionalProperties: false`. See [objects and schemas](/api-reference/protocols/objects-and-schemas) for the supported features.
+The schema must be a JSON Schema object with at least `type` or `properties`. An empty schema, an invalid one, or one that uses features the model cannot enforce is rejected with [`validation_failed`](/api-reference/protocols/errors#validation_failed) before anything runs. Keep schemas small and specific: list `required` fields, use `enum` for fixed choices, and set `additionalProperties: false`. See [objects and schemas](/api-reference/protocols/objects-and-schemas) for the supported features.
 
 ## What to expect [#what-to-expect]
 

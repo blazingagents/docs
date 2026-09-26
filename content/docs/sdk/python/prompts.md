@@ -26,7 +26,7 @@ print(prompt.variables, str(result))
 
 Write placeholders as `{{name}}`. Names are trimmed and must look like identifiers. The prompt's `variables` field lists each name once, in the order it first appears. A template holds up to 10 variables and 10 KiB of text.
 
-To run a prompt, pass `prompt_id` and `variables` to [`chat()`](/sdk/python/client#chat), [`completion()`](/sdk/python/client#completion), or [`object()`](/sdk/python/client#object) instead of a literal message or prompt. Supply exactly the names in `variables`: a missing one raises `prompt_variable_missing` and an extra one raises `prompt_variable_unknown`. Only the filled-in text is stored in the session, so editing or deleting the prompt later does not change past transcripts.
+To run a prompt, pass `prompt_id` and `variables` to [`chat()`](/sdk/python/client#chat), [`completion()`](/sdk/python/client#completion), or [`object()`](/sdk/python/client#object) instead of a literal message or prompt. Supply exactly the names in `variables`: a missing one raises [`prompt_variable_missing`](/api-reference/protocols/errors#prompt_variable_missing) and an extra one raises [`prompt_variable_unknown`](/api-reference/protocols/errors#prompt_variable_unknown). Only the filled-in text is stored in the session, so editing or deleting the prompt later does not change past transcripts.
 
 ## Available operations [#available-operations]
 
@@ -63,7 +63,7 @@ prompt = client.prompts.create(
 | `user_id` | `str` | `""` | End user; `""` means tenant level. Fixed after creation |
 | `metadata` | `dict[str, object]` | `{}` | Your own data |
 
-Returns [`Prompt`](#prompt). Raises `APIStatusError` with `validation_failed`, `prompt_name_conflict`, `prompt_limit_reached` (100 prompts per tenant), or `not_found` for an unknown `agent_id`.
+Returns [`Prompt`](#prompt). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`prompt_name_conflict`](/api-reference/protocols/errors#prompt_name_conflict), [`prompt_limit_reached`](/api-reference/protocols/errors#prompt_limit_reached) (100 prompts per tenant), or [`not_found`](/api-reference/protocols/errors#not_found) for an unknown `agent_id`.
 
 ### `list()` [#list]
 

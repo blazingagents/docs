@@ -74,7 +74,7 @@ const connection = await client.mcpConnections.create({
 | `clientId`, `clientSecret` | `string` | for `"oauth_client_credentials"` | OAuth client credentials |
 | `scope` | `string` | no | OAuth scope |
 
-Returns [`McpConnectionResponse`](#mcpconnectionresponse) with `status: "connected"`, or `"needs_auth"` for authorization-code OAuth. Your tenant can hold up to 50 connections. Errors: `validation_failed`, `mcp_connection_name_conflict`, `mcp_connection_limit_reached`, and the [check errors](#errors).
+Returns [`McpConnectionResponse`](#mcpconnectionresponse) with `status: "connected"`, or `"needs_auth"` for authorization-code OAuth. Your tenant can hold up to 50 connections. Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`mcp_connection_name_conflict`](/api-reference/protocols/errors#mcp_connection_name_conflict), [`mcp_connection_limit_reached`](/api-reference/protocols/errors#mcp_connection_limit_reached), and the [check errors](#errors).
 
 ### `list()` [#list]
 
@@ -98,7 +98,7 @@ Reads one connection.
 const connection = await client.mcpConnections.get({ mcpConnectionId });
 ```
 
-Returns [`McpConnectionResponse`](#mcpconnectionresponse). Errors: `validation_failed`, `not_found`.
+Returns [`McpConnectionResponse`](#mcpconnectionresponse). Errors: `validation_failed`, [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `update()` [#update]
 
@@ -125,7 +125,7 @@ Deletes a connection and revokes any OAuth tokens it holds.
 await client.mcpConnections.delete({ mcpConnectionId });
 ```
 
-Remove it from every agent's `mcpConnectionIds` first, or the call fails with `mcp_connection_in_use`. Errors: `validation_failed`, `not_found`, `mcp_connection_in_use`.
+Remove it from every agent's `mcpConnectionIds` first, or the call fails with [`mcp_connection_in_use`](/api-reference/protocols/errors#mcp_connection_in_use). Errors: `validation_failed`, `not_found`, `mcp_connection_in_use`.
 
 ### `test()` [#test]
 
@@ -155,7 +155,7 @@ const dashboardClient = new BlazingAgents({ apiKey: dashboardUserAccessToken });
 const { authorizationUrl } = await dashboardClient.mcpConnections.connect({ mcpConnectionId });
 ```
 
-The URL opens the connection's page in the Blazing Agents dashboard, where the person signs in to the MCP server's provider and approves access. The connection then turns `"connected"`. This call needs a signed-in dashboard user's access token in place of the API key; a client built with an API key gets `unauthorized`. Most apps send the person to the [dashboard](https://www.blazingagents.com/app) to finish OAuth instead.
+The URL opens the connection's page in the Blazing Agents dashboard, where the person signs in to the MCP server's provider and approves access. The connection then turns `"connected"`. This call needs a signed-in dashboard user's access token in place of the API key; a client built with an API key gets [`unauthorized`](/api-reference/protocols/errors#unauthorized). Most apps send the person to the [dashboard](https://www.blazingagents.com/app) to finish OAuth instead.
 
 Returns [`McpConnectionOauthConnectResponse`](#mcpconnectionoauthconnectresponse). Errors: `unauthorized`, `validation_failed`.
 
@@ -175,7 +175,7 @@ const result = await client.mcpConnections.reconnect({
 console.log(result.status);
 ```
 
-Takes the [`create()`](#create) fields except `name`. Blazing Agents checks the new settings the same way as `create()` and keeps the old ones if the check fails. Agents that use the connection pick up the change without an update. Returns [`McpConnectionReconnectResult`](#mcpconnectionreconnectresult). Errors: `validation_failed`, `not_found`, `mcp_connection_stale_credential_version` (someone changed it at the same time; reload and retry), and the [check errors](#errors).
+Takes the [`create()`](#create) fields except `name`. Blazing Agents checks the new settings the same way as `create()` and keeps the old ones if the check fails. Agents that use the connection pick up the change without an update. Returns [`McpConnectionReconnectResult`](#mcpconnectionreconnectresult). Errors: `validation_failed`, `not_found`, [`mcp_connection_stale_credential_version`](/api-reference/protocols/errors#mcp_connection_stale_credential_version) (someone changed it at the same time; reload and retry), and the [check errors](#errors).
 
 ## Response types [#response-types]
 
@@ -244,10 +244,10 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). `create()`
 
 | Code | Meaning |
 | --- | --- |
-| `mcp_connection_authentication_failed` | The server rejected the credentials |
-| `mcp_connection_invalid` | The endpoint did not answer like an MCP server |
-| `mcp_connection_unreachable` | The server could not be reached |
-| `mcp_connection_discovery_failed` | OAuth or MCP discovery failed |
+| [`mcp_connection_authentication_failed`](/api-reference/protocols/errors#mcp_connection_authentication_failed) | The server rejected the credentials |
+| [`mcp_connection_invalid`](/api-reference/protocols/errors#mcp_connection_invalid) | The endpoint did not answer like an MCP server |
+| [`mcp_connection_unreachable`](/api-reference/protocols/errors#mcp_connection_unreachable) | The server could not be reached |
+| [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | OAuth or MCP discovery failed |
 
 Other connection codes:
 

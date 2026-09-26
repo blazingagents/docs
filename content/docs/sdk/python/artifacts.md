@@ -37,7 +37,7 @@ page = client.artifacts.list(agent_id="ag_0123456789abcdef", session_id="ss_0123
 
 **Signature:** `list(*, agent_id=..., session_id=..., cursor=...) -> ArtifactsPage`
 
-Filter by agent, session, or both. Pass the previous page's `next_cursor` as `cursor`. Returns `ArtifactsPage` with `data: list[Artifact]` and `next_cursor: str | None`. Raises `APIStatusError` with `validation_failed` or `invalid_cursor`.
+Filter by agent, session, or both. Pass the previous page's `next_cursor` as `cursor`. Returns `ArtifactsPage` with `data: list[Artifact]` and `next_cursor: str | None`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `iter()` [#iter]
 
@@ -63,7 +63,7 @@ print(artifact.filename, artifact.media_type, artifact.size_bytes)
 
 **Signature:** `get(*, artifact_id: str) -> Artifact`
 
-Returns [`Artifact`](#artifact). Raises `not_found`.
+Returns [`Artifact`](#artifact). Raises [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `create_download_url()` [#create-download-url]
 
@@ -76,7 +76,7 @@ print(download.url, download.expires_at)
 
 **Signature:** `create_download_url(*, artifact_id: str) -> ArtifactDownloadUrl`
 
-Anyone with the link can download the file until it expires, so keep it out of logs and share it only with the intended user. Returns `ArtifactDownloadUrl` with `url` and `expires_at`. Raises `not_found`, or `service_unavailable` when downloads are temporarily unavailable.
+Anyone with the link can download the file until it expires, so keep it out of logs and share it only with the intended user. Returns `ArtifactDownloadUrl` with `url` and `expires_at`. Raises `not_found`, or [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) when downloads are temporarily unavailable.
 
 ### `delete()` [#delete]
 

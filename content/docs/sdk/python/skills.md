@@ -57,7 +57,7 @@ skill = client.agent(agent.id).skills.create(
 
 `path` must be `"SKILL.md"`; any other value raises `ValueError` before any request. The frontmatter needs a `name` (lowercase letters, digits, and hyphens, up to 64 characters, not `anthropic` or `claude`) and a `description` (up to 1,024 characters). The name must be unique among the agent's skills.
 
-Returns [`SkillDetail`](#skill-and-skilldetail). Raises `APIStatusError` with `validation_failed`, `agent_not_found`, `skill_invalid_markdown`, `skill_name_conflict`, or `skill_limit_reached`.
+Returns [`SkillDetail`](#skill-and-skilldetail). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), `agent_not_found`, [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict), or [`skill_limit_reached`](/api-reference/protocols/errors#skill_limit_reached).
 
 ### `upload()` [#upload]
 
@@ -76,7 +76,7 @@ skill = client.agent(agent.id).skills.upload(
 
 `file` is bytes, a file path, or an open binary file. The SDK opens and closes paths itself and never closes a file object you pass. `filename` overrides the name taken from a path or file object; otherwise bytes are sent as `skill.<archive_type>`. An unsupported `archive_type` raises `ValueError`.
 
-Returns [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed`, `agent_not_found`, `skill_invalid_archive`, `skill_invalid_markdown`, `skill_name_conflict`, `skill_limit_reached`, `skill_too_many_files`, or `skill_uncompressed_too_large`.
+Returns [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed`, `agent_not_found`, [`skill_invalid_archive`](/api-reference/protocols/errors#skill_invalid_archive), `skill_invalid_markdown`, `skill_name_conflict`, `skill_limit_reached`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), or [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large).
 
 ### `list()` [#list]
 
@@ -88,7 +88,7 @@ page = client.agent(agent.id).skills.list(limit=50)
 
 **Signature:** `list(*, cursor=..., limit=...) -> SkillsPage`
 
-`limit` is 1 to 100 and defaults to 50. Pass the previous page's `next_cursor` as `cursor`. Returns `SkillsPage` with `data: list[Skill]` and `next_cursor: str | None`. Raises `validation_failed`, `invalid_cursor`, or `agent_not_found`.
+`limit` is 1 to 100 and defaults to 50. Pass the previous page's `next_cursor` as `cursor`. Returns `SkillsPage` with `data: list[Skill]` and `next_cursor: str | None`. Raises `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `agent_not_found`.
 
 ### `iter()` [#iter]
 
@@ -115,7 +115,7 @@ for file in skill.files:
 
 **Signature:** `get(*, skill_id: str) -> SkillDetail`
 
-Returns [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed` or `skill_not_found`.
+Returns [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed` or [`skill_not_found`](/api-reference/protocols/errors#skill_not_found).
 
 ### `delete()` [#delete]
 
@@ -175,7 +175,7 @@ skill = client.agent(agent.id).skills.delete_file(
 
 **Signature:** `delete_file(*, skill_id: str, path: str) -> SkillDetail`
 
-Deleting a file that does not exist succeeds. You cannot delete `SKILL.md`. Returns the updated [`SkillDetail`](#skill-and-skilldetail). Raises `invalid_request`, `validation_failed`, or `skill_not_found`.
+Deleting a file that does not exist succeeds. You cannot delete `SKILL.md`. Returns the updated [`SkillDetail`](#skill-and-skilldetail). Raises [`invalid_request`](/api-reference/protocols/errors#invalid_request), `validation_failed`, or `skill_not_found`.
 
 ### `copy()` [#copy]
 

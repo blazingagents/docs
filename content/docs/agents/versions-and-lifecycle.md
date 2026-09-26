@@ -96,7 +96,7 @@ client.agents.disable(agent_id)
 client.agents.enable(agent_id)
 ```
 
-A disabled agent rejects new chat turns, completions, manual task runs, and tool approval continuations with `agent_disabled`. Turns already running finish. Scheduled runs are skipped, not queued, and the next scheduled run after you enable the agent goes ahead. You can still read and edit a disabled agent. Calling either method twice is safe.
+A disabled agent rejects new chat turns, completions, manual task runs, and tool approval continuations with [`agent_disabled`](/api-reference/protocols/errors#agent_disabled). Turns already running finish. Scheduled runs are skipped, not queued, and the next scheduled run after you enable the agent goes ahead. You can still read and edit a disabled agent. Calling either method twice is safe.
 
 ## Next [#next]
 

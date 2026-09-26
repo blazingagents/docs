@@ -116,13 +116,13 @@ Dodo drops duplicates by `event_id`, the `mev_` ID. Dodo rejects events older th
 
 | Rule | `productIds` | `meterId` | A turn is allowed when |
 | ---- | ------------ | --------- | ---------------------- |
-| Subscription only | one or more | `null` | The customer has an active subscription to a listed product. Otherwise: `merchant_subscription_required`. |
-| Balance only | empty | set | The meter or credit balance is above zero. Otherwise: `merchant_balance_required`. |
+| Subscription only | one or more | `null` | The customer has an active subscription to a listed product. Otherwise: [`merchant_subscription_required`](/api-reference/protocols/errors#merchant_subscription_required). |
+| Balance only | empty | set | The meter or credit balance is above zero. Otherwise: [`merchant_balance_required`](/api-reference/protocols/errors#merchant_balance_required). |
 | Both | one or more | set | Both conditions hold. |
 
-On Polar, `meterId` is the meter shown in the customer's state. On Dodo, it is the credit entitlement ID. A user with no linked customer gets `merchant_customer_unmapped`.
+On Polar, `meterId` is the meter shown in the customer's state. On Dodo, it is the credit entitlement ID. A user with no linked customer gets [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped).
 
-The guard checks only when a turn starts. A turn can still run past a balance while it runs. If your provider cannot be reached, the turn is refused with `merchant_eligibility_unavailable`.
+The guard checks only when a turn starts. A turn can still run past a balance while it runs. If your provider cannot be reached, the turn is refused with [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable).
 
 ## Delivery states [#delivery-states]
 

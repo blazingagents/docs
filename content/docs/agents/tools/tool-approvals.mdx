@@ -184,7 +184,7 @@ See [reading UI message streams](https://ai-sdk.dev/docs/ai-sdk-ui/reading-ui-me
 ## Retries and busy sessions [#retries-and-busy-sessions]
 
 - Sending the same decision twice is safe. Reversing a decision returns `409`.
-- While approvals are pending or a continuation is running, new chat turns and regeneration return `session_busy`.
+- While approvals are pending or a continuation is running, new chat turns and regeneration return [`session_busy`](/api-reference/protocols/errors#session_busy).
 - Disconnecting from the stream does not stop the continuation. Join the same `continuationId` again to keep reading.
 - A failed continuation reports its error. Joining it again does not run the tool a second time.
 

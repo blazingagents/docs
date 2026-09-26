@@ -96,6 +96,10 @@ missing:
 BA_PLATFORM_OPENAPI=/path/to/ba-platform/servers/api/openapi.json npm run sync:openapi
 ```
 
+`npm test` fails when the contract's error codes differ from
+`src-docs/data/error-codes.json`. Add or remove the matching entries there,
+then run `npm run generate` to update the errors page.
+
 ## Deployment
 
 Cloudflare Pages project `blazing-agents-docs` deploys this repository through

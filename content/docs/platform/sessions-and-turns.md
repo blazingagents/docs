@@ -73,7 +73,7 @@ You see four lines: `user`, `assistant`, `user`, `assistant`. Reading the stream
 
 Calling `client.chat()` without a session ID starts a new session. You get the `ss_...` ID before the answer finishes streaming, so save it right away. Pass it back as `sessionId` (`session_id` in Python) to continue.
 
-A session belongs to one agent. Resuming it through another agent, or resuming a deleted or unknown session, returns `not_found`. Blazing Agents never quietly creates a replacement.
+A session belongs to one agent. Resuming it through another agent, or resuming a deleted or unknown session, returns [`not_found`](/api-reference/protocols/errors#not_found). Blazing Agents never quietly creates a replacement.
 
 A successful turn saves the user message, the assistant reply, and its tool activity together. A failed or cancelled turn is still metered, but it adds nothing to the history. If the very first turn fails, you keep an empty session that you can still use.
 
@@ -104,7 +104,7 @@ Pass `userId` and `metadata` on the first turn to label the session with your en
 
 ## Busy and concurrent sessions [#busy-and-concurrent-sessions]
 
-A session returns `session_busy` (HTTP `409`) while a [tool approval](/agents/tools/tool-approvals) is waiting for a decision or an approved call is still running. Show the error and let the user send again later. Deleting a session also returns `session_busy` while an approved call is running.
+A session returns [`session_busy`](/api-reference/protocols/errors#session_busy) (HTTP `409`) while a [tool approval](/agents/tools/tool-approvals) is waiting for a decision or an approved call is still running. Show the error and let the user send again later. Deleting a session also returns `session_busy` while an approved call is running.
 
 If two turns run on the same session at once, the first to finish is saved and the other fails instead of merging the histories. Send one turn at a time per session when order matters.
 

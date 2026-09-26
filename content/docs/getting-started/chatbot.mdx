@@ -154,7 +154,7 @@ This component shows only the messages from the current page visit. To show earl
 ## Things to know [#chatbot-faq]
 
 - **A dropped connection is not a failure.** If the network drops after the agent finished, the answer may already be saved. Reload history before assuming it was lost.
-- **Busy sessions.** While a tool call in the session waits for approval, new messages return a `session_busy` error. Show it and let the user send again later. If two messages race in the same session, one of them fails rather than mixing the histories.
+- **Busy sessions.** While a tool call in the session waits for approval, new messages return a [`session_busy`](/api-reference/protocols/errors#session_busy) error. Show it and let the user send again later. If two messages race in the same session, one of them fails rather than mixing the histories.
 - **Images** go in the same message as extra file parts. See [send an image](/agents/output/generation-and-streaming#send-an-image).
 - **Tool approvals** arrive in the same stream when an agent needs a person to allow a tool call. Send the decision through your backend, not only with `addToolApprovalResponse`. See [render the resumed answer](/agents/tools/tool-approvals#render-the-resumed-answer).
 

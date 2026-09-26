@@ -89,7 +89,7 @@ Without `provider_id` and `model`, the agent is saved unconfigured. Passing only
 
 An approval policy is a dictionary with a required `default` decision and an optional list of per-tool `overrides`. Decisions are `"full"`, `"deny"`, `"manual"`, or `"auto"`. See [tool approvals](/agents/tools/tool-approvals) for what each decision does.
 
-Returns [`Agent`](#agent). Raises `APIStatusError` with `validation_failed`, `agent_name_conflict`, `provider_not_found`, `model_not_found`, `model_validation_unavailable`, `agent_mcp_connection_not_found`, or `agent_mcp_connections_invalid`.
+Returns [`Agent`](#agent). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`agent_name_conflict`](/api-reference/protocols/errors#agent_name_conflict), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), or [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid).
 
 ### `list()` [#list]
 
@@ -118,7 +118,7 @@ agent = client.agents.get(agent.id)
 
 **Signature:** `get(agent_id: str) -> Agent`
 
-Returns [`Agent`](#agent). Raises `validation_failed` for a malformed ID or `not_found`.
+Returns [`Agent`](#agent). Raises `validation_failed` for a malformed ID or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `update()` [#update]
 
@@ -164,7 +164,7 @@ agent = client.agents.disable(agent.id)
 
 **Signature:** `disable(agent_id: str) -> Agent`
 
-Returns [`Agent`](#agent) with `status == "disabled"`. Calling it again is harmless. A disabled agent stays readable and editable, and new turns fail with `agent_disabled`. Raises `not_found`.
+Returns [`Agent`](#agent) with `status == "disabled"`. Calling it again is harmless. A disabled agent stays readable and editable, and new turns fail with [`agent_disabled`](/api-reference/protocols/errors#agent_disabled). Raises `not_found`.
 
 ### `enable()` [#enable]
 
@@ -216,7 +216,7 @@ page = client.agents.list_versions(agent.id, limit=20)
 
 **Signature:** `list_versions(agent_id: str, *, cursor=..., limit=...) -> AgentVersionsPage`
 
-`limit` is 1 to 200 and defaults to 50. Pass the previous page's `next_cursor` as `cursor` to get the next page. Returns `AgentVersionsPage` with `data: list[AgentVersion]` and `next_cursor: str | None`. Raises `validation_failed`, `invalid_cursor`, or `not_found`.
+`limit` is 1 to 200 and defaults to 50. Pass the previous page's `next_cursor` as `cursor` to get the next page. Returns `AgentVersionsPage` with `data: list[AgentVersion]` and `next_cursor: str | None`. Raises `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `not_found`.
 
 ### `iter_versions()` [#iter-versions]
 

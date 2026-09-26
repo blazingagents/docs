@@ -55,7 +55,7 @@ workspace = client.workspaces.create(
 
 A network policy is one of `{"mode": "unrestricted"}`, `{"mode": "offline"}`, or `{"mode": "allowlist", "allowed_hosts": [...]}`.
 
-Returns [`Workspace`](#workspace). Raises `APIStatusError` with `validation_failed`.
+Returns [`Workspace`](#workspace). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed).
 
 ### `list()` [#list]
 
@@ -71,7 +71,7 @@ if page.next_cursor is not None:
 
 `limit` is 1 to 200 and defaults to 50. Pass the previous page's `next_cursor` as `cursor`. `user_id=""` returns tenant-level workspaces; omitting `user_id` returns all of them.
 
-Returns `WorkspacesPage` with `data: list[Workspace]` and `next_cursor: str | None`. Raises `validation_failed` or `invalid_cursor`.
+Returns `WorkspacesPage` with `data: list[Workspace]` and `next_cursor: str | None`. Raises `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `iter()` [#iter]
 
@@ -96,7 +96,7 @@ workspace = client.workspaces.get(workspace_id="ws_0123456789abcdef")
 
 **Signature:** `get(*, workspace_id: str) -> Workspace`
 
-Returns [`Workspace`](#workspace). Raises `validation_failed` or `workspace_not_found`.
+Returns [`Workspace`](#workspace). Raises `validation_failed` or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found).
 
 ### `update()` [#update]
 
@@ -130,10 +130,10 @@ Move every agent to another workspace first. Returns `"completed"` when deletion
 
 | Code | Meaning |
 | --- | --- |
-| `workspace_in_use` | Agents still use it; their IDs are in `error.details["agentIds"]` |
-| `workspace_busy` | An agent is working in it; retry when that work finishes |
+| [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use) | Agents still use it; their IDs are in `error.details["agentIds"]` |
+| [`workspace_busy`](/api-reference/protocols/errors#workspace_busy) | An agent is working in it; retry when that work finishes |
 | `workspace_not_found` | No such workspace in your tenant |
-| `service_unavailable` | Temporary failure; retry with backoff |
+| [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | Temporary failure; retry with backoff |
 
 ## Response types [#response-types]
 

@@ -59,7 +59,7 @@ provider = client.providers.create(
 
 A missing `base_url` for `"custom"` or a non-`None` `base_url` for `"vercel_ai_gateway"` raises `ValueError` before any request. Never log `api_key`.
 
-Returns [`Provider`](#provider). Raises `APIStatusError` with `validation_failed`.
+Returns [`Provider`](#provider). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_name_conflict`](/api-reference/protocols/errors#provider_name_conflict), or [`provider_limit_reached`](/api-reference/protocols/errors#provider_limit_reached).
 
 ### `list()` [#list]
 
@@ -84,7 +84,7 @@ print(provider.key_fragment)
 
 **Signature:** `get(provider_id: str) -> Provider`
 
-Returns [`Provider`](#provider). Raises `validation_failed` or `not_found`.
+Returns [`Provider`](#provider). Raises `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `list_models()` [#list-models]
 
@@ -98,7 +98,7 @@ ids = [model.id for model in client.providers.list_models(provider.id).models]
 
 Returns `ProviderModels`, whose `models` field lists `ProviderModel` items with an `id`, sorted and without duplicates. Use an `id` as the agent's `model`.
 
-A listed model is not a guarantee that your key can use it: credits, account policy, or routing can still reject a request. `"custom"` providers raise `model_discovery_unsupported`; type their model IDs yourself. A temporarily unavailable catalog raises `model_validation_unavailable`.
+A listed model is not a guarantee that your key can use it: credits, account policy, or routing can still reject a request. `"custom"` providers raise [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported); type their model IDs yourself. A temporarily unavailable catalog raises [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable).
 
 ### `get_thinking_levels()` [#get-thinking-levels]
 
@@ -124,7 +124,7 @@ provider = client.providers.update(provider.id, name="OpenRouter production")
 
 **Signature:** `update(provider_id: str, *, name=...) -> Provider`
 
-Only the name can change. To change the type, key, or base URL, create a new provider and move your agents to it. Calling `update()` without `name` raises `ValueError` before any request. Returns [`Provider`](#provider).
+Only the name can change. To change the type, key, or base URL, create a new provider and move your agents to it. Calling `update()` without `name` raises `ValueError` before any request. Returns [`Provider`](#provider). Raises `validation_failed`, `not_found`, or `provider_name_conflict`.
 
 ### `delete()` [#delete]
 
@@ -138,10 +138,10 @@ client.providers.delete(provider.id, confirm_version_invalidation=True)
 
 | Code | Meaning |
 | --- | --- |
-| `provider_in_use` | A current agent uses it. Move the agent first; confirmation does not override this |
-| `provider_historical_use` | Old agent versions or pinned sessions and tasks use it. `error.details` lists them. Pass `confirm_version_invalidation=True` to delete anyway |
+| [`provider_in_use`](/api-reference/protocols/errors#provider_in_use) | A current agent uses it. Move the agent first; confirmation does not override this |
+| [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) | Old agent versions or pinned sessions and tasks use it. `error.details` lists them. Pass `confirm_version_invalidation=True` to delete anyway |
 
-After a confirmed delete, history is kept, but running or restoring anything that needs the provider raises `provider_not_found`.
+After a confirmed delete, history is kept, but running or restoring anything that needs the provider raises [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
 
 ## Response models [#response-models]
 

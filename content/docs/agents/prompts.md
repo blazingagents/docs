@@ -62,7 +62,7 @@ Prompt names are unique in your account, so use a new name before you run this a
 
 Write a variable as `{{name}}`. Spaces inside the braces are ignored. A name starts with a letter or underscore and contains only letters, digits, and underscores. The prompt's `variables` list shows each name once, in the order it first appears.
 
-Each call must supply every variable and nothing else. A missing value fails with `prompt_variable_missing`, and an extra one fails with `prompt_variable_unknown`. A prompt with no variables needs no `variables` field.
+Each call must supply every variable and nothing else. A missing value fails with [`prompt_variable_missing`](/api-reference/protocols/errors#prompt_variable_missing), and an extra one fails with [`prompt_variable_unknown`](/api-reference/protocols/errors#prompt_variable_unknown). A prompt with no variables needs no `variables` field.
 
 Pass `promptId` and `variables` in place of a literal message on any call: [chat](/platform/sessions-and-turns), [completion](/agents/output/generation-and-streaming), or [structured output](/agents/output/structured-output). A call uses either a prompt or a literal message, never both.
 

@@ -61,9 +61,9 @@ print(authorization.authorization_url)
 
 **Signature:** `connect(mcp_connection_id: str) -> McpConnectionAuthorization`
 
-This call needs a signed-in dashboard administrator's session token in place of the API key; a tenant API key raises `unauthorized`. Most teams finish this step in the [dashboard](https://www.blazingagents.com/app) instead. Open the returned `authorization_url` in the administrator's signed-in browser. It is a short-lived dashboard link, not the upstream provider's sign-in page.
+This call needs a signed-in dashboard administrator's session token in place of the API key; a tenant API key raises [`unauthorized`](/api-reference/protocols/errors#unauthorized). Most teams finish this step in the [dashboard](https://www.blazingagents.com/app) instead. Open the returned `authorization_url` in the administrator's signed-in browser. It is a short-lived dashboard link, not the upstream provider's sign-in page.
 
-Raises `validation_failed` for a malformed ID. A missing connection, or one with the wrong auth type or state, currently raises `internal`.
+Raises [`validation_failed`](/api-reference/protocols/errors#validation_failed) for a malformed ID. A missing connection, or one with the wrong auth type or state, currently raises [`internal`](/api-reference/protocols/errors#internal).
 
 ### `create()` [#create]
 
@@ -84,7 +84,7 @@ connection = client.mcp_connections.create(
 
 `name` must be unique in your tenant. Returns [`McpConnection`](#mcpconnection) with `status == "connected"`, or `"needs_auth"` for authorization-code OAuth.
 
-Raises `APIStatusError` with `validation_failed`, `mcp_connection_name_conflict`, `mcp_connection_limit_reached`, or a [live check error](#errors-and-secrets). A failed check saves nothing.
+Raises `APIStatusError` with `validation_failed`, [`mcp_connection_name_conflict`](/api-reference/protocols/errors#mcp_connection_name_conflict), [`mcp_connection_limit_reached`](/api-reference/protocols/errors#mcp_connection_limit_reached), or a [live check error](#errors-and-secrets). A failed check saves nothing.
 
 ### `list()` [#list]
 
@@ -109,7 +109,7 @@ print(connection.status, connection.last_auth_error_code)
 
 **Signature:** `get(mcp_connection_id: str) -> McpConnection`
 
-Returns [`McpConnection`](#mcpconnection). Raises `validation_failed` or `not_found`.
+Returns [`McpConnection`](#mcpconnection). Raises `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `update()` [#update]
 
@@ -133,7 +133,7 @@ client.mcp_connections.delete(connection.id)
 
 **Signature:** `delete(mcp_connection_id: str) -> None`
 
-Remove the connection from every agent's `mcp_connection_ids` first. Raises `mcp_connection_in_use` while an agent still uses it, `validation_failed`, or `not_found`.
+Remove the connection from every agent's `mcp_connection_ids` first. Raises [`mcp_connection_in_use`](/api-reference/protocols/errors#mcp_connection_in_use) while an agent still uses it, `validation_failed`, or `not_found`.
 
 ### `test()` [#test]
 
@@ -169,7 +169,7 @@ print(result.status)
 
 Credential arguments follow the same rules as [`create()`](#create). For every type except authorization-code OAuth, the new settings are checked first, and a failed check keeps the old ones. Authorization-code OAuth replaces the settings right away and returns `status == "needs_auth"`.
 
-Raises `validation_failed`, `not_found`, a [live check error](#errors-and-secrets), or `mcp_connection_stale_credential_version` when someone else changed the credentials at the same time.
+Raises `validation_failed`, `not_found`, a [live check error](#errors-and-secrets), or [`mcp_connection_stale_credential_version`](/api-reference/protocols/errors#mcp_connection_stale_credential_version) when someone else changed the credentials at the same time.
 
 ## Response models [#response-models]
 
@@ -202,7 +202,7 @@ Has `status` (`"connected"` or `"needs_auth"`) and the updated `connection`.
 
 ## Errors and secrets [#errors-and-secrets]
 
-Live checks in `create()` and `reconnect()` can raise `mcp_connection_authentication_failed`, `mcp_connection_invalid`, `mcp_connection_unreachable`, or `mcp_connection_discovery_failed`. Never log bearer tokens, client secrets, or authorization URLs.
+Live checks in `create()` and `reconnect()` can raise [`mcp_connection_authentication_failed`](/api-reference/protocols/errors#mcp_connection_authentication_failed), [`mcp_connection_invalid`](/api-reference/protocols/errors#mcp_connection_invalid), [`mcp_connection_unreachable`](/api-reference/protocols/errors#mcp_connection_unreachable), or [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed). Never log bearer tokens, client secrets, or authorization URLs.
 
 ## Next [#next]
 

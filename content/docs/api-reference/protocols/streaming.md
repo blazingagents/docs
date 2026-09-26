@@ -46,7 +46,7 @@ Failures depend on when they happen:
 - An abort before any HTTP exchange is `request_aborted`; any other network
   failure is `network_error`.
 - A non-2xx response before the stream starts uses the normal
-  [error envelope](/api-reference/protocols/errors#contract).
+  [error envelope](/api-reference/protocols/errors#error-response).
 - After a session stream starts, a failure arrives as a
   `{ "type": "error", "errorText": "safe prose" }` chunk and the HTTP status
   stays successful.

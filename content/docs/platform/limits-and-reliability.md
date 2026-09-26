@@ -39,18 +39,18 @@ retry = client.tasks.submit(task_id, idempotency_key=idempotency_key)
 print(first.run_id == retry.run_id)
 ```
 
-This prints `true`. Build the key from a stable business fact, such as the report date, and save it before you submit. A task runs one job at a time, so a submission with a different key while a run is active returns `task_active_run_exists` (HTTP `409`).
+This prints `true`. Build the key from a stable business fact, such as the report date, and save it before you submit. A task runs one job at a time, so a submission with a different key while a run is active returns [`task_active_run_exists`](/api-reference/protocols/errors#task_active_run_exists) (HTTP `409`).
 
 ## Decide whether to retry [#decide-whether-to-retry]
 
 The error code tells you what to fix. It does not tell you the retry is safe, so also ask whether the call could have had an effect.
 
 - **Validation errors:** fix the request. Retrying it unchanged fails the same way.
-- **`unauthorized`:** replace the API key.
-- **`not_found`:** check the ID and whether the resource was deleted.
-- **`quota_exceeded`:** wait for the quota window to reset, or raise the quota.
-- **`rate_limited`:** too many turns are running. Retry with backoff.
-- **Provider or `internal` errors:** retry only if the cause looks temporary and the call is safe to repeat.
+- **[`unauthorized`](/api-reference/protocols/errors#unauthorized):** replace the API key.
+- **[`not_found`](/api-reference/protocols/errors#not_found):** check the ID and whether the resource was deleted.
+- **[`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded):** wait for the quota window to reset, or raise the quota.
+- **[`rate_limited`](/api-reference/protocols/errors#rate_limited):** too many turns are running. Retry with backoff.
+- **Provider or [`internal`](/api-reference/protocols/errors#internal) errors:** retry only if the cause looks temporary and the call is safe to repeat.
 
 Reads are safe to repeat. Creates and tool calls can take effect even when you never see the response. Use an idempotency key where one exists, and apply bounded retries with backoff, jitter, and an overall deadline.
 
@@ -83,11 +83,11 @@ Lists return a `nextCursor`. Pass it back to the same call with the same filters
 | Symptom | Check | Fix |
 | --- | --- | --- |
 | `unauthorized` (HTTP `401`) | Your backend sends one valid key. | Create a new key in the dashboard, deploy it, then revoke the old one. |
-| `provider_required` | The agent, or its pinned version, has a provider and model. | Set a provider and model on the agent. |
-| `model_not_found` or `model_validation_unavailable` | The provider's current model list. | Pick a listed model. Create a new provider if the key, type, or base URL changed. |
+| [`provider_required`](/api-reference/protocols/errors#provider_required) | The agent, or its pinned version, has a provider and model. | Set a provider and model on the agent. |
+| [`model_not_found`](/api-reference/protocols/errors#model_not_found) or [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable) | The provider's current model list. | Pick a listed model. Create a new provider if the key, type, or base URL changed. |
 | `stream_error` after output began | Whether any text arrived, and the request ID. | Retry only if the whole call is safe to repeat. |
 | MCP connection test fails or shows `error` | The connection's status and test result. | Test, reconnect, or finish OAuth sign-in. See [MCP tools](/agents/tools/mcp-tools). |
-| `workspace_not_found` | The agent's workspace attachment. | Attach a workspace before using workspace tools. |
+| [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The agent's workspace attachment. | Attach a workspace before using workspace tools. |
 | Task run `failed` or `canceled` | The run and its transcript. | Submit a new run once repeating its effects is safe. |
 | `quota_exceeded` or run `blocked` | Your usage against your quota. | Wait for the reset day or raise the quota. |
 

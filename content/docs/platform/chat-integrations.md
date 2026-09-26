@@ -57,7 +57,7 @@ The connection is enabled by default, and Blazing Agents registers its `webhookU
 
 1. Create a bot with BotFather and copy its token.
 2. Create a connection with `platform: "telegram"`. Set `businessMode: true` only for a Telegram Business bot.
-3. Enable the connection if you created it disabled. Blazing Agents registers the webhook with Telegram. If the bot already points at another webhook, enabling returns `chat_webhook_conflict` (HTTP `409`). Other registration failures return `chat_webhook_registration_failed` (HTTP `502`).
+3. Enable the connection if you created it disabled. Blazing Agents registers the webhook with Telegram. If the bot already points at another webhook, enabling returns [`chat_webhook_conflict`](/api-reference/protocols/errors#chat_webhook_conflict) (HTTP `409`). Other registration failures return [`chat_webhook_registration_failed`](/api-reference/protocols/errors#chat_webhook_registration_failed) (HTTP `502`).
 4. Start a direct message with the bot or add it to a group. To answer group messages that do not mention the bot, turn off privacy mode in BotFather. Topic threads need a forum-enabled supergroup.
 5. Send a message and a follow-up, then test an approval button if your agent uses them.
 

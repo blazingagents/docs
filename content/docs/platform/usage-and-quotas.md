@@ -73,11 +73,12 @@ Blazing Agents checks the current window before each turn starts. It does not st
 
 | Situation | What you see |
 | --- | --- |
-| A chat or generation call starts while usage is over the ceiling | HTTP `429` with `quota_exceeded` |
+| A chat or generation call starts while usage is over the ceiling | HTTP `429` with [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded) |
+| A chat or generation call starts without an active plan or usage credit | HTTP `402` with [`subscription_required`](/api-reference/protocols/errors#subscription_required) or [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required) |
 | A task run starts while usage is over the ceiling | The run ends as `blocked`, not `failed`, without running |
 | A task run lacks a required subscription or usage credit | The run ends as `blocked` |
 | Billing status cannot be checked | The run ends as `failed` |
-| Too many interactive turns run at once | HTTP `429` with `rate_limited` |
+| Too many interactive turns run at once | HTTP `429` with [`rate_limited`](/api-reference/protocols/errors#rate_limited) |
 | Too many task runs are active at once | Extra runs wait as `queued` until a slot frees up |
 
 Developer accounts can run 25 interactive turns and 50 task runs at the same time. Pro accounts can run 50 interactive turns and 100 task runs. A blocked task run frees the task for its next scheduled time, which runs normally once the quota allows.

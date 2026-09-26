@@ -58,7 +58,7 @@ const { memory } = await client.memories.create({
 | `text` | `string` | yes | none | The note, up to 10 KiB |
 | `userId` | `string` | no | `""` | The end user it is about; `""` for everyone |
 
-Returns [`MemoryResponse`](#memoryresponse). Errors: `validation_failed`, `not_found`.
+Returns [`MemoryResponse`](#memoryresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `list()` [#list]
 
@@ -78,7 +78,7 @@ const page = await client.memories.list({ agentId, userId: "user_42", search: "r
 | `limit` | `number` | no | `50` | 1 to 100 per page |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
-Returns [`MemoriesListResponse`](#memorieslistresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
+Returns [`MemoriesListResponse`](#memorieslistresponse). Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), `not_found`.
 
 ### `get()` [#get]
 

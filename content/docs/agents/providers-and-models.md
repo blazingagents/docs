@@ -67,7 +67,7 @@ client.agents.update(
 
 Your key is write-only. Responses never return it, only its last four characters as `keyFragment`. Listing models sends no request to the model and costs no tokens.
 
-Blazing Agents also checks the model ID against the provider whenever you create an agent with a model, change its model, or restore a version. An unknown ID fails with `model_not_found`. If the provider cannot be reached to check, the call fails with `model_validation_unavailable`.
+Blazing Agents also checks the model ID against the provider whenever you create an agent with a model, change its model, or restore a version. An unknown ID fails with [`model_not_found`](/api-reference/protocols/errors#model_not_found). If the provider cannot be reached to check, the call fails with [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable).
 
 ## Supported providers [#supported-providers]
 
@@ -132,7 +132,7 @@ You can rename a provider, but you cannot change its key, type, or endpoint. To 
 3. Run one turn on each agent to confirm it works.
 4. Delete the old provider.
 
-Deleting a provider that a current agent still uses fails with `provider_in_use`. If only older versions, pinned sessions, or pinned tasks still refer to it, deletion fails with `provider_historical_use` and lists them. Keep the provider while those need to run, or delete with `confirmVersionInvalidation` (`confirm_version_invalidation=True` in Python). After that, running or restoring those pinned versions fails with `provider_not_found`.
+Deleting a provider that a current agent still uses fails with [`provider_in_use`](/api-reference/protocols/errors#provider_in_use). If only older versions, pinned sessions, or pinned tasks still refer to it, deletion fails with [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) and lists them. Keep the provider while those need to run, or delete with `confirmVersionInvalidation` (`confirm_version_invalidation=True` in Python). After that, running or restoring those pinned versions fails with [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
 
 ## Next [#next]
 

@@ -51,7 +51,7 @@ const next = page.nextCursor
 | `limit` | `number` | no | `50` | 1 to 200 per page |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
-An agent ID that does not exist in your tenant returns an empty page. Returns [`SessionsListResponse`](#sessionslistresponse). Errors: `validation_failed`, `invalid_cursor`.
+An agent ID that does not exist in your tenant returns an empty page. Returns [`SessionsListResponse`](#sessionslistresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `listLatest()` [#list-latest]
 
@@ -103,7 +103,7 @@ const newer = page.latestCursor
 
 The first page holds the newest messages, in chronological order within the page. Pass `nextCursor` as `cursor` to go further back. Save `latestCursor` and pass it later as `after` to fetch only what is new. Do not pass `cursor` and `after` together.
 
-Returns [`SessionMessagesResponse`](#sessionmessagesresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
+Returns [`SessionMessagesResponse`](#sessionmessagesresponse). Errors: `validation_failed`, `invalid_cursor`, [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `delete()` [#delete]
 
@@ -154,7 +154,7 @@ const decision = await client.sessions.decideToolApproval({
 | `approved` | `boolean` | yes | `true` to run the call, `false` to block it |
 | `reason` | `string` | no | Why you decided, up to 1,000 characters |
 
-The decision covers only that one call. When the last pending call is decided, Blazing Agents resumes the turn: approved calls run and denied calls return a denied result to the agent. Disconnecting from the stream does not stop it. Returns [`ToolApprovalDecisionResponse`](#toolapprovaldecisionresponse) with the `continuationId` to stream. Errors: `validation_failed`, `not_found`, `tool_approval_decision_conflict` (already decided).
+The decision covers only that one call. When the last pending call is decided, Blazing Agents resumes the turn: approved calls run and denied calls return a denied result to the agent. Disconnecting from the stream does not stop it. Returns [`ToolApprovalDecisionResponse`](#toolapprovaldecisionresponse) with the `continuationId` to stream. Errors: `validation_failed`, `not_found`, [`tool_approval_decision_conflict`](/api-reference/protocols/errors#tool_approval_decision_conflict) (already decided).
 
 ### `joinToolApprovalContinuation()` [#join-tool-approval-continuation]
 
@@ -174,7 +174,7 @@ const response = continuation.toResponse(); // return this from your route
 
 The stream uses the same format as `chat()`, and you can join it more than once: each join replays what was already produced, then follows the turn live until it ends. Read the body once per join, through `toResponse()` or `toStream()`.
 
-Returns [`TerminalStreamResult`](#terminalstreamresult). Errors: `session_busy` while some calls still wait for a decision, `not_found`, and `stream_error` for a broken stream. A failure inside the resumed turn arrives as an `error` chunk in the stream.
+Returns [`TerminalStreamResult`](#terminalstreamresult). Errors: [`session_busy`](/api-reference/protocols/errors#session_busy) while some calls still wait for a decision, `not_found`, and `stream_error` for a broken stream. A failure inside the resumed turn arrives as an `error` chunk in the stream.
 
 ## Response types [#response-types]
 
@@ -290,7 +290,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | `not_found` | No such session, approval, or continuation for this agent |
 | `tool_approval_decision_conflict` | The call was already decided; reload the approvals |
 | `session_busy` | Some calls still wait for a decision; decide them first |
-| `agent_disabled` | The agent is disabled, so the turn cannot resume |
+| [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) | The agent is disabled, so the turn cannot resume |
 
 ## Next [#next]
 

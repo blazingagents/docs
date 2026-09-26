@@ -69,11 +69,11 @@ Omitted parameters keep their current value. Calling `update()` with neither rai
 | `monthly_request_limit` | `int \| None` | Turns allowed per month; `None` means no request limit |
 | `reset_day` | `int` | Day of the month the count resets, 1 to 28 |
 
-Returns [`TenantSettings`](#response-model). Raises `APIStatusError` with `validation_failed` for a bad name, a limit that is not positive, or an invalid reset day.
+Returns [`TenantSettings`](#response-model). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) for a bad name, a limit that is not positive, or an invalid reset day.
 
 ## How quotas apply [#how-quotas-apply]
 
-Blazing Agents checks usage in the current quota period before each turn starts. When a limit is reached, new turns fail with `quota_exceeded`, and task runs end as `"blocked"` instead of `"failed"`. A turn that is already running is never cut off, so usage can go past a limit, especially with turns running at the same time. With no quota, or a limit set to `None`, that measure is unlimited.
+Blazing Agents checks usage in the current quota period before each turn starts. When a limit is reached, new turns fail with [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded), and task runs end as `"blocked"` instead of `"failed"`. A turn that is already running is never cut off, so usage can go past a limit, especially with turns running at the same time. With no quota, or a limit set to `None`, that measure is unlimited.
 
 A quota is your own safety setting. It is not a plan limit, credit balance, or bill.
 

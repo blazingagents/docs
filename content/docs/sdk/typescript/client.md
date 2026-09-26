@@ -140,7 +140,7 @@ Besides API codes, the SDK raises four codes of its own. `code` stays an open st
 | `invalid_response` | A response or error body could not be read |
 | `stream_error` | A stream was missing, malformed, read twice, or broke while reading |
 
-The [error reference](/api-reference/protocols/errors#blazingagentserrorcode) lists every API code.
+The [error reference](/api-reference/protocols/errors#find-a-code) lists every API code, and [SDK error classes](/api-reference/protocols/errors#sdk-error-classes) covers the codes the SDK raises itself.
 
 ## Generation methods [#generation-methods]
 

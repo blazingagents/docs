@@ -73,7 +73,7 @@ const agent = await client.agents.create({
 | `userId` | `string` | no | `""` | The end user this agent belongs to; cannot change later |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your own labels |
 
-Set `providerId` and `model` together, or leave both out to create an agent you configure later. Turns on an agent without a model fail with `provider_required`. Blazing Agents checks the model against your provider when you save.
+Set `providerId` and `model` together, or leave both out to create an agent you configure later. Turns on an agent without a model fail with [`provider_required`](/api-reference/protocols/errors#provider_required). Blazing Agents checks the model against your provider when you save.
 
 Without `workspaceId`, the agent gets a new workspace of its own named after it. Pass an ID to share an existing workspace. Changing the agent later does not rename its workspace.
 
@@ -93,7 +93,7 @@ await client.agents.create({
 });
 ```
 
-Returns [`Agent`](#agent). Errors: `validation_failed`, `agent_name_conflict`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`.
+Returns [`Agent`](#agent). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`agent_name_conflict`](/api-reference/protocols/errors#agent_name_conflict), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid).
 
 ### `list()` [#list]
 
@@ -122,7 +122,7 @@ Reads an agent's current configuration.
 const agent = await client.agents.get({ agentId });
 ```
 
-Returns [`Agent`](#agent). Errors: `validation_failed`, `not_found`.
+Returns [`Agent`](#agent). Errors: `validation_failed`, [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `update()` [#update]
 
@@ -146,7 +146,7 @@ Takes `agentId` plus any [`create()`](#create) field except `userId`. Pass at le
 - To switch providers, send `providerId` and `model` together. To unconfigure the agent, send both as `null`.
 - `workspaceId` moves the agent to another workspace. It cannot be cleared.
 
-Returns [`Agent`](#agent) with the new `version`. Errors: `validation_failed`, `not_found`, `agent_name_conflict`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, `admin_agent_managed`.
+Returns [`Agent`](#agent) with the new `version`. Errors: `validation_failed`, `not_found`, `agent_name_conflict`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
 
 ### `delete()` [#delete]
 
@@ -175,7 +175,7 @@ Stops the agent from starting new turns. Turns already running finish.
 const agent = await client.agents.disable({ agentId });
 ```
 
-New turns fail with `agent_disabled`, and scheduled task runs are skipped. You can still read and update a disabled agent. Returns [`Agent`](#agent) with `status: "disabled"`. Errors: `not_found`, `admin_agent_managed`.
+New turns fail with [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), and scheduled task runs are skipped. You can still read and update a disabled agent. Returns [`Agent`](#agent) with `status: "disabled"`. Errors: `not_found`, `admin_agent_managed`.
 
 ### `enable()` [#enable]
 
@@ -237,7 +237,7 @@ const older = page.nextCursor
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 | `limit` | `number` | no | `50` | 1 to 200 versions per page |
 
-Returns [`AgentVersionsResponse`](#agentversionsresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
+Returns [`AgentVersionsResponse`](#agentversionsresponse). Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), `not_found`.
 
 ### `getVersion()` [#get-version]
 

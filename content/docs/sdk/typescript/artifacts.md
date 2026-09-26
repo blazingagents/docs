@@ -44,7 +44,7 @@ const page = await client.artifacts.list({ agentId, sessionId });
 | `sessionId` | `string` | no | Only artifacts from this session |
 | `cursor` | `string` | no | `nextCursor` from the previous page |
 
-Returns [`ArtifactsListResponse`](#artifactslistresponse). Errors: `validation_failed`, `invalid_cursor`.
+Returns [`ArtifactsListResponse`](#artifactslistresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `get()` [#get]
 
@@ -57,7 +57,7 @@ const artifact = await client.artifacts.get({ artifactId });
 console.log(artifact.filename, artifact.sizeBytes);
 ```
 
-Returns [`ArtifactListItem`](#artifactlistitem). Errors: `validation_failed`, `not_found`.
+Returns [`ArtifactListItem`](#artifactlistitem). Errors: `validation_failed`, [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `createDownloadUrl()` [#create-download-url]
 
@@ -69,7 +69,7 @@ Creates a link that downloads the file directly for five minutes.
 const { url, expiresAt } = await client.artifacts.createDownloadUrl({ artifactId });
 ```
 
-Anyone with the link can download the file until `expiresAt`, so check that the user may see the artifact before you hand it out, and keep it out of logs. Create a new link each time you need one. Returns [`ArtifactDownloadUrlResponse`](#artifactdownloadurlresponse). Errors: `validation_failed`, `not_found`, `service_unavailable`.
+Anyone with the link can download the file until `expiresAt`, so check that the user may see the artifact before you hand it out, and keep it out of logs. Create a new link each time you need one. Returns [`ArtifactDownloadUrlResponse`](#artifactdownloadurlresponse). Errors: `validation_failed`, `not_found`, [`service_unavailable`](/api-reference/protocols/errors#service_unavailable).
 
 ### `delete()` [#delete]
 

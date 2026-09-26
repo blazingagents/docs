@@ -81,7 +81,7 @@ Credentials are write-only. Responses never include bearer tokens, client secret
 
 A connection that uses `oauth_authorization_code` starts with status `needs_auth`. To finish it, a tenant administrator opens the MCP connections page in the [dashboard](https://www.blazingagents.com/app), clicks **Connect**, and signs in to the MCP server. If the server's authorization server asks for a redirect URL, register `https://api.blazingagents.com/v1/mcp/oauth/callback`.
 
-The `connect()` SDK method starts the same flow, but it needs a signed-in dashboard administrator rather than an API key, so an API-key client gets `unauthorized`.
+The `connect()` SDK method starts the same flow, but it needs a signed-in dashboard administrator rather than an API key, so an API-key client gets [`unauthorized`](/api-reference/protocols/errors#unauthorized).
 
 ## Check a connection [#check-a-connection]
 

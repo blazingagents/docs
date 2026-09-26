@@ -88,7 +88,7 @@ A schedule is one of:
 
 The SDK checks the schedule shape before sending and raises `TypeError` or `ValueError` for a malformed one. `submit=True` does not make creation safe to retry: retrying creates another task.
 
-Returns `TaskCreateResponse` with `task` and `run_id`, which is set only when `submit=True`. Raises `APIStatusError` with `validation_failed`, `agent_version_not_found`, or `agent_disabled` when `submit=True` and the agent is disabled.
+Returns `TaskCreateResponse` with `task` and `run_id`, which is set only when `submit=True`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found), or [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit=True` and the agent is disabled.
 
 ### `list()` [#list]
 
@@ -100,7 +100,7 @@ page = client.tasks.list(agent_id=agent_id, limit=25)
 
 **Signature:** `list(*, agent_id=..., user_id=..., cursor=..., limit=...) -> TasksPage`
 
-Both filters are optional; `user_id=""` returns tenant-level tasks. `limit` is 1 to 200 and defaults to 50. Returns `TasksPage` with `data: list[TaskListItem]` and `next_cursor`. Raises `validation_failed` or `invalid_cursor`.
+Both filters are optional; `user_id=""` returns tenant-level tasks. `limit` is 1 to 200 and defaults to 50. Returns `TasksPage` with `data: list[TaskListItem]` and `next_cursor`. Raises `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `iter()` [#iter]
 
@@ -125,7 +125,7 @@ task = client.tasks.get(task.id)
 
 **Signature:** `get(task_id: str) -> Task`
 
-Returns [`Task`](#task). Raises `validation_failed` or `not_found`.
+Returns [`Task`](#task). Raises `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `update()` [#update]
 
@@ -151,7 +151,7 @@ client.tasks.delete(task.id)
 
 **Signature:** `delete(task_id: str) -> None`
 
-Raises `task_active_run_exists` while a run is queued or running, `validation_failed`, or `not_found`.
+Raises [`task_active_run_exists`](/api-reference/protocols/errors#task_active_run_exists) while a run is queued or running, `validation_failed`, or `not_found`.
 
 ### `submit()` [#submit]
 

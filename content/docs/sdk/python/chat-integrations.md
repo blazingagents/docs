@@ -148,7 +148,7 @@ connection = client.chat_connections.enable(connection.id)
 
 **Signature:** `enable(chat_connection_id: str) -> ChatConnection`
 
-Messages sent while the connection was disabled are not replayed. For Telegram, enabling registers the webhook: it raises `chat_webhook_conflict` when the bot already points to another webhook and `chat_webhook_registration_failed` for other registration failures.
+Messages sent while the connection was disabled are not replayed. For Telegram, enabling registers the webhook: it raises [`chat_webhook_conflict`](/api-reference/protocols/errors#chat_webhook_conflict) when the bot already points to another webhook and [`chat_webhook_registration_failed`](/api-reference/protocols/errors#chat_webhook_registration_failed) for other registration failures.
 
 ### `disable()` [#disable]
 
