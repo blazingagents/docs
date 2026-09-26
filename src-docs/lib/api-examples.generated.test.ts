@@ -118,11 +118,11 @@ describe("generated REST API examples", () => {
 
   test("preserves shell interpolation without embedding shell syntax", () => {
     const examples = operation("create-provider").examples;
-    expect(examples[0]?.code).toContain(`'"$PROVIDER_API_KEY"'`);
+    expect(examples[0]?.code).toContain(`'"$OPENROUTER_API_KEY"'`);
     expect(examples[1]?.code).toContain(
-      'os.environ["PROVIDER_API_KEY"]'
+      'os.environ["OPENROUTER_API_KEY"]'
     );
-    expect(examples[2]?.code).toContain("process.env.PROVIDER_API_KEY");
+    expect(examples[2]?.code).toContain("process.env.OPENROUTER_API_KEY");
     expect(examples.slice(1).every(({ code }) => !code.includes(`'"$`))).toBe(
       true
     );

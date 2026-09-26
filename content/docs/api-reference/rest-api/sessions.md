@@ -204,7 +204,7 @@ Response schema: [`latestSessionsListResponseSchema`](/api-reference/protocols/o
     {
       "id": "ss_1234567890ABCDEF",
       "agentId": "ag_1234567890ABCDEF",
-      "model": "gpt-6-luna",
+      "model": "openai/gpt-6-luna",
       "thinkingLevel": "high",
       "status": "disabled",
       "agentVersion": 3,

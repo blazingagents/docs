@@ -80,18 +80,20 @@ SDK failures throw `BlazingAgentsError`. Agent writes using configured Provider/
 
 ```typescript
 const provider = await client.providers.create({
-  name: "OpenAI",
-  providerType: "openai",
+  name: "OpenRouter",
+  providerType: "openrouter",
   baseUrl: null,
-  apiKey: process.env.OPENAI_API_KEY!,
+  apiKey: process.env.OPENROUTER_API_KEY!,
 });
 const { models } = await client.providers.listModels({
   providerId: provider.id,
 });
+const model = models.find(({ id }) => id === "openai/gpt-6-luna");
+if (!model) throw new Error("openai/gpt-6-luna is unavailable");
 await client.agents.update({
   agentId,
   providerId: provider.id,
-  model: models[0].id,
+  model: model.id,
 });
 ```
 

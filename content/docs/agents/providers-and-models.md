@@ -17,7 +17,7 @@ unconfigured Agent or both are present.
 | `openai` | OpenAI | Optional override |
 | `anthropic` | Anthropic | Optional override |
 | `google` | Google | Optional override |
-| `openrouter` | OpenRouter | Optional override |
+| `openrouter` | OpenRouter (`https://openrouter.ai/api/v1`) | Optional override |
 | `vercel_ai_gateway` | Vercel AI Gateway | Not accepted |
 | `custom` | None | Required OpenAI-compatible endpoint |
 
@@ -36,8 +36,8 @@ import { BlazingAgents } from "@blazingagents/sdk";
 const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,
 });
-const apiKey = process.env.PROVIDER_API_KEY;
-assert.ok(apiKey, "Set PROVIDER_API_KEY on the backend");
+const apiKey = process.env.OPENROUTER_API_KEY;
+assert.ok(apiKey, "Set OPENROUTER_API_KEY on the backend");
 
 const provider = await client.providers.create({
   name: `Production OpenRouter ${crypto.randomUUID()}`,
