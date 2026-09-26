@@ -127,5 +127,3 @@ export const documentationContractSchema = z
       });
     }
   });
-
-export type PresentationContract = z.infer<typeof presentationSchema>;

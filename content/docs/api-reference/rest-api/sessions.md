@@ -63,11 +63,11 @@ Response schema: `SessionList`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -104,11 +104,11 @@ Returns `201 Created` as `text/event-stream`. Server-sent events; each event's d
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -166,11 +166,11 @@ Response schema: `LatestSessionList`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -224,11 +224,11 @@ Response schema: `SessionMessageList`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -266,11 +266,11 @@ Returns `200 OK` as `text/event-stream`. Server-sent events; each event's data i
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -303,11 +303,11 @@ Returns `204 No Content`. Deleted.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -365,11 +365,11 @@ Response schema: `ToolApprovalList`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -411,12 +411,12 @@ Response schema: `ToolApprovalDecision`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `409` | Approval already decided or session busy |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `409` |  | Approval already decided or session busy |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -449,12 +449,12 @@ Returns `200 OK` as `text/event-stream`. Streamed continuation events.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `409` | Tool approvals are still awaiting decisions |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `409` |  | Tool approvals are still awaiting decisions |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

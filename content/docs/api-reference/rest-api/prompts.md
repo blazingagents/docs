@@ -53,11 +53,11 @@ Response schema: `PromptList`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -109,12 +109,12 @@ Response schema: `Prompt`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `409` | Prompt name already exists |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `409` |  | Prompt name already exists |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -164,11 +164,11 @@ Response schema: `Prompt`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -220,12 +220,12 @@ Response schema: `Prompt`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `409` | Prompt name already exists |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `409` |  | Prompt name already exists |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -256,11 +256,11 @@ Returns `204 No Content`. Deleted.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

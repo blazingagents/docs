@@ -162,19 +162,25 @@ describe("generated REST API examples", () => {
     );
   });
 
-  test("synthesizes schema-shaped request and response examples", () => {
+  test("uses the contract's examples and synthesizes the rest", () => {
     expect(operation("create-agent").examples[0]?.code).toContain(
-      `--data '{"name":"string"}'`
+      `"name":"Support Agent"`
     );
+    expect(operation("delete-agent").examples[0]?.code).toContain(
+      "?includeArtifacts=false"
+    );
+    expect(
+      JSON.parse(operation("list-workspaces").responses[0]?.code ?? "")
+    ).toMatchObject({ nextCursor: "string" });
     expect(operation("create-agent").responseMetadata.schema).toEqual({
       name: "Agent",
     });
     expect(
       JSON.parse(operation("create-agent").responses[0]?.code ?? "")
     ).toMatchObject({
-      createdAt: "2026-07-10T10:00:00Z",
-      id: "ag_1234567890ABCDEF",
+      id: "ag_4kP9sT2vXq7LmN3a",
       model: "openai/gpt-6-luna",
+      name: "Support Agent",
     });
   });
 
@@ -185,16 +191,23 @@ describe("generated REST API examples", () => {
     expect(errors.map(({ status }) => status)).toEqual([
       "400",
       "401",
+      "402",
       "404",
       "409",
-      "500",
+      "429",
       "503",
+      "500",
     ]);
     expect(JSON.parse(errors[0]?.code ?? "")).toEqual({
-      error: { code: "validation_failed", message: "Validation failed." },
+      error: { code: "validation_failed", message: "The request is invalid." },
     });
-    expect(JSON.parse(errors.at(-1)?.code ?? "")).toEqual({
-      error: { code: "service_unavailable", message: "Service unavailable" },
+    const byStatus = (status: string) =>
+      JSON.parse(errors.find((error) => error.status === status)?.code ?? "");
+    expect(byStatus("409")).toMatchObject({
+      error: { code: "agent_name_conflict" },
+    });
+    expect(byStatus("500")).toEqual({
+      error: { code: "internal", message: "Internal Server Error" },
     });
     for (const candidate of operations) {
       for (const status of ["401", "500", "503"]) {

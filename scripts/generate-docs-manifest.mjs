@@ -710,7 +710,7 @@ function addSharedRestErrors(responses, request) {
 
 function toManifestResponses(operation) {
   const success = operation.responses.map((response) => {
-    if (response.example !== undefined) {
+    if (response.contentType === "application/json") {
       return {
         code: JSON.stringify(response.example, null, 2),
         contentType: response.contentType,

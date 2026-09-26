@@ -81,11 +81,11 @@ Response schema: `ChatConnectionList`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -154,11 +154,11 @@ Response schema: `ChatConnection`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -217,11 +217,11 @@ Response schema: `ChatDeliveryList`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -268,11 +268,11 @@ Response schema: `ChatDeliveryResult`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -343,11 +343,11 @@ Response schema: `ChatConnection`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -418,13 +418,13 @@ Response schema: `ChatConnection`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `409` | The Telegram bot already delivers to a webhook outside this deployment |
-| `502` | Telegram webhook registration failed after the update was saved |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `409` |  | The Telegram bot already delivers to a webhook outside this deployment |
+| `502` |  | Telegram webhook registration failed after the update was saved |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -455,11 +455,11 @@ Returns `204 No Content`. The chat connection was deleted.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -529,13 +529,13 @@ Response schema: `ChatConnection`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `409` | The Telegram bot already delivers to a webhook outside this deployment |
-| `502` | Telegram webhook registration failed after the credentials were saved |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `409` |  | The Telegram bot already delivers to a webhook outside this deployment |
+| `502` |  | Telegram webhook registration failed after the credentials were saved |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -606,11 +606,11 @@ Response schema: `ChatConnection`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -679,11 +679,11 @@ Response schema: `ChatConnection`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -752,13 +752,13 @@ Response schema: `ChatConnection`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `409` | The Telegram bot already delivers to a webhook outside this deployment |
-| `502` | Telegram webhook registration failed |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `409` |  | The Telegram bot already delivers to a webhook outside this deployment |
+| `502` |  | Telegram webhook registration failed |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

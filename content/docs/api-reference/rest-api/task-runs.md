@@ -69,11 +69,11 @@ Response schema: `TaskRunList`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -111,12 +111,12 @@ Response schema: `CreatedTaskRun`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `409` | A run is already active for the task |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `409` |  | A run is already active for the task |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -172,11 +172,11 @@ Response schema: `TaskRun`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -233,11 +233,11 @@ Response schema: `TaskRunMessageList`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -267,11 +267,11 @@ Returns `204 No Content`. Cancellation requested.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

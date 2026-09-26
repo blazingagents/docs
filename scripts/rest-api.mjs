@@ -13,12 +13,15 @@ const handWrittenPages = new Set(["index", "authentication"]);
 const pageOverrides = new Map([
   ["POST /v1/agents/{agentId}/generation", "generation"],
 ]);
-/** Anchors that predate generation and differ from the summary slug. */
+/**
+ * Anchors for operations without an `operationId`, from tags the platform has
+ * not converted to its contract conventions yet. Converted operations take
+ * their anchor from the `operationId`; delete entries as their tags convert.
+ */
 const anchorOverrides = new Map([
   ["PATCH /v1/chat-connections/{id}", "rename-chat-connection"],
   ["POST /v1/chat-connections/{id}/credentials", "rotate-chat-credentials"],
   ["POST /v1/chat-connections/{id}/health", "check-chat-health"],
-  ["POST /v1/agents/{agentId}/generation", "generate"],
   ["GET /v1/agents/{agentId}/sessions", "list-sessions"],
   ["POST /v1/agents/{agentId}/sessions", "create-session-turn"],
   ["POST /v1/agents/{agentId}/sessions/{sessionId}", "resume-session-turn"],
@@ -64,6 +67,7 @@ const ERROR_CODES = {
   503: "service_unavailable",
 };
 const METHODS = ["get", "post", "put", "patch", "delete"];
+const CAMEL_CASE_BOUNDARY = /([a-z0-9])([A-Z])/g;
 const BODY_NAMES = {
   "application/json": "a JSON body",
   "application/octet-stream": "a binary body",
@@ -188,7 +192,7 @@ function describeField(input) {
     parts.push(schema.description.replace(/\.?$/, "."));
   }
   const id = schema.pattern?.match(ID_PATTERN)?.[1];
-  if (id) {
+  if (id && !schema.description) {
     parts.push(`\`${id}…\` ID.`);
   }
   if (schema.enum && schema.enum.length > 1) {
@@ -234,7 +238,11 @@ function requestBody(operation) {
     operation.requestBody?.content ?? {}
   )[0] ?? [undefined, undefined];
   return contentType
-    ? { contentType, schema: resolveSchema(media.schema) }
+    ? {
+        contentType,
+        example: media.example,
+        schema: resolveSchema(media.schema),
+      }
     : undefined;
 }
 
@@ -278,7 +286,7 @@ function successResponses(operation) {
       return {
         contentType,
         description: response.description,
-        example: json ? exampleFor(media.schema) : undefined,
+        example: media?.example ?? (json ? exampleFor(media.schema) : undefined),
         headers: Object.entries(response.headers ?? {}).map(
           ([name, header]) => ({ description: header.description, name })
         ),
@@ -292,10 +300,12 @@ function errorResponses(operation) {
   return Object.entries(operation.responses)
     .filter(([status]) => !status.startsWith("2"))
     .map(([status, response]) => ({
+      codes: response["x-error-codes"] ?? [],
       description: response.description,
       example: {
         error: {
           code:
+            response["x-error-codes"]?.[0] ??
             ERROR_CODES[status] ??
             spec.components.schemas.ApiError.properties.error.properties.code
               .enum[0],
@@ -341,7 +351,7 @@ function curlFor(operation, path, body, responses) {
   if (body?.contentType === "application/json") {
     lines.push(
       '--header "Content-Type: application/json"',
-      `--data '${JSON.stringify(exampleFor(body.schema, { minimal: true }))}'`
+      `--data '${JSON.stringify(body.example ?? exampleFor(body.schema, { minimal: true }))}'`
     );
   } else if (body?.contentType === "multipart/form-data") {
     for (const [name, schema] of Object.entries(body.schema.properties)) {
@@ -388,7 +398,9 @@ export function loadRestApi() {
         const body = requestBody(operation);
         const responses = successResponses(operation);
         return {
-          anchor: anchorOverrides.get(key) ?? slug(operation.summary),
+          anchor: operation.operationId
+            ? operation.operationId.replace(CAMEL_CASE_BOUNDARY, "$1-$2").toLowerCase()
+            : (anchorOverrides.get(key) ?? slug(operation.summary)),
           body,
           curl: curlFor(operation, path, body, responses),
           errors: errorResponses(operation),
@@ -400,6 +412,8 @@ export function loadRestApi() {
           path: colonPath(path),
           responses,
           summary: operation.summary,
+          /** Only converted operations carry descriptions written for tenants. */
+          ...(operation.operationId ? { description: operation.description } : {}),
         };
       }
     )
@@ -431,7 +445,11 @@ function renderResponses(responses) {
       ...(response.schema ? [`Response schema: \`${response.schema}\`.`] : []),
       ...(response.example === undefined
         ? []
-        : [`\`\`\`json\n${JSON.stringify(response.example, null, 2)}\n\`\`\``]),
+        : [
+            response.contentType === "application/json"
+              ? `\`\`\`json\n${JSON.stringify(response.example, null, 2)}\n\`\`\``
+              : `\`\`\`text\n${response.example}\n\`\`\``,
+          ]),
     ];
   });
 }
@@ -454,6 +472,7 @@ function renderOperation(operation) {
   return [
     `### ${operation.method} ${operation.path} [#${operation.anchor}]`,
     `${operation.summary}.`,
+    ...(operation.description ? [operation.description] : []),
     "#### Request",
     auth,
     ...table,
@@ -461,10 +480,11 @@ function renderOperation(operation) {
     ...renderResponses(operation.responses),
     "#### Errors",
     [
-      "| Status | Description |",
-      "| --- | --- |",
+      "| Status | Codes | Description |",
+      "| --- | --- | --- |",
       ...operation.errors.map(
-        ({ description, status }) => `| \`${status}\` | ${cell(description)} |`
+        ({ codes, description, status }) =>
+          `| \`${status}\` | ${codes.map((errorCode) => `[\`${errorCode}\`](/api-reference/protocols/errors#${errorCode})`).join(", ")} | ${cell(description)} |`
       ),
     ].join("\n"),
     "See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.",

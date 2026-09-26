@@ -56,11 +56,11 @@ Response schema: `MerchantConnectionResponse`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -117,13 +117,13 @@ Response schema: `MerchantConnectionResponse`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `422` | Merchant credential rejected |
-| `503` | Merchant provider unavailable |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `422` |  | Merchant credential rejected |
+| `503` |  | Merchant provider unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -181,14 +181,14 @@ Response schema: `MerchantConnectionResponse`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `409` | Merchant account mismatch |
-| `422` | Merchant credential rejected |
-| `503` | Merchant provider unavailable |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `409` |  | Merchant account mismatch |
+| `422` |  | Merchant credential rejected |
+| `503` |  | Merchant provider unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -217,11 +217,11 @@ Returns `204 No Content`. Retired.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -268,11 +268,11 @@ Response schema: `MerchantBindingList`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -315,13 +315,13 @@ Response schema: `MerchantBindingResponse`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `422` | Merchant customer not found |
-| `503` | Merchant provider unavailable |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `422` |  | Merchant customer not found |
+| `503` |  | Merchant provider unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -352,11 +352,11 @@ Returns `204 No Content`. Deleted.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -424,11 +424,11 @@ Response schema: `MerchantUsageEventList`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -486,11 +486,11 @@ Response schema: `MerchantUsageSummary`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -553,11 +553,11 @@ Response schema: `MerchantUsageEventResponse`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -620,12 +620,12 @@ Response schema: `MerchantUsageEventResponse`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `409` | Event state does not allow this action |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `409` |  | Event state does not allow this action |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -688,12 +688,12 @@ Response schema: `MerchantUsageEventResponse`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `409` | Event state conflict or missing customer binding |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `409` |  | Event state conflict or missing customer binding |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -756,12 +756,12 @@ Response schema: `MerchantUsageEventResponse`.
 
 #### Errors
 
-| Status | Description |
-| --- | --- |
-| `400` | Validation failed |
-| `401` | Missing or invalid credential |
-| `404` | Not found in this tenant |
-| `409` | Event state does not allow this action |
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` |  | Validation failed |
+| `401` |  | Missing or invalid credential |
+| `404` |  | Not found in this tenant |
+| `409` |  | Event state does not allow this action |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

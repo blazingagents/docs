@@ -15,7 +15,7 @@
   "tags": [
     {
       "name": "agents",
-      "description": "Agent records, versions, avatar and code generation."
+      "description": "Create and configure agents, read their versions, manage avatars and MCP attachments, and run stateless generation."
     },
     {
       "name": "apikeys",
@@ -44,6 +44,10 @@
     {
       "name": "mcp-oauth",
       "description": "The public legs of MCP OAuth authorization. POST /v1/mcp-connections/{id}/connect returns an authorizationUrl to open in the user's browser; GET /v1/mcp/oauth/authorize sets a transaction cookie and redirects to the provider; after the user consents, the provider redirects to GET /v1/mcp/oauth/callback, which stores the credential and redirects to the dashboard; the caller then polls GET /v1/mcp-connections/{id} until status is connected. client-metadata is fetched by the provider itself during dynamic client registration."
+    },
+    {
+      "name": "merchant",
+      "description": "Bill your end users through your own billing provider: the merchant connection, customer bindings, and usage events."
     },
     {
       "name": "memories",
@@ -10611,15 +10615,29 @@
     },
     "/v1/agents": {
       "post": {
+        "operationId": "createAgent",
         "tags": [
           "agents"
         ],
         "summary": "Create an agent",
-        "description": "Creates an agent. The DB enforces a unique (tenantId, name) constraint → 409 `agent_name_conflict` on conflict. Any valid credential (API key or dashboard JWT) may call this.",
+        "description": "Creates an agent. Names are unique within your tenant. `providerId` and `model` go together: send both to give the agent a model, or leave both out. Leave out `workspaceId` to create a new workspace for the agent.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
+              "example": {
+                "name": "Support Agent",
+                "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                "model": "openai/gpt-6-luna",
+                "tools": [
+                  "workspace",
+                  "write_todos"
+                ],
+                "instructions": "Answer billing questions clearly and briefly.",
+                "metadata": {
+                  "team": "support"
+                }
+              },
               "schema": {
                 "type": "object",
                 "properties": {
@@ -10730,7 +10748,8 @@
                     "required": [
                       "default"
                     ],
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "description": "Which tool calls need approval in sessions and stateless generation."
                   },
                   "approvalInTasks": {
                     "type": "object",
@@ -10839,12 +10858,14 @@
                     "required": [
                       "default"
                     ],
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "description": "Which tool calls need approval in task runs."
                   },
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 80
+                    "maxLength": 80,
+                    "description": "Display name, unique within your tenant."
                   },
                   "model": {
                     "type": [
@@ -10852,7 +10873,8 @@
                       "null"
                     ],
                     "minLength": 1,
-                    "default": null
+                    "default": null,
+                    "description": "The provider's own model ID, such as `openai/gpt-6-luna`. Send it together with `providerId`."
                   },
                   "thinkingLevel": {
                     "type": [
@@ -10860,7 +10882,8 @@
                       "null"
                     ],
                     "minLength": 1,
-                    "default": null
+                    "default": null,
+                    "description": "How much reasoning to request from the model, such as `high`. Needs a provider and model, and must be a level the model supports."
                   },
                   "providerId": {
                     "type": [
@@ -10868,25 +10891,30 @@
                       "null"
                     ],
                     "pattern": "^prv_[0-9A-Za-z]{16}$",
-                    "default": null
+                    "default": null,
+                    "description": "ID of the provider whose key runs the model. Send it together with `model`."
                   },
                   "workspaceId": {
                     "type": "string",
-                    "pattern": "^ws_[0-9A-Za-z]{16}$"
+                    "pattern": "^ws_[0-9A-Za-z]{16}$",
+                    "description": "ID of the workspace the agent reads and writes files in. Leave it out to create a new workspace for the agent, or send an existing one to share it."
                   },
                   "autoCompaction": {
                     "type": "boolean",
-                    "default": true
+                    "default": true,
+                    "description": "Summarize older context automatically when a conversation nears the model's context limit."
                   },
                   "compactionReserveTokens": {
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 9007199254740991,
-                    "default": 16384
+                    "default": 16384,
+                    "description": "Tokens to keep free for the model's reply when deciding whether to compact."
                   },
                   "memoryInjectionEnabled": {
                     "type": "boolean",
-                    "default": false
+                    "default": false,
+                    "description": "Add the agent's saved memories to every turn automatically."
                   },
                   "tools": {
                     "type": "array",
@@ -10898,21 +10926,25 @@
                         "memory"
                       ]
                     },
-                    "default": []
+                    "default": [],
+                    "description": "Built-in tool groups the agent can use: `workspace`, `write_todos`, and `memory`."
                   },
                   "instructions": {
                     "type": "string",
                     "maxLength": 3000,
-                    "default": ""
+                    "default": "",
+                    "description": "Instructions the agent follows on every turn."
                   },
                   "userId": {
                     "type": "string",
-                    "default": ""
+                    "default": "",
+                    "description": "Your end user's ID, used for attribution. An empty string means a tenant-level agent. It cannot change after creation."
                   },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {},
-                    "default": {}
+                    "default": {},
+                    "description": "Your own key-value data, returned unchanged."
                   },
                   "mcpConnectionIds": {
                     "type": "array",
@@ -10921,7 +10953,8 @@
                       "pattern": "^mcp_[0-9A-Za-z]{16}$"
                     },
                     "maxItems": 10,
-                    "default": []
+                    "default": [],
+                    "description": "IDs of the MCP connections attached to the agent."
                   }
                 },
                 "required": [
@@ -10937,6 +10970,41 @@
             "description": "The created agent",
             "content": {
               "application/json": {
+                "example": {
+                  "approvalInChat": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "approvalInTasks": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "id": "ag_4kP9sT2vXq7LmN3a",
+                  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+                  "name": "Support Agent",
+                  "model": "openai/gpt-6-luna",
+                  "thinkingLevel": null,
+                  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+                  "autoCompaction": true,
+                  "compactionReserveTokens": 16384,
+                  "memoryInjectionEnabled": false,
+                  "tools": [
+                    "workspace",
+                    "write_todos"
+                  ],
+                  "instructions": "Answer billing questions clearly and briefly.",
+                  "userId": "",
+                  "metadata": {
+                    "team": "support"
+                  },
+                  "mcpConnectionIds": [],
+                  "avatarUrl": null,
+                  "createdAt": "2026-07-10T10:00:00.000Z",
+                  "updatedAt": "2026-07-10T10:00:00.000Z",
+                  "version": 1,
+                  "status": "active"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Agent"
                 }
@@ -10944,7 +11012,15 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed",
+              "invalid_request",
+              "model_not_found",
+              "agent_mcp_connection_not_found",
+              "agent_mcp_connections_invalid",
+              "mcp_connection_discovery_failed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -10954,7 +11030,23 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -10964,7 +11056,11 @@
             }
           },
           "404": {
-            "description": "Not found in this tenant",
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "provider_not_found",
+              "workspace_not_found"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -10974,7 +11070,37 @@
             }
           },
           "409": {
-            "description": "Agent name already exists",
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "agent_name_conflict"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "x-error-codes": [
+              "rate_limited"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The service is temporarily unavailable",
+            "x-error-codes": [
+              "model_validation_unavailable",
+              "service_unavailable"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -10986,26 +11112,31 @@
         }
       },
       "get": {
+        "operationId": "listAgents",
         "tags": [
           "agents"
         ],
         "summary": "List agents",
-        "description": "Lists the tenant's agents, ordered by updatedAt desc. Not paginated (only sessions + transcripts are paginated in MVP per the contract). `userId` filters by end-user attribution (ADR-0001): absent = no filter, `''` = tenant-level agents only. Any valid credential (API key or dashboard JWT) may call this.",
+        "description": "Lists your agents, most recently updated first. Filter by end user or by workspace.",
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Return only agents for this end user. Send an empty string for tenant-level agents, or leave it out for all agents."
             },
             "required": false,
+            "description": "Return only agents for this end user. Send an empty string for tenant-level agents, or leave it out for all agents.",
             "name": "userId",
             "in": "query"
           },
           {
             "schema": {
               "type": "string",
-              "pattern": "^ws_[0-9A-Za-z]{16}$"
+              "pattern": "^ws_[0-9A-Za-z]{16}$",
+              "description": "Return only agents that use this workspace."
             },
             "required": false,
+            "description": "Return only agents that use this workspace.",
             "name": "workspaceId",
             "in": "query"
           }
@@ -11015,6 +11146,45 @@
             "description": "The tenant's agents",
             "content": {
               "application/json": {
+                "example": {
+                  "agents": [
+                    {
+                      "approvalInChat": {
+                        "default": "full",
+                        "overrides": []
+                      },
+                      "approvalInTasks": {
+                        "default": "full",
+                        "overrides": []
+                      },
+                      "id": "ag_4kP9sT2vXq7LmN3a",
+                      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+                      "name": "Support Agent",
+                      "model": "openai/gpt-6-luna",
+                      "thinkingLevel": null,
+                      "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                      "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+                      "autoCompaction": true,
+                      "compactionReserveTokens": 16384,
+                      "memoryInjectionEnabled": false,
+                      "tools": [
+                        "workspace",
+                        "write_todos"
+                      ],
+                      "instructions": "Answer billing questions clearly and briefly.",
+                      "userId": "",
+                      "metadata": {
+                        "team": "support"
+                      },
+                      "mcpConnectionIds": [],
+                      "avatarUrl": null,
+                      "createdAt": "2026-07-10T10:00:00.000Z",
+                      "updatedAt": "2026-07-10T10:00:00.000Z",
+                      "version": 1,
+                      "status": "active"
+                    }
+                  ]
+                },
                 "schema": {
                   "$ref": "#/components/schemas/AgentList"
                 }
@@ -11022,7 +11192,10 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11032,7 +11205,10 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11041,8 +11217,11 @@
               }
             }
           },
-          "404": {
-            "description": "Not found in this tenant",
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11056,18 +11235,21 @@
     },
     "/v1/agents/{agentId}/mcp-attachments": {
       "get": {
+        "operationId": "listAgentMcpAttachments",
         "tags": [
           "agents"
         ],
         "summary": "List agent MCP attachments",
-        "description": "Lists the MCP Connection attachment settings for an Agent. Out-of-tenant reads 404. Any valid credential (API key or dashboard JWT) may call this.",
+        "description": "Lists the MCP connections attached to an agent and what the agent forwards to each one.",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$"
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
             },
             "required": true,
+            "description": "ID of the agent.",
             "name": "agentId",
             "in": "path"
           }
@@ -11077,6 +11259,19 @@
             "description": "The agent's MCP attachments",
             "content": {
               "application/json": {
+                "example": {
+                  "mcpAttachments": [
+                    {
+                      "mcpConnectionId": "mcp_2Rk7Wm4XsQ9dHv1B",
+                      "forwardUserId": true,
+                      "forwardedMetadataKeys": [
+                        "plan"
+                      ],
+                      "createdAt": "2026-07-10T10:00:00.000Z",
+                      "updatedAt": "2026-07-10T10:05:00.000Z"
+                    }
+                  ]
+                },
                 "schema": {
                   "$ref": "#/components/schemas/McpAttachmentList"
                 }
@@ -11084,7 +11279,10 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11094,7 +11292,23 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11104,7 +11318,10 @@
             }
           },
           "404": {
-            "description": "Not found in this tenant",
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11118,27 +11335,32 @@
     },
     "/v1/agents/{agentId}/mcp-attachments/{mcpConnectionId}": {
       "patch": {
+        "operationId": "updateAgentMcpAttachment",
         "tags": [
           "agents"
         ],
         "summary": "Update an agent MCP attachment",
-        "description": "Updates the attachment settings between an Agent and an MCP Connection. Out-of-tenant updates 404. Any valid credential (API key or dashboard JWT) may call this.",
+        "description": "Changes what an agent forwards to one of its attached MCP connections. Send at least one field.",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$"
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
             },
             "required": true,
+            "description": "ID of the agent.",
             "name": "agentId",
             "in": "path"
           },
           {
             "schema": {
               "type": "string",
-              "pattern": "^mcp_[0-9A-Za-z]{16}$"
+              "pattern": "^mcp_[0-9A-Za-z]{16}$",
+              "description": "ID of an MCP connection attached to the agent."
             },
             "required": true,
+            "description": "ID of an MCP connection attached to the agent.",
             "name": "mcpConnectionId",
             "in": "path"
           }
@@ -11147,11 +11369,18 @@
           "required": true,
           "content": {
             "application/json": {
+              "example": {
+                "forwardUserId": true,
+                "forwardedMetadataKeys": [
+                  "plan"
+                ]
+              },
               "schema": {
                 "type": "object",
                 "properties": {
                   "forwardUserId": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "Send the session's `userId` to the MCP server with every tool call."
                   },
                   "forwardedMetadataKeys": {
                     "type": "array",
@@ -11160,7 +11389,8 @@
                       "minLength": 1,
                       "maxLength": 64
                     },
-                    "maxItems": 32
+                    "maxItems": 32,
+                    "description": "Session metadata keys whose values are sent to the MCP server with every tool call. Replaces the current list."
                   }
                 },
                 "additionalProperties": false
@@ -11173,6 +11403,15 @@
             "description": "The updated MCP attachment",
             "content": {
               "application/json": {
+                "example": {
+                  "mcpConnectionId": "mcp_2Rk7Wm4XsQ9dHv1B",
+                  "forwardUserId": true,
+                  "forwardedMetadataKeys": [
+                    "plan"
+                  ],
+                  "createdAt": "2026-07-10T10:00:00.000Z",
+                  "updatedAt": "2026-07-10T10:05:00.000Z"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/McpAttachment"
                 }
@@ -11180,7 +11419,10 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11190,7 +11432,23 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11200,7 +11458,10 @@
             }
           },
           "404": {
-            "description": "Not found in this tenant",
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11214,27 +11475,32 @@
     },
     "/v1/agents/{agentId}/versions": {
       "get": {
+        "operationId": "listAgentVersions",
         "tags": [
           "agents"
         ],
         "summary": "List agent versions",
-        "description": "Lists full immutable snapshots of the Agent's Versions in a keyset-paginated envelope. Out-of-tenant reads 404. Any valid credential (API key or dashboard JWT) may call this.",
+        "description": "Lists an agent's saved versions, newest first. Each version is a complete snapshot of the configuration and never changes. Pass `nextCursor` as `cursor` to get the next page.",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$"
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
             },
             "required": true,
+            "description": "ID of the agent.",
             "name": "agentId",
             "in": "path"
           },
           {
             "schema": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "description": "`nextCursor` from the previous page. Leave it out for the first page."
             },
             "required": false,
+            "description": "`nextCursor` from the previous page. Leave it out for the first page.",
             "name": "cursor",
             "in": "query"
           },
@@ -11243,9 +11509,11 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 200,
-              "default": 50
+              "default": 50,
+              "description": "Maximum number of versions to return."
             },
             "required": false,
+            "description": "Maximum number of versions to return.",
             "name": "limit",
             "in": "query"
           }
@@ -11255,6 +11523,41 @@
             "description": "A page of agent versions",
             "content": {
               "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "approvalInChat": {
+                        "default": "full",
+                        "overrides": []
+                      },
+                      "approvalInTasks": {
+                        "default": "full",
+                        "overrides": []
+                      },
+                      "agentId": "ag_4kP9sT2vXq7LmN3a",
+                      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+                      "version": 1,
+                      "name": "Support Agent",
+                      "model": "openai/gpt-6-luna",
+                      "thinkingLevel": null,
+                      "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                      "autoCompaction": true,
+                      "compactionReserveTokens": 16384,
+                      "memoryInjectionEnabled": false,
+                      "tools": [
+                        "workspace",
+                        "write_todos"
+                      ],
+                      "instructions": "Answer billing questions clearly and briefly.",
+                      "metadata": {
+                        "team": "support"
+                      },
+                      "mcpConnectionIds": [],
+                      "createdAt": "2026-07-10T10:00:00.000Z"
+                    }
+                  ],
+                  "nextCursor": null
+                },
                 "schema": {
                   "$ref": "#/components/schemas/AgentVersionList"
                 }
@@ -11262,7 +11565,11 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed",
+              "invalid_cursor"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11272,7 +11579,23 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11282,7 +11605,10 @@
             }
           },
           "404": {
-            "description": "Not found in this tenant",
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11296,26 +11622,32 @@
     },
     "/v1/agents/{agentId}/versions/{version}": {
       "get": {
+        "operationId": "getAgentVersion",
         "tags": [
           "agents"
         ],
         "summary": "Get an agent version",
-        "description": "Returns a full immutable snapshot of one Agent Version. Out-of-tenant reads 404 (no existence leakage). Any valid credential (API key or dashboard JWT) may call this.",
+        "description": "Returns one saved version of an agent, a complete snapshot of its configuration at that point.",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$"
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
             },
             "required": true,
+            "description": "ID of the agent.",
             "name": "agentId",
             "in": "path"
           },
           {
             "schema": {
-              "type": "number"
+              "type": "number",
+              "description": "Version number, starting at 1.",
+              "example": 1
             },
             "required": true,
+            "description": "Version number, starting at 1.",
             "name": "version",
             "in": "path"
           }
@@ -11325,6 +11657,36 @@
             "description": "The agent version",
             "content": {
               "application/json": {
+                "example": {
+                  "approvalInChat": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "approvalInTasks": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "agentId": "ag_4kP9sT2vXq7LmN3a",
+                  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+                  "version": 1,
+                  "name": "Support Agent",
+                  "model": "openai/gpt-6-luna",
+                  "thinkingLevel": null,
+                  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                  "autoCompaction": true,
+                  "compactionReserveTokens": 16384,
+                  "memoryInjectionEnabled": false,
+                  "tools": [
+                    "workspace",
+                    "write_todos"
+                  ],
+                  "instructions": "Answer billing questions clearly and briefly.",
+                  "metadata": {
+                    "team": "support"
+                  },
+                  "mcpConnectionIds": [],
+                  "createdAt": "2026-07-10T10:00:00.000Z"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/AgentVersion"
                 }
@@ -11332,7 +11694,10 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11342,7 +11707,23 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11352,7 +11733,10 @@
             }
           },
           "404": {
-            "description": "Not found in this tenant",
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11366,18 +11750,21 @@
     },
     "/v1/agents/{agentId}": {
       "get": {
+        "operationId": "getAgent",
         "tags": [
           "agents"
         ],
         "summary": "Get an agent",
-        "description": "Returns the agent record. Out-of-tenant reads 404 (no existence leakage). Any valid credential (API key or dashboard JWT) may call this.",
+        "description": "Returns an agent's current configuration, including a short-lived `avatarUrl` when the agent has an avatar.",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$"
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
             },
             "required": true,
+            "description": "ID of the agent.",
             "name": "agentId",
             "in": "path"
           }
@@ -11387,6 +11774,41 @@
             "description": "The agent",
             "content": {
               "application/json": {
+                "example": {
+                  "approvalInChat": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "approvalInTasks": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "id": "ag_4kP9sT2vXq7LmN3a",
+                  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+                  "name": "Support Agent",
+                  "model": "openai/gpt-6-luna",
+                  "thinkingLevel": null,
+                  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+                  "autoCompaction": true,
+                  "compactionReserveTokens": 16384,
+                  "memoryInjectionEnabled": false,
+                  "tools": [
+                    "workspace",
+                    "write_todos"
+                  ],
+                  "instructions": "Answer billing questions clearly and briefly.",
+                  "userId": "",
+                  "metadata": {
+                    "team": "support"
+                  },
+                  "mcpConnectionIds": [],
+                  "avatarUrl": null,
+                  "createdAt": "2026-07-10T10:00:00.000Z",
+                  "updatedAt": "2026-07-10T10:00:00.000Z",
+                  "version": 1,
+                  "status": "active"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Agent"
                 }
@@ -11394,7 +11816,10 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11404,7 +11829,23 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11414,7 +11855,10 @@
             }
           },
           "404": {
-            "description": "Not found in this tenant",
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11426,18 +11870,21 @@
         }
       },
       "put": {
+        "operationId": "updateAgent",
         "tags": [
           "agents"
         ],
         "summary": "Update an agent",
-        "description": "Updates the agent. Out-of-tenant updates 404. Any valid credential (API key or dashboard JWT) may call this.",
+        "description": "Updates an agent and saves the result as a new version. Send at least one field. Fields you leave out keep their values, and arrays replace the current list. Changing `providerId` requires `model` in the same request, and sending both as `null` clears them. On the platform-managed `ba assist` agent, only `providerId`, `model`, and `thinkingLevel` can change.",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$"
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
             },
             "required": true,
+            "description": "ID of the agent.",
             "name": "agentId",
             "in": "path"
           }
@@ -11446,6 +11893,12 @@
           "required": true,
           "content": {
             "application/json": {
+              "example": {
+                "instructions": "Answer billing and refund questions clearly and briefly.",
+                "tools": [
+                  "workspace"
+                ]
+              },
               "schema": {
                 "type": "object",
                 "properties": {
@@ -11552,7 +12005,8 @@
                     "required": [
                       "default"
                     ],
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "description": "Which tool calls need approval in sessions and stateless generation."
                   },
                   "approvalInTasks": {
                     "type": "object",
@@ -11657,48 +12111,57 @@
                     "required": [
                       "default"
                     ],
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "description": "Which tool calls need approval in task runs."
                   },
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 80
+                    "maxLength": 80,
+                    "description": "Display name, unique within your tenant."
                   },
                   "model": {
                     "type": [
                       "string",
                       "null"
                     ],
-                    "minLength": 1
+                    "minLength": 1,
+                    "description": "The provider's own model ID, such as `openai/gpt-6-luna`. Send it together with `providerId`."
                   },
                   "thinkingLevel": {
                     "type": [
                       "string",
                       "null"
                     ],
-                    "minLength": 1
+                    "minLength": 1,
+                    "description": "How much reasoning to request from the model, such as `high`. Needs a provider and model, and must be a level the model supports."
                   },
                   "providerId": {
                     "type": [
                       "string",
                       "null"
                     ],
-                    "pattern": "^prv_[0-9A-Za-z]{16}$"
+                    "pattern": "^prv_[0-9A-Za-z]{16}$",
+                    "description": "ID of the provider whose key runs the model. Send it together with `model`."
                   },
                   "workspaceId": {
                     "type": "string",
-                    "pattern": "^ws_[0-9A-Za-z]{16}$"
+                    "pattern": "^ws_[0-9A-Za-z]{16}$",
+                    "description": "ID of the workspace the agent reads and writes files in."
                   },
                   "autoCompaction": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "Summarize older context automatically when a conversation nears the model's context limit."
                   },
                   "compactionReserveTokens": {
                     "type": "integer",
                     "minimum": 0,
-                    "maximum": 9007199254740991
+                    "maximum": 9007199254740991,
+                    "description": "Tokens to keep free for the model's reply when deciding whether to compact."
                   },
                   "memoryInjectionEnabled": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "Add the agent's saved memories to every turn automatically."
                   },
                   "tools": {
                     "type": "array",
@@ -11709,15 +12172,18 @@
                         "write_todos",
                         "memory"
                       ]
-                    }
+                    },
+                    "description": "Built-in tool groups the agent can use: `workspace`, `write_todos`, and `memory`."
                   },
                   "instructions": {
                     "type": "string",
-                    "maxLength": 3000
+                    "maxLength": 3000,
+                    "description": "Instructions the agent follows on every turn."
                   },
                   "metadata": {
                     "type": "object",
-                    "additionalProperties": {}
+                    "additionalProperties": {},
+                    "description": "Your own key-value data, returned unchanged."
                   },
                   "mcpConnectionIds": {
                     "type": "array",
@@ -11725,7 +12191,8 @@
                       "type": "string",
                       "pattern": "^mcp_[0-9A-Za-z]{16}$"
                     },
-                    "maxItems": 10
+                    "maxItems": 10,
+                    "description": "IDs of the MCP connections attached to the agent."
                   }
                 },
                 "additionalProperties": false
@@ -11738,6 +12205,40 @@
             "description": "The updated agent",
             "content": {
               "application/json": {
+                "example": {
+                  "approvalInChat": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "approvalInTasks": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "id": "ag_4kP9sT2vXq7LmN3a",
+                  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+                  "name": "Support Agent",
+                  "model": "openai/gpt-6-luna",
+                  "thinkingLevel": null,
+                  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+                  "autoCompaction": true,
+                  "compactionReserveTokens": 16384,
+                  "memoryInjectionEnabled": false,
+                  "tools": [
+                    "workspace"
+                  ],
+                  "instructions": "Answer billing and refund questions clearly and briefly.",
+                  "userId": "",
+                  "metadata": {
+                    "team": "support"
+                  },
+                  "mcpConnectionIds": [],
+                  "avatarUrl": null,
+                  "createdAt": "2026-07-10T10:00:00.000Z",
+                  "updatedAt": "2026-07-10T10:15:00.000Z",
+                  "version": 2,
+                  "status": "active"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Agent"
                 }
@@ -11745,7 +12246,15 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed",
+              "invalid_request",
+              "model_not_found",
+              "agent_mcp_connection_not_found",
+              "agent_mcp_connections_invalid",
+              "mcp_connection_discovery_failed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11755,7 +12264,23 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11765,7 +12290,39 @@
             }
           },
           "404": {
-            "description": "Not found in this tenant",
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found",
+              "provider_not_found",
+              "workspace_not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "agent_name_conflict",
+              "admin_agent_managed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The service is temporarily unavailable",
+            "x-error-codes": [
+              "model_validation_unavailable"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11777,18 +12334,21 @@
         }
       },
       "delete": {
+        "operationId": "deleteAgent",
         "tags": [
           "agents"
         ],
         "summary": "Delete an agent",
-        "description": "Hard-deletes the agent. Out-of-tenant deletes 404. Any valid credential (API key or dashboard JWT) may call this.",
+        "description": "Permanently deletes an agent. Its workspace is kept. Set `includeArtifacts` to choose whether its artifacts are deleted too. The platform-managed `ba assist` agent cannot be deleted.",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$"
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
             },
             "required": true,
+            "description": "ID of the agent.",
             "name": "agentId",
             "in": "path"
           },
@@ -11798,19 +12358,25 @@
               "enum": [
                 "true",
                 "false"
-              ]
+              ],
+              "description": "`true` also deletes the agent's artifacts; `false` keeps them.",
+              "example": "false"
             },
             "required": true,
+            "description": "`true` also deletes the agent's artifacts; `false` keeps them.",
             "name": "includeArtifacts",
             "in": "query"
           }
         ],
         "responses": {
           "204": {
-            "description": "Deleted"
+            "description": "The agent was deleted"
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11820,7 +12386,23 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11830,7 +12412,23 @@
             }
           },
           "404": {
-            "description": "Not found in this tenant",
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "admin_agent_managed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11844,18 +12442,21 @@
     },
     "/v1/agents/{agentId}/disable": {
       "post": {
+        "operationId": "disableAgent",
         "tags": [
           "agents"
         ],
         "summary": "Disable an agent",
-        "description": "Sets the Agent status and returns the updated record. Out-of-tenant updates 404. Any valid credential (API key or dashboard JWT) may call this.",
+        "description": "Turns an agent off. New turns for a disabled agent fail with `agent_disabled` until you enable it again. The platform-managed `ba assist` agent cannot be disabled.",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$"
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
             },
             "required": true,
+            "description": "ID of the agent.",
             "name": "agentId",
             "in": "path"
           }
@@ -11865,6 +12466,41 @@
             "description": "The updated agent",
             "content": {
               "application/json": {
+                "example": {
+                  "approvalInChat": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "approvalInTasks": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "id": "ag_4kP9sT2vXq7LmN3a",
+                  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+                  "name": "Support Agent",
+                  "model": "openai/gpt-6-luna",
+                  "thinkingLevel": null,
+                  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+                  "autoCompaction": true,
+                  "compactionReserveTokens": 16384,
+                  "memoryInjectionEnabled": false,
+                  "tools": [
+                    "workspace",
+                    "write_todos"
+                  ],
+                  "instructions": "Answer billing questions clearly and briefly.",
+                  "userId": "",
+                  "metadata": {
+                    "team": "support"
+                  },
+                  "mcpConnectionIds": [],
+                  "avatarUrl": null,
+                  "createdAt": "2026-07-10T10:00:00.000Z",
+                  "updatedAt": "2026-07-10T10:00:00.000Z",
+                  "version": 1,
+                  "status": "disabled"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Agent"
                 }
@@ -11872,7 +12508,10 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11882,7 +12521,23 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11892,7 +12547,23 @@
             }
           },
           "404": {
-            "description": "Not found in this tenant",
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "admin_agent_managed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11906,18 +12577,21 @@
     },
     "/v1/agents/{agentId}/enable": {
       "post": {
+        "operationId": "enableAgent",
         "tags": [
           "agents"
         ],
         "summary": "Enable an agent",
-        "description": "Sets the Agent status and returns the updated record. Out-of-tenant updates 404. Any valid credential (API key or dashboard JWT) may call this.",
+        "description": "Turns a disabled agent back on.",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$"
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
             },
             "required": true,
+            "description": "ID of the agent.",
             "name": "agentId",
             "in": "path"
           }
@@ -11927,6 +12601,41 @@
             "description": "The updated agent",
             "content": {
               "application/json": {
+                "example": {
+                  "approvalInChat": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "approvalInTasks": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "id": "ag_4kP9sT2vXq7LmN3a",
+                  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+                  "name": "Support Agent",
+                  "model": "openai/gpt-6-luna",
+                  "thinkingLevel": null,
+                  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+                  "autoCompaction": true,
+                  "compactionReserveTokens": 16384,
+                  "memoryInjectionEnabled": false,
+                  "tools": [
+                    "workspace",
+                    "write_todos"
+                  ],
+                  "instructions": "Answer billing questions clearly and briefly.",
+                  "userId": "",
+                  "metadata": {
+                    "team": "support"
+                  },
+                  "mcpConnectionIds": [],
+                  "avatarUrl": null,
+                  "createdAt": "2026-07-10T10:00:00.000Z",
+                  "updatedAt": "2026-07-10T10:00:00.000Z",
+                  "version": 1,
+                  "status": "active"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Agent"
                 }
@@ -11934,7 +12643,10 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11944,7 +12656,23 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11954,7 +12682,23 @@
             }
           },
           "404": {
-            "description": "Not found in this tenant",
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "admin_agent_managed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -11968,18 +12712,21 @@
     },
     "/v1/agents/{agentId}/avatar": {
       "post": {
+        "operationId": "uploadAgentAvatar",
         "tags": [
           "agents"
         ],
         "summary": "Upload an agent avatar",
-        "description": "Uploads a `file` multipart field as the Agent's avatar. The file must be a PNG, JPEG or WebP image of 512 KiB or smaller, and its extension must match its type. Out-of-tenant updates 404. Any valid credential (API key or dashboard JWT) may call this.",
+        "description": "Sets the agent's avatar, replacing any current one. Send the image as the `file` field of a multipart form. The platform-managed `ba assist` agent's avatar cannot change.",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$"
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
             },
             "required": true,
+            "description": "ID of the agent.",
             "name": "agentId",
             "in": "path"
           }
@@ -11999,7 +12746,7 @@
                   "file": {
                     "type": "string",
                     "format": "binary",
-                    "description": "PNG, JPEG or WebP image, 512 KiB or smaller"
+                    "description": "PNG, JPEG, or WebP image of 512 KiB or smaller. Its file extension must match its type."
                   }
                 },
                 "required": [
@@ -12015,6 +12762,41 @@
             "description": "The updated agent",
             "content": {
               "application/json": {
+                "example": {
+                  "approvalInChat": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "approvalInTasks": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "id": "ag_4kP9sT2vXq7LmN3a",
+                  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+                  "name": "Support Agent",
+                  "model": "openai/gpt-6-luna",
+                  "thinkingLevel": null,
+                  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+                  "autoCompaction": true,
+                  "compactionReserveTokens": 16384,
+                  "memoryInjectionEnabled": false,
+                  "tools": [
+                    "workspace",
+                    "write_todos"
+                  ],
+                  "instructions": "Answer billing questions clearly and briefly.",
+                  "userId": "",
+                  "metadata": {
+                    "team": "support"
+                  },
+                  "mcpConnectionIds": [],
+                  "avatarUrl": "https://files.example.com/avatars/ag_4kP9sT2vXq7LmN3a.webp",
+                  "createdAt": "2026-07-10T10:00:00.000Z",
+                  "updatedAt": "2026-07-10T10:00:00.000Z",
+                  "version": 1,
+                  "status": "active"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Agent"
                 }
@@ -12022,7 +12804,10 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -12032,7 +12817,23 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -12042,7 +12843,36 @@
             }
           },
           "404": {
-            "description": "Not found in this tenant",
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "admin_agent_managed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The request body has an unsupported media type",
+            "x-error-codes": [
+              "invalid_request"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -12054,18 +12884,21 @@
         }
       },
       "delete": {
+        "operationId": "deleteAgentAvatar",
         "tags": [
           "agents"
         ],
         "summary": "Delete an agent avatar",
-        "description": "Removes the Agent's avatar and returns the updated record. Out-of-tenant updates 404. Any valid credential (API key or dashboard JWT) may call this.",
+        "description": "Removes the agent's avatar and returns the updated agent. The platform-managed `ba assist` agent's avatar cannot change.",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$"
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
             },
             "required": true,
+            "description": "ID of the agent.",
             "name": "agentId",
             "in": "path"
           }
@@ -12075,6 +12908,41 @@
             "description": "The updated agent",
             "content": {
               "application/json": {
+                "example": {
+                  "approvalInChat": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "approvalInTasks": {
+                    "default": "full",
+                    "overrides": []
+                  },
+                  "id": "ag_4kP9sT2vXq7LmN3a",
+                  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+                  "name": "Support Agent",
+                  "model": "openai/gpt-6-luna",
+                  "thinkingLevel": null,
+                  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                  "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
+                  "autoCompaction": true,
+                  "compactionReserveTokens": 16384,
+                  "memoryInjectionEnabled": false,
+                  "tools": [
+                    "workspace",
+                    "write_todos"
+                  ],
+                  "instructions": "Answer billing questions clearly and briefly.",
+                  "userId": "",
+                  "metadata": {
+                    "team": "support"
+                  },
+                  "mcpConnectionIds": [],
+                  "avatarUrl": null,
+                  "createdAt": "2026-07-10T10:00:00.000Z",
+                  "updatedAt": "2026-07-10T10:00:00.000Z",
+                  "version": 1,
+                  "status": "active"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Agent"
                 }
@@ -12082,7 +12950,10 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -12092,7 +12963,23 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -12102,7 +12989,23 @@
             }
           },
           "404": {
-            "description": "Not found in this tenant",
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "admin_agent_managed"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -12882,18 +13785,21 @@
     },
     "/v1/agents/{agentId}/generation": {
       "post": {
+        "operationId": "generate",
         "tags": [
           "agents"
         ],
         "summary": "Run stateless generation",
-        "description": "Runs a stateless generation Turn for the agent and streams the output as `text/plain`. Either a literal `prompt` or a `promptId` (with optional `variables`) is required.",
+        "description": "Runs one turn of the agent without saving a session and streams the answer as plain text. Send exactly one of `prompt` or `promptId`; `variables` is allowed only with `promptId`. With object output, the stream is JSON text that matches your schema. A failure before the stream starts returns a JSON error. Once the stream has started, a failure ends it early and the status stays 200.",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$"
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
             },
             "required": true,
+            "description": "ID of the agent.",
             "name": "agentId",
             "in": "path"
           }
@@ -12902,22 +13808,31 @@
           "required": true,
           "content": {
             "application/json": {
+              "example": {
+                "prompt": "Explain how to reset a password in one sentence.",
+                "output": {
+                  "type": "text"
+                }
+              },
               "schema": {
                 "type": "object",
                 "properties": {
                   "prompt": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "description": "The prompt to answer. Send either `prompt` or `promptId`."
                   },
                   "promptId": {
                     "type": "string",
-                    "pattern": "^prompt_[0-9A-Za-z]{16}$"
+                    "pattern": "^prompt_[0-9A-Za-z]{16}$",
+                    "description": "ID of a saved prompt to use instead of `prompt`."
                   },
                   "variables": {
                     "type": "object",
                     "additionalProperties": {
                       "type": "string"
-                    }
+                    },
+                    "description": "Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables."
                   },
                   "output": {
                     "oneOf": [
@@ -12955,21 +13870,25 @@
                         ],
                         "additionalProperties": false
                       }
-                    ]
+                    ],
+                    "description": "What to stream back: `{\"type\":\"text\"}` for text, or `{\"type\":\"object\",\"schema\":{…}}` for JSON that matches a JSON Schema."
                   },
                   "version": {
                     "type": "integer",
                     "minimum": 1,
-                    "maximum": 2147483647
+                    "maximum": 2147483647,
+                    "description": "Agent version to run. Leave it out to run the current version."
                   },
                   "userId": {
                     "type": "string",
-                    "default": ""
+                    "default": "",
+                    "description": "Your end user's ID, used for usage attribution."
                   },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {},
-                    "default": {}
+                    "default": {},
+                    "description": "Your own key-value data, recorded with the usage."
                   }
                 },
                 "required": [
@@ -12985,6 +13904,7 @@
             "description": "Streamed generation output",
             "content": {
               "text/plain": {
+                "example": "Open Settings, choose Security, and select Reset password.",
                 "schema": {
                   "type": "string"
                 }
@@ -12992,7 +13912,13 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed",
+              "provider_required",
+              "prompt_variable_missing",
+              "prompt_variable_unknown"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -13002,7 +13928,39 @@
             }
           },
           "401": {
-            "description": "Missing or invalid credential",
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required",
+              "usage_credit_required",
+              "merchant_subscription_required",
+              "merchant_balance_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "merchant_customer_unmapped"
+            ],
             "content": {
               "application/json": {
                 "schema": {
@@ -13012,7 +13970,53 @@
             }
           },
           "404": {
-            "description": "Not found in this tenant",
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found",
+              "agent_version_not_found",
+              "workspace_not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "agent_disabled"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "x-error-codes": [
+              "quota_exceeded",
+              "rate_limited"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The service is temporarily unavailable",
+            "x-error-codes": [
+              "service_unavailable",
+              "merchant_eligibility_unavailable"
+            ],
             "content": {
               "application/json": {
                 "schema": {
