@@ -46,26 +46,16 @@ Both run the same agent with the same tools, skills, MCP connections, memory, an
 
 ## Relay chat to your frontend [#relay-chat-to-your-frontend]
 
-Your backend holds the API key, checks who the user is, and passes the stream through unchanged. Before you continue a session, check that it belongs to the signed-in user. The `userId` you pass labels usage for reporting; it does not grant access.
+Your backend holds the API key and passes the stream through unchanged:
 
 ```typescript tab="TypeScript"
-declare function requireUserId(request: Request): Promise<string>;
-declare function assertSessionOwner(sessionId: string, userId: string): Promise<void>;
-declare function saveSessionOwner(sessionId: string, userId: string): Promise<void>;
-
 export async function POST(request: Request) {
-  const userId = await requireUserId(request);
   const { message, sessionId } = await request.json();
-  if (sessionId) await assertSessionOwner(sessionId, userId);
-
   const result = await client.chat({
     agentId,
     message,
-    userId,
-    abortSignal: request.signal,
     ...(sessionId ? { sessionId } : {}),
   });
-  await saveSessionOwner(await result.sessionId, userId);
   return result.toResponse();
 }
 ```
@@ -81,26 +71,29 @@ client = AsyncBlazingAgents()
 
 @app.post("/api/chat")
 async def chat(request: Request) -> StreamingResponse:
-    user_id = await require_user_id(request)
     body = await request.json()
     session_id = body.get("sessionId")
-    if session_id:
-        await assert_session_owner(session_id, user_id)
-
     stream = await client.chat(
         agent_id=agent_id,
         message=body["message"],
-        user_id=user_id,
         **({"session_id": session_id} if session_id else {}),
     )
-    await save_session_owner(stream.session_id, user_id)
     headers = {"x-vercel-ai-ui-message-stream": "v1"}
     if location := stream.headers.get("location"):
         headers["location"] = location
     return StreamingResponse(stream, headers=headers, media_type="text/event-stream")
 ```
 
-`requireUserId`, `assertSessionOwner`, and `saveSessionOwner` (snake case in Python) stand in for your own sign-in and your own table of which user owns which session. The session ID is ready before the answer finishes, so you can save it right away. On the frontend, `useChat` with `BlazingAgentsChatTransport` renders the stream and sends the session ID back on the next message. [Build a chatbot](/getting-started/chatbot) shows the full frontend with send, stop, edit, and regenerate.
+Without a `sessionId`, the call starts a new session and the response carries its ID in the `location` header. On the frontend, `useChat` with `BlazingAgentsChatTransport` renders the stream, reads that header, and sends the session ID back on the next message. [Build a chatbot](/getting-started/chatbot) shows the full frontend.
+
+### What to add next [#relay-what-to-add-next]
+
+Before real users reach this endpoint, add the checks below. In TypeScript, `createChatRelay` does all of them for you; [connect Blazing Agents to your app](/getting-started/connect-your-app) shows it, and the same steps by hand in Python.
+
+- **Sign-in.** Find out who the user is before you call Blazing Agents, and reject the request if you cannot.
+- **Session ownership.** Before you continue a session, check that it belongs to the signed-in user. The session ID is ready before the answer finishes (`await result.sessionId` in TypeScript, `stream.session_id` in Python), so save its owner right away.
+- **Usage labels.** Pass the user's ID as `userId` (`user_id` in Python) to label usage per end user. It does not grant access; your ownership check does.
+- **Stopping.** In TypeScript, pass `abortSignal: request.signal` so a user who closes the tab stops the turn.
 
 A chat stream has one reader. In TypeScript, call either `toResponse()` or `toStream()` once; a second call throws `stream_error`. `sessionId` stays available either way.
 
