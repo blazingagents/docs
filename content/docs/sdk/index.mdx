@@ -1,22 +1,41 @@
 ---
 title: SDK
-description: Choose a first-party SDK for operating Blazing Agents from backend application code.
+description: Call Blazing Agents from your backend with a typed TypeScript or Python client.
 ---
 
 # SDK
 
-Use a typed SDK to configure resources, run Agents, and inspect platform state.
-Each language reference follows the objects exposed by its root client.
+Manage agents, run turns, and read results from your backend code with a typed client. Both SDKs cover the full API, check responses for you, and raise a `BlazingAgentsError` when a request fails.
+
+```typescript tab="TypeScript" tab-group="sdk-language"
+import { BlazingAgents } from "@blazingagents/sdk";
+
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
+
+const { agents } = await client.agents.list();
+```
+
+```python tab="Python"
+from blazing_agents import BlazingAgents
+
+client = BlazingAgents()
+
+agents = client.agents.list().agents
+```
+
+Keep your API key on the server. It can reach every resource in your tenant, so never ship it to a browser or mobile app.
 
 <Cards>
   <Card
     title="TypeScript SDK"
     href="/sdk/typescript"
-    description="Build with the BlazingAgents client for TypeScript."
+    description="Install @blazingagents/sdk for Node.js 24 or later."
   />
   <Card
     title="Python SDK"
     href="/sdk/python"
-    description="Build with synchronous or asynchronous Python clients."
+    description="Install blazing-agents for Python 3.11 or later, with sync and async clients."
   />
 </Cards>

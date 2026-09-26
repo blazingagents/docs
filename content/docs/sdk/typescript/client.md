@@ -1,53 +1,13 @@
 ---
 title: Client
-description: Configure the TypeScript client and use its root chat, completion, and structured-output methods.
+description: Configure the TypeScript client and run turns with chat, completion, and structured output.
 ---
 
 # Client
 
-`BlazingAgents` is the entry point for the Server SDK. Create one client for a Tenant API key, then reuse its resource properties and generation methods.
-
-## Overview [#overview]
-
-The client sends the API key as a bearer token, serializes JSON request bodies, and validates successful JSON resource responses. It also converts API, transport, response, and streaming failures into `BlazingAgentsError`.
-
-The client connects to `https://api.blazingagents.com` by default, so most applications omit `baseUrl`.
-
-## Available capabilities [#available-capabilities]
-
-| Client member | Description | Reference |
-| --- | --- | --- |
-| `agents` | Configure Agents and immutable Agent Versions | [Agents](/sdk/typescript/agents) |
-| `sessions` | Inspect Sessions and handle Tool approvals | [Sessions](/sdk/typescript/sessions) |
-| `agent({ agentId }).skills` | Manage one Agent's Skill archives | [Skills](/sdk/typescript/skills) |
-| `providers` | Manage Provider credentials and discover models | [Providers](/sdk/typescript/providers) |
-| `mcpConnections` | Configure MCP servers and Agent attachments | [MCP connections](/sdk/typescript/mcp-connections) |
-| `memories` | Read and delete Agent Memory | [Memories](/sdk/typescript/memories) |
-| `prompts` | Manage versioned Prompt templates | [Prompts](/sdk/typescript/prompts) |
-| `usage` | Query metered usage | [Usage](/sdk/typescript/usage) |
-| `artifacts` | List generated Artifacts and create download URLs | [Artifacts](/sdk/typescript/artifacts) |
-| `tasks` | Inspect durable Tasks | [Tasks](/sdk/typescript/tasks) |
-| `tenant` | Read and update Tenant configuration | [Tenant](/sdk/typescript/tenant) |
-| `workspaces` | Manage secure execution Workspaces | [Workspaces](/sdk/typescript/workspaces) |
-| `chatConnections` | Connect Agents to chat platforms | [Chat integrations](/sdk/typescript/chat-integrations) |
-| `merchantConnection` | Connect your merchant account for monetization | [Monetization](/platform/monetization) |
-| `merchantBindings` | Map your end users to merchant customers | [Monetization](/platform/monetization) |
-| `merchantUsageEvents` | Inspect usage events delivered to your merchant | [Monetization](/platform/monetization) |
-| `chat()` | Run a stateful Session Turn | [Generation](/sdk/typescript/client#chat) |
-| `completion()` | Stream stateless text | [Generation](/sdk/typescript/client#completion) |
-| `object()` | Stream stateless structured output | [Generation](/sdk/typescript/client#object) |
+`BlazingAgents` is the one object your backend creates. Give it your API key once, then use its resource properties such as `client.agents` and its generation methods `chat()`, `completion()`, and `object()`. The [TypeScript SDK overview](/sdk/typescript#client-objects) lists every resource property.
 
 ## Create a client [#create-a-client]
-
-**Signature:** `new BlazingAgents(options: BlazingAgentsOptions)`
-
-| Option | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `apiKey` | `string` | yes | — | Tenant API key sent on every request |
-| `baseUrl` | `string` | no | `https://api.blazingagents.com` | API origin; trailing slashes are removed |
-| `clientRequestId` | `string` | no | — | Caller-owned correlation sent as `X-Client-Request-Id` on every request |
-| `fetch` | `BlazingAgentsFetch` | no | `globalThis.fetch` | Replacement transport for instrumentation, tests, or runtime integration |
-| `onResponse` | `(response: ResponseObservation) => void` | no | — | Observes every received response before body decoding |
 
 ```typescript
 import { BlazingAgents } from "@blazingagents/sdk";
@@ -58,45 +18,50 @@ const client = new BlazingAgents({
     console.log(response.requestId, response.status);
   },
 });
-
-const correlated = client.withOptions({
-  clientRequestId: "checkout-attempt-42",
-});
-const agent = await correlated.agents.get({ agentId: "ag_0123456789abcdef" });
 ```
 
-The constructor creates the resource clients synchronously and does not make a network request. Requests use `Authorization: Bearer <apiKey>`.
+**Signature:** `new BlazingAgents(options: BlazingAgentsOptions)`
 
-`onResponse` receives `method`, path without query, `status`, `durationMs`,
-the server-owned `requestId`, and the request's optional `clientRequestId`.
-It runs for successes, API errors, malformed responses, and streaming
-handshakes, but not failures with no HTTP response. Hook failures are ignored.
-Retain `requestId` when contacting support.
+| Option | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `apiKey` | `string` | yes | — | Your API key, sent on every request |
+| `baseUrl` | `string` | no | `https://api.blazingagents.com` | API origin; trailing slashes are removed |
+| `clientRequestId` | `string` | no | — | Your own correlation ID, sent as `X-Client-Request-Id` on every request |
+| `fetch` | `BlazingAgentsFetch` | no | `globalThis.fetch` | Replacement transport for logging, tests, or another runtime |
+| `onResponse` | `(response: ResponseObservation) => void` | no | — | Called for every response before the body is read |
+
+Creating a client makes no network request. Requests send `Authorization: Bearer <apiKey>`.
+
+`onResponse` receives `method`, the path without its query string, `status`, `durationMs`, the server's `requestId`, and your `clientRequestId` if you set one. It runs for successes, API errors, malformed responses, and the start of each stream. It does not run when no response arrives, and an error thrown inside it is ignored. Keep `requestId` for support requests.
 
 ### `agent()` [#agent]
 
-Selects one Agent and returns its scoped resources. Creating the scoped client
-does not make a network request.
+Selects one agent and returns the resources that belong to it. It makes no network request.
 
 **Signature:** `agent(input: { agentId: string }): AgentClient`
 
-Use `client.agent({ agentId }).skills` for every operation on Skills owned by that
-Agent. See [Skills](/sdk/typescript/skills).
+```typescript
+const { data } = await client.agent({ agentId: "ag_0123456789abcdef" }).skills.list();
+```
+
+Every skill operation goes through `client.agent({ agentId }).skills`. See [Skills](/sdk/typescript/skills).
 
 ### `withOptions()` [#with-options]
 
-Creates a scoped client view that correlates any resource or generation
-request without manipulating raw headers. The original client is unchanged.
+Returns a copy of the client that tags every request with your correlation ID. The original client is unchanged.
 
 **Signature:** `withOptions(options: BlazingAgentsRequestOptions): BlazingAgents`
 
-Generation inputs also
-accept `clientRequestId` directly. The caller-owned ID
-uses 1–128 ASCII letters, digits, `.`, `_`, `:`, or `-`.
+```typescript
+const correlated = client.withOptions({ clientRequestId: "checkout-attempt-42" });
+const agent = await correlated.agents.get({ agentId: "ag_0123456789abcdef" });
+```
+
+The ID uses 1 to 128 ASCII letters, digits, `.`, `_`, `:`, or `-`. Generation inputs also accept `clientRequestId` directly.
 
 ## Custom fetch [#custom-fetch]
 
-Use `fetch` to add observability or integrate with a runtime-specific transport. The replacement must preserve the SDK request and return a standard `Response`.
+Pass `fetch` to time requests or to run on a runtime with its own transport. Your function must forward the request unchanged and return a standard `Response`.
 
 **Type:** `type BlazingAgentsFetch = (input: string, init?: BlazingAgentsRequestInit) => Promise<Response>`
 
@@ -114,12 +79,11 @@ const client = new BlazingAgents({
 });
 ```
 
-The SDK supplies the URL, method, bearer header, body, and any supported abort signal. JSON requests include `Content-Type: application/json`; multipart uploads let `fetch` set the boundary.
+The SDK supplies the URL, method, auth header, body, and abort signal. JSON requests include `Content-Type: application/json`. File uploads leave the multipart boundary to `fetch`.
 
 ## Cancellation [#cancellation]
 
-Every network method accepts optional `abortSignal` in its single input object,
-including resource reads, mutations, uploads, and generation:
+Every network method accepts an optional `abortSignal` in its input object, including reads, writes, uploads, and generation:
 
 ```typescript
 const controller = new AbortController();
@@ -134,15 +98,11 @@ controller.abort();
 await pending;
 ```
 
-For example, `client.agents.get({ agentId, abortSignal: controller.signal })`
-cancels an Agent read. The SDK forwards `abortSignal` to Fetch as its native
-`signal` option. Cancelling a request does not roll back completed server work.
-
-A caller abort throws `BlazingAgentsError` with `code: "request_aborted"`. A fetch failure before an HTTP exchange throws `code: "network_error"`.
+The SDK passes it to `fetch` as `signal`. Aborting throws `BlazingAgentsError` with `code: "request_aborted"`. It stops your wait, not work the server already finished.
 
 ## Errors [#errors]
 
-All SDK request failures throw `BlazingAgentsError`. API error codes remain open so a newer server code can pass through unchanged.
+Every failed request throws `BlazingAgentsError`. Branch on `code`, never on `message`.
 
 ```typescript
 import { BlazingAgentsError } from "@blazingagents/sdk";
@@ -156,137 +116,104 @@ try {
 }
 ```
 
+Use `BlazingAgentsError.isInstance(error)` rather than `instanceof`, which fails when your app loads two copies of the package.
+
 | Field | Type | Description |
 | --- | --- | --- |
-| `code` | `BlazingAgentsErrorCode` | Stable API or SDK-local machine-readable code |
-| `message` | `string` | Human-readable description; do not branch on it |
-| `status` | `number \| undefined` | HTTP status when a response was received |
-| `details` | `Record<string, unknown> \| undefined` | Structured API error details |
-| `param` | `string \| undefined` | Invalid parameter identified by the API |
-| `headers` | `Headers \| undefined` | Response headers when available |
-| `requestId` | `string \| undefined` | Request identifier returned by the API |
-| `responseBody` | `string \| undefined` | Bounded diagnostic body for an invalid response |
-| `responseBodyTruncated` | `boolean \| undefined` | Whether diagnostic content was truncated |
-| `cause` | `unknown` | Underlying transport, parsing, or stream error |
+| `code` | `BlazingAgentsErrorCode` | Machine-readable API or SDK code |
+| `message` | `string` | Human-readable description |
+| `status` | `number \| undefined` | HTTP status, when a response arrived |
+| `details` | `Record<string, unknown> \| undefined` | Structured error details from the API |
+| `param` | `string \| undefined` | The invalid parameter, when the API names one |
+| `headers` | `Headers \| undefined` | Response headers, when available |
+| `requestId` | `string \| undefined` | The server's ID for the request |
+| `responseBody` | `string \| undefined` | A bounded copy of an unreadable response body |
+| `responseBodyTruncated` | `boolean \| undefined` | Whether `responseBody` was cut short |
+| `cause` | `unknown` | The underlying transport, parsing, or stream error |
 
-Use `BlazingAgentsError.isInstance(error)` instead of `instanceof` when package duplication or cross-realm values are possible.
+Besides API codes, the SDK raises four codes of its own. `code` stays an open string type, so a code added to the API later reaches you unchanged.
 
-| SDK-local code | Meaning |
+| SDK code | Meaning |
 | --- | --- |
-| `network_error` | `fetch` failed before an HTTP response |
-| `request_aborted` | The caller's abort signal stopped the request |
-| `invalid_response` | A non-streaming response or API error envelope was malformed |
-| `stream_error` | A streaming response was missing, malformed, already claimed, or failed while decoding |
+| `network_error` | `fetch` failed before any response arrived |
+| `request_aborted` | Your abort signal stopped the request |
+| `invalid_response` | A response or error body could not be read |
+| `stream_error` | A stream was missing, malformed, read twice, or broke while reading |
 
-See the canonical [error contract](/api-reference/protocols/errors#blazingagentserrorcode).
-
-## End-to-end workflow [#end-to-end-workflow]
-
-Create a client, inspect an Agent, and run a stateless completion:
-
-```typescript
-import { BlazingAgents } from "@blazingagents/sdk";
-
-const client = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-});
-
-const agent = await client.agents.get({ agentId: "ag_0123456789abcdef" });
-
-const result = await client.completion({
-  agentId: agent.id,
-  prompt: "Introduce yourself in one sentence.",
-});
-
-console.log(await result.text);
-```
+The [error reference](/api-reference/protocols/errors#blazingagentserrorcode) lists every API code.
 
 ## Generation methods [#generation-methods]
 
-The client exposes three generation methods. Once the server accepts a
-`chat()` request, the Session exists and keeps your message even if the Turn
-later fails; only a successful Turn adds the assistant response. A request
-rejected up front creates no Session. `completion()` and `object()` are
-stateless. Every generation call creates a metered Turn.
+Three methods run an agent. `chat()` keeps a session, a conversation Blazing Agents stores for you. `completion()` and `object()` keep nothing between calls. Every call counts as one turn in your usage.
 
-## Generation inputs [#generation-inputs]
-
-Every generation input requires `agentId`. Optional `userId` and `metadata` add End-user Attribution; omit them for tenant-level Attribution. Pass `abortSignal` to cancel the request. Pass `clientRequestId` to correlate this attempt with caller-owned logs without manipulating headers.
-
-Each method accepts either literal content or a saved Prompt:
-
-- Pass `message` to `chat()` or `prompt` to `completion()` and `object()`.
-- Pass `promptId` instead to render a saved Prompt. `variables` is available only with `promptId`.
-
-## Available methods [#available-methods]
-
-| Method | State | Output | Returns |
+| Method | Session | Output | Returns |
 | --- | --- | --- | --- |
-| [`chat()`](#chat) | Creates or resumes a Session | AI SDK UI-message stream | `ChatResult` |
-| [`completion()`](#completion) | Stateless | Text stream and final text | `CompletionResult` |
-| [`object()`](#object) | Stateless | Partial objects and final JSON value | `ObjectResult` |
+| [`chat()`](#chat) | Starts or continues one | AI SDK UI message stream | `ChatResult` |
+| [`completion()`](#completion) | None | Text stream and final text | `CompletionResult` |
+| [`object()`](#object) | None | Partial objects and final JSON value | `ObjectResult` |
 
-## Methods [#methods]
+Every input needs `agentId` and exactly one source: `message` for `chat()` or `prompt` for the others, or a saved prompt's `promptId` with optional `variables`. Add `userId` and `metadata` to label the turn for one of your users; leave them out for tenant-level usage. `abortSignal` and `clientRequestId` work as described above.
 
 ### `chat()` [#chat]
 
-Creates a Session when `sessionId` is omitted, or resumes an existing Session when it is provided.
+Starts a session, or continues one when you pass `sessionId`.
 
 **Signature:** `chat(input: ChatInput): Promise<ChatResult>`
 
-| Input field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| `message` | `UIMessage` | one source | Literal AI SDK UI message; mutually exclusive with `promptId` |
-| `promptId` | `string` | one source | Saved Prompt ID (`prompt_…`); mutually exclusive with `message` |
-| `variables` | `Record<string, string>` | no | Saved Prompt variables; valid only with `promptId` |
-| `sessionId` | `string` | no | Existing Session ID (`ss_…`); omit to create a Session |
-| `version` | `number` | no | Agent Version Pin; valid only when creating a Session |
-| `trigger` | `"submit-message" \| "regenerate-message"` | no | Turn action; a new Session accepts only `submit-message`; defaults to it |
-| `messageId` | `string` | no | Transcript message selected by regeneration |
-| `userId` | `string` | no | End-user Attribution ID |
-| `metadata` | `Record<string, unknown>` | no | Tenant-defined Attribution metadata |
-| `clientRequestId` | `string` | no | Caller-owned request correlation sent as `X-Client-Request-Id` |
-| `abortSignal` | `AbortSignal` | no | Cancels the request |
-
-`regenerate-message` is valid only when resuming a Session. Its optional `messageId` selects where the transcript is truncated. A resumed Session keeps its immutable Version Pin, so `version` cannot be combined with `sessionId`.
-
 ```typescript
-const chat = await client.chat({
+const first = await client.chat({
   agentId: "ag_0123456789abcdef",
   message: {
     id: crypto.randomUUID(),
     role: "user",
-    parts: [{ type: "text", text: "Hello" }],
+    parts: [{ type: "text", text: "Remember that my project is Atlas." }],
   },
+  userId: "user_123",
 });
 
-console.log(await chat.sessionId);
+const sessionId = await first.sessionId;
+await first.toResponse().text();
+
+const next = await client.chat({
+  agentId: "ag_0123456789abcdef",
+  sessionId,
+  message: {
+    id: crypto.randomUUID(),
+    role: "user",
+    parts: [{ type: "text", text: "What is my project called?" }],
+  },
+  userId: "user_123",
+});
+
+const response = next.toResponse(); // return this from your route
 ```
-
-Omitting `sessionId` calls [`POST /v1/agents/:agentId/sessions`](/api-reference/rest-api/sessions#create-session-turn). Passing it calls [`POST /v1/agents/:agentId/sessions/:sessionId`](/api-reference/rest-api/sessions#resume-session-turn).
-
-Returns [`ChatResult`](#types). `toResponse()` wraps the AI SDK UI-message SSE body in a `Response` for relay; `toStream()` returns the same bytes as a `ReadableStream`. The body can be claimed once through either method. The Session ID promise is independent of consuming the body.
-
-Pre-stream API and transport failures throw before a result is returned. A missing or malformed Session `Location` header or a second body claim raises `stream_error`.
-
-### `completion()` [#completion]
-
-Runs stateless text generation and exposes both incremental text and an awaited final string.
-
-**Signature:** `completion(input: CompletionInput): Promise<CompletionResult>`
 
 | Input field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| `prompt` | `string` | one source | Literal prompt; mutually exclusive with `promptId` |
-| `promptId` | `string` | one source | Saved Prompt ID (`prompt_…`); mutually exclusive with `prompt` |
-| `variables` | `Record<string, string>` | no | Saved Prompt variables; valid only with `promptId` |
-| `version` | `number` | no | Agent Version Pin |
-| `userId` | `string` | no | End-user Attribution ID |
-| `metadata` | `Record<string, unknown>` | no | Tenant-defined Attribution metadata |
-| `clientRequestId` | `string` | no | Caller-owned request correlation sent as `X-Client-Request-Id` |
+| `message` | `UIMessage` | one source | The user's AI SDK UI message |
+| `promptId` | `string` | one source | Saved prompt ID (`prompt_…`) |
+| `variables` | `Record<string, string>` | no | Saved prompt variables; only with `promptId` |
+| `sessionId` | `string` | no | Session to continue (`ss_…`); omit to start one |
+| `version` | `number` | no | Agent version to pin; only when starting a session |
+| `trigger` | `"submit-message" \| "regenerate-message"` | no | Defaults to `submit-message`; `regenerate-message` needs `sessionId` |
+| `messageId` | `string` | no | Message to regenerate from |
+| `userId` | `string` | no | Your end user's ID, for usage and reporting |
+| `metadata` | `Record<string, unknown>` | no | Your labels for the turn |
+| `clientRequestId` | `string` | no | Your correlation ID |
 | `abortSignal` | `AbortSignal` | no | Cancels the request |
+
+Pass `version` to pin a new session to one agent version for its whole life; without it, each turn uses the agent's current version. You cannot pass `version` when you continue a session. To regenerate an answer, send `trigger: "regenerate-message"` with a `message` or `promptId` as usual. The transcript is cut from `messageId`, or from the latest assistant message when you omit it, and replaced only if the new turn succeeds.
+
+Returns [`ChatResult`](#types). `sessionId` resolves as soon as the server accepts the turn, before the answer streams, so save it right away. From that point the session keeps the user's message even if the turn later fails. Read the body once, through either `toResponse()` (a `Response` you can return from a route) or `toStream()` (the same bytes as a `ReadableStream`).
+
+Errors before streaming throw from `chat()` itself. Reading the body twice raises `stream_error`. See [`POST /v1/agents/:agentId/sessions`](/api-reference/rest-api/sessions#create-session-turn).
+
+### `completion()` [#completion]
+
+Generates text once, without a session.
+
+**Signature:** `completion(input: CompletionInput): Promise<CompletionResult>`
 
 ```typescript
 const completion = await client.completion({
@@ -299,28 +226,25 @@ for await (const text of completion.textStream) {
 }
 ```
 
-Calls [`POST /v1/agents/:agentId/generation`](/api-reference/rest-api/generation#generate) and returns [`CompletionResult`](#types). `textStream` yields text as it arrives; `text` resolves to the complete output. `toResponse()` creates a plain-text streaming `Response` and may be called once.
-
-Pre-stream API and transport failures throw before a result is returned. A missing response body, failed stream, or second `toResponse()` call raises `stream_error`.
-
-### `object()` [#object]
-
-Runs stateless structured generation against a JSON Schema and exposes partial values while the JSON is forming.
-
-**Signature:** `object(input: ObjectInput): Promise<ObjectResult>`
-
 | Input field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| `schema` | `Record<string, unknown>` | yes | JSON Schema describing the required output |
-| `prompt` | `string` | one source | Literal prompt; mutually exclusive with `promptId` |
-| `promptId` | `string` | one source | Saved Prompt ID (`prompt_…`); mutually exclusive with `prompt` |
-| `variables` | `Record<string, string>` | no | Saved Prompt variables; valid only with `promptId` |
-| `version` | `number` | no | Agent Version Pin |
-| `userId` | `string` | no | End-user Attribution ID |
-| `metadata` | `Record<string, unknown>` | no | Tenant-defined Attribution metadata |
-| `clientRequestId` | `string` | no | Caller-owned request correlation sent as `X-Client-Request-Id` |
+| `prompt` | `string` | one source | The prompt text |
+| `promptId` | `string` | one source | Saved prompt ID (`prompt_…`) |
+| `variables` | `Record<string, string>` | no | Saved prompt variables; only with `promptId` |
+| `version` | `number` | no | Agent version to use |
+| `userId` | `string` | no | Your end user's ID |
+| `metadata` | `Record<string, unknown>` | no | Your labels for the turn |
+| `clientRequestId` | `string` | no | Your correlation ID |
 | `abortSignal` | `AbortSignal` | no | Cancels the request |
+
+Returns [`CompletionResult`](#types). `textStream` yields text as it arrives and `text` resolves to the whole output. `toResponse()` returns a plain-text streaming `Response` and works once. A broken stream or a second `toResponse()` call raises `stream_error`. See [`POST /v1/agents/:agentId/generation`](/api-reference/rest-api/generation#generate).
+
+### `object()` [#object]
+
+Generates one JSON value that matches your JSON Schema, without a session.
+
+**Signature:** `object(input: ObjectInput): Promise<ObjectResult>`
 
 ```typescript
 const result = await client.object({
@@ -337,9 +261,9 @@ const result = await client.object({
 console.log(await result.object);
 ```
 
-Calls [`POST /v1/agents/:agentId/generation`](/api-reference/rest-api/generation#generate) and returns [`ObjectResult`](#types). `partialObjectStream` yields parsed partial values; `object` resolves to the final value typed as `unknown`. Validate or narrow it before use. `toResponse()` relays the generated JSON text in a plain-text streaming `Response` and may be called once.
+Takes the same fields as [`completion()`](#completion) plus a required `schema: Record<string, unknown>`.
 
-Pre-stream API and transport failures throw before a result is returned. A missing or failed stream, invalid final JSON, or second `toResponse()` call raises `stream_error`.
+Returns [`ObjectResult`](#types). `partialObjectStream` yields partial values while the JSON forms, and `object` resolves to the final value as `unknown`, so check its shape before you use it. `toResponse()` streams the JSON text as plain text and works once. A broken stream, invalid final JSON, or a second `toResponse()` call raises `stream_error`. See [structured output](/agents/output/structured-output).
 
 ## Types [#types]
 
@@ -366,120 +290,23 @@ interface ObjectResult {
 }
 ```
 
-`requestId` comes only from the server's `x-request-id` response header and
-identifies that HTTP attempt. The metered `turnId` arrives separately in the
-final message metadata at `metadata.blazingAgents.usage.turnId`.
-`BlazingAgentsUIMessageChunk` is the AI SDK v7 `UIMessageChunk` contract with
-Blazing Agents message metadata. The package also re-exports `UIMessage`.
+`requestId` identifies the HTTP request. The turn's own `turnId`, which your usage records use, arrives at the end of the stream in `metadata.blazingAgents.usage.turnId` on the final message.
 
-See [streaming contracts](/api-reference/protocols/streaming) and [objects and schemas](/api-reference/protocols/objects-and-schemas).
+Input types are unions, so TypeScript rejects a call that passes both `prompt` and `promptId`, or `variables` without `promptId`:
 
-## Prompt and Attribution inputs [#prompt-and-attribution-inputs]
-
-Prompt-source unions make invalid combinations visible to TypeScript:
-
-```typescript
-type CompletionInput =
-  | {
-      agentId: string;
-      prompt: string;
-      promptId?: never;
-      variables?: never;
-      version?: number;
-      userId?: string;
-      metadata?: Record<string, unknown>;
-      clientRequestId?: string;
-      abortSignal?: AbortSignal;
-    }
-  | {
-      agentId: string;
-      prompt?: never;
-      promptId: string;
-      variables?: Record<string, string>;
-      version?: number;
-      userId?: string;
-      metadata?: Record<string, unknown>;
-      clientRequestId?: string;
-      abortSignal?: AbortSignal;
-    };
-```
-
-`ChatInput` follows the same source rule with `message` instead of `prompt`, plus the new-or-existing Session union. `ObjectInput` follows `CompletionInput` and requires `schema`.
-
-| Exported type | Contract |
+| Exported type | Shape |
 | --- | --- |
-| `AttributionInput` | Optional `userId` and `metadata` shared by generation inputs |
-| `ChatTrigger` | Either `"submit-message"` or `"regenerate-message"` |
-| `ChatMessageInput` / `ChatPromptInput` | `agentId` plus exactly one message source; create accepts only `submit-message`, while resume also accepts `regenerate-message` |
-| `ChatInput` | Union of the two chat inputs |
-| `ChatResult` | Optional request ID, Session ID promise, and one-shot `toStream()`/`toResponse()` helpers |
-| `CompletionPromptInput` / `CompletionPromptIdInput` | `agentId`, exactly one Prompt source; optional Version Pin, Attribution, `clientRequestId`, and `abortSignal` |
-| `CompletionInput` | Union of the two completion inputs |
-| `CompletionResult` | Optional request ID, text stream, final text promise, and response helper |
-| `ObjectPromptInput` / `ObjectPromptIdInput` | Completion fields plus required JSON `schema` |
-| `ObjectInput` | Union of the two object inputs |
-| `ObjectResult` | Optional request ID, partial-object stream, final object promise, and response helper |
-| `BlazingAgentsUIMessage` / `BlazingAgentsUIMessageChunk` | AI SDK message contracts with Blazing Agents metadata |
-| `TerminalStreamResult` | Optional request ID and one-shot `toStream()`/`toResponse()` helpers, also used by Tool approval continuation |
-| `UIMessage` | Public re-export of AI SDK v7's `UIMessage` type |
+| `ChatInput` | `ChatMessageInput \| ChatPromptInput` |
+| `CompletionInput` | `CompletionPromptInput \| CompletionPromptIdInput` |
+| `ObjectInput` | `ObjectPromptInput \| ObjectPromptIdInput`, each with `schema` |
+| `AttributionInput` | Optional `userId` and `metadata` |
+| `ChatTrigger` | `"submit-message" \| "regenerate-message"` |
+| `TerminalStreamResult` | `requestId`, `toStream()`, and `toResponse()`; returned by [`sessions.joinToolApprovalContinuation()`](/sdk/typescript/sessions#join-tool-approval-continuation) |
+| `BlazingAgentsUIMessage` / `BlazingAgentsUIMessageChunk` | AI SDK message types with Blazing Agents metadata |
+| `UIMessage` | Re-export of the AI SDK `UIMessage` type |
 
-## Generation errors [#generation-errors]
-
-Generation failures throw `BlazingAgentsError`. Branch on its stable `code`, not its message.
-
-| Code | When |
-| --- | --- |
-| API error code | The server rejects the request before streaming; exact code, details, parameter, headers, and request ID are preserved |
-| `request_aborted` | The caller's signal aborts before an HTTP response |
-| `network_error` | `fetch` fails before an HTTP exchange |
-| `invalid_response` | A pre-stream API error response is malformed |
-| `stream_error` | Session headers, response bodies, stream decoding, body ownership, or final JSON are invalid |
-
-Stream errors retain the originating request ID when available. See [protocol errors](/api-reference/protocols/errors).
-
-## Generation workflow [#generation-workflow]
-
-Create a Session, consume its UI-message stream, then resume the same Session:
-
-```typescript
-import { BlazingAgents } from "@blazingagents/sdk";
-
-const client = new BlazingAgents({
-  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
-});
-
-const first = await client.chat({
-  agentId: "ag_0123456789abcdef",
-  message: {
-    id: crypto.randomUUID(),
-    role: "user",
-    parts: [{ type: "text", text: "Remember that my project is Atlas." }],
-  },
-  userId: "user_123",
-});
-
-const sessionId = await first.sessionId;
-await first.toResponse().text();
-
-const resumed = await client.chat({
-  agentId: "ag_0123456789abcdef",
-  sessionId,
-  message: {
-    id: crypto.randomUUID(),
-    role: "user",
-    parts: [{ type: "text", text: "What is my project called?" }],
-  },
-  userId: "user_123",
-});
-
-await resumed.toResponse().text();
-```
-
-## Related [#related]
+## Next [#next]
 
 - [Generation and streaming](/agents/output/generation-and-streaming)
-- [Structured output](/agents/output/structured-output)
-- [Build a chat endpoint](/platform/sessions-and-turns)
-- [Generate structured output](/agents/output/structured-output)
-- [REST generation](/api-reference/rest-api/generation)
-- [REST Session Turns](/api-reference/rest-api/sessions#create-session-turn)
+- [Sessions and turns](/platform/sessions-and-turns)
+- [Streaming protocol](/api-reference/protocols/streaming)

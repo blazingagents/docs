@@ -1115,7 +1115,21 @@
       },
       "fences": {
         "endpointCurls": false,
-        "items": []
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          }
+        ]
       },
       "file": "sdk/index.mdx",
       "filesTree": [],
@@ -1171,10 +1185,6 @@
       "fences": {
         "endpointCurls": false,
         "items": [
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
           {
             "language": "typescript",
             "metadata": {}
