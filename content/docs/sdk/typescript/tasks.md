@@ -329,7 +329,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The task c
 | `task_active_run_exists` | A run is already active; wait or cancel it |
 | `agent_version_not_found` | The pinned agent version does not exist |
 | `agent_disabled` | The agent is disabled, so no run can start |
-| `admin_agent_managed` | Blazing Agents manages this agent, so it cannot run tasks |
+| `admin_agent_managed` | The [admin agent](/agents/agents#the-admin-agent) cannot run tasks |
 
 ## Next [#next]
 

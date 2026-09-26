@@ -13,7 +13,7 @@ describe("lint-docs", () => {
         [
           "Files live in R2 behind Cloudflare.",
           "DBOS and Supabase run the Container.",
-          "The dispatcher calls the Admin Agent.",
+          "The dispatcher calls the admin agent.",
           "Deploy a Cloudflare Worker relay.",
           "Each workspace container starts lazily.",
         ].join("\n")
@@ -24,7 +24,6 @@ describe("lint-docs", () => {
       "2:internal-term",
       "2:internal-term",
       "2:internal-term",
-      "3:internal-term",
       "3:internal-term",
     ]);
   });

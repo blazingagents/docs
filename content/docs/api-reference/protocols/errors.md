@@ -344,9 +344,9 @@ To fix it:
 
 ### `admin_agent_managed` [#admin_agent_managed]
 
-**Blazing Agents manages this setting on the `ba assist` agent.**
+**Blazing Agents manages this setting on the admin agent.**
 
-The platform-managed agent that `ba assist` uses accepts changes only to its provider, model, and thinking level. It cannot be renamed, disabled, deleted, given an avatar, or assigned to a task.
+The [admin agent](/agents/agents#the-admin-agent), which powers `ba assist`, accepts changes only to its provider, model, and thinking level. It cannot be renamed, disabled, deleted, given an avatar, or assigned to a task.
 
 HTTP `409`. Retrying the same request fails the same way until you fix the cause.
 

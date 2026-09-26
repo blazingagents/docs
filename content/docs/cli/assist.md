@@ -11,7 +11,7 @@ Manage your tenant by asking for what you want. `ba assist` opens a chat with a 
 
 Complete [CLI setup and authentication](/cli/setup-and-authentication) and use an interactive terminal.
 
-The assistant needs a model. In the dashboard, open **Agents**, find the agent marked **Powers BA Assist for this tenant**, and choose a provider and model for it. Until you do, `ba assist` stops and tells you what to set.
+The assistant needs a model. In the dashboard, open **Agents**, find your [admin agent](/agents/agents#the-admin-agent), marked **Powers BA Assist for this tenant**, and choose a provider and model for it. Until you do, `ba assist` stops and tells you what to set.
 
 ## Start or resume [#start-or-resume]
 

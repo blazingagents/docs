@@ -11,7 +11,6 @@ const INTERNAL_TERMS = [
   /\bSupabase\b/,
   /\bContainers?\b/,
   /\bdispatchers?\b/i,
-  /\bAdmin Agents?\b/i,
 ];
 const VERSION = String.raw`v?\d+\.\d+(?:\.\d+)?`;
 const CHANGELOG_PATTERNS = [
