@@ -8719,7 +8719,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "agents/output/index.mdx",
                 "type": "page",
                 "name": "Output",
-                "description": "Choose free-form streaming text or schema-constrained JSON for an Agent response.",
+                "description": "Choose how your agent answers, as streamed text or as JSON in a shape you define.",
                 "url": "/agents/output",
                 "$ref": "agents/output/index.mdx"
               },
@@ -8727,7 +8727,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "agents/output/generation-and-streaming.mdx",
                 "type": "page",
                 "name": "Generation and streaming",
-                "description": "Choose stateful chat or stateless text and consume or relay its streamed result safely.",
+                "description": "Stream an agent's answer as a conversation with saved history, or as one-off text.",
                 "url": "/agents/output/generation-and-streaming",
                 "$ref": "agents/output/generation-and-streaming.mdx"
               },
@@ -8735,7 +8735,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "agents/output/structured-output.mdx",
                 "type": "page",
                 "name": "Structured output",
-                "description": "Generate schema-constrained JSON, observe partial progress, and validate the final object.",
+                "description": "Get JSON in a shape you define, ready for your code to use.",
                 "url": "/agents/output/structured-output",
                 "$ref": "agents/output/structured-output.mdx"
               }

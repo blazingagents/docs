@@ -656,33 +656,33 @@
       },
       "cards": [],
       "callout": null,
-      "componentCounts": {
-        "Callout": 1
-      },
+      "componentCounts": {},
       "fences": {
         "endpointCurls": false,
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "tsx",
             "metadata": {
-              "title": "Chat.tsx"
+              "tab": "TypeScript"
             }
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
           }
         ]
       },
@@ -704,7 +704,15 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
           }
         ]
       },
