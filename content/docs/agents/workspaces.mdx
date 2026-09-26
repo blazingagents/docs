@@ -1,0 +1,77 @@
+---
+title: Workspaces
+description: Give your agent a private file system and shell whose files survive between sessions.
+---
+
+# Workspaces
+
+Give your agent a place to keep files and run commands. Every agent comes with a workspace: a private file system with a shell. Files the agent writes stay there after the session ends, so the next session, task run, or another agent that shares the workspace can pick up where it left off.
+
+## Share a workspace between agents [#share-a-workspace-between-agents]
+
+Each new agent gets its own workspace, so you only create one yourself when you want to choose its settings up front or let several agents work on the same files. This example creates a workspace that can reach only the npm registry, then attaches two agents you already created:
+
+```typescript tab="TypeScript"
+const workspace = await client.workspaces.create({
+  name: "Release files",
+  networkPolicy: {
+    mode: "allowlist",
+    allowedHosts: ["registry.npmjs.org"],
+  },
+});
+
+for (const agentId of [writerAgentId, reviewerAgentId]) {
+  await client.agents.update({ agentId, workspaceId: workspace.id });
+}
+```
+
+```python tab="Python"
+workspace = client.workspaces.create(
+    name="Release files",
+    network_policy={
+        "mode": "allowlist",
+        "allowed_hosts": ["registry.npmjs.org"],
+    },
+)
+
+for agent_id in [writer_agent_id, reviewer_agent_id]:
+    client.agents.update(agent_id, workspace_id=workspace.id)
+```
+
+Both agents now read and write the same files. The agents also need the `workspace` tool group before they can touch those files; see [built-in tools](/agents/tools/built-in-tools#enable-a-group).
+
+## How a workspace behaves [#how-a-workspace-behaves]
+
+- **Files outlive sessions.** A file written in one session is there in the next one, in task runs, and in stateless generation. Persistence follows the workspace, not the session. [Verify it yourself](/agents/tools/built-in-tools#verify-durable-file-operations).
+- **The agent works under `/workspace`.** Relative paths resolve there, and `bash` starts there.
+- **A workspace costs nothing until it is used.** Creating one, or an agent, starts no compute. The first file or shell operation does.
+- **Your model keys never enter it.** The agent reasons outside the workspace. Only file and shell calls run inside, and they receive no provider credentials or application environment variables.
+- **It stands on its own.** Renaming an agent does not rename its workspace, and deleting an agent keeps the workspace and its files. Moving an agent to another workspace does not copy files across.
+
+You can delete a workspace only after every agent has moved off it.
+
+## Control network access [#control-network-access]
+
+Each workspace has a network policy that applies to every command run inside it:
+
+| Mode | What commands can reach |
+| --- | --- |
+| `unrestricted` | Any host. This is the default. |
+| `allowlist` | Only the hosts you list in `allowedHosts`. |
+| `offline` | Nothing. |
+
+Pick the narrowest mode the work needs. You can change it later with `client.workspaces.update()`; the next operation uses the new policy.
+
+## Shared files and failed turns [#shared-files-and-failed-turns]
+
+Agents and turns that share a workspace can write at the same time, and nothing locks a file for one of them. Coordinate the work, for example by giving each agent its own directory.
+
+A failed or stopped turn does not roll back the files it changed. Writes that finished before the failure stay in place, so check the files when a failed turn matters. Stopping a turn prevents new tool calls but may not interrupt one that is already running.
+
+Files in a workspace are private to your agents. To hand a finished file to your application, have the agent publish it as an [artifact](/agents/artifacts).
+
+## Next [#next]
+
+- [Built-in tools](/agents/tools/built-in-tools) to let an agent read, write, and run commands.
+- [Artifacts](/agents/artifacts) to deliver finished files to your users.
+- Workspace methods in the [TypeScript SDK](/sdk/typescript/workspaces) and [Python SDK](/sdk/python/workspaces).

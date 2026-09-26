@@ -1,42 +1,34 @@
 ---
 title: Tools
-description: Give Agents narrowly scoped actions through built-in Tools, remote MCP Tools, and durable human approval.
+description: Let your agent take actions, from editing files to calling your own services, with a person in the loop when it matters.
 ---
 
 # Tools
 
-Tools let an Agent act instead of only generating output. Blazing Agents can
-expose platform-provided Tool groups, discover Tools from attached MCP servers,
-and pause sensitive calls until a human makes a durable decision.
+Tools let your agent do things instead of only writing text. Turn on the tools Blazing Agents provides, connect your own services through MCP, and decide which calls need someone's approval before they run.
 
 <Cards>
   <Card
-    title="Built-in Tools"
+    title="Built-in tools"
     href="/agents/tools/built-in-tools"
-    description="Enable planning, Memory, and durable Workspace operations supplied by BA."
+    description="Files and a shell, a to-do list, and memory, ready to switch on."
   />
   <Card
-    title="MCP Tools"
+    title="MCP tools"
     href="/agents/tools/mcp-tools"
-    description="Connect a remote MCP server and attach its discovered Tools to an Agent."
+    description="Connect a remote MCP server and give its tools to any agent."
   />
   <Card
     title="Tool approvals"
     href="/agents/tools/tool-approvals"
-    description="Place a durable human decision before an exact sensitive Tool call."
+    description="Allow, block, or ask a person or the model before a tool runs."
   />
 </Cards>
 
-## Tools are not Skills [#tools-are-not-skills]
+## Tools and skills [#tools-and-skills]
 
-A Tool is a callable operation. A [Skill](/agents/skills) is progressively
-loaded instruction and resource content that teaches an Agent how to perform a
-kind of work. A Skill can direct an Agent to use Tools, but it does not itself
-grant a Tool capability.
+A tool is an action the agent can call. A [skill](/agents/skills) is a set of instructions and files that teaches the agent how to do a kind of work. A skill can tell the agent to use a tool, but it cannot give the agent a tool it does not already have.
 
-## Tool activity [#tool-activity]
+## See what the agent did [#see-what-the-agent-did]
 
-Successful Session Turns retain Tool calls and results as message parts. A
-proposed sensitive call may instead create a pending approval and resume in a
-new continuation Turn after the decision. See [Sessions and Turns](/platform/sessions-and-turns)
-for transcript and execution behavior.
+When a chat turn succeeds, each tool call and its result is saved in the session as part of the assistant's message, so you can show it in your UI or check it later. When a call needs approval, the agent pauses and continues in a new turn after the decision. See [sessions and turns](/platform/sessions-and-turns).

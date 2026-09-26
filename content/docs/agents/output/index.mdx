@@ -1,29 +1,31 @@
 ---
 title: Output
-description: Choose free-form streaming text or schema-constrained JSON for an Agent response.
+description: Choose how your agent answers, as streamed text or as JSON in a shape you define.
 ---
 
 # Output
 
-An Agent can produce conversational or standalone text, or a stateless object constrained by JSON Schema. Both output modes run a metered Turn with the Agent's resolved configuration.
-
-## Choose an output mode [#choose-an-output-mode]
+Your agent can answer in two ways. Stream text for people to read, in a conversation or as a one-off, or return JSON in a shape you define for your code to use.
 
 <Cards>
   <Card
     title="Generation and streaming"
     href="/agents/output/generation-and-streaming"
-    description="Run stateful chat or stateless text and safely consume or relay its stream."
+    description="Stream a chat answer with saved history, or one-off text with none."
   />
   <Card
     title="Structured output"
     href="/agents/output/structured-output"
-    description="Generate schema-constrained JSON and validate the final value."
+    description="Get JSON that follows your schema, ready for your code."
   />
 </Cards>
 
-## What output shares [#what-output-shares]
+## Which one to use [#which-one-to-use]
 
-Every output request resolves an [Agent](/agents), creates a Turn, applies quotas, and records usage after success, failure, or cancellation. The output mode determines whether a [Session](/platform/sessions-and-turns) and transcript are involved.
+| You want | Use |
+| --- | --- |
+| A chat interface that remembers the conversation | `client.chat()` |
+| A summary, rewrite, or other standalone text | `client.completion()` |
+| Data your code acts on, such as a category or extracted fields | `client.object()` |
 
-Use [generation and streaming](/agents/output/generation-and-streaming) for conversational UI or free-form text. Use [structured output](/agents/output/structured-output) when application code needs a known data shape.
+All three run the same agent, with its model, instructions, and tools, and all three count toward your [usage and quotas](/platform/usage-and-quotas). Only chat keeps history in a [session](/platform/sessions-and-turns).
