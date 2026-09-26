@@ -205,4 +205,4 @@ Each entry in `health.checks` is `{ code: string; status: "pass" | "fail" | "unk
 ## Next [#next]
 
 - [Chat integrations](/platform/chat-integrations)
-- [Use an existing Chat SDK bot](/platform/chat-integrations#sdk-examples-and-custom-bots)
+- [Client generation methods](/sdk/typescript/client#generation-methods)
