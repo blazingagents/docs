@@ -150,36 +150,26 @@ A `waiting` state means other calls in the same turn still need a decision, so k
 
 Approvals use the AI SDK's [tool approval messages](https://ai-sdk.dev/docs/agents/tool-approvals) and UI message streams. Blazing Agents saves the decision and resumes the agent, so send decisions through your backend route above rather than relying on `addToolApprovalResponse` alone.
 
-In a custom UI, read the decision route's response with the AI SDK stream helpers. `renderAssistant` is your own callback; replace the displayed message by its ID each time it updates:
+In a custom UI, post the reviewer's decision to that route. This prints the resumed answer as it streams in:
 
 ```typescript
-import { parseJsonEventStream, readUIMessageStream, uiMessageChunkSchema } from "ai";
-
 const response = await fetch("/api/tool-approval", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ agentId, sessionId, approvalId, approved }),
 });
-if (!response.ok) throw new Error("Approval request failed");
-if (response.status !== 202 && response.body) {
-  const chunks = parseJsonEventStream({
-    stream: response.body,
-    schema: uiMessageChunkSchema,
-  }).pipeThrough(
-    new TransformStream({
-      transform(result, controller) {
-        if (!result.success) throw result.error;
-        controller.enqueue(result.value);
-      },
-    }),
-  );
-  for await (const message of readUIMessageStream({ stream: chunks, terminateOnError: true })) {
-    renderAssistant(message);
+if (response.body) {
+  for await (const chunk of response.body.pipeThrough(new TextDecoderStream())) {
+    console.log(chunk);
   }
 }
 ```
 
-See [reading UI message streams](https://ai-sdk.dev/docs/ai-sdk-ui/reading-ui-message-streams) and [chat transports](https://ai-sdk.dev/docs/ai-sdk-ui/transport) to fit this into `useChat`.
+This is the smallest client that works. Add the pieces your UI needs next, by hand or by asking your coding agent:
+
+- **Waiting for other calls.** A `202` response carries `{ "state": "waiting" }` instead of a stream. Other calls in the same turn still need a decision, so keep their buttons on screen.
+- **Render the answer.** The body is an AI SDK UI message stream. Parse it with `parseJsonEventStream` and `uiMessageChunkSchema` from `ai`, forward the `value` of each successful result (throw its `error` otherwise), then pass the chunks to `readUIMessageStream` and replace the displayed message by its ID each time it updates. See [reading UI message streams](https://ai-sdk.dev/docs/ai-sdk-ui/reading-ui-message-streams), and [chat transports](https://ai-sdk.dev/docs/ai-sdk-ui/transport) to fit this into `useChat`.
+- **Show errors.** A status that is not OK means the decision was not accepted. A failure in the resumed turn arrives as an `error` chunk at the end of the stream; pass `terminateOnError: true` to `readUIMessageStream` to stop there and show it.
 
 ## Retries and busy sessions [#retries-and-busy-sessions]
 
