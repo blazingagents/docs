@@ -93,9 +93,8 @@ nvm exec 24 npm run smoke:examples
 | --- | --- |
 | `content/docs/` | Authored MDX and Markdown documentation, plus the generated REST API resource pages |
 | `content/rest-api-intros/` | Hand-written intro prose for each generated REST API page |
-| `openapi/openapi.json` | The platform OpenAPI contract the REST API reference is generated from |
 | `src-docs/` | Documentation application, components, routes, and validation |
-| `openapi/` | Committed copy of the platform's OpenAPI contract |
+| `openapi/` | Committed copy of the platform's OpenAPI contract; the REST API reference is generated from it |
 | `public/` | Icons, social images, and other static assets |
 | `scripts/` | Manifest generation, coverage, and build verification |
 | `source.config.ts` | Fumadocs content configuration |
@@ -116,11 +115,13 @@ The production build is written to `.output/public` for deployment to
 contract, `servers/api/openapi.json` in the `ba-platform` repository. CI has no
 platform checkout, so it uses the committed copy.
 
-After the platform contract changes, refresh the copy from a sibling checkout
-and commit the result:
+After the platform contract changes, refresh the copy from a sibling checkout,
+regenerate the REST API reference, and commit the result. `npm run check`
+fails while the generated pages are stale:
 
 ```bash
 npm run sync:openapi
+npm run generate:rest-api
 ```
 
 The script reads `../ba-platform/servers/api/openapi.json` by default. Set
