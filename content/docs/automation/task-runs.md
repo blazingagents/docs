@@ -1,171 +1,100 @@
 ---
 title: Task runs
-description: Submit, inspect, cancel, and diagnose one durable background execution.
+description: Start a task in the background, check on it later, read the agent's answer, or cancel it.
 ---
 
 # Task runs
 
-A Task run is one durable execution of a [Task](/automation/tasks). Use an on-demand run when an Agent should complete work asynchronously without waiting on an interactive request.
+Start a task, return right away, and pick up the result later. Each run executes the task's agent in the background and keeps its own status and transcript, so a web request never has to wait for a long job.
 
-## Tool approval policy [#tool-approval-policy]
+## Start a run [#start-a-run]
 
-Task execution uses the resolved Agent Version's `approvalInTasks` policy. Tasks
-have no manual approval continuation path: manual calls and automatic escalation
-without a human are denied, with blocked work reported to the model. Other
-permitted work can continue. An unexpected pending human approval fails the Task.
-See [Tool approvals](/agents/tools/tool-approvals).
+Pass an idempotency key so a retried request returns the same run instead of starting a second one. Set `TASK_ID` to a [task](/automation/tasks) you created.
 
-## Outcome [#outcome]
+```typescript tab="TypeScript"
+import { BlazingAgents } from "@blazingagents/sdk";
 
-You will obtain a terminal Task run and its final assistant message. The main
-path expects `succeeded`; production code must also handle `blocked`, `failed`,
-and `canceled`.
-
-## Before you begin [#before-you-begin]
-
-You need an enabled Agent, its `agentId`, a configured backend SDK `client`, and
-a fixed instruction for the Task. Review [Tasks](/automation/tasks),
-[Sessions and Turns](/platform/sessions-and-turns), and
-[Versions and lifecycle](/agents/versions-and-lifecycle).
-
-## Create an on-demand Task [#create-an-on-demand-task]
-
-Create the Task with `agentId`, `name`, and `prompt`. Omitting `schedule`
-stores `null`; `enabled`, `submit`, `userId`, `metadata`, and
-`agentVersion` default to `true`, `false`, `""`, `{}`, and `null`. A null
-`agentVersion` resolves the Agent's latest Version when each run is
-enqueued. Set a Version number to Pin future runs of this Task.
-
-## Submit an idempotent run [#submit-an-idempotent-run]
-
-Pass a stable, Task-scoped business key to `createRun`. Repeating the same
-key for the same tenant and Task resolves to the same run ID. A different
-submission while that Task has a queued or running run is rejected because
-only one run can be active.
-
-## Inspect completion later [#inspect-completion-later]
-
-Persist the submitted Task and run IDs, then return. A later request, scheduled
-job, or worker invocation reads one snapshot with `getRun`. If it is still
-`queued` or `running`, end that invocation and check again later. `blocked`,
-`succeeded`, `failed`, and `canceled` are terminal.
-
-## Read the transcript [#read-the-transcript]
-
-Every executing run receives a fresh Session. `runMessages` returns its
-`UIMessage` transcript; the final response is the last message whose role
-is `assistant`. A run blocked before Session creation has an empty
-transcript.
-
-Treat `run.error` as an untrusted, potentially sensitive arbitrary error
-message. Redact it before logging or sharing; do not interpolate it into a
-newly thrown error.
-
-## Cancel an active run [#cancel-an-active-run]
-
-To exercise cancellation, submit a fresh run and immediately request
-cancellation while the run can still be active. Missing,
-mismatched, already terminal, and repeated cancellations are no-op `204`
-responses for an owned Task.
-
-```typescript
-const cancelInput = { idempotencyKey: `weekly-report-cancel:${weekStart}` };
-const cancellation = await client.tasks.createRun({
-  taskId: task.id,
-  ...cancelInput,
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
 });
-await client.tasks.cancelRun({ taskId: task.id, runId: cancellation.runId });
+const taskId = process.env.TASK_ID!;
 
-// From a later request, scheduled job, or worker invocation:
-const cancellationState = await client.tasks.getRun({
-  taskId: task.id,
-  runId: cancellation.runId,
-});
-console.log(cancellationState.status);
-```
-
-Cancellation can race normal completion; branch on the terminal status
-you observe instead of assuming `canceled`.
-
-## Verify the terminal state [#verify-the-terminal-state]
-
-```typescript
-const { task } = await client.tasks.create({
-  agentId,
-  name: "Build weekly report",
-  prompt: "Build the weekly report and summarize the result.",
-});
 const { runId } = await client.tasks.createRun({
-  taskId: task.id,
-  idempotencyKey: `weekly-report:${weekStart}`,
+  taskId,
+  idempotencyKey: "weekly-report:2026-07-20",
 });
-// Persist task.id and runId, then return to the caller.
+console.log(runId);
 ```
 
-From a later request, scheduled job, or worker invocation, load the persisted
-IDs and inspect one durable snapshot:
+```python tab="Python"
+import os
 
-```typescript
-const run = await client.tasks.getRun({ taskId, runId });
+from blazing_agents import BlazingAgents
+
+client = BlazingAgents()
+task_id = os.environ["TASK_ID"]
+
+run_id = client.tasks.submit(task_id, idempotency_key="weekly-report:2026-07-20").run_id
+print(run_id)
+```
+
+You see a `tr_...` run ID. Save it with the task ID, then return. Build the key from something stable about the job, such as the week it covers. A task runs one job at a time, so starting a run with a different key while another is active returns `task_active_run_exists`.
+
+## Check on it later [#check-on-it-later]
+
+From a later request, a scheduled job, or a worker, read the run's status and transcript in one call:
+
+```typescript tab="TypeScript"
+const run = await client.tasks.runMessages({ taskId, runId });
 if (run.status === "queued" || run.status === "running") {
-  console.log("Task is still active; check again in a later invocation.");
+  console.log("Still working. Check again later.");
 } else {
-  const messages = await client.tasks.runMessages({ taskId, runId });
-  const finalResponse = messages.data.findLast(
-    (message) => message.role === "assistant",
-  );
-  if (run.status !== "succeeded" || !finalResponse) {
-    throw new Error(`Task verification failed with status ${run.status}`);
-  }
-  console.log(finalResponse.parts);
+  const answer = run.data.findLast((message) => message.role === "assistant");
+  console.log(run.status, answer?.parts);
 }
 ```
 
-The later check proves that the documented terminal state and at least one
-assistant transcript message are both observable without propagating the
-raw run error.
+```python tab="Python"
+run = client.tasks.run_messages(task_id, run_id)
+if run.status in ("queued", "running"):
+    print("Still working. Check again later.")
+else:
+    answer = next((m for m in reversed(run.data) if m.role == "assistant"), None)
+    print(run.status, answer.parts if answer else None)
+```
+
+When the run is done, you see its final status and the agent's last answer. A run moves from `queued` to `running`, then ends in one of four final statuses:
+
+| Status | Meaning |
+| --- | --- |
+| `succeeded` | The agent finished. Its last assistant message is the result. |
+| `failed` | Something went wrong. Read `error`, but treat it as sensitive and redact it before you log it. |
+| `canceled` | You cancelled the run before it finished. |
+| `blocked` | The agent did not run because a quota, subscription, or usage credit check failed. It is not a failure. See [usage and quotas](/platform/usage-and-quotas). |
+
+Each run that executes gets a fresh [session](/platform/sessions-and-turns), so the transcript holds only this run. A run blocked before its session was created has an empty transcript. Use `client.tasks.getRun()` when you need the run's timestamps, session ID, or the agent version it used.
+
+## Cancel a run [#cancel-a-run]
+
+```typescript tab="TypeScript"
+await client.tasks.cancelRun({ taskId, runId });
+```
+
+```python tab="Python"
+client.tasks.cancel_run(task_id, run_id)
+```
+
+Cancelling asks the run to stop at its next safe point. Keep checking until you see a final status. The run may finish first, so handle `succeeded` as well as `canceled`. Cancelling a run that already finished does nothing and returns no error.
 
 ## Production notes [#production-notes]
 
-- Keep idempotency keys stable across client retries. Task creation and
-  `submit: true` are not idempotent; create the Task first, then use
-  `createRun` when submission deduplication matters.
-- Task execution is at-most-once. Recovery returns a recorded completed
-  outcome without rerunning the Turn; an interrupted claimed Turn is finalized
-  as failed rather than replaying model or Tool effects.
-- Updating `agentVersion` changes the Pin for future runs. `null` restores
-  latest-Version resolution; each run records the Version it actually used.
-- A Task is preflighted before Session creation and checked again at the normal
-  Turn gate. Quota denial ends as `blocked`, not `failed`.
-- Read [Limits and reliability](/platform/limits-and-reliability)
-  and [Usage and quotas](/platform/usage-and-quotas) before setting
-  retry and alert policy.
+- A run's turn executes at most once. If the platform restarts mid-run, an unfinished run ends as `failed` instead of repeating model or tool calls. Check for side effects before you start the work again.
+- No one can approve a tool call during a run. See [tool approvals in tasks](/automation/tasks#tool-approvals-in-tasks).
+- Alert when a run stays `queued` or `running` longer than you expect, or does not finish after you cancel it.
+- A `blocked` run frees the task, so its next scheduled time can run once the quota or plan allows.
 
-## Related concepts [#related-concepts]
+## Next [#next]
 
-- [Tasks](/automation/tasks)
-- [Schedules](/automation/schedules)
-- [Sessions and Turns](/platform/sessions-and-turns)
-- [Versions and lifecycle](/agents/versions-and-lifecycle)
-- [Usage and quotas](/platform/usage-and-quotas)
-- [Limits and reliability](/platform/limits-and-reliability)
-
-## SDK and REST reference [#sdk-and-rest-reference]
-
-See the TypeScript SDK operations for
-[`create`](/sdk/typescript/tasks#create),
-[`createRun`](/sdk/typescript/tasks#create-run),
-[`getRun`](/sdk/typescript/tasks#get-run),
-[`runMessages`](/sdk/typescript/tasks#run-messages), and
-[`cancelRun`](/sdk/typescript/tasks#cancel-run). The matching REST
-contracts are [Tasks](/api-reference/rest-api/tasks#create-task),
-[create Task run](/api-reference/rest-api/task-runs#create-task-run),
-[get Task run](/api-reference/rest-api/task-runs#get-task-run),
-[list Task run messages](/api-reference/rest-api/task-runs#list-task-run-messages),
-and [cancel Task run](/api-reference/rest-api/task-runs#cancel-task-run).
-
-Python equivalents: [`create()`](/sdk/python/tasks#create),
-[`submit()`](/sdk/python/tasks#submit),
-[`get_run()`](/sdk/python/tasks#get-run),
-[`run_messages()`](/sdk/python/tasks#run-messages), and
-[`cancel_run()`](/sdk/python/tasks#cancel-run).
+- [Run a task on a schedule](/automation/schedules).
+- [Limits and reliability](/platform/limits-and-reliability) for retries and error handling.
+- [`tasks.runMessages()`](/sdk/typescript/tasks#run-messages) for paging long transcripts.
