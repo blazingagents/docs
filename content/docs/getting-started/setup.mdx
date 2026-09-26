@@ -75,7 +75,7 @@ You need a Blazing Agents account and either Node.js 24 or later, or Python 3.11
 
     Run it with `node check.ts` or `python check.py`. The Python client reads `BLAZING_AGENTS_API_KEY` on its own; the TypeScript client takes it as `apiKey`. Neither needs a URL, because both point at `https://api.blazingagents.com` by default.
 
-    You see `Connected. Your tenant has N agents.` If you see an authentication error instead, check that the key is exported in the same terminal and was copied in full. The [errors reference](/api-reference/protocols/errors) explains every error code.
+    You see `Connected. Your tenant has N agents.` The count includes your [admin agent](/agents/agents#the-admin-agent), so a new tenant sees 1. If you see an authentication error instead, check that the key is exported in the same terminal and was copied in full. The [errors reference](/api-reference/protocols/errors) explains every error code.
 
   </Step>
 </Steps>

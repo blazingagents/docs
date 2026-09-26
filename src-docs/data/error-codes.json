@@ -180,8 +180,8 @@
       "code": "admin_agent_managed",
       "group": "agents-and-providers",
       "statuses": [409],
-      "title": "Blazing Agents manages this setting on the `ba assist` agent.",
-      "whatHappened": "The platform-managed agent that `ba assist` uses accepts changes only to its provider, model, and thinking level. It cannot be renamed, disabled, deleted, given an avatar, or assigned to a task.",
+      "title": "Blazing Agents manages this setting on the admin agent.",
+      "whatHappened": "The [admin agent](/agents/agents#the-admin-agent), which powers `ba assist`, accepts changes only to its provider, model, and thinking level. It cannot be renamed, disabled, deleted, given an avatar, or assigned to a task.",
       "howToFix": [
         "Send only `providerId`, `model`, and `thinkingLevel` when you update this agent.",
         "Use one of your own agents for everything else."

@@ -368,7 +368,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | `model_not_found` | The provider does not offer this model |
 | `agent_mcp_connection_not_found` | A listed MCP connection does not exist |
 | `agent_mcp_connections_invalid` | The MCP connection list is invalid |
-| `admin_agent_managed` | Blazing Agents manages this agent, so the change is not allowed |
+| `admin_agent_managed` | The [admin agent](/agents/agents#the-admin-agent) does not allow this change |
 | `invalid_cursor` | Start paging again without the cursor |
 
 ## Next [#next]
