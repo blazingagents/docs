@@ -1,147 +1,96 @@
 ---
 title: Usage and quotas
-description: Query per-Turn metering and configure Tenant-set monthly safety ceilings without conflating them with billing.
+description: See what every turn consumed, break it down by agent, model, session, or user, and set monthly safety ceilings.
 ---
 
 # Usage and quotas
 
-Usage records what each Turn consumed and rolls those records up for reporting. A quota is an optional, Tenant-set monthly token or request safety ceiling; it is not a billing entitlement, plan limit, credit balance, or invoice meter.
+See how many tokens and requests your agents use, broken down the way you need, and set a monthly ceiling so a runaway loop cannot burn through your model budget. Blazing Agents records usage for every turn automatically. A quota is an optional safety limit you set, separate from your plan and billing.
 
-## What is metered [#what-is-metered]
+## Query usage and set a quota [#query-usage-and-set-a-quota]
 
-Every Turn appends one usage record with input tokens, output tokens, one request count, duration, Agent Version, provider, model, Session or stateless marker, and Attribution. Daily rollups aggregate token, request, and duration fields for queries and quota windows.
+This example prints token totals per agent for July, then caps the account at one million tokens a month:
 
-Settlement runs for successful, failed, and cancelled Turns. A failure before the model reports usage can therefore record zero tokens but still records the request and duration. If an error or abort happens after completed model steps, tokens already reported by those steps remain in usage. A failed or canceled interactive Turn leaves its transcript unchanged, though an admitted first Turn has already materialized the Session.
-
-## Query usage [#query-usage]
-
-Use `client.usage.get()` for the Tenant rollup or `getForAgent()` for one Agent. Queries return `totals` plus `buckets` grouped by `day`, `agent`, `model`, `session`, or `user`; filters include date range, Agent, Session, and `userId`. Supplying only one of the `from` and `to` date bounds is invalid, and a custom range is bounded by the [service limits](/api-reference/protocols/service-limits).
-
-Use `client.usage.overview()` for a dashboard. One bounded response contains
-exhaustive totals and one bucket for every day including zero-usage days, top Agent and End-user rankings, an
-exhaustive model distribution through an optional remainder bucket, and the
-number of distinct Agents used during the range. Its ranking limit defaults to
-5 and accepts 1–20. Tenant-level usage is eligible for the End-user ranking as
-`userId: ""`; the active Agent count is calculated before ranking is limited.
-
-The first half of this example queries one grouped Tenant report:
-
-```typescript
+```typescript tab="TypeScript"
 import { BlazingAgents } from "@blazingagents/sdk";
 
-const apiKey = process.env.BLAZING_AGENTS_API_KEY;
-if (!apiKey) throw new Error("BLAZING_AGENTS_API_KEY is required");
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
 
-const client = new BlazingAgents({ apiKey });
 const report = await client.usage.get({
   from: "2026-07-01",
   to: "2026-07-31",
   groupBy: "agent",
 });
-
 for (const bucket of report.buckets) {
   console.log(bucket.agentId, bucket.inputTokens + bucket.outputTokens);
 }
 
 const settings = await client.tenant.patch({
-  quota: {
-    monthlyTokenLimit: 1_000_000,
-    monthlyRequestLimit: null,
-    resetDay: 1,
-  },
+  quota: { monthlyTokenLimit: 1_000_000, monthlyRequestLimit: null, resetDay: 1 },
 });
-
-console.log(settings.quota?.monthlyTokenLimit, settings.quota?.resetDay);
+console.log(settings.quota);
 ```
 
-Each non-empty grouped bucket has an `agentId`. The returned Tenant settings show a token ceiling of `1000000`, an unlimited request dimension, and reset day `1`.
+```python tab="Python"
+from blazing_agents import BlazingAgents
 
-## Configure a quota [#configure-a-quota]
+client = BlazingAgents()
 
-Update Tenant settings with positive monthly token and/or request ceilings and a reset day from 1 through 28. A `null` dimension is unlimited. Setting `quota: null` removes the quota row; omitting `quota` from an update leaves the current setting unchanged.
+report = client.usage.get(from_="2026-07-01", to="2026-07-31", group_by="agent")
+for bucket in report.buckets:
+    print(bucket.agent_id, bucket.input_tokens + bucket.output_tokens)
 
-No quota row means unlimited, so enforcement fails open. The platform checks current-window usage before an ordinary Turn. A running Turn is not stopped when it crosses a ceiling, and concurrent Turns can overshoot before their usage settles.
+settings = client.tenant.update(
+    quota={"monthly_token_limit": 1_000_000, "monthly_request_limit": None, "reset_day": 1}
+)
+print(settings.quota)
+```
 
-Task runs have quota and billing preflights before creating their Session, but
-their Turns reuse the Task admission instead of consuming interactive capacity.
-Developer Tenants may run 25 interactive Turns and 50 Task runs concurrently;
-Pro Tenants may run 50 interactive Turns and 100 Task runs. Interactive overflow
-receives HTTP `429 rate_limited`, while Task run overflow remains `queued` until
-Task run capacity is available. Expected quota or billing denials end the run as
-`blocked` without executing. Sandbox operations inside a Task run reuse its Task
-run admission.
+You see one line per agent that ran in July, then the saved quota: a token ceiling of `1000000`, no request ceiling, and a window that resets on the 1st of each month.
 
-## Quota outcomes [#quota-outcomes]
+## What is recorded [#what-is-recorded]
 
-| Situation | Outcome |
+Each turn adds one usage record with input tokens, output tokens, one request, duration, the agent version, provider, model, session, and the turn's [user label](/platform/tenancy-and-attribution).
+
+Failed and cancelled turns are recorded too. A turn that fails before the model responds records zero tokens but still counts the request and duration. If it fails after some model steps finished, the tokens from those steps stay in usage.
+
+## Break down usage [#break-down-usage]
+
+- `client.usage.get()` covers your whole account, and `client.usage.getForAgent()` covers one agent. Group results by `day`, `agent`, `model`, `session`, or `user`, and filter by date range, agent, session, or `userId`.
+- `client.usage.overview()` returns what a dashboard needs in one call: totals, every day in the range, your top agents and users, the model mix, and how many agents were active.
+
+Dates are UTC and inclusive. Pass both `from` and `to`, or neither for the last 30 days. Usage includes finished turns, not one still running. See [`usage.get()`](/sdk/typescript/usage#get) for ranges and limits.
+
+## How quotas work [#how-quotas-work]
+
+A quota sets a monthly token ceiling, a request ceiling, or both, plus the day of the month (1 to 28) when the window resets. Update it with `client.tenant.patch()` in TypeScript or `client.tenant.update()` in Python, or remove it with `quota: null` (`quota=None` in Python). With no quota, usage is unlimited.
+
+Blazing Agents checks the current window before each turn starts. It does not stop a turn that crosses the ceiling while running, and several turns running at once can overshoot before their usage lands. Leave headroom.
+
+## Quota and capacity outcomes [#quota-and-capacity-outcomes]
+
+| Situation | What you see |
 | --- | --- |
-| A synchronous Turn starts while current-window usage is over a configured ceiling | HTTP `429` with error code `quota_exceeded` |
-| A Task run fails its preflight or later Turn quota gate | Terminal Task run status `blocked`; it is not `failed` |
-| A Task run is denied for a missing required subscription or insufficient Usage credit at either billing gate | Terminal Task run status `blocked`; it is not `failed` |
-| Billing state is unavailable or returns an unknown error | Terminal Task run status `failed` |
-| A Turn fails or is cancelled after consuming model work | Its request, duration, and any usage reported before the failure or abort remain recorded |
+| A chat or generation call starts while usage is over the ceiling | HTTP `429` with `quota_exceeded` |
+| A task run starts while usage is over the ceiling | The run ends as `blocked`, not `failed`, without running |
+| A task run lacks a required subscription or usage credit | The run ends as `blocked` |
+| Billing status cannot be checked | The run ends as `failed` |
+| Too many interactive turns run at once | HTTP `429` with `rate_limited` |
+| Too many task runs are active at once | Extra runs wait as `queued` until a slot frees up |
 
-A blocked Task run has no execution Session at the preflight path and frees the Task's active-run slot. A later scheduled fire may try again after its admission condition changes.
+Developer accounts can run 25 interactive turns and 50 task runs at the same time. Pro accounts can run 50 interactive turns and 100 task runs. A blocked task run frees the task for its next scheduled time, which runs normally once the quota allows.
 
-## Monitor usage and quotas [#monitor-usage-and-quotas]
+## Production notes [#production-notes]
 
-Query Tenant and Agent totals for the same inclusive UTC date window, preserve any quota dimension you are not changing, and read the settings back to verify persistence:
+- Watch real usage for a while before you set ceilings, and alert well before you reach them.
+- Work out your window from the reset day, not the calendar month.
+- Keep failed and cancelled turns in your reports. They cost tokens too.
+- A quota is only a token and request limit. Your plan and its charges are separate.
 
-```typescript
-const tenantUsage = await client.usage.get({ from, to, groupBy: "agent" });
-const agentUsage = await client.usage.getForAgent({
-  agentId,
-  from,
-  to,
-  groupBy: "day",
-});
+## Next [#next]
 
-if (tenantUsage.totals.requestCount < agentUsage.totals.requestCount) {
-  throw new Error("Agent requests exceed the Tenant total");
-}
-
-const current = await client.tenant.get();
-await client.tenant.patch({
-  quota: {
-    monthlyRequestLimit,
-    monthlyTokenLimit: current.quota?.monthlyTokenLimit ?? null,
-    resetDay,
-  },
-});
-const verified = await client.tenant.get();
-
-if (verified.quota?.monthlyRequestLimit !== monthlyRequestLimit) {
-  throw new Error("The quota update was not persisted");
-}
-```
-
-Valid reset days are 1 through 28. Usage reads include settled Turns, not a currently running Turn. Alert before the ceiling and leave headroom for concurrent work.
-
-## Production considerations [#production-considerations]
-
-- Monitor representative usage before enabling ceilings, then alert before the threshold rather than treating rejection as the first signal.
-- Calculate operational windows using the configured reset day and account for month boundaries.
-- Leave headroom for in-flight and concurrent Turns because quota enforcement is soft and can overshoot.
-- Keep failed and cancelled Turn usage visible in operational reporting.
-- Treat billing separately. The billing policy defines infrastructure charges and plan entitlements; this quota covers only the implemented Turn token and request counters.
-
-See [Tenancy and end-user attribution](/platform/tenancy-and-attribution), [Limits and reliability](/platform/limits-and-reliability), and [Task runs](/automation/task-runs) for related controls.
-
-## Related concepts [#related-concepts]
-
-- [Task runs](/automation/task-runs)
-- [Tenancy and attribution](/platform/tenancy-and-attribution)
-- [Limits and reliability](/platform/limits-and-reliability)
-
-## Reference [#reference]
-
-- [TypeScript SDK Usage](/sdk/typescript/usage)
-- [Python SDK Usage](/sdk/python/usage)
-- [Update Tenant settings](/sdk/typescript/tenant#patch)
-- [Python SDK Tenant settings](/sdk/python/tenant#update)
-- [REST Usage](/api-reference/rest-api/usage)
-- [REST Tenant settings](/api-reference/rest-api/tenant#update-tenant-settings)
-- [Task reference](/sdk/typescript/tasks)
-- [Python SDK Task reference](/sdk/python/tasks)
-- [Errors](/api-reference/protocols/errors)
-- [Service limits](/api-reference/protocols/service-limits)
+- [Tenancy and attribution](/platform/tenancy-and-attribution) to report usage per end user.
+- [Bill your users for model tokens](/platform/monetization) through your own Polar or Dodo account.
+- [Task runs](/automation/task-runs) to handle `blocked` runs.

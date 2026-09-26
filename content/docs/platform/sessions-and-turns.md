@@ -1,184 +1,203 @@
 ---
-title: Sessions and Turns
-description: Store conversation history, resume successful Turns, and page through a Session transcript.
+title: Sessions and turns
+description: Keep a conversation going across requests, read its history, and handle stops and retries.
 ---
 
-# Sessions and Turns
+# Sessions and turns
 
-A Session is one stored conversation belonging to a Tenant and Agent. Use it when later chat Turns need earlier messages; stateless generation is still a Turn but has no Session, while each executing Task run receives a fresh Session.
+A session is a conversation that Blazing Agents stores for you. Pass its ID on the next call and the agent sees everything said so far, so your backend never has to save or replay message history. Each call that runs the agent is a turn. Every turn is metered, whether or not it belongs to a session.
 
-## Session and Turn ownership [#session-and-turn-ownership]
+## Continue a conversation [#continue-a-conversation]
 
-A Turn is one metered execution of an Agent request. The Tenant owns the Agent, Session, transcript, and usage; a Session belongs to exactly one Agent and cannot be resumed through another Agent.
+This example starts a session, asks a follow-up in the same session, and prints the saved history. Set `AGENT_ID` to an agent with a provider and model, such as the one from the [quickstart](/getting-started/quickstart).
 
-Session list results are summaries. Each item contains its `id`, nullable `agentVersion` Pin, timestamps, `messageCount`, `lastMessagePreview`, `userId`, and `metadata`; fetch messages separately for the full transcript. `GET /v1/agents/:agentId/sessions` lists one Agent's Sessions. [`GET /v1/sessions/latest`](/api-reference/rest-api/sessions#list-latest-sessions) returns the Tenant's latest Sessions by default; pass `byAgent=true` for one latest Session per Agent so an Agent Inbox needs one request instead of one list call per Agent.
+```typescript tab="TypeScript"
+import { BlazingAgents, type UIMessage } from "@blazingagents/sdk";
 
-## Start and resume a Session [#start-and-resume-a-session]
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
+const agentId = process.env.AGENT_ID!;
 
-Starting chat without `sessionId` calls `POST /v1/agents/:agentId/sessions`. Blazing Agents mints an `ss_…` ID, returns `201 Created` with its canonical resource path in `Location`, and exposes the ID as `result.sessionId` in the TypeScript SDK. The ID is available from the response headers before the Turn finishes.
+function userMessage(text: string): UIMessage {
+  return { id: crypto.randomUUID(), role: "user", parts: [{ type: "text", text }] };
+}
 
-The Session row materializes after admission, before model execution. Resume it by passing the returned ID; the SDK then calls the Session URL and the platform loads its stored history. A failed or cancelled first Turn can leave an empty, usable Session.
-
-```typescript
 const first = await client.chat({
   agentId,
-  message: {
-    id: "message-1",
-    role: "user",
-    parts: [{ type: "text", text: "Plan a weekend in Lisbon." }],
-  },
+  message: userMessage("Plan a weekend in Lisbon."),
 });
-
-await first.toResponse().text(); // Drain the stream so the Turn settles.
 const sessionId = await first.sessionId;
+await first.toResponse().text();
 
-const second = await client.chat({
-  agentId,
-  sessionId,
-  message: {
-    id: "message-2",
-    role: "user",
-    parts: [{ type: "text", text: "Make it suitable for children." }],
-  },
-});
-
+const followUp = userMessage("Make it suitable for children.");
+const second = await client.chat({ agentId, sessionId, message: followUp });
 await second.toResponse().text();
-const transcript = await client.sessions.messages({ agentId, sessionId });
-console.log(transcript.data);
+
+const history = await client.sessions.messages({ agentId, sessionId });
+for (const message of history.data) console.log(message.role, message.id);
 ```
 
-The final read contains the committed messages from both successful Turns.
+```python tab="Python"
+import os
+import uuid
 
-## Successful and failed Turns [#successful-and-failed-turns]
+from blazing_agents import BlazingAgents
 
-A successful interactive Turn atomically commits the accepted user message, the assistant message and its Tool activity, pending Tool-approval records, and any regeneration truncation. Its assistant-message metadata includes the Turn's usage summary.
+client = BlazingAgents()
+agent_id = os.environ["AGENT_ID"]
 
-Failed or cancelled interactive Turns are metered and leave the transcript unchanged: no attempted user message, partial assistant response, or Tool transcript is appended. Either can leave the first materialized Session empty. Task-run Sessions persist the user message before generation and the terminal assistant message during final usage settlement; they do not publish intermediate assistant messages.
 
-## Resend and Stop
+def user_message(text: str) -> dict:
+    return {"id": str(uuid.uuid4()), "role": "user", "parts": [{"type": "text", "text": text}]}
 
-Success means the generation response completes successfully, including its terminal finish chunk. An HTTP 2xx status or arbitrary stream closure alone is insufficient. Clients retain draft text/images until success. After an error or Stop, users may edit, discard, navigate, or explicitly submit again with a fresh user-message ID. This is ordinary submission, distinct from regeneration of saved history. No outcome polling or separate settlement check is required.
 
-Stop ends local consumption and requests cancellation; a disconnect does not prove server failure. An exchange may already be saved. Reopening loads saved history normally. Reuse the returned Session ID, including an empty Session; if no ID arrived, a later submission may create another Session. A busy Session error permits a later explicit resend. Repeated attempts can repeat Tool effects. Pending approvals remain durable paused interactions and use their existing continuation operation.
+with client.chat(agent_id=agent_id, message=user_message("Plan a weekend in Lisbon.")) as stream:
+    session_id = stream.session_id
+    for _ in stream:
+        pass
 
-See the [chatbot guide](/getting-started/chatbot) for examples and the FAQ.
+follow_up = user_message("Make it suitable for children.")
+with client.chat(agent_id=agent_id, session_id=session_id, message=follow_up) as stream:
+    for _ in stream:
+        pass
 
-## Read and poll the transcript [#read-and-poll-the-transcript]
+history = client.sessions.messages(agent_id=agent_id, session_id=session_id)
+for message in history.data:
+    print(message.role, message.id)
+```
 
-`client.sessions.messages` returns AI SDK `UIMessage` values in chronological order within each page. The default `limit` is 50 and the maximum is 200.
+You see four lines: `user`, `assistant`, `user`, `assistant`. Reading the stream to the end lets each turn finish before the next one starts. In a real app you return the stream to your frontend instead of reading it yourself.
 
-- With neither cursor, the response contains the newest page. Pass opaque `nextCursor` back as `cursor` to walk backward to older pages.
-- Pass `latestCursor` back as `after` to poll forward for messages added after that tail. When a forward page has more data, continue with `nextCursor` as the next `after` value.
-- `latestCursor` is present whenever a returned page is non-empty, even when `nextCursor` is `null`. An empty poll returns both cursors as `null`.
-- `cursor` and `after` are mutually exclusive. Treat both as opaque values.
+## How sessions behave [#how-sessions-behave]
 
-## Conversation Artifacts [#conversation-artifacts]
+Calling `client.chat()` without a session ID starts a new session. You get the `ss_...` ID before the answer finishes streaming, so save it right away. Pass it back as `sessionId` (`session_id` in Python) to continue.
 
-Conversation views list deliberate outputs with the Tenant-level Artifact
-resource filtered by `sessionId` through
-`client.artifacts.list({ sessionId })`.
+A session belongs to one agent. Resuming it through another agent, or resuming a deleted or unknown session, returns `not_found`. Blazing Agents never quietly creates a replacement.
 
-The same rule applies to Task runs. Each executing Task run receives a fresh
-Session, so pass the run's non-null `sessionId` to the same Artifact list after
-the Session is attached. Intermediate Workspace files are absent unless the
-Agent explicitly publishes them.
+A successful turn saves the user message, the assistant reply, and its tool activity together. A failed or cancelled turn is still metered, but it adds nothing to the history. If the very first turn fails, you keep an empty session that you can still use.
 
-## Version and end-user Attribution [#version-and-end-user-attribution]
+## Stop and resend [#stop-and-resend]
 
-Without a Pin, every Turn resolves the Agent's latest Version at that time and records the resolved number in usage; the Session's `agentVersion` remains `null`. A `version` supplied when starting the Session Pins that Session for its lifetime and is recorded as `agentVersion`; resume calls cannot override it. See [Versions and lifecycle](/agents/versions-and-lifecycle).
+Treat a turn as done only when its stream finishes normally. A `200` status or a closed connection alone does not prove success. Keep the user's draft until then, so they can edit and send it again after an error or a stop.
 
-Admission of the first Turn stamps the Session's immutable `userId` and initial `metadata` before model execution. `userId` is a trusted, Tenant-chosen shadow identity used for filtering and grouping; an empty string means Tenant-level. Attribution is not authorization: an API key can access the whole Tenant, so application access rules belong in the Tenant backend. See [tenancy and end-user Attribution](/platform/tenancy-and-attribution) and the [multi-tenant application pattern](/platform/tenancy-and-attribution#multi-tenant-application-pattern).
+- Stopping ends your stream and asks Blazing Agents to cancel the turn. The exchange may already be saved, so reload the history rather than guessing.
+- A resend is an ordinary new message with a fresh message ID. You do not need to poll for the outcome of the earlier attempt.
+- Keep using the session ID you received, even if that session is still empty.
+- Sending again can repeat a tool's side effects, such as a sent email.
 
-## Busy, deleted, and concurrent Sessions [#busy-deleted-and-concurrent-sessions]
+The [chatbot guide](/getting-started/chatbot) shows send, stop, edit, and regenerate end to end.
 
-A missing, foreign, or deleted Session returns `404`; resume never silently creates a replacement. A new Turn or regeneration returns `session_busy` with status `409` while any approval has `decision: "pending"` or a continuation has `state: "waiting"`, `"queued"`, or `"running"`. Deletion checks only active continuation state: it returns `session_busy` for those three continuation states, but a Session with pending decisions and no continuation can still be deleted.
+## Read the history [#read-the-history]
 
-Ordinary concurrent Turns can resolve the same Session version, but commits use optimistic version checks. After one commits, a competing stale commit fails with a Session version mismatch instead of merging histories. Serialize Turns per Session in the application when their ordering matters.
+`client.sessions.messages()` returns AI SDK `UIMessage` objects, oldest first within each page. With no cursor you get the newest page. Pass `nextCursor` back as `cursor` to load older pages, or pass `latestCursor` back as `after` to fetch only messages added since your last read. See [`sessions.messages()`](/sdk/typescript/sessions#messages) for page sizes and cursor rules.
+
+To show an agent's conversations, call `client.sessions.list({ agentId })`. For an inbox across all agents, call `client.sessions.listLatest({ byAgent: true })` to get each agent's latest session in one request.
+
+Files the agent deliberately published during a conversation are [artifacts](/agents/artifacts). List them with `client.artifacts.list({ sessionId })`.
+
+## Pin a version and label the user [#pin-a-version-and-label-the-user]
+
+By default, each turn runs the agent's latest configuration. Pass `version` when you start a session to pin it to one [agent version](/agents/versions-and-lifecycle) for its whole life. You cannot change the pin on later turns.
+
+Pass `userId` and `metadata` on the first turn to label the session with your end user. The `userId` is fixed once the session starts, and it labels usage for reporting. It does not control access, so your backend still decides who may open which session. See [tenancy and attribution](/platform/tenancy-and-attribution).
+
+## Busy and concurrent sessions [#busy-and-concurrent-sessions]
+
+A session returns `session_busy` (HTTP `409`) while a [tool approval](/agents/tools/tool-approvals) is waiting for a decision or an approved call is still running. Show the error and let the user send again later. Deleting a session also returns `session_busy` while an approved call is running.
+
+If two turns run on the same session at once, the first to finish is saved and the other fails instead of merging the histories. Send one turn at a time per session when order matters.
 
 ## Chat endpoint pattern [#chat-endpoint-pattern]
 
-An application chat should map to an authorized Agent and, after its first Turn is admitted, one Session ID in backend storage. Parse exactly one newest user message, derive `userId` from the authenticated principal, and load `agentId` and `sessionId` from server-owned state:
+In a real app, your backend maps each of your own chats to one session. The handler authorizes the request, loads the saved session ID, and relays the stream. Here `app` holds your own sign-in and storage code:
 
-```typescript
-export async function handleChat(request: Request, appChatId: string) {
-  const principal = await requirePrincipal(request);
-  const message = await parseNewestUserMessage(request);
-  const chat = await resolveAuthorizedChat(principal, appChatId);
+```typescript tab="TypeScript"
+import { client } from "./client.ts";
+import * as app from "./app.ts";
 
+const agentId = app.requireEnv("BLAZING_AGENTS_AGENT_ID");
+
+export async function handleChat(request: Request): Promise<Response> {
+  const { chatId, userId, message } = await app.authorize(request);
+  const existingSessionId = await app.loadSessionId(userId, chatId);
   const result = await client.chat({
-    agentId: chat.agentId,
-    ...(chat.sessionId ? { sessionId: chat.sessionId } : {}),
+    agentId,
+    ...(existingSessionId ? { sessionId: existingSessionId } : {}),
     message,
     abortSignal: request.signal,
-    userId: principal.stableId,
+    userId,
   });
-
-  const sessionId = await result.sessionId;
-  if (!chat.sessionId) {
-    await storeProvisionalSession(appChatId, sessionId);
+  if (!existingSessionId) {
+    await app.saveSessionId(userId, chatId, await result.sessionId);
   }
   return result.toResponse();
 }
 ```
 
-The minted ID identifies an already materialized Session. Hold a per-chat lease until the mapping is stored so concurrent first requests cannot create competing Sessions. If saving the mapping fails after the Turn starts, cancel the response body; the platform Session remains materialized and may be empty. A later `not_found` must propagate unless the application deliberately deleted and unlinked that Session.
+```python tab="Python"
+from collections.abc import Iterator
 
-Return `result.toResponse()` unchanged so the native UI message stream and headers survive. Forward the request `AbortSignal`, authorize the application chat on every request, and never accept Agent, Session, or attribution identifiers directly from an unchecked client body.
+import app
+from client import client
 
-## Image input and regeneration [#image-input-and-regeneration]
+AGENT_ID = app.require_env("BLAZING_AGENTS_AGENT_ID")
 
-Image input is a user-message part, not a Workspace upload or Artifact. A file part needs a non-empty URL, an `image/...` media type, and an optional filename. To replace one stored response, resume the authorized Session with `trigger: "regenerate-message"` and a verified assistant message ID:
 
-```typescript
-const message = {
-  id: "image-question-1",
-  role: "user" as const,
-  parts: [
-    { type: "text" as const, text: "Describe this image." },
-    {
-      type: "file" as const,
-      mediaType: "image/png",
-      filename: "sample.png",
-      url: imageDataUrl,
-    },
-  ],
-};
+def handle_chat(request: app.Request) -> Iterator[bytes]:
+    chat_id, user_id, message = app.authorize(request)
+    session_id = app.load_session_id(user_id, chat_id)
+    if session_id:
+        stream = client.chat(
+            agent_id=AGENT_ID, session_id=session_id, message=message, user_id=user_id
+        )
+    else:
+        stream = client.chat(agent_id=AGENT_ID, message=message, user_id=user_id)
+        app.save_session_id(user_id, chat_id, stream.session_id)
+    with stream:
+        yield from stream
+```
 
-const first = await client.chat({ agentId, message, userId });
-const sessionId = await first.sessionId;
-await first.toResponse().text();
+Keep these rules in your handler:
 
-const before = await client.sessions.messages({ agentId, sessionId });
-const original = before.data.find((item) => item.role === "assistant");
-if (!original) throw new Error("No stored assistant response");
+- Take the agent ID, session ID, and `userId` from your own server-side state, never from the request body.
+- Accept exactly one new user message per request. The session already holds the rest.
+- Save the new session ID before you relay the stream. If two first requests for the same chat can arrive together, hold a lock until the ID is saved so you do not create two sessions.
+- Return `result.toResponse()` unchanged so the stream and its headers reach the browser intact, and forward the request's abort signal so a closed tab cancels the turn.
 
+[Connect Blazing Agents to your app](/getting-started/connect-your-app) walks through this endpoint step by step.
+
+## Send images and regenerate answers [#send-images-and-regenerate-answers]
+
+To send an image, add a `file` part with an `image/...` media type and a URL, such as a data URL, to the user message.
+
+To replace the latest answer, resume the session with `trigger: "regenerate-message"` and send the user message again. Continuing the first example:
+
+```typescript tab="TypeScript"
 const retry = await client.chat({
   agentId,
   sessionId,
-  message,
+  message: followUp,
   trigger: "regenerate-message",
-  messageId: original.id,
-  userId,
 });
 await retry.toResponse().text();
-
-const after = await client.sessions.messages({ agentId, sessionId });
-if (after.data.some((item) => item.id === original.id)) {
-  throw new Error("The original response was not replaced");
-}
 ```
 
-Regeneration works only on the resume path. The platform resolves the target under the Turn claim. Successful completion atomically commits truncation and replacement; failure or cancellation preserves the previous answer. Omitting `messageId` targets the latest assistant message.
+```python tab="Python"
+with client.chat(
+    agent_id=agent_id,
+    session_id=session_id,
+    message=follow_up,
+    trigger="regenerate-message",
+) as stream:
+    for _ in stream:
+        pass
+```
 
-## Related concepts [#related-concepts]
+The new answer replaces the old one only if the turn succeeds. If it fails or you stop it, the previous answer stays. To replace an earlier answer instead, pass its ID as `messageId` (`message_id` in Python).
 
-- [Tenancy and attribution](/platform/tenancy-and-attribution)
-- [Generation and streaming](/agents/output/generation-and-streaming)
+## Next [#next]
 
-## Reference [#reference]
-
-- [CLI chat](/cli/chat)
-- Chat references: [TypeScript](/sdk/typescript/client#chat) and [Python](/sdk/python/client#chat)
-- Session references: [TypeScript](/sdk/typescript/sessions) and [Python](/sdk/python/sessions)
-- [Sessions REST API](/api-reference/rest-api/sessions)
-- [Artifacts](/agents/artifacts)
+- [Build a chatbot](/getting-started/chatbot) with send, stop, edit, and regenerate.
+- [Stream answers to your frontend](/agents/output/generation-and-streaming).
+- [`client.chat()` reference](/sdk/typescript/client#chat) and [Python](/sdk/python/client#chat).

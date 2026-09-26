@@ -1,132 +1,177 @@
 ---
 title: Tenancy and end-user attribution
-description: Keep Tenant isolation separate from optional end-user labels used for filtering and reporting.
+description: Label sessions, tasks, and usage with your own user IDs so you can filter and report per user.
 ---
 
 # Tenancy and end-user attribution
 
-Every authenticated request runs in one credential-derived Tenant context. Within that boundary, optional Attribution labels activity with an opaque end-user `userId` and metadata so a backend can filter resources and report usage.
+Tag each turn with your own user ID, then filter sessions and break down usage per user. Your account is the tenant: everything you create belongs to it, and your API key can reach all of it. A `userId` is a label for reporting, not a lock, so your backend keeps deciding who may see what.
 
-## Tenant isolation [#tenant-isolation]
+## Label a turn and filter by user [#label-a-turn-and-filter-by-user]
 
-A backend API key establishes the trusted Tenant context. Services use that credential-derived `tenantId` for reads and writes, so a request cannot select another Tenant by supplying `userId`, metadata, or a resource ID. See [REST authentication](/api-reference/rest-api/authentication) for all accepted credential paths.
+Pass `userId` and optional `metadata` when you call the agent. Later, pass the same `userId` as a filter. Set `AGENT_ID` to an agent with a provider and model, such as the one from the [quickstart](/getting-started/quickstart).
 
-One API key has Tenant-wide authority. The tenant's backend must authenticate its end-user, authorize the operation, select allowed Agent and resource IDs, and only then call Blazing Agents.
-
-## Attribution fields and propagation [#attribution-fields-and-propagation]
-
-Attributed create inputs accept `userId` and `metadata`. Both default to the tenant-level values `userId: ""` and `metadata: {}`. The `userId` convention is immutable after creation; resource update contracts may allow metadata changes without allowing the Attribution identity to move.
-
-Agents, Workspaces, Prompts, Sessions, Tasks, Task runs, Artifacts, Memories, and usage records carry Attribution. Agent-owned Skills inherit their Agent's Attribution. Tenant configuration such as API keys, Providers, and quota settings does not.
-
-For a new Session, admission stamps the Turn's `userId` and metadata when the Session materializes before model execution. The same values enter that Turn's usage record. A Task run inherits Attribution from its Task, and the run's fresh Session, usage, and any Artifacts saved by its Agent use those values. An Artifact deliberately saved during an interactive Turn uses the Turn's Session ownership and Attribution.
-
-## Attribute a Turn and filter results [#attribute-a-turn-and-filter-results]
-
-Derive the identifier from authenticated backend state, then reuse it as a filter:
-
-```typescript
+```typescript tab="TypeScript"
 import { BlazingAgents } from "@blazingagents/sdk";
 
-const apiKey = process.env.BLAZING_AGENTS_API_KEY;
-if (!apiKey) throw new Error("BLAZING_AGENTS_API_KEY is required");
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
+const agentId = process.env.AGENT_ID!;
+const userId = "app:user-42";
 
-const client = new BlazingAgents({ apiKey });
-const agentId = "ag_0123456789abcdef";
-const userId = "usr_7f3a9c";
-
-const turn = await client.chat({
+const result = await client.chat({
   agentId,
   message: {
-    id: "msg_user_1",
+    id: crypto.randomUUID(),
     role: "user",
     parts: [{ type: "text", text: "Summarize my open items." }],
   },
   userId,
-  metadata: { workspace: "primary" },
+  metadata: { plan: "pro" },
 });
+const sessionId = await result.sessionId;
+await result.toResponse().text();
 
-await turn.toResponse().text(); // Drain the Turn so the transcript can commit.
-
-const sessionId = await turn.sessionId;
 const sessions = await client.sessions.list({ agentId, userId });
 console.log(sessions.data.some((session) => session.id === sessionId));
+
+const usage = await client.usage.get({ userId, groupBy: "day" });
+console.log(usage.totals.inputTokens + usage.totals.outputTokens);
 ```
 
-After the Turn succeeds, the final expression prints `true` because the filtered Session list includes the materialized Session.
+```python tab="Python"
+import os
+import uuid
 
-## Reporting and filtering [#reporting-and-filtering]
+from blazing_agents import BlazingAgents
 
-Session lists accept a `userId` filter, including [`GET /v1/sessions/latest`](/api-reference/rest-api/sessions#list-latest-sessions), which returns recent Sessions globally or, with `byAgent=true`, at most one latest Session per Agent. Tenant-wide and per-Agent usage queries can filter by `userId` or group by `user`; the usage overview includes a bounded End-user ranking in which `userId: ""` remains the Tenant-level bucket. Usage also supports Agent, model, Session, day, and time-window dimensions. See [`sessions.list`](/sdk/typescript/sessions#list), [`usage.get`](/sdk/typescript/usage#get), and [`usage.overview`](/sdk/typescript/usage#overview-method) for exact fields.
+client = BlazingAgents()
+agent_id = os.environ["AGENT_ID"]
+user_id = "app:user-42"
 
-Omitting a `userId` filter includes all Attribution buckets visible to the Tenant credential. Passing `userId: ""` selects only tenant-level activity; a non-empty value selects that exact opaque identifier.
+message = {
+    "id": str(uuid.uuid4()),
+    "role": "user",
+    "parts": [{"type": "text", "text": "Summarize my open items."}],
+}
+with client.chat(
+    agent_id=agent_id, message=message, user_id=user_id, metadata={"plan": "pro"}
+) as stream:
+    session_id = stream.session_id
+    for _ in stream:
+        pass
 
-## What Attribution is not [#what-attribution-is-not]
+sessions = client.sessions.list(agent_id=agent_id, user_id=user_id)
+print(any(session.id == session_id for session in sessions.data))
 
-Attribution is not authentication. It is not authorization. It is not an ACL, and it is not a stored end-user account. Supplying a `userId` neither proves identity nor narrows what an API key can access.
+usage = client.usage.get(user_id=user_id, group_by="day")
+print(usage.totals.input_tokens + usage.totals.output_tokens)
+```
+
+The first line prints `true`: the new session carries the user's label. The second prints the tokens this user used over the last 30 days, the default usage window.
+
+## What carries a user label [#what-carries-a-user-label]
+
+Agents, workspaces, prompts, sessions, tasks, task runs, artifacts, memories, and usage records all accept `userId` and `metadata`. A skill takes its agent's label. Account-wide settings such as API keys, providers, and quotas have no user label.
+
+Labels flow to the work they produce:
+
+- A session takes the `userId` and `metadata` of its first turn, and that turn's usage record gets the same values.
+- A task run takes its task's label, and so do the run's session, usage, and artifacts.
+- An artifact saved during a chat takes the session's label.
+
+Once set, a `userId` never changes. Some resources let you update `metadata` later.
+
+## Filter and report [#filter-and-report]
+
+Session lists, task lists, and usage queries accept a `userId` filter. Usage can also be grouped by `user`, and the usage overview ranks your top users. See [usage and quotas](/platform/usage-and-quotas).
+
+The filter has three modes:
+
+- Omit `userId` to include everything in your account.
+- Pass `userId: ""` to select only activity with no user label.
+- Pass any other value to select that exact user.
+
+If you forget to pass `userId`, the activity is recorded with the empty label. Decide whether that is acceptable, or require a user ID in your backend.
+
+## A label is not access control [#a-label-is-not-access-control]
+
+A `userId` does not prove who someone is, and it does not narrow what your API key can reach. Blazing Agents does not store your users or check their permissions. An empty filtered list does not mean a caller is barred from a resource ID they supply some other way.
+
+Your backend must sign in the user, check that they own the chat or resource, and only then call Blazing Agents with IDs from its own storage.
 
 ## Multi-tenant application pattern [#multi-tenant-application-pattern]
 
-Derive attribution from the authenticated application principal, and resolve every Agent, application chat, and Session through backend authorization. Never trust platform IDs or `userId` values copied from a browser body.
+When your product serves many customers, derive every ID on the server:
 
-```typescript
+```typescript tab="TypeScript"
 import { type UIMessage } from "@blazingagents/sdk";
+import { client } from "./client.ts";
+import * as app from "./app.ts";
 
-export async function runAuthorizedTurn(input: {
-  principal: { subject: string; workspaceId: string };
-  appChatId: string;
-  message: UIMessage;
-}) {
-  const userId = `app:${input.principal.subject}`;
-  const chat = await resolveAuthorizedChat(input.principal, input.appChatId);
+export async function runAuthorizedTurn(
+  principal: app.Principal,
+  appChatId: string,
+  message: UIMessage,
+) {
+  const chat = await app.resolveAuthorizedChat(principal, appChatId);
   const result = await client.chat({
     agentId: chat.agentId,
     ...(chat.sessionId ? { sessionId: chat.sessionId } : {}),
-    message: input.message,
-    userId,
-    metadata: { workspaceId: input.principal.workspaceId },
+    message,
+    userId: `app:${principal.subject}`,
+    metadata: { organizationId: principal.organizationId },
   });
-
-  const sessionId = await result.sessionId;
-  await result.toResponse().text();
-  if (!chat.sessionId) await saveAuthorizedSession(input.appChatId, sessionId);
-
-  const sessions = await client.sessions.list({
-    agentId: chat.agentId,
-    userId,
-  });
-  const usage = await client.usage.getForAgent({
-    agentId: chat.agentId,
-    userId,
-    groupBy: "session",
-  });
-  return { sessionId, sessions, usage };
+  if (!chat.sessionId) {
+    await app.saveAuthorizedSession(appChatId, await result.sessionId);
+  }
+  return result.toResponse();
 }
 ```
 
-After the stream settles, verify the filtered Session has the expected `userId` and the usage totals include the Turn. Separately test that your application rejects another principal's `appChatId` before calling the SDK. An empty filtered list is not proof that a caller may access a separately supplied resource ID.
+```python tab="Python"
+from collections.abc import Iterator
 
-## Production considerations [#production-considerations]
+import app
+from client import client
 
-- Derive a stable, opaque `userId` on the backend. Keep the mapping to a real identity in the tenant's own system.
-- Treat metadata as product data: minimize personal information, validate values at the backend boundary, and apply the tenant's retention policy.
-- Check application ownership before reading, resuming, updating, or deleting a resource. A matching Attribution filter is not an authorization check.
-- Decide whether missing Attribution should mean tenant-level activity. Because omission defaults to `userId: ""`, accidental omission otherwise merges activity into that bucket.
 
-See [Security and credentials](/platform/security-and-credentials), [Usage and quotas](/platform/usage-and-quotas), [Sessions and Turns](/platform/sessions-and-turns), and [Artifacts](/agents/artifacts) for the corresponding execution and storage boundaries.
+def run_authorized_turn(
+    principal: app.Principal, app_chat_id: str, message: dict
+) -> Iterator[bytes]:
+    chat = app.resolve_authorized_chat(principal, app_chat_id)
+    user_id = f"app:{principal.subject}"
+    if chat.session_id:
+        stream = client.chat(
+            agent_id=chat.agent_id,
+            session_id=chat.session_id,
+            message=message,
+            user_id=user_id,
+            metadata={"organizationId": principal.organization_id},
+        )
+    else:
+        stream = client.chat(
+            agent_id=chat.agent_id,
+            message=message,
+            user_id=user_id,
+            metadata={"organizationId": principal.organization_id},
+        )
+        app.save_authorized_session(app_chat_id, stream.session_id)
+    with stream:
+        yield from stream
+```
 
-## Reference [#reference]
+`app` is your own code. `resolveAuthorizedChat` throws unless the signed-in principal owns the chat, and it returns the agent and session IDs from your database. Test that one user cannot reach another user's chat ID before any Blazing Agents call happens.
 
-- [TypeScript SDK `chat`](/sdk/typescript/client#chat)
-- [TypeScript SDK `sessions.list`](/sdk/typescript/sessions#list)
-- [TypeScript SDK `usage.get`](/sdk/typescript/usage#get)
-- [TypeScript SDK `usage.overview`](/sdk/typescript/usage#overview-method)
-- [Python SDK `chat`](/sdk/python/client#chat)
-- [Python SDK `sessions.list`](/sdk/python/sessions#list)
-- [Python SDK `usage.get`](/sdk/python/usage#get)
-- [Python SDK `usage.overview`](/sdk/python/usage#overview-method)
-- [Python SDK Tenant settings](/sdk/python/tenant)
-- [REST generation](/api-reference/rest-api/generation#generate)
-- [REST Sessions](/api-reference/rest-api/sessions#list-sessions)
-- [REST Usage](/api-reference/rest-api/usage#get-usage)
-- [Attribution schema](/api-reference/protocols/objects-and-schemas#attribution)
+## Production notes [#production-notes]
+
+- Use a stable, opaque `userId` such as `app:<internal id>`. Keep the mapping to real people in your own system.
+- Treat `metadata` as product data. Keep personal information out of it where you can, and validate it in your backend.
+- Check ownership before you read, resume, update, or delete any resource. A matching filter is not an authorization check.
+
+## Next [#next]
+
+- [Usage and quotas](/platform/usage-and-quotas) to report per user and set monthly ceilings.
+- [Security and credentials](/platform/security-and-credentials) to keep your API key on the server.
+- [Bill your users for model tokens](/platform/monetization) using the same `userId`.

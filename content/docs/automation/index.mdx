@@ -1,34 +1,32 @@
 ---
 title: Automation
-description: Define durable Agent work, inspect each execution, and run it on demand or on a schedule.
+description: Run an agent in the background, on demand or on a schedule, and check each run later.
 ---
 
 # Automation
 
-Automation runs an Agent outside an interactive request. A Task stores what should run, a Task run records one execution, and a schedule determines when the platform should create runs.
+Run your agent with no user waiting: nightly reports, inbox triage, data refreshes. You save the job once as a task, start it from your code or on a schedule, and read each run's result when it is done.
 
-## Explore Automation [#explore-automation]
+## Explore automation [#explore-automation]
 
 <Cards>
-  <Card title="Tasks" href="/automation/tasks" description="Create and maintain reusable background-work definitions." />
-  <Card title="Task runs" href="/automation/task-runs" description="Submit, observe, cancel, and diagnose individual executions." />
-  <Card title="Schedules" href="/automation/schedules" description="Run Tasks once, at fixed intervals, or from cron expressions." />
+  <Card title="Tasks" href="/automation/tasks" description="Save a job for an agent to run in the background." />
+  <Card title="Task runs" href="/automation/task-runs" description="Start a run, check its status, read the result, or cancel it." />
+  <Card title="Schedules" href="/automation/schedules" description="Run a task once at a set time, every few minutes, or on a cron." />
 </Cards>
 
-## Choose an execution path [#choose-an-execution-path]
+## Choose how to start work [#choose-how-to-start-work]
 
-| Need | Use |
+| You want to | Use |
 | --- | --- |
-| Submit durable work from application code | An on-demand [Task](/automation/tasks) and an idempotent [Task run](/automation/task-runs) |
-| Run at a known instant | A [one-time schedule](/automation/schedules#choose-a-schedule) |
-| Repeat by elapsed time | An [interval schedule](/automation/schedules#choose-a-schedule) |
-| Follow calendar boundaries | A [cron schedule](/automation/schedules#choose-a-schedule) |
+| Start work from your code, without duplicates | An on-demand [task](/automation/tasks) and a [task run](/automation/task-runs) with an idempotency key |
+| Run at one known time | A [one-time schedule](/automation/schedules#choose-a-schedule) |
+| Repeat every few minutes or hours | An [interval schedule](/automation/schedules#choose-a-schedule) |
+| Follow the calendar, such as weekdays at 9:00 | A [cron schedule](/automation/schedules#choose-a-schedule) |
 
-Each executing run receives a fresh [Session](/platform/sessions-and-turns), so you can inspect its transcript and published Artifacts after execution.
+Each run that executes gets its own fresh [session](/platform/sessions-and-turns), so you can read its transcript and any [artifacts](/agents/artifacts) it published.
 
-## Reference [#reference]
+## Next [#next]
 
-- [TypeScript Tasks SDK](/sdk/typescript/tasks)
-- [Python Tasks SDK](/sdk/python/tasks)
-- [Tasks REST API](/api-reference/rest-api/tasks)
-- [Task runs REST API](/api-reference/rest-api/task-runs)
+- [Create your first task](/automation/tasks).
+- [Limits and reliability](/platform/limits-and-reliability) for retries and cancellation.

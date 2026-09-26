@@ -874,12 +874,14 @@
         "/platform/tenancy-and-attribution",
         "/platform/security-and-credentials",
         "/platform/usage-and-quotas",
-        "/platform/limits-and-reliability"
+        "/platform/monetization",
+        "/platform/limits-and-reliability",
+        "/platform/chat-integrations"
       ],
       "callout": null,
       "componentCounts": {
         "Cards": 1,
-        "Card": 5
+        "Card": 7
       },
       "fences": {
         "endpointCurls": false,
@@ -897,21 +899,47 @@
       },
       "cards": [],
       "callout": null,
-      "componentCounts": {},
+      "componentCounts": {
+        "Response": 1
+      },
       "fences": {
         "endpointCurls": false,
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -933,11 +961,27 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -961,7 +1005,15 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -983,11 +1035,15 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
           },
           {
-            "language": "typescript",
-            "metadata": {}
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -1009,11 +1065,27 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -1059,7 +1131,15 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -1081,15 +1161,39 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           },
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -1111,19 +1215,15 @@
         "items": [
           {
             "language": "typescript",
-            "metadata": {}
+            "metadata": {
+              "tab": "TypeScript"
+            }
           },
           {
-            "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -4191,9 +4291,9 @@
     },
     {
       "file": "platform/sessions-and-turns.md",
-      "name": "Sessions and Turns",
+      "name": "Sessions and turns",
       "publishable": true,
-      "title": "Sessions and Turns",
+      "title": "Sessions and turns",
       "url": "/platform/sessions-and-turns"
     },
     {
