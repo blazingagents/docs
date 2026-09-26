@@ -10449,7 +10449,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "getting-started/chatbot.mdx",
             "type": "page",
             "name": "Build a chatbot",
-            "description": "Put a React chat UI with send, stop, resend, and regenerate on top of your chat endpoint.",
+            "description": "Put a React chat UI on top of your chat endpoint.",
             "url": "/getting-started/chatbot",
             "$ref": "getting-started/chatbot.mdx"
           },
