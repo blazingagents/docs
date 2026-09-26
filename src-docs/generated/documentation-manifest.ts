@@ -8810,15 +8810,15 @@ export const documentationTree: SerializedPageTree = {
             "$id": "platform/index.mdx",
             "type": "page",
             "name": "Platform",
-            "description": "Operate conversations, tenancy, security, usage, and reliability across Blazing Agents.",
+            "description": "Run conversations, keep users and credentials apart, track usage, and handle failures in production.",
             "url": "/platform",
             "$ref": "platform/index.mdx"
           },
           {
             "$id": "platform/sessions-and-turns.md",
             "type": "page",
-            "name": "Sessions and Turns",
-            "description": "Store conversation history, resume successful Turns, and page through a Session transcript.",
+            "name": "Sessions and turns",
+            "description": "Keep a conversation going across requests, read its history, and handle stops and retries.",
             "url": "/platform/sessions-and-turns",
             "$ref": "platform/sessions-and-turns.md"
           },
@@ -8826,7 +8826,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "platform/tenancy-and-attribution.md",
             "type": "page",
             "name": "Tenancy and end-user attribution",
-            "description": "Keep Tenant isolation separate from optional end-user labels used for filtering and reporting.",
+            "description": "Label sessions, tasks, and usage with your own user IDs so you can filter and report per user.",
             "url": "/platform/tenancy-and-attribution",
             "$ref": "platform/tenancy-and-attribution.md"
           },
@@ -8834,7 +8834,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "platform/security-and-credentials.mdx",
             "type": "page",
             "name": "Security and credentials",
-            "description": "Keep Tenant, Provider, MCP, and service credentials inside their verified backend trust boundaries.",
+            "description": "Keep your API key on your server, rotate it safely, and know where provider and MCP secrets go.",
             "url": "/platform/security-and-credentials",
             "$ref": "platform/security-and-credentials.mdx"
           },
@@ -8842,7 +8842,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "platform/usage-and-quotas.md",
             "type": "page",
             "name": "Usage and quotas",
-            "description": "Query per-Turn metering and configure Tenant-set monthly safety ceilings without conflating them with billing.",
+            "description": "See what every turn consumed, break it down by agent, model, session, or user, and set monthly safety ceilings.",
             "url": "/platform/usage-and-quotas",
             "$ref": "platform/usage-and-quotas.md"
           },
@@ -8850,7 +8850,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "platform/monetization.md",
             "type": "page",
             "name": "Bill your users for model tokens",
-            "description": "Collect model-token usage and bill your own customers through your Polar or Dodo merchant account.",
+            "description": "Send each user's model-token usage to your Polar or Dodo account and charge them with your own prices.",
             "url": "/platform/monetization",
             "$ref": "platform/monetization.md"
           },
@@ -8858,7 +8858,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "platform/limits-and-reliability.md",
             "type": "page",
             "name": "Limits and reliability",
-            "description": "Design for bounded operations, typed failures, idempotent submission, cancellation, and durable recovery.",
+            "description": "Retry safely, submit background work without duplicates, handle cancellation, and debug failures by symptom.",
             "url": "/platform/limits-and-reliability",
             "$ref": "platform/limits-and-reliability.md"
           },
@@ -8866,7 +8866,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "platform/chat-integrations.md",
             "type": "page",
             "name": "Slack and Telegram",
-            "description": "Connect your own Slack app or Telegram bot to a hosted Agent.",
+            "description": "Put your agent in Slack or Telegram with your own bot, with history and approval buttons handled for you.",
             "url": "/platform/chat-integrations",
             "$ref": "platform/chat-integrations.md"
           }
@@ -8885,7 +8885,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "automation/index.mdx",
             "type": "page",
             "name": "Automation",
-            "description": "Define durable Agent work, inspect each execution, and run it on demand or on a schedule.",
+            "description": "Run an agent in the background, on demand or on a schedule, and check each run later.",
             "url": "/automation",
             "$ref": "automation/index.mdx"
           },
@@ -8893,7 +8893,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "automation/tasks.md",
             "type": "page",
             "name": "Tasks",
-            "description": "Define reusable background Agent work and control the configuration used by future runs.",
+            "description": "Save a job for an agent to run in the background, then start it on demand or on a schedule.",
             "url": "/automation/tasks",
             "$ref": "automation/tasks.md"
           },
@@ -8901,7 +8901,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "automation/task-runs.md",
             "type": "page",
             "name": "Task runs",
-            "description": "Submit, inspect, cancel, and diagnose one durable background execution.",
+            "description": "Start a task in the background, check on it later, read the agent's answer, or cancel it.",
             "url": "/automation/task-runs",
             "$ref": "automation/task-runs.md"
           },
@@ -8909,7 +8909,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "automation/schedules.md",
             "type": "page",
             "name": "Schedules",
-            "description": "Run Tasks once, at fixed intervals, or from calendar-based cron expressions.",
+            "description": "Run a task once at a set time, every few minutes, or on a cron in your timezone.",
             "url": "/automation/schedules",
             "$ref": "automation/schedules.md"
           }
