@@ -2029,6 +2029,12 @@ export const restApiOperations = [
             "status": "404"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"workspace_busy\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "409"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"An upstream service failed.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -9592,6 +9598,94 @@ export const restApiOperations = [
           }
         ],
         "url": "/api-reference/rest-api/chat-connections/list-chat-deliveries"
+      },
+      {
+        "description": "List your tenant's chat deliveries.",
+        "examples": [
+          {
+            "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/chat-deliveries\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/chat-deliveries\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/chat-deliveries\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/chat-deliveries\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-deliveries\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-deliveries\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/chat-deliveries\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "GET",
+        "operation": "list-tenant-chat-deliveries",
+        "path": "/v1/chat-deliveries",
+        "responseMetadata": {
+          "description": "A page of your tenant's chat deliveries.",
+          "schema": {
+            "name": "TenantChatDeliveryList"
+          }
+        },
+        "responses": [
+          {
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"cd_2Nf7Lp4WxB9kTc3M\",\n      \"kind\": \"reply\",\n      \"status\": \"confirmed\",\n      \"attempt\": 1,\n      \"credentialVersion\": 1,\n      \"representation\": \"native\",\n      \"diagnostic\": null,\n      \"receipts\": [\n        {\n          \"attempt\": 1,\n          \"messageId\": \"412\"\n        }\n      ],\n      \"sessionId\": \"ss_5Jm1Qe8RvC3yHd6X\",\n      \"messageId\": \"412\",\n      \"approvalId\": null,\n      \"threadId\": \"telegram:5012345678\",\n      \"createdAt\": \"2026-07-10T10:05:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:05:02.000Z\",\n      \"connectionId\": \"cc_6Wd3Hs8KqP1vRt5N\",\n      \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"platform\": \"telegram\"\n    }\n  ],\n  \"nextCursor\": null\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/chat-connections/list-tenant-chat-deliveries"
       },
       {
         "description": "Repair a chat delivery.",

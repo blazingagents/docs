@@ -17,6 +17,22 @@ Full credentials are never returned. A connection shows only
 `checkedAt`, `tokenValid`, `identityVerified`, and `checks` with `code`,
 `status` (`pass`, `fail`, `unknown`), and optional `subject`.
 
+## Delivery outcomes [#delivery-outcomes]
+
+A delivery is one reply or approval card a connection tried to post to the
+chat. Its `status` is `pending` (not sent yet), `confirmed` (the platform
+accepted it), `failed` (it did not go through), or `ambiguous` (it may have
+been sent).
+
+`GET /v1/chat-deliveries` is an attention feed: it lists only `failed` and
+`ambiguous` deliveries across every connection, newest first. `status`
+narrows the feed to one of them as a comma-separated list in one parameter,
+such as `status=failed`; the default is both, other statuses are rejected,
+and repeated `status` parameters are not supported. `since` is an inclusive
+ISO 8601 date-time with an offset. Keep the same filters when you pass
+`nextCursor` back as `cursor`. For `pending` or `confirmed` deliveries, or
+the full history of one bot, use the per-connection list.
+
 ## Next [#next]
 
 - [Chat integrations](/platform/chat-integrations) to set up Slack or Telegram.
