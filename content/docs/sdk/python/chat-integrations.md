@@ -38,7 +38,7 @@ print([(check.code, check.status) for check in connection.health.checks])
 | [`disable()`](#disable) | Stop accepting messages | `ChatConnection` |
 | [`delete()`](#delete) | Disconnect the bot | `None` |
 
-`client.chat_deliveries` shows what happened to replies and approval buttons across every connection: [`list()`](#list-deliveries) gets one page and [`iter()`](#iter-deliveries) walks them all.
+`client.chat_deliveries` lists replies and approval buttons that failed or may not have arrived, across every connection: [`list()`](#list-deliveries) gets one page and [`iter()`](#iter-deliveries) walks them all.
 
 ## Methods [#methods]
 
@@ -176,13 +176,13 @@ Blazing Agents clears the bot's Telegram webhook if it still points to this conn
 
 ### `chat_deliveries.list()` [#list-deliveries]
 
-Lists the replies and approval buttons your bots tried to post, across every connection, newest first. Use it for a status view that shows which messages never reached the chat.
+Lists the replies and approval buttons that failed or may not have arrived, across every connection, newest first. Use it for a status view that shows which messages need attention.
 
 ```python
 from datetime import datetime, timedelta, timezone
 
 since = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
-page = client.chat_deliveries.list(status=["failed", "ambiguous"], since=since)
+page = client.chat_deliveries.list(since=since)
 for delivery in page.data:
     print(delivery.platform, delivery.connection_id, delivery.status, delivery.diagnostic)
 ```
@@ -191,12 +191,12 @@ for delivery in page.data:
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `status` | `Sequence[ChatDeliveryStatus]` | Any of `"pending"`, `"confirmed"`, `"failed"`, `"ambiguous"`; omit for all |
+| `status` | `Sequence[ChatDeliveryListStatus]` | `"failed"`, `"ambiguous"`, or both; default both |
 | `since` | `str` | ISO 8601 date-time with an offset. Only deliveries created at or after it |
 | `cursor` | `str` | `next_cursor` from the previous page |
 | `limit` | `int` | 1 to 100, default 50 |
 
-`confirmed` means the platform accepted the message, `failed` means it did not, and `ambiguous` means it may have been sent. `pending` has not been attempted yet. To find messages that need attention, pass `status=["failed", "ambiguous"]` with a recent `since`. Keep the same filters when you pass `next_cursor` back as `cursor`.
+`failed` means the platform did not accept the message, and `ambiguous` means it may have been sent. The feed never lists `pending` or `confirmed` deliveries; [list one connection's deliveries](/api-reference/rest-api/chat-connections#list-chat-deliveries) for those, and passing any other `status` fails with `validation_failed`. Keep the same filters when you pass `next_cursor` back as `cursor`.
 
 Returns `ChatDeliveriesPage` with `data: list[TenantChatDelivery]` and `next_cursor: str | None`. Raises `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
@@ -205,7 +205,7 @@ Returns `ChatDeliveriesPage` with `data: list[TenantChatDelivery]` and `next_cur
 Iterates every matching delivery, fetching pages as you go.
 
 ```python
-for delivery in client.chat_deliveries.iter(status=["failed", "ambiguous"], since=since):
+for delivery in client.chat_deliveries.iter(since=since):
     print(delivery.platform, delivery.connection_id, delivery.status, delivery.diagnostic)
 ```
 
@@ -241,7 +241,7 @@ Takes the same parameters as [`chat_deliveries.list()`](#list-deliveries). No re
 | `agent_id` | `str` | The connection's agent |
 | `platform` | `str` | `"slack"` or `"telegram"` |
 | `kind` | `str` | `"reply"` or `"card"`: an agent reply or a tool approval card |
-| `status` | `ChatDeliveryStatus` | `"pending"`, `"confirmed"`, `"failed"`, or `"ambiguous"` |
+| `status` | `ChatDeliveryStatus` | `"failed"` or `"ambiguous"` |
 | `attempt` | `int` | The current send attempt |
 | `diagnostic` | `str \| None` | Why the last send failed, when known |
 | `session_id` | `str` | The session behind the conversation |
@@ -249,7 +249,7 @@ Takes the same parameters as [`chat_deliveries.list()`](#list-deliveries). No re
 | `message_id`, `approval_id` | `str \| None` | The reply message or the approval it carries |
 | `created_at`, `updated_at` | `str` | Timestamps |
 
-It also has `credential_version`, `representation`, and `receipts`. The package exports `ChatDelivery`, `TenantChatDelivery`, and `ChatDeliveryStatus`.
+It also has `credential_version`, `representation`, and `receipts`. The package exports `ChatDelivery`, `TenantChatDelivery`, `ChatDeliveryStatus`, and `ChatDeliveryListStatus`.
 
 ## Next [#next]
 

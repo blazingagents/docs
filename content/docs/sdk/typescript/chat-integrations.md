@@ -37,7 +37,7 @@ Every method takes one input object and accepts an optional `abortSignal`. Bot c
 | [`disable()`](#disable) | Stop handling messages | `ChatConnection` |
 | [`delete()`](#delete) | Delete a connection | `void` |
 
-`client.chatDeliveries` has one method, [`list()`](#list-deliveries), which shows what happened to replies and approval buttons across every connection.
+`client.chatDeliveries` has one method, [`list()`](#list-deliveries), which lists replies and approval buttons that failed or may not have arrived, across every connection.
 
 ## Methods [#methods]
 
@@ -184,16 +184,13 @@ A Telegram bot's webhook is cleared for you. Uninstall a Slack app yourself.
 
 ### `chatDeliveries.list()` [#list-deliveries]
 
-Lists the replies and approval buttons your bots tried to post, across every connection, newest first. Use it for a status view that shows which messages never reached the chat.
+Lists the replies and approval buttons that failed or may not have arrived, across every connection, newest first. Use it for a status view that shows which messages need attention.
 
 **Signature:** `list(input?: ChatDeliveriesListOptions): Promise<ChatDeliveriesResponse>`
 
 ```typescript
 const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-const page = await client.chatDeliveries.list({
-  status: ["failed", "ambiguous"],
-  since,
-});
+const page = await client.chatDeliveries.list({ since });
 for (const delivery of page.data) {
   console.log(delivery.platform, delivery.connectionId, delivery.status, delivery.diagnostic);
 }
@@ -201,12 +198,12 @@ for (const delivery of page.data) {
 
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `status` | `ChatDeliveryStatus[]` | no | all | Any of `"pending"`, `"confirmed"`, `"failed"`, `"ambiguous"` |
+| `status` | `ChatDeliveryListStatus[]` | no | both | `"failed"`, `"ambiguous"`, or both |
 | `since` | `string` | no | none | ISO 8601 date-time with an offset. Only deliveries created at or after it |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 | `limit` | `number` | no | `50` | 1 to 100 deliveries per page |
 
-`confirmed` means the platform accepted the message, `failed` means it did not, and `ambiguous` means it may have been sent. `pending` has not been attempted yet. To find messages that need attention, pass `status: ["failed", "ambiguous"]` with a recent `since`. Keep the same filters when you pass `nextCursor` back as `cursor`.
+`failed` means the platform did not accept the message, and `ambiguous` means it may have been sent. The feed never lists `pending` or `confirmed` deliveries; [list one connection's deliveries](/api-reference/rest-api/chat-connections#list-chat-deliveries) for those, and passing any other `status` fails with `validation_failed`. Keep the same filters when you pass `nextCursor` back as `cursor`.
 
 Returns [`ChatDeliveriesResponse`](#chatdeliveriesresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
@@ -243,7 +240,7 @@ Each entry in `health.checks` is `{ code: string; status: "pass" | "fail" | "unk
 | `agentId` | `string` | The connection's agent |
 | `platform` | `"slack" \| "telegram"` | Chat platform |
 | `kind` | `"reply" \| "card"` | An agent reply or a tool approval card |
-| `status` | `ChatDeliveryStatus` | `"pending"`, `"confirmed"`, `"failed"`, or `"ambiguous"` |
+| `status` | `ChatDeliveryStatus` | `"failed"` or `"ambiguous"` |
 | `attempt` | `number` | The current send attempt |
 | `diagnostic` | `string \| null` | Why the last send failed, when known |
 | `sessionId` | `string` | The session behind the conversation |
@@ -251,7 +248,7 @@ Each entry in `health.checks` is `{ code: string; status: "pass" | "fail" | "unk
 | `messageId`, `approvalId` | `string \| null` | The reply message or the approval it carries |
 | `createdAt`, `updatedAt` | `string` | ISO 8601 timestamps |
 
-It also has `credentialVersion`, `representation`, and `receipts`. The package exports `ChatDelivery`, `TenantChatDelivery`, and `ChatDeliveryStatus`.
+It also has `credentialVersion`, `representation`, and `receipts`. The package exports `ChatDelivery`, `TenantChatDelivery`, `ChatDeliveryStatus`, and `ChatDeliveryListStatus`.
 
 ## Next [#next]
 

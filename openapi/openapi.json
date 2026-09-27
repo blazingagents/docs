@@ -8449,16 +8449,17 @@
           "chat-connections"
         ],
         "summary": "List your tenant's chat deliveries",
-        "description": "Lists the replies and approval cards your tenant's Chat Connections have sent or tried to send, across all connections, newest first. Filter with `status` (comma-separated, for example `failed,ambiguous`) and `since` (an inclusive `createdAt` lower bound). Pass `nextCursor` as `cursor` to fetch older records.",
+        "description": "Lists your tenant's failed and ambiguous chat deliveries — the replies and approval cards that need attention — across all Chat Connections, newest first. Filter further with `since` (an inclusive `createdAt` lower bound), and pass `nextCursor` as `cursor` to fetch older records. For pending or confirmed deliveries, list a connection's deliveries instead.",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "description": "Comma-separated delivery statuses to include: `pending`, `confirmed`, `failed`, or `ambiguous`. Leave out for all statuses.",
+              "default": "failed,ambiguous",
+              "description": "`failed`, `ambiguous`, or both, comma-separated. Defaults to both.",
               "example": "failed,ambiguous"
             },
             "required": false,
-            "description": "Comma-separated delivery statuses to include: `pending`, `confirmed`, `failed`, or `ambiguous`. Leave out for all statuses.",
+            "description": "`failed`, `ambiguous`, or both, comma-separated. Defaults to both.",
             "name": "status",
             "in": "query"
           },

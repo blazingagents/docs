@@ -24,13 +24,14 @@ chat. Its `status` is `pending` (not sent yet), `confirmed` (the platform
 accepted it), `failed` (it did not go through), or `ambiguous` (it may have
 been sent).
 
-`GET /v1/chat-deliveries` lists deliveries across every connection, newest
-first. Use it for a status view over all your bots, and the per-connection
-list when you investigate one bot. Pass several statuses as a comma-separated
-list in one `status` parameter, such as `status=failed,ambiguous`; repeated
-`status` parameters are not supported. `since` is an inclusive ISO 8601
-date-time with an offset. Keep the same filters when you pass `nextCursor`
-back as `cursor`.
+`GET /v1/chat-deliveries` is an attention feed: it lists only `failed` and
+`ambiguous` deliveries across every connection, newest first. `status`
+narrows the feed to one of them as a comma-separated list in one parameter,
+such as `status=failed`; the default is both, other statuses are rejected,
+and repeated `status` parameters are not supported. `since` is an inclusive
+ISO 8601 date-time with an offset. Keep the same filters when you pass
+`nextCursor` back as `cursor`. For `pending` or `confirmed` deliveries, or
+the full history of one bot, use the per-connection list.
 
 ## Next [#next]
 

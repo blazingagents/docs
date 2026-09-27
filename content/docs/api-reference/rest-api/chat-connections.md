@@ -26,13 +26,14 @@ chat. Its `status` is `pending` (not sent yet), `confirmed` (the platform
 accepted it), `failed` (it did not go through), or `ambiguous` (it may have
 been sent).
 
-`GET /v1/chat-deliveries` lists deliveries across every connection, newest
-first. Use it for a status view over all your bots, and the per-connection
-list when you investigate one bot. Pass several statuses as a comma-separated
-list in one `status` parameter, such as `status=failed,ambiguous`; repeated
-`status` parameters are not supported. `since` is an inclusive ISO 8601
-date-time with an offset. Keep the same filters when you pass `nextCursor`
-back as `cursor`.
+`GET /v1/chat-deliveries` is an attention feed: it lists only `failed` and
+`ambiguous` deliveries across every connection, newest first. `status`
+narrows the feed to one of them as a comma-separated list in one parameter,
+such as `status=failed`; the default is both, other statuses are rejected,
+and repeated `status` parameters are not supported. `since` is an inclusive
+ISO 8601 date-time with an offset. Keep the same filters when you pass
+`nextCursor` back as `cursor`. For `pending` or `confirmed` deliveries, or
+the full history of one bot, use the per-connection list.
 
 ## Endpoints [#endpoints]
 
@@ -279,7 +280,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/deliverie
 
 List your tenant's chat deliveries.
 
-Lists the replies and approval cards your tenant's Chat Connections have sent or tried to send, across all connections, newest first. Filter with `status` (comma-separated, for example `failed,ambiguous`) and `since` (an inclusive `createdAt` lower bound). Pass `nextCursor` as `cursor` to fetch older records.
+Lists your tenant's failed and ambiguous chat deliveries — the replies and approval cards that need attention — across all Chat Connections, newest first. Filter further with `since` (an inclusive `createdAt` lower bound), and pass `nextCursor` as `cursor` to fetch older records. For pending or confirmed deliveries, list a connection's deliveries instead.
 
 #### Request
 
@@ -287,7 +288,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `status` | string | query |  | Comma-separated delivery statuses to include: `pending`, `confirmed`, `failed`, or `ambiguous`. Leave out for all statuses. |
+| `status` | string | query |  | `failed`, `ambiguous`, or both, comma-separated. Defaults to both. Defaults to `failed,ambiguous`. |
 | `since` | string | query |  | Only deliveries created at or after this ISO 8601 date-time. |
 | `cursor` | string | query |  | `nextCursor` from the previous page, to fetch older records. |
 | `limit` | integer | query |  | Maximum number of records to return, 1 to 100. Defaults to 50. 1–100. Defaults to `50`. |
