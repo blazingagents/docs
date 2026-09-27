@@ -280,7 +280,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/deliverie
 
 List your tenant's chat deliveries.
 
-Lists your tenant's failed and ambiguous chat deliveries — the replies and approval cards that need attention — across all Chat Connections, newest first. Filter further with `since` (an inclusive `createdAt` lower bound), and pass `nextCursor` as `cursor` to fetch older records. For pending or confirmed deliveries, list a connection's deliveries instead.
+Lists your tenant's failed and ambiguous chat deliveries across all Chat Connections, newest first. These are the replies and approval cards that need attention. Filter further with `since` (an inclusive `createdAt` lower bound), and pass `nextCursor` as `cursor` to fetch older records. For pending or confirmed deliveries, list a connection's deliveries instead.
 
 #### Request
 
@@ -288,10 +288,10 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `status` | string | query |  | `failed`, `ambiguous`, or both, comma-separated. Defaults to both. Defaults to `failed,ambiguous`. |
+| `status` | string | query |  | `failed`, `ambiguous`, or both, comma-separated. Defaults to `failed,ambiguous`. |
 | `since` | string | query |  | Only deliveries created at or after this ISO 8601 date-time. |
 | `cursor` | string | query |  | `nextCursor` from the previous page, to fetch older records. |
-| `limit` | integer | query |  | Maximum number of records to return, 1 to 100. Defaults to 50. 1–100. Defaults to `50`. |
+| `limit` | integer | query |  | Maximum number of records to return. 1–100. Defaults to `50`. |
 
 #### Response
 

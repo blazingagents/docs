@@ -8449,17 +8449,17 @@
           "chat-connections"
         ],
         "summary": "List your tenant's chat deliveries",
-        "description": "Lists your tenant's failed and ambiguous chat deliveries — the replies and approval cards that need attention — across all Chat Connections, newest first. Filter further with `since` (an inclusive `createdAt` lower bound), and pass `nextCursor` as `cursor` to fetch older records. For pending or confirmed deliveries, list a connection's deliveries instead.",
+        "description": "Lists your tenant's failed and ambiguous chat deliveries across all Chat Connections, newest first. These are the replies and approval cards that need attention. Filter further with `since` (an inclusive `createdAt` lower bound), and pass `nextCursor` as `cursor` to fetch older records. For pending or confirmed deliveries, list a connection's deliveries instead.",
         "parameters": [
           {
             "schema": {
               "type": "string",
               "default": "failed,ambiguous",
-              "description": "`failed`, `ambiguous`, or both, comma-separated. Defaults to both.",
+              "description": "`failed`, `ambiguous`, or both, comma-separated.",
               "example": "failed,ambiguous"
             },
             "required": false,
-            "description": "`failed`, `ambiguous`, or both, comma-separated. Defaults to both.",
+            "description": "`failed`, `ambiguous`, or both, comma-separated.",
             "name": "status",
             "in": "query"
           },
@@ -8492,10 +8492,10 @@
               "minimum": 1,
               "maximum": 100,
               "default": 50,
-              "description": "Maximum number of records to return, 1 to 100. Defaults to 50."
+              "description": "Maximum number of records to return."
             },
             "required": false,
-            "description": "Maximum number of records to return, 1 to 100. Defaults to 50.",
+            "description": "Maximum number of records to return.",
             "name": "limit",
             "in": "query"
           }
