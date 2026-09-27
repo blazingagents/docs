@@ -979,6 +979,129 @@
         ],
         "additionalProperties": false
       },
+      "TenantChatDeliveryList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TenantChatDelivery"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "nextCursor"
+        ],
+        "additionalProperties": false
+      },
+      "TenantChatDelivery": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^cd_[0-9A-Za-z]{16}$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "reply",
+              "card"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "confirmed",
+              "failed",
+              "ambiguous"
+            ]
+          },
+          "attempt": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "credentialVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "representation": {
+            "type": "string"
+          },
+          "diagnostic": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receipts": {},
+          "sessionId": {
+            "type": "string"
+          },
+          "messageId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "approvalId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "threadId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "connectionId": {
+            "type": "string",
+            "pattern": "^cc_[0-9A-Za-z]{16}$"
+          },
+          "agentId": {
+            "type": "string",
+            "pattern": "^ag_[0-9A-Za-z]{16}$"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "slack",
+              "telegram"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "attempt",
+          "credentialVersion",
+          "representation",
+          "diagnostic",
+          "sessionId",
+          "messageId",
+          "approvalId",
+          "threadId",
+          "createdAt",
+          "updatedAt",
+          "connectionId",
+          "agentId",
+          "platform"
+        ],
+        "additionalProperties": false
+      },
       "ChatDeliveryResult": {
         "type": "object",
         "properties": {
@@ -8319,6 +8442,146 @@
         }
       }
     },
+    "/v1/chat-deliveries": {
+      "get": {
+        "operationId": "listTenantChatDeliveries",
+        "tags": [
+          "chat-connections"
+        ],
+        "summary": "List your tenant's chat deliveries",
+        "description": "Lists the replies and approval cards your tenant's Chat Connections have sent or tried to send, across all connections, newest first. Filter with `status` (comma-separated, for example `failed,ambiguous`) and `since` (an inclusive `createdAt` lower bound). Pass `nextCursor` as `cursor` to fetch older records.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Comma-separated delivery statuses to include: `pending`, `confirmed`, `failed`, or `ambiguous`. Leave out for all statuses.",
+              "example": "failed,ambiguous"
+            },
+            "required": false,
+            "description": "Comma-separated delivery statuses to include: `pending`, `confirmed`, `failed`, or `ambiguous`. Leave out for all statuses.",
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Only deliveries created at or after this ISO 8601 date-time.",
+              "example": "2026-09-20T00:00:00Z"
+            },
+            "required": false,
+            "description": "Only deliveries created at or after this ISO 8601 date-time.",
+            "name": "since",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "`nextCursor` from the previous page, to fetch older records."
+            },
+            "required": false,
+            "description": "`nextCursor` from the previous page, to fetch older records.",
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "description": "Maximum number of records to return, 1 to 100. Defaults to 50."
+            },
+            "required": false,
+            "description": "Maximum number of records to return, 1 to 100. Defaults to 50.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of your tenant's chat deliveries",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "cd_2Nf7Lp4WxB9kTc3M",
+                      "kind": "reply",
+                      "status": "confirmed",
+                      "attempt": 1,
+                      "credentialVersion": 1,
+                      "representation": "native",
+                      "diagnostic": null,
+                      "receipts": [
+                        {
+                          "attempt": 1,
+                          "messageId": "412"
+                        }
+                      ],
+                      "sessionId": "ss_5Jm1Qe8RvC3yHd6X",
+                      "messageId": "412",
+                      "approvalId": null,
+                      "threadId": "telegram:5012345678",
+                      "createdAt": "2026-07-10T10:05:00.000Z",
+                      "updatedAt": "2026-07-10T10:05:02.000Z",
+                      "connectionId": "cc_6Wd3Hs8KqP1vRt5N",
+                      "agentId": "ag_4kP9sT2vXq7LmN3a",
+                      "platform": "telegram"
+                    }
+                  ],
+                  "nextCursor": null
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/TenantChatDeliveryList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "validation_failed",
+              "invalid_cursor"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/chat-connections/{id}/deliveries/{deliveryId}/repair": {
       "post": {
         "operationId": "repairChatDelivery",
@@ -10731,7 +10994,7 @@
           "workspaces"
         ],
         "summary": "Update a workspace",
-        "description": "Updates a workspace's name, metadata, or network policy. Send at least one field. `metadata` and `networkPolicy` replace their current values, and `name: null` clears the name. `userId` cannot be changed. If a new network policy switches between `unrestricted` and a restricted mode, a running workspace saves its files and stops; it applies the new policy the next time an agent uses it.",
+        "description": "Updates a workspace's name, metadata, or network policy. Send at least one field. `metadata` and `networkPolicy` replace their current values, and `name: null` clears the name. `userId` cannot be changed. If a new network policy switches between `unrestricted` and a restricted mode, a running workspace saves its files and stops; it applies the new policy the next time an agent uses it. A concurrent workspace change can return `409 workspace_busy`; retry after the active work finishes.",
         "parameters": [
           {
             "schema": {
@@ -10904,6 +11167,19 @@
             "description": "The resource was not found",
             "x-error-codes": [
               "workspace_not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "workspace_busy"
             ],
             "content": {
               "application/json": {

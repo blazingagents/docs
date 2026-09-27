@@ -19,6 +19,21 @@ Full credentials are never returned. A connection shows only
 `checkedAt`, `tokenValid`, `identityVerified`, and `checks` with `code`,
 `status` (`pass`, `fail`, `unknown`), and optional `subject`.
 
+## Delivery outcomes [#delivery-outcomes]
+
+A delivery is one reply or approval card a connection tried to post to the
+chat. Its `status` is `pending` (not sent yet), `confirmed` (the platform
+accepted it), `failed` (it did not go through), or `ambiguous` (it may have
+been sent).
+
+`GET /v1/chat-deliveries` lists deliveries across every connection, newest
+first. Use it for a status view over all your bots, and the per-connection
+list when you investigate one bot. Pass several statuses as a comma-separated
+list in one `status` parameter, such as `status=failed,ambiguous`; repeated
+`status` parameters are not supported. `since` is an inclusive ISO 8601
+date-time with an offset. Keep the same filters when you pass `nextCursor`
+back as `cursor`.
+
 ## Endpoints [#endpoints]
 
 ### GET /v1/chat-connections [#list-chat-connections]
@@ -257,6 +272,78 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 
 ```bash
 curl "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/deliveries" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### GET /v1/chat-deliveries [#list-tenant-chat-deliveries]
+
+List your tenant's chat deliveries.
+
+Lists the replies and approval cards your tenant's Chat Connections have sent or tried to send, across all connections, newest first. Filter with `status` (comma-separated, for example `failed,ambiguous`) and `since` (an inclusive `createdAt` lower bound). Pass `nextCursor` as `cursor` to fetch older records.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `status` | string | query |  | Comma-separated delivery statuses to include: `pending`, `confirmed`, `failed`, or `ambiguous`. Leave out for all statuses. |
+| `since` | string | query |  | Only deliveries created at or after this ISO 8601 date-time. |
+| `cursor` | string | query |  | `nextCursor` from the previous page, to fetch older records. |
+| `limit` | integer | query |  | Maximum number of records to return, 1 to 100. Defaults to 50. 1–100. Defaults to `50`. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. A page of your tenant's chat deliveries.
+
+Response schema: `TenantChatDeliveryList`.
+
+```json
+{
+  "data": [
+    {
+      "id": "cd_2Nf7Lp4WxB9kTc3M",
+      "kind": "reply",
+      "status": "confirmed",
+      "attempt": 1,
+      "credentialVersion": 1,
+      "representation": "native",
+      "diagnostic": null,
+      "receipts": [
+        {
+          "attempt": 1,
+          "messageId": "412"
+        }
+      ],
+      "sessionId": "ss_5Jm1Qe8RvC3yHd6X",
+      "messageId": "412",
+      "approvalId": null,
+      "threadId": "telegram:5012345678",
+      "createdAt": "2026-07-10T10:05:00.000Z",
+      "updatedAt": "2026-07-10T10:05:02.000Z",
+      "connectionId": "cc_6Wd3Hs8KqP1vRt5N",
+      "agentId": "ag_4kP9sT2vXq7LmN3a",
+      "platform": "telegram"
+    }
+  ],
+  "nextCursor": null
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/chat-deliveries" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
