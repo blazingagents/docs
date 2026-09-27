@@ -68,6 +68,8 @@ with `sessionId: null`. Tenant-level buckets in `groupBy=user` keep
 
 Only memories support full-text `search`.
 
+Multi-value filters such as `status` on [list tenant chat deliveries](/api-reference/rest-api/chat-connections#list-tenant-chat-deliveries) take a comma-separated list in one parameter.
+
 ## Examples [#examples]
 
 Read every session for an agent, one page at a time:

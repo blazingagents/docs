@@ -205,7 +205,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" \
 
 Update a workspace.
 
-Updates a workspace's name, metadata, or network policy. Send at least one field. `metadata` and `networkPolicy` replace their current values, and `name: null` clears the name. `userId` cannot be changed. If a new network policy switches between `unrestricted` and a restricted mode, a running workspace saves its files and stops; it applies the new policy the next time an agent uses it.
+Updates a workspace's name, metadata, or network policy. Send at least one field. `metadata` and `networkPolicy` replace their current values, and `name: null` clears the name. `userId` cannot be changed. If a new network policy switches between `unrestricted` and a restricted mode, a running workspace saves its files and stops; it applies the new policy the next time an agent uses it. A concurrent workspace change can return `409 workspace_busy`; retry after the active work finishes.
 
 #### Request
 
@@ -249,6 +249,7 @@ Response schema: `Workspace`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `404` | [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `409` | [`workspace_busy`](/api-reference/protocols/errors#workspace_busy) | The request conflicts with the resource's current state |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.

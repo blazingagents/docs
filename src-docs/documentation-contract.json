@@ -3551,6 +3551,7 @@
           "list-chat-connections",
           "create-chat-connection",
           "list-chat-deliveries",
+          "list-tenant-chat-deliveries",
           "repair-chat-delivery",
           "get-chat-connection",
           "rename-chat-connection",
