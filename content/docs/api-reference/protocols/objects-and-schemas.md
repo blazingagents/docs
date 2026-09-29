@@ -93,7 +93,8 @@ preserves the field; supplying a policy replaces it. See [approval policies](/ag
 nullable. Provider and model form an optional pair: both are null or both are present. `workspaceId` always identifies the current attachment. Ordinary configuration updates create an immutable
 Version. Avatar and lifecycle changes use separate operations and do not
 create Versions. `userId`, IDs, timestamps, and the current Version number are
-read-only.
+read-only. Names can repeat. `agentsResponseSchema` returns
+`{ data, nextCursor }` for list responses.
 
 See [SDK Agents](/sdk/typescript/agents),
 [REST Agents](/api-reference/rest-api/agents), and the
@@ -361,8 +362,8 @@ See [SDK Task runs](/sdk/typescript/tasks#list-runs),
 `agentId`. The linked Agent must belong to the same Tenant; deleting it deletes
 the Prompt. Omit the link at creation or set it to null to leave it unlinked. `variables`
 is inferred from distinct valid `{{name}}` tokens and is read-only. Identity,
-`userId`, and creation time are immutable. `promptsResponseSchema` wraps a
-`prompts` array for list responses.
+`userId`, and creation time are immutable. Names can repeat.
+`promptsResponseSchema` returns `{ data, nextCursor }` for list responses.
 
 See [SDK Prompts](/sdk/typescript/prompts),
 [REST Prompts](/api-reference/rest-api/prompts), and

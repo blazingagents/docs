@@ -58,30 +58,36 @@ const prompt = await client.prompts.create({
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `name` | `string` | yes | none | 1 to 80 characters, unique in your tenant |
+| `name` | `string` | yes | none | Display name, 1 to 80 characters. Prompts can share a name |
 | `template` | `string` | yes | none | The template text |
 | `agentId` | `string \| null` | no | `null` | Agent to link it to, for your own grouping |
 | `userId` | `string` | no | `""` | The end user it belongs to; cannot change later |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your labels |
 
-Deleting the linked agent also deletes the prompt. Your tenant can hold up to 100 prompts. Returns [`PromptResponse`](#promptresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`prompt_name_conflict`](/api-reference/protocols/errors#prompt_name_conflict), [`prompt_limit_reached`](/api-reference/protocols/errors#prompt_limit_reached), and [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
+Deleting the linked agent also deletes the prompt. Returns [`PromptResponse`](#promptresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed) and [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
 
 ### `list()` [#list]
 
 Lists your prompts, most recently updated first.
 
-**Signature:** `list(input?: { userId?: string; agentId?: string } & ResourceRequestOptions): Promise<PromptsResponse>`
+**Signature:** `list(input?: { userId?: string; agentId?: string; cursor?: string; limit?: number } & ResourceRequestOptions): Promise<PromptsResponse>`
 
 ```typescript
-const { prompts } = await client.prompts.list({ agentId });
+const page = await client.prompts.list({ agentId, limit: 50 });
+for (const prompt of page.data) console.log(prompt.id, prompt.name);
+const next = page.nextCursor
+  ? await client.prompts.list({ agentId, cursor: page.nextCursor, limit: 50 })
+  : null;
 ```
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `userId` | `string` | no | Only this end user's prompts; `""` for tenant-level ones |
 | `agentId` | `string` | no | Only prompts linked to this agent |
+| `cursor` | `string` | no | `nextCursor` from the previous page |
+| `limit` | `number` | no | Page size, 1 to 100; defaults to 50 |
 
-The result is not paginated. Returns `{ prompts: PromptResponse[] }`.
+Returns `{ data: PromptResponse[], nextCursor: string | null }`. Keep the same filters when paging.
 
 ### `get()` [#get]
 
@@ -111,7 +117,7 @@ const prompt = await client.prompts.update({
 
 Takes `promptId` plus any of `name`, `template`, `agentId`, and `metadata`, with at least one. Fields you leave out stay as they are; `metadata` replaces all metadata, and `agentId: null` removes the link. `userId` cannot change. The next turn that uses the prompt gets the new template.
 
-Returns [`PromptResponse`](#promptresponse). Errors: `validation_failed`, `prompt_name_conflict`, `not_found`.
+Returns [`PromptResponse`](#promptresponse). Errors: `validation_failed`, `not_found`.
 
 ### `delete()` [#delete]
 
@@ -142,7 +148,7 @@ Errors: `validation_failed`, `not_found`.
 | `createdAt` | `string` | ISO 8601 timestamp |
 | `updatedAt` | `string` | ISO 8601 timestamp |
 
-`PromptsResponse` is `{ prompts: PromptResponse[] }`.
+`PromptsResponse` is `{ data: PromptResponse[], nextCursor: string | null }`.
 
 ## Errors [#errors]
 
@@ -150,8 +156,6 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The prompt
 
 | Code | Meaning |
 | --- | --- |
-| `prompt_name_conflict` | Another prompt has this name |
-| `prompt_limit_reached` | Your tenant already has 100 prompts |
 | `prompt_variable_missing` | A turn left out one of the prompt's variables |
 | `prompt_variable_unknown` | A turn passed a variable the template does not use |
 

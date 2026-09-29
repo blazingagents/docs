@@ -9,6 +9,8 @@ description: Run agent work in the background, on demand or on a schedule.
 
 A task is a saved prompt for an agent that runs in the background, on demand or on a schedule. Each run gets its own record and transcript, so you can check on it later. Use tasks for reports, syncs, and other work nobody waits on.
 
+Pass `idempotencyKey` when creating a task that your backend may retry. Repeating the same request with the same key returns the current task definition and original initial run ID. A different request, or a retry after deleting the task, returns `idempotency_conflict`.
+
 ## Tool approval policy [#tool-approval-policy]
 
 Task runs follow the agent version's `approvalInTasks` policy. Nobody is
@@ -24,7 +26,7 @@ run ends up waiting for a person anyway, it fails. See
 
 List tasks.
 
-Lists your tasks, most recently updated first, one page at a time. Each task includes `latestRun` with the status of its most recent run, or `null` if it has never run. Filter by agent or by end user, and pass `nextCursor` as `cursor` to get the next page.
+Lists your tasks, most recently updated first, one page at a time. Each task includes `latestRun` with the status of its most recent run, or `null` if it has never run, and `nextFireAt` for its next scheduled fire, or `null` if none is pending. Filter by agent or by end user, and pass `nextCursor` as `cursor` to get the next page.
 
 #### Request
 
@@ -61,6 +63,7 @@ Response schema: `TaskList`.
         }
       },
       "enabled": true,
+      "nextFireAt": null,
       "activeRunId": null,
       "latestRunId": "tr_9Jd4Ks7NbV2xQm6P",
       "userId": "",
@@ -85,9 +88,10 @@ Response schema: `TaskList`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -102,7 +106,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tasks" \
 
 Create a task.
 
-Creates a task: a saved prompt your agent runs in the background. With a `schedule`, the task runs by itself; without one, it runs only when you start it. Send `submit: true` to start a run right away, which returns `202 Accepted` with the run's ID in `runId`; otherwise you get `201 Created` and `runId` is `null`. Retrying this request creates another task, so when retries must not start duplicate runs, create the task first and start runs with `POST /v1/tasks/{taskId}/runs` and an `idempotencyKey`. The platform-managed `ba assist` agent cannot run tasks.
+Creates a task: a saved prompt your agent runs in the background. With a `schedule`, the task runs by itself; without one, it runs only when you start it. Send `submit: true` to start a run right away, which returns `202 Accepted` with the run's ID in `runId`; otherwise you get `201 Created` and `runId` is `null`. Send an `idempotencyKey` to retry safely. Matching retries return the current task definition and the original initial run ID. Changed requests or a deleted task return 409. Keys are separate for tenant-wide access and each scoped user. Without a key, each request creates another task. The platform-managed `ba assist` agent cannot run tasks.
 
 #### Request
 
@@ -110,6 +114,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
+| `idempotencyKey` | string | body |  | Retry the same creation with this key to return the current task and its original initial run. Changed requests or deleted tasks return a conflict. |
 | `agentId` | string | body | required | ID of the agent that runs the task. It cannot change later. |
 | `agentVersion` | integer \| null | body |  | Agent version to run. `null` runs whatever version is current when each run starts. 1–2147483647. Defaults to `null`. |
 | `name` | string | body | required | Display name, 1 to 80 characters. 1–80 characters. |
@@ -143,6 +148,7 @@ Response schema: `CreatedTask`.
       }
     },
     "enabled": true,
+    "nextFireAt": "2026-07-13T08:00:00.000Z",
     "activeRunId": null,
     "latestRunId": null,
     "userId": "",
@@ -172,6 +178,7 @@ Response schema: `CreatedTask`.
     "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
     "schedule": null,
     "enabled": true,
+    "nextFireAt": null,
     "activeRunId": "tr_9Jd4Ks7NbV2xQm6P",
     "latestRunId": "tr_9Jd4Ks7NbV2xQm6P",
     "userId": "",
@@ -190,11 +197,12 @@ Response schema: `CreatedTask`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found) | The resource was not found |
-| `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) | The request conflicts with the resource's current state |
+| `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict) | The request conflicts with the resource's current state |
 | `429` | [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
 
@@ -245,6 +253,7 @@ Response schema: `Task`.
     }
   },
   "enabled": true,
+  "nextFireAt": "2026-07-13T08:00:00.000Z",
   "activeRunId": null,
   "latestRunId": null,
   "userId": "",
@@ -261,9 +270,10 @@ Response schema: `Task`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
@@ -317,6 +327,7 @@ Response schema: `Task`.
     }
   },
   "enabled": false,
+  "nextFireAt": null,
   "activeRunId": null,
   "latestRunId": null,
   "userId": "",
@@ -334,9 +345,10 @@ Response schema: `Task`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
@@ -372,9 +384,10 @@ Returns `204 No Content`. The task was deleted.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`task_active_run_exists`](/api-reference/protocols/errors#task_active_run_exists) | The request conflicts with the resource's current state |
 

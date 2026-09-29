@@ -51,10 +51,10 @@ Open Settings, choose Security, and select Reset password.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_required`](/api-reference/protocols/errors#provider_required), [`prompt_variable_missing`](/api-reference/protocols/errors#prompt_variable_missing), [`prompt_variable_unknown`](/api-reference/protocols/errors#prompt_variable_unknown) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_required`](/api-reference/protocols/errors#provider_required), [`prompt_variable_missing`](/api-reference/protocols/errors#prompt_variable_missing), [`prompt_variable_unknown`](/api-reference/protocols/errors#prompt_variable_unknown) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required), [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required), [`merchant_subscription_required`](/api-reference/protocols/errors#merchant_subscription_required), [`merchant_balance_required`](/api-reference/protocols/errors#merchant_balance_required) | An active subscription or usage credit is required |
-| `403` | [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped) | The end user cannot run this request |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped) | The end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
 | `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) | The request conflicts with the resource's current state |
 | `429` | [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded), [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |

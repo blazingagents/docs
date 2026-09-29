@@ -59,6 +59,27 @@ const agent = await correlated.agents.get({ agentId: "ag_0123456789abcdef" });
 
 The ID uses 1 to 128 ASCII letters, digits, `.`, `_`, `:`, or `-`. Generation inputs also accept `clientRequestId` directly.
 
+### `forUser()` [#for-user]
+
+Use `forUser()` in your backend after you authenticate an end user. It sends `X-BA-User-Id` on every request and returns a `UserClient` with user-owned resources and generation methods. The API checks ownership for reads and writes. Tenant administration methods, such as `providers` and `tenant`, are absent from this client.
+
+**Signature:** `forUser(userId: string): UserClient`
+
+```typescript
+import { BlazingAgents } from "@blazingagents/sdk";
+
+const tenantClient = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
+
+export async function listMyAgents(verifiedSession: { user: { id: string } }) {
+  const userClient = tenantClient.forUser(verifiedSession.user.id);
+  return await userClient.agents.list({ limit: 50 });
+}
+```
+
+Pass the session your backend has verified. Do not take the user ID from a request body or query parameter. The ID must contain 1 to 256 printable ASCII characters without a leading or trailing space. `withOptions()` on a `UserClient` keeps the user scope.
+
+A request body's `userId` labels the resource or turn. It does not grant access. On a scoped request, the API fills in a missing `userId` with the scoped ID and rejects a different one. Without `forUser()`, your API key retains tenant-wide authority, even when a request body contains `userId`. The scoped client omits tenant administration, usage overview, and per-agent usage; use the tenant client for those operations.
+
 ## Custom fetch [#custom-fetch]
 
 Pass `fetch` to time requests or to run on a runtime with its own transport. Your function must forward the request unchanged and return a standard `Response`.
@@ -302,6 +323,7 @@ Input types are unions, so TypeScript rejects a call that passes both `prompt` a
 | `CompletionInput` | `CompletionPromptInput \| CompletionPromptIdInput` |
 | `ObjectInput` | `ObjectPromptInput \| ObjectPromptIdInput`, each with `schema` |
 | `AttributionInput` | Optional `userId` and `metadata` |
+| `UserClient` | Client returned by `forUser()` with user-owned operations |
 | `ChatTrigger` | `"submit-message" \| "regenerate-message"` |
 | `TerminalStreamResult` | `requestId`, `toStream()`, and `toResponse()`; returned by [`sessions.joinToolApprovalContinuation()`](/sdk/typescript/sessions#join-tool-approval-continuation) |
 | `BlazingAgentsUIMessage` / `BlazingAgentsUIMessageChunk` | AI SDK message types with Blazing Agents metadata |

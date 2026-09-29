@@ -451,13 +451,13 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"agents\": [\n    {\n      \"approvalInChat\": {\n        \"default\": \"full\",\n        \"overrides\": []\n      },\n      \"approvalInTasks\": {\n        \"default\": \"full\",\n        \"overrides\": []\n      },\n      \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"name\": \"Support Agent\",\n      \"model\": \"openai/gpt-6-luna\",\n      \"thinkingLevel\": null,\n      \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n      \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n      \"autoCompaction\": true,\n      \"compactionReserveTokens\": 16384,\n      \"memoryInjectionEnabled\": false,\n      \"tools\": [\n        \"workspace\",\n        \"write_todos\"\n      ],\n      \"instructions\": \"Answer billing questions clearly and briefly.\",\n      \"userId\": \"\",\n      \"metadata\": {\n        \"team\": \"support\"\n      },\n      \"mcpConnectionIds\": [],\n      \"avatarUrl\": null,\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n      \"version\": 1,\n      \"status\": \"active\"\n    }\n  ]\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"approvalInChat\": {\n        \"default\": \"full\",\n        \"overrides\": []\n      },\n      \"approvalInTasks\": {\n        \"default\": \"full\",\n        \"overrides\": []\n      },\n      \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"name\": \"Support Agent\",\n      \"model\": \"openai/gpt-6-luna\",\n      \"thinkingLevel\": null,\n      \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n      \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n      \"autoCompaction\": true,\n      \"compactionReserveTokens\": 16384,\n      \"memoryInjectionEnabled\": false,\n      \"tools\": [\n        \"workspace\",\n        \"write_todos\"\n      ],\n      \"instructions\": \"Answer billing questions clearly and briefly.\",\n      \"userId\": \"\",\n      \"metadata\": {\n        \"team\": \"support\"\n      },\n      \"mcpConnectionIds\": [],\n      \"avatarUrl\": null,\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n      \"version\": 1,\n      \"status\": \"active\"\n    }\n  ],\n  \"nextCursor\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -473,6 +473,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -545,7 +551,7 @@ export const restApiOperations = [
             "status": "201"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -563,16 +569,16 @@ export const restApiOperations = [
             "status": "402"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"provider_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "404"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"agent_name_conflict\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "409"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"rate_limited\",\n    \"message\": \"Too many requests.\"\n  }\n}",
@@ -651,7 +657,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -667,6 +673,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -745,7 +757,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -761,6 +773,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -839,7 +857,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -855,6 +873,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -933,7 +957,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -949,6 +973,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -1027,7 +1057,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -1043,6 +1073,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -1121,7 +1157,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -1139,13 +1175,19 @@ export const restApiOperations = [
             "status": "402"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "404"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"agent_name_conflict\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"admin_agent_managed\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "409"
@@ -1216,7 +1258,7 @@ export const restApiOperations = [
             "status": "204"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -1232,6 +1274,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -1316,7 +1364,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -1332,6 +1380,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -1416,7 +1470,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -1432,6 +1486,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -1516,7 +1576,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -1532,6 +1592,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -1622,7 +1688,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -1638,6 +1704,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -1729,7 +1801,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -1745,6 +1817,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -1817,7 +1895,7 @@ export const restApiOperations = [
             "status": "201"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -1833,6 +1911,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"rate_limited\",\n    \"message\": \"Too many requests.\"\n  }\n}",
@@ -1911,7 +1995,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -1927,6 +2011,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"workspace_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -2005,7 +2095,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -2021,6 +2111,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"workspace_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -2110,7 +2206,7 @@ export const restApiOperations = [
             "status": "204"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -2126,6 +2222,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"workspace_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -2217,7 +2319,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -2233,6 +2335,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -2311,7 +2419,7 @@ export const restApiOperations = [
             "status": "201"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -2327,6 +2435,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -2417,7 +2531,7 @@ export const restApiOperations = [
             "status": "201"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -2433,6 +2547,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -2523,7 +2643,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -2539,6 +2659,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -2612,7 +2738,7 @@ export const restApiOperations = [
             "status": "204"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -2628,6 +2754,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -2702,7 +2834,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -2718,6 +2850,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -2796,7 +2934,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -2812,6 +2950,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -2902,7 +3046,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -2918,6 +3062,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -2996,7 +3146,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -3012,6 +3162,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -3097,6 +3253,12 @@ export const restApiOperations = [
             "status": "200"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -3107,6 +3269,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -3179,7 +3347,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -3195,6 +3363,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -3274,6 +3448,12 @@ export const restApiOperations = [
             "status": "200"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -3284,6 +3464,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -3356,7 +3542,7 @@ export const restApiOperations = [
             "status": "201"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -3372,6 +3558,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"provider_name_conflict\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
@@ -3450,7 +3642,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -3466,6 +3658,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"provider_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -3550,7 +3748,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -3566,6 +3764,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"provider_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -3644,7 +3848,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -3660,6 +3864,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"provider_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -3738,7 +3948,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -3754,6 +3964,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"provider_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -3833,7 +4049,7 @@ export const restApiOperations = [
             "status": "204"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -3849,6 +4065,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"provider_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -3940,6 +4162,12 @@ export const restApiOperations = [
             "status": "200"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -3950,6 +4178,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -4022,7 +4256,7 @@ export const restApiOperations = [
             "status": "201"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -4038,6 +4272,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"mcp_connection_name_conflict\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
@@ -4116,7 +4356,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -4132,6 +4372,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -4210,7 +4456,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -4226,6 +4472,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -4310,7 +4562,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -4326,6 +4578,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -4404,7 +4662,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -4420,6 +4678,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -4499,7 +4763,7 @@ export const restApiOperations = [
             "status": "204"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -4515,6 +4779,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -4602,7 +4872,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -4620,7 +4890,7 @@ export const restApiOperations = [
             "status": "402"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"merchant_customer_unmapped\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "403"
@@ -4721,7 +4991,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -4737,6 +5007,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -4805,7 +5081,7 @@ export const restApiOperations = [
             "status": "201"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -4823,7 +5099,7 @@ export const restApiOperations = [
             "status": "402"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"merchant_customer_unmapped\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "403"
@@ -4917,7 +5193,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -4933,6 +5209,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -5005,7 +5287,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -5021,6 +5303,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -5095,7 +5383,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -5113,7 +5401,7 @@ export const restApiOperations = [
             "status": "402"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"merchant_customer_unmapped\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "403"
@@ -5202,7 +5490,7 @@ export const restApiOperations = [
             "status": "204"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -5218,6 +5506,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -5302,7 +5596,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -5318,6 +5612,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -5396,7 +5696,7 @@ export const restApiOperations = [
             "status": "202"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -5412,6 +5712,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -5492,7 +5798,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -5508,6 +5814,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -5599,7 +5911,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -5615,6 +5927,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -5687,7 +6005,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -5703,6 +6021,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -5781,7 +6105,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -5797,6 +6121,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -5870,7 +6200,7 @@ export const restApiOperations = [
             "status": "204"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -5886,6 +6216,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -5971,7 +6307,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -5987,6 +6323,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -6065,7 +6407,7 @@ export const restApiOperations = [
             "status": "201"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -6081,6 +6423,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -6159,7 +6507,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -6175,6 +6523,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -6253,7 +6607,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -6269,6 +6623,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -6342,7 +6702,7 @@ export const restApiOperations = [
             "status": "204"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -6358,6 +6718,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -6437,13 +6803,13 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"prompts\": [\n    {\n      \"id\": \"prompt_5Wn3Hc7TbK2xQv9F\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"name\": \"Refund reply\",\n      \"template\": \"Write a short, friendly reply to {{customerName}} about order {{orderId}}.\",\n      \"variables\": [\n        \"customerName\",\n        \"orderId\"\n      ],\n      \"userId\": \"\",\n      \"metadata\": {\n        \"team\": \"support\"\n      },\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n    }\n  ]\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"prompt_5Wn3Hc7TbK2xQv9F\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"name\": \"Refund reply\",\n      \"template\": \"Write a short, friendly reply to {{customerName}} about order {{orderId}}.\",\n      \"variables\": [\n        \"customerName\",\n        \"orderId\"\n      ],\n      \"userId\": \"\",\n      \"metadata\": {\n        \"team\": \"support\"\n      },\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n    }\n  ],\n  \"nextCursor\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -6459,6 +6825,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -6531,7 +6903,7 @@ export const restApiOperations = [
             "status": "201"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -6549,16 +6921,16 @@ export const restApiOperations = [
             "status": "402"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "404"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"prompt_name_conflict\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "409"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -6631,7 +7003,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -6647,6 +7019,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -6725,7 +7103,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -6743,16 +7121,16 @@ export const restApiOperations = [
             "status": "402"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "404"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"prompt_name_conflict\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "409"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -6820,7 +7198,7 @@ export const restApiOperations = [
             "status": "204"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -6836,6 +7214,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -6921,7 +7305,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -6937,6 +7321,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -7009,7 +7399,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -7025,6 +7415,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -7097,7 +7493,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -7115,6 +7511,12 @@ export const restApiOperations = [
             "status": "402"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -7128,6 +7530,106 @@ export const restApiOperations = [
           }
         ],
         "url": "/api-reference/rest-api/usage/get-agent-usage"
+      },
+      {
+        "description": "Get exact usage for sessions.",
+        "examples": [
+          {
+            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/usage/sessions\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"sessionIds\":[\"ss_0123456789abcdef\"]}'",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/usage/sessions\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"sessionIds\\\":[\\\"ss_0123456789abcdef\\\"]}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/usage/sessions\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"sessionIds\\\":[\\\"ss_0123456789abcdef\\\"]}\" });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/usage/sessions\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"sessionIds\\\":[\\\"ss_0123456789abcdef\\\"]}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/usage/sessions\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"sessionIds\\\":[\\\"ss_0123456789abcdef\\\"]}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/usage/sessions\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"sessionIds\\\":[\\\"ss_0123456789abcdef\\\"]}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/usage/sessions\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"sessionIds\\\":[\\\"ss_0123456789abcdef\\\"]}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "POST",
+        "operation": "get-session-usage",
+        "path": "/v1/usage/sessions",
+        "responseMetadata": {
+          "description": "Usage totals per session.",
+          "schema": {
+            "name": "SessionUsage"
+          }
+        },
+        "responses": [
+          {
+            "code": "{\n  \"data\": [\n    {\n      \"sessionId\": \"ss_0123456789abcdef\",\n      \"totals\": {\n        \"inputTokens\": 12,\n        \"outputTokens\": 6,\n        \"requestCount\": 1,\n        \"durationMs\": 450\n      }\n    }\n  ]\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "404"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/usage/get-session-usage"
       }
     ],
     "pageId": "api-reference/rest-api/usage.md",
@@ -7192,6 +7694,12 @@ export const restApiOperations = [
             "status": "200"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -7202,6 +7710,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -7274,7 +7788,7 @@ export const restApiOperations = [
             "status": "201"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -7290,6 +7804,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"merchant_credential_invalid\",\n    \"message\": \"The request was understood but rejected.\"\n  }\n}",
@@ -7368,7 +7888,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -7384,6 +7904,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"merchant_connection_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -7469,6 +7995,12 @@ export const restApiOperations = [
             "status": "204"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -7479,6 +8011,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"merchant_connection_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -7557,7 +8095,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -7573,6 +8111,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"merchant_connection_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -7651,7 +8195,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -7667,6 +8211,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"merchant_connection_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -7746,7 +8296,7 @@ export const restApiOperations = [
             "status": "204"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -7762,6 +8312,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"merchant_connection_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -7840,7 +8396,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -7856,6 +8412,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -7928,7 +8490,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -7944,6 +8506,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -8016,7 +8584,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -8032,6 +8600,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"merchant_event_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -8110,7 +8684,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -8126,6 +8700,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"merchant_event_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -8210,7 +8790,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -8226,6 +8806,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"merchant_event_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -8310,7 +8896,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -8326,6 +8912,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"merchant_event_not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -8411,13 +9003,13 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"data\": [\n    {\n      \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"agentVersion\": null,\n      \"name\": \"Daily support summary\",\n      \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n      \"schedule\": {\n        \"kind\": \"cron\",\n        \"config\": {\n          \"expression\": \"0 9 * * 1-5\",\n          \"timezone\": \"Europe/London\"\n        }\n      },\n      \"enabled\": true,\n      \"activeRunId\": null,\n      \"latestRunId\": \"tr_9Jd4Ks7NbV2xQm6P\",\n      \"userId\": \"\",\n      \"metadata\": {\n        \"team\": \"support\"\n      },\n      \"deletedAt\": null,\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:03:00.000Z\",\n      \"latestRun\": {\n        \"id\": \"tr_9Jd4Ks7NbV2xQm6P\",\n        \"status\": \"succeeded\",\n        \"finishedAt\": \"2026-07-10T10:03:00.000Z\"\n      }\n    }\n  ],\n  \"nextCursor\": null\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"agentVersion\": null,\n      \"name\": \"Daily support summary\",\n      \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n      \"schedule\": {\n        \"kind\": \"cron\",\n        \"config\": {\n          \"expression\": \"0 9 * * 1-5\",\n          \"timezone\": \"Europe/London\"\n        }\n      },\n      \"enabled\": true,\n      \"nextFireAt\": null,\n      \"activeRunId\": null,\n      \"latestRunId\": \"tr_9Jd4Ks7NbV2xQm6P\",\n      \"userId\": \"\",\n      \"metadata\": {\n        \"team\": \"support\"\n      },\n      \"deletedAt\": null,\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:03:00.000Z\",\n      \"latestRun\": {\n        \"id\": \"tr_9Jd4Ks7NbV2xQm6P\",\n        \"status\": \"succeeded\",\n        \"finishedAt\": \"2026-07-10T10:03:00.000Z\"\n      }\n    }\n  ],\n  \"nextCursor\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -8433,6 +9025,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -8499,19 +9097,19 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"task\": {\n    \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n    \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n    \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n    \"agentVersion\": null,\n    \"name\": \"Daily support summary\",\n    \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n    \"schedule\": {\n      \"kind\": \"cron\",\n      \"config\": {\n        \"expression\": \"0 9 * * 1-5\",\n        \"timezone\": \"Europe/London\"\n      }\n    },\n    \"enabled\": true,\n    \"activeRunId\": null,\n    \"latestRunId\": null,\n    \"userId\": \"\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"deletedAt\": null,\n    \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n    \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n  },\n  \"runId\": null\n}",
+            "code": "{\n  \"task\": {\n    \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n    \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n    \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n    \"agentVersion\": null,\n    \"name\": \"Daily support summary\",\n    \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n    \"schedule\": {\n      \"kind\": \"cron\",\n      \"config\": {\n        \"expression\": \"0 9 * * 1-5\",\n        \"timezone\": \"Europe/London\"\n      }\n    },\n    \"enabled\": true,\n    \"nextFireAt\": \"2026-07-13T08:00:00.000Z\",\n    \"activeRunId\": null,\n    \"latestRunId\": null,\n    \"userId\": \"\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"deletedAt\": null,\n    \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n    \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n  },\n  \"runId\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "201"
           },
           {
-            "code": "{\n  \"task\": {\n    \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n    \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n    \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n    \"agentVersion\": null,\n    \"name\": \"Daily support summary\",\n    \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n    \"schedule\": null,\n    \"enabled\": true,\n    \"activeRunId\": \"tr_9Jd4Ks7NbV2xQm6P\",\n    \"latestRunId\": \"tr_9Jd4Ks7NbV2xQm6P\",\n    \"userId\": \"\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"deletedAt\": null,\n    \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n    \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n  },\n  \"runId\": \"tr_9Jd4Ks7NbV2xQm6P\"\n}",
+            "code": "{\n  \"task\": {\n    \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n    \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n    \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n    \"agentVersion\": null,\n    \"name\": \"Daily support summary\",\n    \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n    \"schedule\": null,\n    \"enabled\": true,\n    \"nextFireAt\": null,\n    \"activeRunId\": \"tr_9Jd4Ks7NbV2xQm6P\",\n    \"latestRunId\": \"tr_9Jd4Ks7NbV2xQm6P\",\n    \"userId\": \"\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"deletedAt\": null,\n    \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n    \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n  },\n  \"runId\": \"tr_9Jd4Ks7NbV2xQm6P\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "202"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -8527,6 +9125,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -8611,13 +9215,13 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"agentVersion\": null,\n  \"name\": \"Daily support summary\",\n  \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n  \"schedule\": {\n    \"kind\": \"cron\",\n    \"config\": {\n      \"expression\": \"0 9 * * 1-5\",\n      \"timezone\": \"Europe/London\"\n    }\n  },\n  \"enabled\": true,\n  \"activeRunId\": null,\n  \"latestRunId\": null,\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"deletedAt\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n}",
+            "code": "{\n  \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"agentVersion\": null,\n  \"name\": \"Daily support summary\",\n  \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n  \"schedule\": {\n    \"kind\": \"cron\",\n    \"config\": {\n      \"expression\": \"0 9 * * 1-5\",\n      \"timezone\": \"Europe/London\"\n    }\n  },\n  \"enabled\": true,\n  \"nextFireAt\": \"2026-07-13T08:00:00.000Z\",\n  \"activeRunId\": null,\n  \"latestRunId\": null,\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"deletedAt\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -8633,6 +9237,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -8705,13 +9315,13 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"agentVersion\": null,\n  \"name\": \"Daily support summary\",\n  \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n  \"schedule\": {\n    \"kind\": \"cron\",\n    \"config\": {\n      \"expression\": \"0 9 * * 1-5\",\n      \"timezone\": \"Europe/London\"\n    }\n  },\n  \"enabled\": false,\n  \"activeRunId\": null,\n  \"latestRunId\": null,\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\",\n    \"pausedBy\": \"ops\"\n  },\n  \"deletedAt\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00.000Z\"\n}",
+            "code": "{\n  \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"agentVersion\": null,\n  \"name\": \"Daily support summary\",\n  \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n  \"schedule\": {\n    \"kind\": \"cron\",\n    \"config\": {\n      \"expression\": \"0 9 * * 1-5\",\n      \"timezone\": \"Europe/London\"\n    }\n  },\n  \"enabled\": false,\n  \"nextFireAt\": null,\n  \"activeRunId\": null,\n  \"latestRunId\": null,\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\",\n    \"pausedBy\": \"ops\"\n  },\n  \"deletedAt\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00.000Z\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -8727,6 +9337,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -8800,7 +9416,7 @@ export const restApiOperations = [
             "status": "204"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -8816,6 +9432,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -8907,7 +9529,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -8923,6 +9545,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -9001,7 +9629,7 @@ export const restApiOperations = [
             "status": "202"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -9017,6 +9645,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -9101,7 +9735,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -9117,6 +9751,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -9195,7 +9835,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -9211,6 +9851,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -9284,7 +9930,7 @@ export const restApiOperations = [
             "status": "204"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -9300,6 +9946,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -9385,6 +10037,12 @@ export const restApiOperations = [
             "status": "200"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -9395,6 +10053,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -9467,7 +10131,7 @@ export const restApiOperations = [
             "status": "201"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -9483,6 +10147,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -9561,7 +10231,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -9577,6 +10247,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -9655,7 +10331,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -9671,6 +10347,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -9743,7 +10425,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -9759,6 +10441,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -9837,7 +10525,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -9853,6 +10541,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -9931,7 +10625,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -9947,6 +10641,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -10032,7 +10732,7 @@ export const restApiOperations = [
             "status": "204"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -10048,6 +10748,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -10126,7 +10832,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -10142,6 +10848,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -10232,7 +10944,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -10248,6 +10960,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -10326,7 +11044,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -10342,6 +11060,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
@@ -10420,7 +11144,7 @@ export const restApiOperations = [
             "status": "200"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"validation_failed\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "400"
@@ -10436,6 +11160,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",

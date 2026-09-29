@@ -9,6 +9,8 @@ description: See how many tokens, requests, and minutes your agents use, by day,
 
 See how much your agents use: tokens, requests, and run time, added up over UTC date ranges of up to 31 days. Look at your whole tenant or narrow it to one agent, session, or end user.
 
+`POST /v1/usage/sessions` returns exact totals for 1 to 100 session IDs. It preserves input order, includes zero totals for visible sessions without usage, and returns `not_found` if any session is missing or outside your user scope.
+
 ## Endpoints [#endpoints]
 
 ### GET /v1/usage [#get-usage]
@@ -78,9 +80,10 @@ Response schema: `Usage`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -209,9 +212,10 @@ Response schema: `UsageOverview`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -277,9 +281,10 @@ Response schema: `Usage`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -288,6 +293,65 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 ```bash
 curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/usage" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/usage/sessions [#get-session-usage]
+
+Get exact usage for sessions.
+
+Returns exact usage totals for 1 to 100 visible sessions in request order. Sessions without usage in the requested UTC date range have zero totals. Send both from and to or neither; the default is the last 30 days ending today.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `sessionIds` | string[] | body | required | One to 100 distinct session IDs. Every session must be visible to the caller. |
+| `from` | string | body |  | First UTC day to include, as `YYYY-MM-DD`. Send it with `to`, or leave both out for the last 30 days ending today. |
+| `to` | string | body |  | Last UTC day to include, as `YYYY-MM-DD`. It must not be before `from` and can be at most 31 days after it. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. Usage totals per session.
+
+Response schema: `SessionUsage`.
+
+```json
+{
+  "data": [
+    {
+      "sessionId": "ss_0123456789abcdef",
+      "totals": {
+        "inputTokens": 12,
+        "outputTokens": 6,
+        "requestCount": 1,
+        "durationMs": 450
+      }
+    }
+  ]
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/usage/sessions" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"sessionIds":["ss_0123456789abcdef"]}'
 ```
 
 ## Next [#next]

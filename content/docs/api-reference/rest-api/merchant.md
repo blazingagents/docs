@@ -58,8 +58,10 @@ Response schema: `MerchantConnectionResponse`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -118,9 +120,10 @@ Response schema: `MerchantConnectionResponse`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `422` | [`merchant_credential_invalid`](/api-reference/protocols/errors#merchant_credential_invalid) | The request was understood but rejected |
 | `503` | [`merchant_provider_unavailable`](/api-reference/protocols/errors#merchant_provider_unavailable) | The service is temporarily unavailable |
 
@@ -184,9 +187,10 @@ Response schema: `MerchantConnectionResponse`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
 | `409` | [`merchant_account_mismatch`](/api-reference/protocols/errors#merchant_account_mismatch) | The request conflicts with the resource's current state |
 | `422` | [`merchant_credential_invalid`](/api-reference/protocols/errors#merchant_credential_invalid) | The request was understood but rejected |
@@ -223,8 +227,10 @@ Returns `204 No Content`. The connection was retired.
 
 | Status | Codes | Description |
 | --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
@@ -276,9 +282,10 @@ Response schema: `MerchantBindingList`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
@@ -326,9 +333,10 @@ Response schema: `MerchantBindingResponse`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
 | `422` | [`merchant_customer_not_found`](/api-reference/protocols/errors#merchant_customer_not_found) | The request was understood but rejected |
 | `503` | [`merchant_provider_unavailable`](/api-reference/protocols/errors#merchant_provider_unavailable) | The service is temporarily unavailable |
@@ -366,9 +374,10 @@ Returns `204 No Content`. The binding was deleted.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found), [`merchant_binding_not_found`](/api-reference/protocols/errors#merchant_binding_not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
@@ -489,9 +498,10 @@ Response schema: `MerchantUsageEventList`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -559,9 +569,10 @@ Response schema: `MerchantUsageSummary`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -649,9 +660,10 @@ Response schema: `MerchantUsageEventResponse`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`merchant_event_not_found`](/api-reference/protocols/errors#merchant_event_not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
@@ -740,9 +752,10 @@ Response schema: `MerchantUsageEventResponse`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`merchant_event_not_found`](/api-reference/protocols/errors#merchant_event_not_found) | The resource was not found |
 | `409` | [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict) | The request conflicts with the resource's current state |
 
@@ -832,9 +845,10 @@ Response schema: `MerchantUsageEventResponse`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`merchant_event_not_found`](/api-reference/protocols/errors#merchant_event_not_found), [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
 | `409` | [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict), [`merchant_binding_required`](/api-reference/protocols/errors#merchant_binding_required) | The request conflicts with the resource's current state |
 
@@ -924,9 +938,10 @@ Response schema: `MerchantUsageEventResponse`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`merchant_event_not_found`](/api-reference/protocols/errors#merchant_event_not_found) | The resource was not found |
 | `409` | [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict) | The request conflicts with the resource's current state |
 

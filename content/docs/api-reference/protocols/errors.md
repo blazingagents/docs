@@ -19,9 +19,9 @@ Each code links to its own entry. You can link straight to one, for example
 
 | Area | Codes |
 | --- | --- |
-| [Auth and access](#auth-and-access) | [`unauthorized`](#unauthorized), [`api_key_limit_reached`](#api_key_limit_reached), [`tenant_deleting`](#tenant_deleting), [`tenant_deletion_in_progress`](#tenant_deletion_in_progress), [`tenant_deletion_not_ready`](#tenant_deletion_not_ready), [`tenant_not_deleting`](#tenant_not_deleting) |
-| [Requests and validation](#requests-and-validation) | [`invalid_request`](#invalid_request), [`validation_failed`](#validation_failed), [`not_found`](#not_found), [`invalid_cursor`](#invalid_cursor) |
-| [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`agent_version_not_found`](#agent_version_not_found), [`agent_name_conflict`](#agent_name_conflict), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_limit_reached`](#prompt_limit_reached), [`prompt_name_conflict`](#prompt_name_conflict), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
+| [Auth and access](#auth-and-access) | [`unauthorized`](#unauthorized), [`forbidden`](#forbidden), [`api_key_limit_reached`](#api_key_limit_reached), [`tenant_deleting`](#tenant_deleting), [`tenant_deletion_in_progress`](#tenant_deletion_in_progress), [`tenant_deletion_not_ready`](#tenant_deletion_not_ready), [`tenant_not_deleting`](#tenant_not_deleting) |
+| [Requests and validation](#requests-and-validation) | [`invalid_request`](#invalid_request), [`idempotency_conflict`](#idempotency_conflict), [`validation_failed`](#validation_failed), [`not_found`](#not_found), [`invalid_cursor`](#invalid_cursor) |
+| [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`agent_version_not_found`](#agent_version_not_found), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
 | [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`session_version_mismatch`](#session_version_mismatch), [`message_not_found`](#message_not_found), [`tool_approval_continuation_not_found`](#tool_approval_continuation_not_found), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict) |
 | [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
 | [Tasks](#tasks) | [`task_active_run_exists`](#task_active_run_exists) |
@@ -39,9 +39,8 @@ this JSON body:
 ```json
 {
   "error": {
-    "code": "agent_name_conflict",
-    "message": "Agent name already exists",
-    "param": "/name"
+    "code": "not_found",
+    "message": "Not found"
   }
 }
 ```
@@ -213,6 +212,19 @@ To fix it:
 - Check that your backend reads the key from the environment you expect and that it was copied in full.
 - Call dashboard-only endpoints from the dashboard instead of with an API key.
 
+### `forbidden` [#forbidden]
+
+**This request needs tenant authority.**
+
+The request used an end-user scope for an operation that only a tenant administrator can perform, or sent a user scope with dashboard authentication.
+
+HTTP `403`. Retrying the same request fails the same way until you fix the cause.
+
+To fix it:
+
+- Use a tenant API key without X-BA-User-Id for tenant administration.
+- Use a user-scoped client only for that user's agents, sessions, tasks, and other owned resources.
+
 ### `api_key_limit_reached` [#api_key_limit_reached]
 
 **Your tenant already has the maximum number of API keys.**
@@ -291,6 +303,18 @@ To fix it:
 - Read `message`, which names the problem.
 - Change the request to match, then send it again.
 
+### `idempotency_conflict` [#idempotency_conflict]
+
+**This idempotency key belongs to a different request.**
+
+A task create request reused a key with different task fields, or the original task was deleted. No new task or run was created.
+
+HTTP `409`. Retrying the same request fails the same way until you fix the cause.
+
+To fix it:
+
+- Retry with the original request fields, or use a new key for a different task.
+
 ### `validation_failed` [#validation_failed]
 
 **One or more request values failed validation.**
@@ -308,14 +332,14 @@ To fix it:
 
 **The resource does not exist in your tenant.**
 
-The ID is wrong, the resource was deleted, or it belongs to another tenant. You get the same answer in each case, so a missing resource never reveals that another tenant owns it. An unknown URL path also returns this code.
+The ID is wrong, the resource was deleted, or it belongs to another tenant or user scope. You get the same answer in each case, so a missing resource does not reveal who owns it. An unknown URL path also returns this code.
 
 HTTP `404`. Retrying the same request fails the same way until you fix the cause.
 
 To fix it:
 
 - Check the ID and its prefix, such as `ag_` or `ss_`.
-- Check that you use the API key for the tenant that owns the resource.
+- Check that you use the API key and user scope that own the resource.
 - If the resource was deleted, create it again.
 
 ### `invalid_cursor` [#invalid_cursor]
@@ -372,18 +396,6 @@ To fix it:
 
 - List the agent's versions and choose one that exists.
 - Update any session or task that pins the missing version. See [pin a version](/agents/versions-and-lifecycle#pin-a-version).
-
-### `agent_name_conflict` [#agent_name_conflict]
-
-**Another agent already uses this name.**
-
-Agent names are unique within your tenant. Nothing was created or changed.
-
-HTTP `409`. Retrying the same request fails the same way until you fix the cause.
-
-To fix it:
-
-- Choose a different name, or update the existing agent instead.
 
 ### `provider_required` [#provider_required]
 
@@ -498,30 +510,6 @@ To fix it:
 
 - Retry after a short wait.
 - If it keeps failing, check the provider's status and that its key is still valid. A key cannot change, so create a new provider with a working key and move your agents to it.
-
-### `prompt_limit_reached` [#prompt_limit_reached]
-
-**Your tenant already has the maximum number of prompts.**
-
-Creating the prompt would go past the [prompt limit](/api-reference/protocols/service-limits#prompts-per-tenant). No prompt was created.
-
-HTTP `400`. Retrying the same request fails the same way until you fix the cause.
-
-To fix it:
-
-- Delete a prompt you no longer use, then create the new one.
-
-### `prompt_name_conflict` [#prompt_name_conflict]
-
-**Another prompt already uses this name.**
-
-Prompt names are unique within your tenant. Nothing was created or changed.
-
-HTTP `409`. Retrying the same request fails the same way until you fix the cause.
-
-To fix it:
-
-- Choose a different name, or update the existing prompt instead.
 
 ### `prompt_variable_missing` [#prompt_variable_missing]
 

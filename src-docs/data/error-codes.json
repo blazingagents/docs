@@ -61,6 +61,18 @@
       "retryable": false
     },
     {
+      "code": "forbidden",
+      "group": "auth-and-access",
+      "statuses": [403],
+      "title": "This request needs tenant authority.",
+      "whatHappened": "The request used an end-user scope for an operation that only a tenant administrator can perform, or sent a user scope with dashboard authentication.",
+      "howToFix": [
+        "Use a tenant API key without X-BA-User-Id for tenant administration.",
+        "Use a user-scoped client only for that user's agents, sessions, tasks, and other owned resources."
+      ],
+      "retryable": false
+    },
+    {
       "code": "api_key_limit_reached",
       "group": "auth-and-access",
       "statuses": [400],
@@ -129,6 +141,17 @@
       "retryable": false
     },
     {
+      "code": "idempotency_conflict",
+      "group": "requests-and-validation",
+      "statuses": [409],
+      "title": "This idempotency key belongs to a different request.",
+      "whatHappened": "A task create request reused a key with different task fields, or the original task was deleted. No new task or run was created.",
+      "howToFix": [
+        "Retry with the original request fields, or use a new key for a different task."
+      ],
+      "retryable": false
+    },
+    {
       "code": "validation_failed",
       "group": "requests-and-validation",
       "statuses": [400],
@@ -145,10 +168,10 @@
       "group": "requests-and-validation",
       "statuses": [404],
       "title": "The resource does not exist in your tenant.",
-      "whatHappened": "The ID is wrong, the resource was deleted, or it belongs to another tenant. You get the same answer in each case, so a missing resource never reveals that another tenant owns it. An unknown URL path also returns this code.",
+      "whatHappened": "The ID is wrong, the resource was deleted, or it belongs to another tenant or user scope. You get the same answer in each case, so a missing resource does not reveal who owns it. An unknown URL path also returns this code.",
       "howToFix": [
         "Check the ID and its prefix, such as `ag_` or `ss_`.",
-        "Check that you use the API key for the tenant that owns the resource.",
+        "Check that you use the API key and user scope that own the resource.",
         "If the resource was deleted, create it again."
       ],
       "retryable": false
@@ -197,17 +220,6 @@
       "howToFix": [
         "List the agent's versions and choose one that exists.",
         "Update any session or task that pins the missing version. See [pin a version](/agents/versions-and-lifecycle#pin-a-version)."
-      ],
-      "retryable": false
-    },
-    {
-      "code": "agent_name_conflict",
-      "group": "agents-and-providers",
-      "statuses": [409],
-      "title": "Another agent already uses this name.",
-      "whatHappened": "Agent names are unique within your tenant. Nothing was created or changed.",
-      "howToFix": [
-        "Choose a different name, or update the existing agent instead."
       ],
       "retryable": false
     },
@@ -315,28 +327,6 @@
         "If it keeps failing, check the provider's status and that its key is still valid. A key cannot change, so create a new provider with a working key and move your agents to it."
       ],
       "retryable": true
-    },
-    {
-      "code": "prompt_limit_reached",
-      "group": "agents-and-providers",
-      "statuses": [400],
-      "title": "Your tenant already has the maximum number of prompts.",
-      "whatHappened": "Creating the prompt would go past the [prompt limit](/api-reference/protocols/service-limits#prompts-per-tenant). No prompt was created.",
-      "howToFix": [
-        "Delete a prompt you no longer use, then create the new one."
-      ],
-      "retryable": false
-    },
-    {
-      "code": "prompt_name_conflict",
-      "group": "agents-and-providers",
-      "statuses": [409],
-      "title": "Another prompt already uses this name.",
-      "whatHappened": "Prompt names are unique within your tenant. Nothing was created or changed.",
-      "howToFix": [
-        "Choose a different name, or update the existing prompt instead."
-      ],
-      "retryable": false
     },
     {
       "code": "prompt_variable_missing",

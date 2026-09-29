@@ -56,7 +56,7 @@ print(
 )
 ```
 
-Prompt names are unique in your account, so use a new name before you run this again.
+You can reuse a prompt name. Save its ID if you need to update or delete that prompt later.
 
 ## How variables work [#how-variables-work]
 
@@ -70,7 +70,6 @@ Blazing Agents fills in the template before the agent runs, and only the filled-
 
 ## Limits [#limits]
 
-- Up to 100 prompts per account.
 - Names up to 80 characters.
 - Templates up to 10,240 characters, with at most 10 distinct variables.
 
