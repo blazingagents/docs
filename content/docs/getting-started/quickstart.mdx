@@ -74,7 +74,12 @@ The program is safe to run again and again. It looks up the provider and agent b
 
     ```typescript tab="TypeScript" tab-group="sdk-language" title="quickstart.ts"
     const agentName = "Quickstart agent";
-    const { agents } = await client.agents.list();
+    let page = await client.agents.list();
+    const agents = [...page.data];
+    while (page.nextCursor) {
+      page = await client.agents.list({ cursor: page.nextCursor });
+      agents.push(...page.data);
+    }
     const agent =
       agents.find(({ name }) => name === agentName) ??
       (await client.agents.create({
@@ -87,7 +92,11 @@ The program is safe to run again and again. It looks up the provider and agent b
 
     ```python tab="Python" title="quickstart.py"
     agent_name = "Quickstart agent"
-    agents = client.agents.list().agents
+    page = client.agents.list()
+    agents = list(page.data)
+    while page.next_cursor is not None:
+        page = client.agents.list(cursor=page.next_cursor)
+        agents.extend(page.data)
     agent = next((a for a in agents if a.name == agent_name), None) or client.agents.create(
         name=agent_name,
         provider_id=provider.id,

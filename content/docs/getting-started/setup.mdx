@@ -60,7 +60,12 @@ You need a Blazing Agents account and either Node.js 24 or later, or Python 3.11
       apiKey: process.env.BLAZING_AGENTS_API_KEY!,
     });
 
-    const { agents } = await client.agents.list();
+    let page = await client.agents.list();
+    const agents = [...page.data];
+    while (page.nextCursor) {
+      page = await client.agents.list({ cursor: page.nextCursor });
+      agents.push(...page.data);
+    }
     console.log(`Connected. Your tenant has ${agents.length} agents.`);
     ```
 
@@ -69,7 +74,11 @@ You need a Blazing Agents account and either Node.js 24 or later, or Python 3.11
 
     client = BlazingAgents()
 
-    agents = client.agents.list().agents
+    page = client.agents.list()
+    agents = list(page.data)
+    while page.next_cursor is not None:
+        page = client.agents.list(cursor=page.next_cursor)
+        agents.extend(page.data)
     print(f"Connected. Your tenant has {len(agents)} agents.")
     ```
 

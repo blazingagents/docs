@@ -116,6 +116,7 @@
                 "type": "string",
                 "enum": [
                   "invalid_request",
+                  "idempotency_conflict",
                   "validation_failed",
                   "unauthorized",
                   "not_found",
@@ -131,14 +132,11 @@
                   "agent_version_not_found",
                   "agent_mcp_connection_not_found",
                   "agent_mcp_connections_invalid",
-                  "agent_name_conflict",
                   "provider_required",
                   "api_key_limit_reached",
                   "artifact_session_cap_reached",
                   "invalid_cursor",
                   "message_not_found",
-                  "prompt_limit_reached",
-                  "prompt_name_conflict",
                   "prompt_variable_missing",
                   "prompt_variable_unknown",
                   "provider_in_use",
@@ -184,6 +182,7 @@
                   "merchant_event_not_found",
                   "merchant_event_state_conflict",
                   "merchant_customer_unmapped",
+                  "forbidden",
                   "merchant_subscription_required",
                   "merchant_balance_required",
                   "merchant_eligibility_unavailable",
@@ -2318,15 +2317,22 @@
       "AgentList": {
         "type": "object",
         "properties": {
-          "agents": {
+          "data": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Agent"
             }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
-          "agents"
+          "data",
+          "nextCursor"
         ],
         "additionalProperties": false
       },
@@ -4614,15 +4620,22 @@
       "PromptList": {
         "type": "object",
         "properties": {
-          "prompts": {
+          "data": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Prompt"
             }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
-          "prompts"
+          "data",
+          "nextCursor"
         ],
         "additionalProperties": false
       },
@@ -5910,6 +5923,88 @@
           "activeAgentCount"
         ]
       },
+      "SessionUsage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sessionId": {
+                  "type": "string",
+                  "pattern": "^ss_[0-9A-Za-z]{16}$"
+                },
+                "totals": {
+                  "type": "object",
+                  "properties": {
+                    "inputTokens": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "outputTokens": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "requestCount": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "durationMs": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "inputTokens",
+                    "outputTokens",
+                    "requestCount",
+                    "durationMs"
+                  ]
+                }
+              },
+              "required": [
+                "sessionId",
+                "totals"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "SessionUsageQuery": {
+        "type": "object",
+        "properties": {
+          "sessionIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$"
+            },
+            "minItems": 1,
+            "maxItems": 100,
+            "description": "One to 100 distinct session IDs. Every session must be visible to the caller."
+          },
+          "from": {
+            "type": "string",
+            "format": "date",
+            "description": "First UTC day to include, as `YYYY-MM-DD`. Send it with `to`, or leave both out for the last 30 days ending today."
+          },
+          "to": {
+            "type": "string",
+            "format": "date",
+            "description": "Last UTC day to include, as `YYYY-MM-DD`. It must not be before `from` and can be at most 31 days after it."
+          }
+        },
+        "required": [
+          "sessionIds"
+        ],
+        "additionalProperties": false
+      },
       "CreatedTask": {
         "type": "object",
         "properties": {
@@ -6084,6 +6179,13 @@
               "updatedAt": {
                 "type": "string",
                 "format": "date-time"
+              },
+              "nextFireAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
               }
             },
             "required": [
@@ -6101,7 +6203,8 @@
               "metadata",
               "deletedAt",
               "createdAt",
-              "updatedAt"
+              "updatedAt",
+              "nextFireAt"
             ]
           },
           "runId": {
@@ -6294,6 +6397,13 @@
                   "type": "string",
                   "format": "date-time"
                 },
+                "nextFireAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                },
                 "latestRun": {
                   "type": [
                     "object",
@@ -6346,6 +6456,7 @@
                 "deletedAt",
                 "createdAt",
                 "updatedAt",
+                "nextFireAt",
                 "latestRun"
               ]
             }
@@ -6533,6 +6644,13 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "nextFireAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           }
         },
         "required": [
@@ -6550,7 +6668,8 @@
           "metadata",
           "deletedAt",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "nextFireAt"
         ]
       },
       "CreatedTaskRun": {
@@ -7718,6 +7837,19 @@
               }
             }
           },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "401": {
             "description": "The credential is missing or invalid",
             "x-error-codes": [
@@ -7735,6 +7867,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -7841,8 +7986,8 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
-              "validation_failed",
-              "invalid_request"
+              "invalid_request",
+              "validation_failed"
             ],
             "content": {
               "application/json": {
@@ -7869,6 +8014,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -8158,8 +8316,8 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
-              "validation_failed",
-              "invalid_request"
+              "invalid_request",
+              "validation_failed"
             ],
             "content": {
               "application/json": {
@@ -8186,6 +8344,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -8275,6 +8446,19 @@
               }
             }
           },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "401": {
             "description": "The credential is missing or invalid",
             "x-error-codes": [
@@ -8292,6 +8476,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -8389,6 +8586,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -8417,6 +8615,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -8543,6 +8754,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -8571,6 +8783,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -8681,8 +8906,8 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
-              "validation_failed",
-              "invalid_request"
+              "invalid_request",
+              "validation_failed"
             ],
             "content": {
               "application/json": {
@@ -8709,6 +8934,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -8812,6 +9050,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -8839,6 +9078,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -8988,8 +9240,8 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
-              "validation_failed",
-              "invalid_request"
+              "invalid_request",
+              "validation_failed"
             ],
             "content": {
               "application/json": {
@@ -9016,6 +9268,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -9093,6 +9358,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -9120,6 +9386,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -9290,8 +9569,8 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
-              "validation_failed",
-              "invalid_request"
+              "invalid_request",
+              "validation_failed"
             ],
             "content": {
               "application/json": {
@@ -9318,6 +9597,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -9447,6 +9739,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -9474,6 +9767,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -9577,6 +9883,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -9604,6 +9911,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -9707,6 +10027,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -9734,6 +10055,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -9883,8 +10217,8 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
-              "validation_failed",
               "invalid_request",
+              "validation_failed",
               "provider_limit_reached"
             ],
             "content": {
@@ -9912,6 +10246,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -9965,6 +10312,19 @@
               }
             }
           },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "401": {
             "description": "The credential is missing or invalid",
             "x-error-codes": [
@@ -9982,6 +10342,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -10036,6 +10409,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -10063,6 +10437,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -10170,6 +10557,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -10197,6 +10585,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -10266,6 +10667,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -10293,6 +10695,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -10385,8 +10800,8 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
-              "validation_failed",
-              "invalid_request"
+              "invalid_request",
+              "validation_failed"
             ],
             "content": {
               "application/json": {
@@ -10413,6 +10828,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -10493,6 +10921,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -10520,6 +10949,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -10703,6 +11145,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -10730,6 +11173,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -10846,6 +11302,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -10874,6 +11331,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -10938,6 +11408,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -10965,6 +11436,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -11128,6 +11612,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -11155,6 +11640,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -11235,6 +11733,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -11262,6 +11761,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -11539,6 +12051,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "mcp_connection_invalid",
               "mcp_connection_authentication_failed",
@@ -11571,6 +12084,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -11631,6 +12157,19 @@
               }
             }
           },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "401": {
             "description": "The credential is missing or invalid",
             "x-error-codes": [
@@ -11648,6 +12187,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -11778,6 +12330,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -11805,6 +12358,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -12042,6 +12608,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "mcp_connection_invalid",
               "mcp_connection_authentication_failed",
@@ -12073,6 +12640,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -12160,6 +12740,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -12187,6 +12768,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -12281,6 +12875,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -12308,6 +12903,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -12372,6 +12980,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -12399,6 +13008,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -12444,7 +13066,7 @@
           "agents"
         ],
         "summary": "Create an agent",
-        "description": "Creates an agent. Names are unique within your tenant. `providerId` and `model` go together: send both to give the agent a model, or leave both out. Leave out `workspaceId` to create a new workspace for the agent.",
+        "description": "Creates an agent. `providerId` and `model` go together: send both to give the agent a model, or leave both out. Leave out `workspaceId` to create a new workspace for the agent.",
         "requestBody": {
           "required": true,
           "content": {
@@ -12689,7 +13311,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 80,
-                    "description": "Display name, unique within your tenant."
+                    "description": "Display name."
                   },
                   "model": {
                     "type": [
@@ -12838,8 +13460,8 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
-              "validation_failed",
               "invalid_request",
+              "validation_failed",
               "model_not_found",
               "agent_mcp_connection_not_found",
               "agent_mcp_connections_invalid",
@@ -12879,11 +13501,10 @@
               }
             }
           },
-          "404": {
-            "description": "The resource was not found",
+          "403": {
+            "description": "The end user cannot run this request",
             "x-error-codes": [
-              "provider_not_found",
-              "workspace_not_found"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -12893,10 +13514,11 @@
               }
             }
           },
-          "409": {
-            "description": "The request conflicts with the resource's current state",
+          "404": {
+            "description": "The resource was not found",
             "x-error-codes": [
-              "agent_name_conflict"
+              "provider_not_found",
+              "workspace_not_found"
             ],
             "content": {
               "application/json": {
@@ -12941,7 +13563,7 @@
           "agents"
         ],
         "summary": "List agents",
-        "description": "Lists your agents, most recently updated first. Filter by end user or by workspace.",
+        "description": "Lists your agents, newest first. Filter by end user or by workspace. Pass `nextCursor` as `cursor` for older agents.",
         "parameters": [
           {
             "schema": {
@@ -12963,6 +13585,30 @@
             "description": "Return only agents that use this workspace.",
             "name": "workspaceId",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "`nextCursor` from the previous page."
+            },
+            "required": false,
+            "description": "`nextCursor` from the previous page.",
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "description": "Maximum number of agents to return."
+            },
+            "required": false,
+            "description": "Maximum number of agents to return.",
+            "name": "limit",
+            "in": "query"
           }
         ],
         "responses": {
@@ -12971,7 +13617,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "agents": [
+                  "data": [
                     {
                       "approvalInChat": {
                         "default": "full",
@@ -13007,7 +13653,8 @@
                       "version": 1,
                       "status": "active"
                     }
-                  ]
+                  ],
+                  "nextCursor": null
                 },
                 "schema": {
                   "$ref": "#/components/schemas/AgentList"
@@ -13018,6 +13665,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -13045,6 +13693,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -13105,6 +13766,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -13132,6 +13794,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -13245,6 +13920,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -13272,6 +13948,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -13391,6 +14080,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -13419,6 +14109,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -13520,6 +14223,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -13547,6 +14251,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -13642,6 +14359,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -13669,6 +14387,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -13942,7 +14673,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 80,
-                    "description": "Display name, unique within your tenant."
+                    "description": "Display name."
                   },
                   "model": {
                     "type": [
@@ -14072,8 +14803,8 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
-              "validation_failed",
               "invalid_request",
+              "validation_failed",
               "model_not_found",
               "agent_mcp_connection_not_found",
               "agent_mcp_connections_invalid",
@@ -14113,6 +14844,19 @@
               }
             }
           },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "404": {
             "description": "The resource was not found",
             "x-error-codes": [
@@ -14131,7 +14875,6 @@
           "409": {
             "description": "The request conflicts with the resource's current state",
             "x-error-codes": [
-              "agent_name_conflict",
               "admin_agent_managed"
             ],
             "content": {
@@ -14199,6 +14942,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -14226,6 +14970,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -14334,6 +15091,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -14361,6 +15119,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -14469,6 +15240,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -14496,6 +15268,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -14630,6 +15415,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -14657,6 +15443,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -14776,6 +15575,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -14803,6 +15603,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -14926,6 +15739,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "skill_invalid_markdown",
               "skill_limit_reached"
@@ -14955,6 +15769,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -15093,6 +15920,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -15121,6 +15949,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -15234,6 +16075,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "skill_invalid_archive",
               "skill_invalid_markdown",
@@ -15265,6 +16107,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -15397,6 +16252,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -15424,6 +16280,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -15500,6 +16369,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -15527,6 +16397,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -15625,6 +16508,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -15652,6 +16536,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -15780,6 +16677,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "skill_invalid_markdown",
               "skill_too_many_files"
@@ -15809,6 +16707,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -15948,8 +16859,8 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
-              "validation_failed",
-              "invalid_request"
+              "invalid_request",
+              "validation_failed"
             ],
             "content": {
               "application/json": {
@@ -15976,6 +16887,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -16129,6 +17053,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -16156,6 +17081,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -16326,6 +17264,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "provider_required",
               "prompt_variable_missing",
@@ -16371,6 +17310,7 @@
           "403": {
             "description": "The end user cannot run this request",
             "x-error-codes": [
+              "forbidden",
               "merchant_customer_unmapped"
             ],
             "content": {
@@ -16526,6 +17466,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -16554,6 +17495,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -16685,8 +17639,8 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
-              "validation_failed",
               "invalid_request",
+              "validation_failed",
               "provider_required",
               "prompt_variable_missing",
               "prompt_variable_unknown"
@@ -16731,6 +17685,7 @@
           "403": {
             "description": "The end user cannot run this request",
             "x-error-codes": [
+              "forbidden",
               "merchant_customer_unmapped"
             ],
             "content": {
@@ -16897,6 +17852,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -16925,6 +17881,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -17044,6 +18013,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -17072,6 +18042,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -17151,6 +18134,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -17178,6 +18162,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -17331,8 +18328,8 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
-              "validation_failed",
               "invalid_request",
+              "validation_failed",
               "provider_required",
               "prompt_variable_missing",
               "prompt_variable_unknown"
@@ -17377,6 +18374,7 @@
           "403": {
             "description": "The end user cannot run this request",
             "x-error-codes": [
+              "forbidden",
               "merchant_customer_unmapped"
             ],
             "content": {
@@ -17520,6 +18518,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -17547,6 +18546,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -17663,6 +18675,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -17690,6 +18703,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -17787,6 +18813,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -17814,6 +18841,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -17930,6 +18970,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -17958,6 +18999,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -18009,6 +19063,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -18036,6 +19091,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -18109,6 +19177,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -18136,6 +19205,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -18187,6 +19269,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -18214,6 +19297,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -18326,6 +19422,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -18353,6 +19450,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -18471,6 +19581,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -18499,6 +19610,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -18582,6 +19706,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -18609,6 +19734,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -18714,6 +19852,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -18741,6 +19880,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -18803,6 +19955,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -18839,6 +19992,19 @@
               }
             }
           },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "404": {
             "description": "The resource was not found",
             "x-error-codes": [
@@ -18862,7 +20028,7 @@
           "prompts"
         ],
         "summary": "Create a prompt",
-        "description": "Saves a message template and lists the variables it uses in `variables`. Your tenant can keep up to 100 prompts.",
+        "description": "Saves a message template and lists the variables it uses in `variables`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -18882,7 +20048,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 80,
-                    "description": "Display name, 1 to 80 characters, unique within your tenant."
+                    "description": "Display name, 1 to 80 characters."
                   },
                   "template": {
                     "type": "string",
@@ -18950,136 +20116,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
-              "validation_failed",
-              "prompt_limit_reached"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "The credential is missing or invalid",
-            "x-error-codes": [
-              "unauthorized"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "402": {
-            "description": "An active subscription or usage credit is required",
-            "x-error-codes": [
-              "subscription_required"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "The resource was not found",
-            "x-error-codes": [
-              "not_found"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "The request conflicts with the resource's current state",
-            "x-error-codes": [
-              "prompt_name_conflict"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "operationId": "listPrompts",
-        "tags": [
-          "prompts"
-        ],
-        "summary": "List prompts",
-        "description": "Lists your prompts, most recently updated first, in a single response. Filter by end user, by linked agent, or both.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "description": "Return only prompts for this end user. Send an empty string for tenant-level prompts, or leave it out for all prompts."
-            },
-            "required": false,
-            "description": "Return only prompts for this end user. Send an empty string for tenant-level prompts, or leave it out for all prompts.",
-            "name": "userId",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$",
-              "description": "Return only prompts linked to this agent."
-            },
-            "required": false,
-            "description": "Return only prompts linked to this agent.",
-            "name": "agentId",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Your tenant's prompts",
-            "content": {
-              "application/json": {
-                "example": {
-                  "prompts": [
-                    {
-                      "id": "prompt_5Wn3Hc7TbK2xQv9F",
-                      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
-                      "agentId": "ag_4kP9sT2vXq7LmN3a",
-                      "name": "Refund reply",
-                      "template": "Write a short, friendly reply to {{customerName}} about order {{orderId}}.",
-                      "variables": [
-                        "customerName",
-                        "orderId"
-                      ],
-                      "userId": "",
-                      "metadata": {
-                        "team": "support"
-                      },
-                      "createdAt": "2026-07-10T10:00:00.000Z",
-                      "updatedAt": "2026-07-10T10:00:00.000Z"
-                    }
-                  ]
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/PromptList"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request is invalid",
-            "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -19107,6 +20144,174 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listPrompts",
+        "tags": [
+          "prompts"
+        ],
+        "summary": "List prompts",
+        "description": "Lists your prompts, newest first, one page at a time. Pass `nextCursor` as `cursor` for older prompts. Filter by end user, by linked agent, or both.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Return only prompts for this end user. Send an empty string for tenant-level prompts, or leave it out for all prompts."
+            },
+            "required": false,
+            "description": "Return only prompts for this end user. Send an empty string for tenant-level prompts, or leave it out for all prompts.",
+            "name": "userId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "Return only prompts linked to this agent."
+            },
+            "required": false,
+            "description": "Return only prompts linked to this agent.",
+            "name": "agentId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "`nextCursor` from the previous page."
+            },
+            "required": false,
+            "description": "`nextCursor` from the previous page.",
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "description": "Maximum number of prompts to return."
+            },
+            "required": false,
+            "description": "Maximum number of prompts to return.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Your tenant's prompts",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "prompt_5Wn3Hc7TbK2xQv9F",
+                      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+                      "agentId": "ag_4kP9sT2vXq7LmN3a",
+                      "name": "Refund reply",
+                      "template": "Write a short, friendly reply to {{customerName}} about order {{orderId}}.",
+                      "variables": [
+                        "customerName",
+                        "orderId"
+                      ],
+                      "userId": "",
+                      "metadata": {
+                        "team": "support"
+                      },
+                      "createdAt": "2026-07-10T10:00:00.000Z",
+                      "updatedAt": "2026-07-10T10:00:00.000Z"
+                    }
+                  ],
+                  "nextCursor": null
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/PromptList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -19171,6 +20376,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -19198,6 +20404,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -19264,7 +20483,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 80,
-                    "description": "Display name, 1 to 80 characters, unique within your tenant."
+                    "description": "Display name, 1 to 80 characters."
                   },
                   "template": {
                     "type": "string",
@@ -19315,6 +20534,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -19351,10 +20571,10 @@
               }
             }
           },
-          "404": {
-            "description": "The resource was not found",
+          "403": {
+            "description": "The end user cannot run this request",
             "x-error-codes": [
-              "not_found"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -19364,10 +20584,10 @@
               }
             }
           },
-          "409": {
-            "description": "The request conflicts with the resource's current state",
+          "404": {
+            "description": "The resource was not found",
             "x-error-codes": [
-              "prompt_name_conflict"
+              "not_found"
             ],
             "content": {
               "application/json": {
@@ -19406,6 +20626,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -19433,6 +20654,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -19495,6 +20729,19 @@
               }
             }
           },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "401": {
             "description": "The credential is missing or invalid",
             "x-error-codes": [
@@ -19512,6 +20759,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -19577,6 +20837,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -19604,6 +20865,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -19701,6 +20975,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -19728,6 +21003,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -19802,6 +21090,19 @@
           "204": {
             "description": "The connection was retired"
           },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "401": {
             "description": "The credential is missing or invalid",
             "x-error-codes": [
@@ -19819,6 +21120,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -19913,6 +21227,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -19941,6 +21256,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -20022,6 +21350,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -20049,6 +21378,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -20126,6 +21468,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -20153,6 +21496,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -20327,6 +21683,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -20355,6 +21712,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -20434,6 +21804,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -20461,6 +21832,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -20558,6 +21942,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -20585,6 +21970,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -20695,6 +22093,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -20722,6 +22121,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -20845,6 +22257,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -20872,6 +22285,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -20997,6 +22423,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -21024,6 +22451,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -21204,6 +22644,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -21231,6 +22672,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -21391,6 +22845,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -21418,6 +22873,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -21560,6 +23028,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -21595,6 +23064,135 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/usage/sessions": {
+      "post": {
+        "operationId": "getSessionUsage",
+        "tags": [
+          "usage"
+        ],
+        "summary": "Get exact usage for sessions",
+        "description": "Returns exact usage totals for 1 to 100 visible sessions in request order. Sessions without usage in the requested UTC date range have zero totals. Send both from and to or neither; the default is the last 30 days ending today.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "sessionIds": [
+                  "ss_0123456789abcdef"
+                ]
+              },
+              "schema": {
+                "$ref": "#/components/schemas/SessionUsageQuery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usage totals per session",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "sessionId": "ss_0123456789abcdef",
+                      "totals": {
+                        "inputTokens": 12,
+                        "outputTokens": 6,
+                        "requestCount": 1,
+                        "durationMs": 450
+                      }
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SessionUsage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -21606,7 +23204,7 @@
           "tasks"
         ],
         "summary": "Create a task",
-        "description": "Creates a task: a saved prompt your agent runs in the background. With a `schedule`, the task runs by itself; without one, it runs only when you start it. Send `submit: true` to start a run right away, which returns `202 Accepted` with the run's ID in `runId`; otherwise you get `201 Created` and `runId` is `null`. Retrying this request creates another task, so when retries must not start duplicate runs, create the task first and start runs with `POST /v1/tasks/{taskId}/runs` and an `idempotencyKey`. The platform-managed `ba assist` agent cannot run tasks.",
+        "description": "Creates a task: a saved prompt your agent runs in the background. With a `schedule`, the task runs by itself; without one, it runs only when you start it. Send `submit: true` to start a run right away, which returns `202 Accepted` with the run's ID in `runId`; otherwise you get `201 Created` and `runId` is `null`. Send an `idempotencyKey` to retry safely. Matching retries return the current task definition and the original initial run ID. Changed requests or a deleted task return 409. Keys are separate for tenant-wide access and each scoped user. Without a key, each request creates another task. The platform-managed `ba assist` agent cannot run tasks.",
         "requestBody": {
           "required": true,
           "content": {
@@ -21629,6 +23227,11 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "idempotencyKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Retry the same creation with this key to return the current task and its original initial run. Changed requests or deleted tasks return a conflict."
+                  },
                   "agentId": {
                     "type": "string",
                     "pattern": "^ag_[0-9A-Za-z]{16}$",
@@ -21817,6 +23420,7 @@
                       }
                     },
                     "enabled": true,
+                    "nextFireAt": "2026-07-13T08:00:00.000Z",
                     "activeRunId": null,
                     "latestRunId": null,
                     "userId": "",
@@ -21849,6 +23453,7 @@
                     "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
                     "schedule": null,
                     "enabled": true,
+                    "nextFireAt": null,
                     "activeRunId": "tr_9Jd4Ks7NbV2xQm6P",
                     "latestRunId": "tr_9Jd4Ks7NbV2xQm6P",
                     "userId": "",
@@ -21870,6 +23475,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -21906,6 +23512,19 @@
               }
             }
           },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "404": {
             "description": "The resource was not found",
             "x-error-codes": [
@@ -21924,7 +23543,8 @@
             "description": "The request conflicts with the resource's current state",
             "x-error-codes": [
               "agent_disabled",
-              "admin_agent_managed"
+              "admin_agent_managed",
+              "idempotency_conflict"
             ],
             "content": {
               "application/json": {
@@ -21968,7 +23588,7 @@
           "tasks"
         ],
         "summary": "List tasks",
-        "description": "Lists your tasks, most recently updated first, one page at a time. Each task includes `latestRun` with the status of its most recent run, or `null` if it has never run. Filter by agent or by end user, and pass `nextCursor` as `cursor` to get the next page.",
+        "description": "Lists your tasks, most recently updated first, one page at a time. Each task includes `latestRun` with the status of its most recent run, or `null` if it has never run, and `nextFireAt` for its next scheduled fire, or `null` if none is pending. Filter by agent or by end user, and pass `nextCursor` as `cursor` to get the next page.",
         "parameters": [
           {
             "schema": {
@@ -22040,6 +23660,7 @@
                         }
                       },
                       "enabled": true,
+                      "nextFireAt": null,
                       "activeRunId": null,
                       "latestRunId": "tr_9Jd4Ks7NbV2xQm6P",
                       "userId": "",
@@ -22067,6 +23688,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -22095,6 +23717,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -22148,6 +23783,7 @@
                     }
                   },
                   "enabled": true,
+                  "nextFireAt": "2026-07-13T08:00:00.000Z",
                   "activeRunId": null,
                   "latestRunId": null,
                   "userId": "",
@@ -22167,6 +23803,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -22194,6 +23831,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -22415,6 +24065,7 @@
                     }
                   },
                   "enabled": false,
+                  "nextFireAt": null,
                   "activeRunId": null,
                   "latestRunId": null,
                   "userId": "",
@@ -22435,6 +24086,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -22462,6 +24114,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -22514,6 +24179,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -22541,6 +24207,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -22638,6 +24317,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -22665,6 +24345,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -22789,6 +24482,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -22817,6 +24511,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -22909,6 +24616,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -22936,6 +24644,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -23061,6 +24782,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed",
               "invalid_cursor"
             ],
@@ -23089,6 +24811,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -23153,6 +24888,7 @@
           "400": {
             "description": "The request is invalid",
             "x-error-codes": [
+              "invalid_request",
               "validation_failed"
             ],
             "content": {
@@ -23180,6 +24916,19 @@
             "description": "An active subscription or usage credit is required",
             "x-error-codes": [
               "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
             ],
             "content": {
               "application/json": {

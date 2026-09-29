@@ -32,6 +32,8 @@ export const client = new BlazingAgents({
 
 The client talks to `https://api.blazingagents.com`, so you only pass your key. Creating it makes no network request. See [Client](/sdk/typescript/client) for request correlation, a custom `fetch`, and response logging.
 
+For a request from an authenticated end user, derive a [scoped client](/sdk/typescript/client#for-user) from the verified user ID. The API then checks ownership on each supported resource request.
+
 ## Common workflow [#common-workflow]
 
 Connect a model provider, create an agent, and run a first turn:

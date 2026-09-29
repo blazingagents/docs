@@ -5,7 +5,7 @@ description: Label sessions, tasks, and usage with your own user IDs so you can 
 
 # Tenancy and end-user attribution
 
-Tag each turn with your own user ID, then filter sessions and break down usage per user. Your account is the tenant: everything you create belongs to it, and your API key can reach all of it. A `userId` is a label for reporting, not a lock, so your backend keeps deciding who may see what.
+Tag each turn with your own user ID, then filter sessions and break down usage per user. Your API key has tenant-wide authority by default. For requests from one signed-in user, scope the client to that user's ID so Blazing Agents checks ownership.
 
 ## Label a turn and filter by user [#label-a-turn-and-filter-by-user]
 
@@ -73,7 +73,7 @@ The first line prints `true`: the new session carries the user's label. The seco
 
 ## What carries a user label [#what-carries-a-user-label]
 
-Agents, workspaces, prompts, sessions, tasks, task runs, artifacts, memories, and usage records all accept `userId` and `metadata`. A skill takes its agent's label. Account-wide settings such as API keys, providers, and quotas have no user label.
+Agents, workspaces, prompts, sessions, tasks, and memories accept `userId` and `metadata`. Task runs, artifacts, and usage records inherit those labels from the work that creates them. A skill takes its agent's label. Account-wide settings such as API keys, providers, and quotas have no user label.
 
 Labels flow to the work they produce:
 
@@ -95,9 +95,11 @@ The filter has three modes:
 
 If you forget to pass `userId`, the activity is recorded with the empty label. Decide whether that is acceptable, or require a user ID in your backend.
 
-## A label is not access control [#a-label-is-not-access-control]
+## User labels and user scope [#user-labels-and-user-scope]
 
-A `userId` does not prove who someone is, and it does not narrow what your API key can reach. Blazing Agents does not store your users or check their permissions. An empty filtered list does not mean a caller is barred from a resource ID they supply some other way.
+A `userId` in a request body or list filter labels or selects data. It does not change the API key's authority. Derive the user ID from a session your backend verified, then call [`forUser()`](/sdk/typescript/client#for-user). The scoped client sends `X-BA-User-Id`, and the API checks that resources belong to that user. A scoped request cannot administer tenant-wide settings.
+
+Blazing Agents does not authenticate your product's users. Your backend still decides whether the signed-in person may use a feature or reach an application record. A Python client without `X-BA-User-Id` keeps tenant-wide authority, so check ownership in your backend before it reads or changes a resource.
 
 Your backend must sign in the user, check that they own the chat or resource, and only then call Blazing Agents with IDs from its own storage.
 
@@ -116,11 +118,10 @@ export async function runAuthorizedTurn(
   message: UIMessage,
 ) {
   const chat = await app.resolveAuthorizedChat(principal, appChatId);
-  const result = await client.chat({
+  const result = await client.forUser(`app:${principal.subject}`).chat({
     agentId: chat.agentId,
     ...(chat.sessionId ? { sessionId: chat.sessionId } : {}),
     message,
-    userId: `app:${principal.subject}`,
     metadata: { organizationId: principal.organizationId },
   });
   if (!chat.sessionId) {
@@ -162,13 +163,13 @@ def run_authorized_turn(
         yield from stream
 ```
 
-`app` is your own code. `resolveAuthorizedChat` throws unless the signed-in principal owns the chat, and it returns the agent and session IDs from your database. Test that one user cannot reach another user's chat ID before any Blazing Agents call happens.
+`app` is your own code. `resolveAuthorizedChat` throws unless the signed-in principal owns the chat, and it returns the agent and session IDs from your database. The TypeScript client also scopes the Blazing Agents request to that principal. Test that one user cannot reach another user's chat ID.
 
 ## Production notes [#production-notes]
 
 - Use a stable, opaque `userId` such as `app:<internal id>`. Keep the mapping to real people in your own system.
 - Treat `metadata` as product data. Keep personal information out of it where you can, and validate it in your backend.
-- Check ownership before you read, resume, update, or delete any resource. A matching filter is not an authorization check.
+- Derive user scope from your verified session for end-user requests. A matching list filter is not an authorization check.
 
 ## Next [#next]
 

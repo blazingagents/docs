@@ -155,7 +155,7 @@ The first request has no `sessionId`, so Blazing Agents starts a new session and
 
 In TypeScript, `createChatRelay` does this for you. It also passes the request's abort signal along, so a user who closes the tab stops the turn. The Python endpoint does the same steps by hand with one `client.chat()` call: it passes `session_id` only when the request has one, and `stream.session_id` holds the ID either way.
 
-The `userId` you pass labels usage and resources per end user for reporting. It does not grant access. Your ownership check is what keeps one user out of another user's conversation.
+This relay uses a tenant-wide client. The `userId` it passes labels usage and resources, while the `owners` check protects conversations. For other resource calls, derive a [user-scoped client](/sdk/typescript/client#for-user) from your verified user ID so the API checks ownership as well.
 
 ## Production notes [#production-notes]
 

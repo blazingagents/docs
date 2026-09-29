@@ -195,19 +195,19 @@ describe("generated REST API examples", () => {
       "400",
       "401",
       "402",
+      "403",
       "404",
-      "409",
       "429",
       "503",
       "500",
     ]);
     expect(JSON.parse(errors[0]?.code ?? "")).toEqual({
-      error: { code: "validation_failed", message: "The request is invalid." },
+      error: { code: "invalid_request", message: "The request is invalid." },
     });
     const byStatus = (status: string) =>
       JSON.parse(errors.find((error) => error.status === status)?.code ?? "");
-    expect(byStatus("409")).toMatchObject({
-      error: { code: "agent_name_conflict" },
+    expect(byStatus("403")).toMatchObject({
+      error: { code: "forbidden" },
     });
     expect(byStatus("500")).toEqual({
       error: { code: "internal", message: "Internal Server Error" },

@@ -130,6 +130,18 @@ async function api(method, path) {
   return response.status === 204 ? undefined : response.json();
 }
 
+async function listAllAgents() {
+  const agents = [];
+  let cursor;
+  do {
+    const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    const page = await api("GET", `/v1/agents${query}`);
+    agents.push(...page.data);
+    cursor = page.nextCursor;
+  } while (cursor);
+  return agents;
+}
+
 function expectLine(output, pattern, label) {
   const match = output.match(pattern);
   if (!match) {
@@ -222,7 +234,7 @@ try {
     await step(`setup.mdx: check the connection (${lang})`, async () => {
       const [code] = pick(setup, lang, ({ meta }) => meta.includes('title="check.'));
       const { output } = await runExample(lang, "check", code);
-      const { agents } = await api("GET", "/v1/agents");
+      const agents = await listAllAgents();
       expectLine(output, new RegExp(`^Connected\\. Your tenant has ${agents.length} agents\\.$`, "m"), `"Connected. Your tenant has ${agents.length} agents."`);
     });
   }
@@ -282,7 +294,7 @@ try {
       if (!openRouterKey) {
         throw new Blocked('needs OPENROUTER_API_KEY: "Run once" calls agents.create, which validates the model with OpenRouter');
       }
-      const { agents } = await api("GET", "/v1/agents");
+      const agents = await listAllAgents();
       if (agents.some(({ name }) => name === "Support agent")) {
         throw new Error('the tenant already has a "Support agent"; the "Run once" script would fail. Delete it and rerun.');
       }
@@ -298,7 +310,7 @@ try {
             cleanups.push({ label: `provider ${id}`, path: `/v1/providers/${id}` });
           }
         }
-        for (const { id, name } of (await api("GET", "/v1/agents")).agents) {
+        for (const { id, name } of await listAllAgents()) {
           if (name === "Support agent" && !agentsBefore.has(id)) {
             cleanups.push({ label: `agent ${id}`, path: `/v1/agents/${id}?includeArtifacts=true` });
           }

@@ -71,11 +71,12 @@ const { task } = await client.tasks.create({
 | `schedule` | `TaskScheduleInput \| null` | no | `null` | When to run; `null` runs only on demand. See [schedule types](#schedule-types) |
 | `enabled` | `boolean` | no | `true` | Whether the schedule fires |
 | `submit` | `boolean` | no | `false` | Also start a run right away |
+| `idempotencyKey` | `string` | no | none | Reuse the same task and initial run when a create request is retried |
 | `agentVersion` | `number \| null` | no | `null` | Agent version to pin; `null` uses the current version at each run |
 | `userId` | `string` | no | `""` | The end user it runs for; cannot change later |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your labels, copied onto each run |
 
-Calling `create()` twice creates two tasks. Returns [`CreateTaskResponse`](#createtaskresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found), [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), and [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit` is `true`.
+Without `idempotencyKey`, calling `create()` twice creates two tasks. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID. Reusing a key with different task fields or after deleting the task returns `idempotency_conflict`. Returns [`CreateTaskResponse`](#createtaskresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found), [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), and [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit` is `true`.
 
 ### `list()` [#list]
 
@@ -327,6 +328,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The task c
 | Code | Meaning |
 | --- | --- |
 | `task_active_run_exists` | A run is already active; wait or cancel it |
+| `idempotency_conflict` | A create key was reused with different task fields |
 | `agent_version_not_found` | The pinned agent version does not exist |
 | `agent_disabled` | The agent is disabled, so no run can start |
 | `admin_agent_managed` | The [admin agent](/agents/agents#the-admin-agent) cannot run tasks |

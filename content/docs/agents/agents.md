@@ -51,7 +51,7 @@ print(f"Agent: {agent.id}")
 print(client.completion(agent_id=agent.id, prompt="How do I reset my password?"))
 ```
 
-You see `Agent: ag_...` followed by the answer. Agent names are unique in your account, so pick a new name or delete the agent before you run this again.
+You see `Agent: ag_...` followed by the answer. Each run creates a new agent, even when its name matches an existing one. Save the ID to reuse the same agent.
 
 The new agent starts at version `1` with status `active`, and it comes with its own [workspace](/agents/workspaces) for files. The workspace costs nothing until the agent first reads, writes, or runs something in it.
 
@@ -68,7 +68,7 @@ The new agent starts at version `1` with status `active`, and it comes with its 
 
 The agent stores references, not copies. It points to its provider, MCP connections, and workspace, and every turn uses their current state.
 
-A `userId` labels the agent. It does not restrict who can call it: your API key can use every agent in your account, so your backend decides which user may reach which agent. See [tenancy and attribution](/platform/tenancy-and-attribution).
+A tenant-wide API key can access every agent in the tenant. For an agent owned by one end user, derive a client with `client.forUser(verifiedUserId)` in your backend. BA then enforces ownership. Passing `userId` alone only labels the agent. See [tenancy and attribution](/platform/tenancy-and-attribution).
 
 For every field, its default, and its limits, see `create()` in the [TypeScript](/sdk/typescript/agents#create) or [Python](/sdk/python/agents#create) SDK.
 

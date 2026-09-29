@@ -66,8 +66,8 @@ Deleting a task removes it and its schedule. It does not undo anything earlier r
 
 ## Production notes [#production-notes]
 
-- Creating a task with `submit: true` also starts a run, but that path has no idempotency key, so a retry creates a second task and run. When duplicates matter, create the task first, then [start runs with an idempotency key](/automation/task-runs#start-a-run).
-- Your API key can reach every task in your account. Check in your backend that the current user may read, change, or run a task before you pass its ID.
+- Creating a task with `submit: true` also starts a run. In TypeScript, pass `idempotencyKey` to `tasks.create()` if your backend may retry the request. The REST API accepts the same field. The Python SDK supports idempotency keys when starting runs on an existing task.
+- For end-user requests in TypeScript, derive a [scoped client](/sdk/typescript/client#for-user) from the verified user ID. The API checks ownership before it reads, changes, or runs a task.
 
 ## Next [#next]
 
