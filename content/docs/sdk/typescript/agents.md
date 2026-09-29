@@ -57,7 +57,7 @@ const agent = await client.agents.create({
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `name` | `string` | yes | none | 1 to 80 characters, unique in your tenant |
+| `name` | `string` | yes | none | Display name, 1 to 80 characters. Agents can share a name |
 | `providerId` | `string \| null` | no | `null` | Provider that runs the model; set together with `model` |
 | `model` | `string \| null` | no | `null` | Model ID as your provider names it |
 | `thinkingLevel` | `string \| null` | no | `null` | Reasoning level; `null` uses the provider's default. See [thinking level](/agents/providers-and-models#thinking-level) |
@@ -93,24 +93,30 @@ await client.agents.create({
 });
 ```
 
-Returns [`Agent`](#agent). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`agent_name_conflict`](/api-reference/protocols/errors#agent_name_conflict), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid).
+Returns [`Agent`](#agent). Errors include [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), and [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid).
 
 ### `list()` [#list]
 
-Lists your agents, most recently updated first. The result is not paginated.
+Lists your agents, most recently updated first, one page at a time.
 
 **Signature:** `list(input?: AgentsListOptions): Promise<AgentsResponse>`
 
 ```typescript
-const { agents } = await client.agents.list({ userId: "user_123" });
+const page = await client.agents.list({ userId: "user_123", limit: 50 });
+for (const agent of page.data) console.log(agent.id, agent.name);
+const next = page.nextCursor
+  ? await client.agents.list({ userId: "user_123", cursor: page.nextCursor, limit: 50 })
+  : null;
 ```
 
 | Option | Type | Required | Description |
 | --- | --- | --- | --- |
 | `userId` | `string` | no | Only agents for this end user; `""` for tenant-level agents |
 | `workspaceId` | `string` | no | Only agents that use this workspace |
+| `cursor` | `string` | no | `nextCursor` from the previous page |
+| `limit` | `number` | no | Page size, 1 to 100; defaults to 50 |
 
-Returns `{ agents: Agent[] }`. Errors: `validation_failed`.
+Returns `{ data: Agent[], nextCursor: string | null }`. Keep the same filters when paging. Errors: `validation_failed`, `invalid_cursor`.
 
 ### `get()` [#get]
 
@@ -146,7 +152,7 @@ Takes `agentId` plus any [`create()`](#create) field except `userId`. Pass at le
 - To switch providers, send `providerId` and `model` together. To unconfigure the agent, send both as `null`.
 - `workspaceId` moves the agent to another workspace. It cannot be cleared.
 
-Returns [`Agent`](#agent) with the new `version`. Errors: `validation_failed`, `not_found`, `agent_name_conflict`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
+Returns [`Agent`](#agent) with the new `version`. Errors: `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
 
 ### `delete()` [#delete]
 
@@ -328,7 +334,7 @@ Pass at least one of the two settings. Returns [`McpAttachmentResponse`](#mcpatt
 | `createdAt` | `string` | ISO 8601 timestamp |
 | `updatedAt` | `string` | ISO 8601 timestamp |
 
-`AgentsResponse` is `{ agents: Agent[] }`. The package exports `Agent`, `ApprovalPolicy`, `ApprovalDecision`, and `ToolReference`.
+`AgentsResponse` is `{ data: Agent[], nextCursor: string | null }`. The package exports `Agent`, `ApprovalPolicy`, `ApprovalDecision`, and `ToolReference`.
 
 ### `AgentVersion` [#agentversion]
 
@@ -363,7 +369,6 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | --- | --- |
 | `validation_failed` | An ID or field is invalid; `param` names it |
 | `not_found` | No such agent, version, or connection in your tenant |
-| `agent_name_conflict` | Another agent already has this name |
 | `provider_not_found` | The provider does not exist |
 | `model_not_found` | The provider does not offer this model |
 | `agent_mcp_connection_not_found` | A listed MCP connection does not exist |

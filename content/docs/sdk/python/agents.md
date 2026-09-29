@@ -34,7 +34,7 @@ print(agent.id, agent.version)
 | Method | Description | Returns |
 | --- | --- | --- |
 | [`create()`](#create) | Create an agent and its version 1 | `Agent` |
-| [`list()`](#list) | List agents | `Agents` |
+| [`list()`](#list) | List agents | `AgentsPage` |
 | [`get()`](#get) | Get the current configuration | `Agent` |
 | [`update()`](#update) | Change configuration and save a new version | `Agent` |
 | [`delete()`](#delete) | Permanently delete an agent | `None` |
@@ -70,7 +70,7 @@ agent = client.agents.create(
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `name` | `str` | required | Name, unique in your tenant, 1 to 80 characters |
+| `name` | `str` | required | Display name, 1 to 80 characters. Agents can share a name |
 | `provider_id`, `model` | `str` | none | Provider and its native model ID. Pass both or neither |
 | `thinking_level` | `str \| None` | `None` | Reasoning level; `None` uses the provider default. Needs a provider and model. See [`get_thinking_levels()`](/sdk/python/providers#get-thinking-levels) |
 | `workspace_id` | `str` | new workspace | Existing workspace to share. When omitted, a new workspace is created with the agent's name and `user_id` |
@@ -89,24 +89,30 @@ Without `provider_id` and `model`, the agent is saved unconfigured. Passing only
 
 An approval policy is a dictionary with a required `default` decision and an optional list of per-tool `overrides`. Decisions are `"full"`, `"deny"`, `"manual"`, or `"auto"`. See [tool approvals](/agents/tools/tool-approvals) for what each decision does.
 
-Returns [`Agent`](#agent). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`agent_name_conflict`](/api-reference/protocols/errors#agent_name_conflict), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), or [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid).
+Returns [`Agent`](#agent). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), or [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid).
 
 ### `list()` [#list]
 
 Lists your agents, most recently updated first.
 
 ```python
-tenant_level = client.agents.list(user_id="").agents
+page = client.agents.list(user_id="", limit=50)
+for agent in page.data:
+    print(agent.id, agent.name)
+if page.next_cursor is not None:
+    next_page = client.agents.list(user_id="", cursor=page.next_cursor, limit=50)
 ```
 
-**Signature:** `list(*, user_id=..., workspace_id=...) -> Agents`
+**Signature:** `list(*, user_id=..., workspace_id=..., cursor=..., limit=...) -> AgentsPage`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `user_id` | `str` | Only agents for this end user; `""` returns tenant-level agents |
 | `workspace_id` | `str` | Only agents attached to this workspace |
+| `cursor` | `str` | `next_cursor` from the previous page |
+| `limit` | `int` | Page size, 1 to 100; defaults to 50 |
 
-Returns `Agents`, whose `agents` field is `list[Agent]`. The list is not paginated. Raises `validation_failed` for invalid filters.
+Returns `AgentsPage` with `data: list[Agent]` and `next_cursor: str | None`. Keep the same filters when paging. Raises `validation_failed` or `invalid_cursor`.
 
 ### `get()` [#get]
 
@@ -140,7 +146,7 @@ Accepts every [`create()`](#create) parameter except `user_id`, which never chan
 - `thinking_level=None` resets to the provider default.
 - `workspace_id` moves the agent to another workspace. It cannot be cleared.
 
-Calling `update()` with no parameters raises `ValueError` before any request. Returns [`Agent`](#agent) with the new `version`. Raises `validation_failed`, `not_found`, `agent_name_conflict`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, or `agent_mcp_connections_invalid`.
+Calling `update()` with no parameters raises `ValueError` before any request. Returns [`Agent`](#agent) with the new `version`. Raises `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, or `agent_mcp_connections_invalid`.
 
 ### `delete()` [#delete]
 

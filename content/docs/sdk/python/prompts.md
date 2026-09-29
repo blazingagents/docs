@@ -33,7 +33,7 @@ To run a prompt, pass `prompt_id` and `variables` to [`chat()`](/sdk/python/clie
 | Method | Description | Returns |
 | --- | --- | --- |
 | [`create()`](#create) | Save a prompt | `Prompt` |
-| [`list()`](#list) | List prompts | `Prompts` |
+| [`list()`](#list) | List prompts | `PromptsPage` |
 | [`get()`](#get) | Get one prompt | `Prompt` |
 | [`update()`](#update) | Change a prompt | `Prompt` |
 | [`delete()`](#delete) | Delete a prompt | `None` |
@@ -57,25 +57,29 @@ prompt = client.prompts.create(
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `name` | `str` | required | 1 to 80 characters, unique in your tenant |
+| `name` | `str` | required | Display name, 1 to 80 characters. Prompts can share a name |
 | `template` | `str` | required | Text with `{{variable}}` placeholders |
 | `agent_id` | `str \| None` | `None` | Link the prompt to one agent. Deleting that agent deletes the prompt |
 | `user_id` | `str` | `""` | End user; `""` means tenant level. Fixed after creation |
 | `metadata` | `dict[str, object]` | `{}` | Your own data |
 
-Returns [`Prompt`](#prompt). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`prompt_name_conflict`](/api-reference/protocols/errors#prompt_name_conflict), [`prompt_limit_reached`](/api-reference/protocols/errors#prompt_limit_reached) (100 prompts per tenant), or [`not_found`](/api-reference/protocols/errors#not_found) for an unknown `agent_id`.
+Returns [`Prompt`](#prompt). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`not_found`](/api-reference/protocols/errors#not_found) for an unknown `agent_id`.
 
 ### `list()` [#list]
 
 Lists your prompts.
 
 ```python
-prompts = client.prompts.list(agent_id=agent_id).prompts
+page = client.prompts.list(agent_id=agent_id, limit=50)
+for prompt in page.data:
+    print(prompt.id, prompt.name)
+if page.next_cursor is not None:
+    next_page = client.prompts.list(agent_id=agent_id, cursor=page.next_cursor, limit=50)
 ```
 
-**Signature:** `list(*, agent_id=..., user_id=...) -> Prompts`
+**Signature:** `list(*, agent_id=..., user_id=..., cursor=..., limit=...) -> PromptsPage`
 
-Omit both filters for every prompt. `user_id=""` returns tenant-level prompts. With both filters you get prompts that match both. Returns `Prompts`, whose `prompts` field is `list[Prompt]`. The list is not paginated.
+Omit both filters for every prompt. `user_id=""` returns tenant-level prompts. With both filters you get prompts that match both. `limit` is 1 to 100 and defaults to 50. Returns `PromptsPage` with `data: list[Prompt]` and `next_cursor: str | None`. Keep the same filters when paging.
 
 ### `get()` [#get]
 
@@ -104,7 +108,7 @@ prompt = client.prompts.update(
 
 Omitted parameters keep their current value. A new `template` recomputes `variables`. `agent_id=None` removes the agent link. `metadata` replaces the current value completely. Calling `update()` with nothing to change raises `ValueError` before any request.
 
-Returns [`Prompt`](#prompt). Raises `validation_failed`, `prompt_name_conflict`, or `not_found`.
+Returns [`Prompt`](#prompt). Raises `validation_failed` or `not_found`.
 
 ### `delete()` [#delete]
 

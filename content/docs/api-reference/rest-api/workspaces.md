@@ -66,9 +66,10 @@ Response schema: `WorkspaceList`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -126,9 +127,10 @@ Response schema: `Workspace`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `429` | [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
 
@@ -187,9 +189,10 @@ Response schema: `Workspace`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
@@ -245,9 +248,10 @@ Response schema: `Workspace`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
 | `409` | [`workspace_busy`](/api-reference/protocols/errors#workspace_busy) | The request conflicts with the resource's current state |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
@@ -287,9 +291,10 @@ Returns `204 No Content`. The workspace was deleted.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
 | `409` | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use), [`workspace_busy`](/api-reference/protocols/errors#workspace_busy) | The request conflicts with the resource's current state |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |

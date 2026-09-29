@@ -9,7 +9,8 @@ An agent holds the configuration Blazing Agents uses to run a turn: its
 provider and model, instructions, tools, workspace, and attachments. Use these
 endpoints to create and change agents, read their saved versions, attach MCP
 servers, and turn an agent off and on again. `userId` is fixed once the agent
-is created.
+is created. Names are display labels and can repeat. List results use `data`
+and `nextCursor`; pass the cursor with the same filters to read another page.
 
 ## Automatic context compaction [#automatic-context-compaction]
 

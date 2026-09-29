@@ -9,13 +9,15 @@ description: Save message templates once and reuse them in sessions and generati
 
 A prompt is a saved message template with `{{variable}}` placeholders. Store it once, then pass its `promptId` and values to generation or a session turn instead of building the message in your code. Blazing Agents finds the variables in the template for you.
 
+Prompt names can repeat. List results use `data` and `nextCursor`. Pass the cursor with the same filters to read another page.
+
 ## Endpoints [#endpoints]
 
 ### GET /v1/prompts [#list-prompts]
 
 List prompts.
 
-Lists your prompts, most recently updated first, in a single response. Filter by end user, by linked agent, or both.
+Lists your prompts, newest first, one page at a time. Pass `nextCursor` as `cursor` for older prompts. Filter by end user, by linked agent, or both.
 
 #### Request
 
@@ -25,6 +27,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 | --- | --- | --- | --- | --- |
 | `userId` | string | query |  | Return only prompts for this end user. Send an empty string for tenant-level prompts, or leave it out for all prompts. |
 | `agentId` | string | query |  | Return only prompts linked to this agent. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. |
+| `limit` | integer | query |  | Maximum number of prompts to return. 1–100. Defaults to `50`. |
 
 #### Response
 
@@ -34,7 +38,7 @@ Response schema: `PromptList`.
 
 ```json
 {
-  "prompts": [
+  "data": [
     {
       "id": "prompt_5Wn3Hc7TbK2xQv9F",
       "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
@@ -52,7 +56,8 @@ Response schema: `PromptList`.
       "createdAt": "2026-07-10T10:00:00.000Z",
       "updatedAt": "2026-07-10T10:00:00.000Z"
     }
-  ]
+  ],
+  "nextCursor": null
 }
 ```
 
@@ -60,9 +65,10 @@ Response schema: `PromptList`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -77,7 +83,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/prompts" \
 
 Create a prompt.
 
-Saves a message template and lists the variables it uses in `variables`. Your tenant can keep up to 100 prompts.
+Saves a message template and lists the variables it uses in `variables`.
 
 #### Request
 
@@ -85,7 +91,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `name` | string | body | required | Display name, 1 to 80 characters, unique within your tenant. 1–80 characters. |
+| `name` | string | body | required | Display name, 1 to 80 characters. 1–80 characters. |
 | `template` | string | body | required | Message template, up to 10,240 characters. Mark each variable as `{{name}}`; names match `[A-Za-z_][A-Za-z0-9_]*`, and a template can use up to 10 of them. 1–10240 characters. |
 | `agentId` | string \| null | body |  | ID of an agent in your tenant to link the prompt to, or `null` for no link. Deleting the agent also deletes its linked prompts. |
 | `userId` | string | body |  | Your end user's ID, used for attribution. An empty string means a tenant-level prompt. It cannot change after creation. Defaults to `""`. |
@@ -121,11 +127,11 @@ Response schema: `Prompt`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`prompt_limit_reached`](/api-reference/protocols/errors#prompt_limit_reached) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
-| `409` | [`prompt_name_conflict`](/api-reference/protocols/errors#prompt_name_conflict) | The request conflicts with the resource's current state |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -182,9 +188,10 @@ Response schema: `Prompt`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
@@ -210,7 +217,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | --- | --- | --- | --- | --- |
 | `promptId` | string | path | required | ID of the prompt. |
 | `agentId` | string \| null | body |  | ID of an agent in your tenant to link the prompt to, or `null` for no link. Deleting the agent also deletes its linked prompts. |
-| `name` | string | body |  | Display name, 1 to 80 characters, unique within your tenant. 1–80 characters. |
+| `name` | string | body |  | Display name, 1 to 80 characters. 1–80 characters. |
 | `template` | string | body |  | Message template, up to 10,240 characters. Mark each variable as `{{name}}`; names match `[A-Za-z_][A-Za-z0-9_]*`, and a template can use up to 10 of them. 1–10240 characters. |
 | `metadata` | object | body |  | Your own key-value data, returned unchanged. Replaces the current value. |
 
@@ -245,11 +252,11 @@ Response schema: `Prompt`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
-| `409` | [`prompt_name_conflict`](/api-reference/protocols/errors#prompt_name_conflict) | The request conflicts with the resource's current state |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -284,9 +291,10 @@ Returns `204 No Content`. The prompt was deleted.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.

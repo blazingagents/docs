@@ -7,6 +7,8 @@ description: Run agent work in the background, on demand or on a schedule.
 
 A task is a saved prompt for an agent that runs in the background, on demand or on a schedule. Each run gets its own record and transcript, so you can check on it later. Use tasks for reports, syncs, and other work nobody waits on.
 
+Pass `idempotencyKey` when creating a task that your backend may retry. Repeating the same request with the same key returns the current task definition and original initial run ID. A different request, or a retry after deleting the task, returns `idempotency_conflict`.
+
 ## Tool approval policy [#tool-approval-policy]
 
 Task runs follow the agent version's `approvalInTasks` policy. Nobody is

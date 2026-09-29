@@ -27,6 +27,7 @@ Every method takes one input object and accepts an optional `abortSignal`. Usage
 | --- | --- | --- |
 | [`overview()`](#overview-method) | Totals, daily series, and top agents, users, and models in one call | `UsageOverviewResponse` |
 | [`get()`](#get) | Usage across your tenant, grouped one way | `UsageResponse` |
+| [`sessions()`](#sessions) | Exact totals for selected sessions | `SessionUsageResponse` |
 | [`getForAgent()`](#get-for-agent) | Usage for one agent, grouped one way | `UsageResponse` |
 
 ## Methods [#methods]
@@ -76,6 +77,25 @@ const usage = await client.usage.get({
 | `limit` | `number` | no | `50` | 1 to 200; with `groupBy: "session"`, returns the top sessions by tokens |
 
 Returns [`UsageResponse`](#usageresponse). Errors: `validation_failed`.
+
+### `sessions()` [#sessions]
+
+Returns exact totals for the session IDs you provide. Use it when you already have a list of sessions and need each one's usage. The response keeps the input order and includes zero totals for a visible session with no usage.
+
+**Signature:** `sessions(input: SessionUsageQuery & ResourceRequestOptions): Promise<SessionUsageResponse>`
+
+```typescript
+const result = await client.forUser(authenticatedUserId).usage.sessions({
+  sessionIds: ["ss_0123456789abcdef", "ss_abcdef0123456789"],
+  from: "2026-09-01",
+  to: "2026-09-26",
+});
+for (const { sessionId, totals } of result.data) {
+  console.log(sessionId, totals.inputTokens + totals.outputTokens);
+}
+```
+
+Pass 1 to 100 distinct session IDs. `from` and `to` follow the [date range rules](#date-ranges). A missing session or one outside the tenant or user scope returns `not_found` for the whole request. This method does not rank or truncate sessions.
 
 ### `getForAgent()` [#get-for-agent]
 
@@ -147,7 +167,9 @@ interface UsageOverviewResponse {
 - `byModel` may end with one bucket whose `provider` and `model` are both `null`. It holds all other models, so the model buckets add up to `totals`.
 - `activeAgentCount` counts every agent with usage in the range, not only the top ones.
 
-The package exports `UsageBucket`, `UsageTotals`, `UsageOverviewQuery`, and `UsageOverviewResponse`.
+`SessionUsageResponse` is `{ data: { sessionId: string, totals: UsageTotals }[] }`.
+
+The package exports `UsageBucket`, `UsageTotals`, `UsageOverviewQuery`, `UsageOverviewResponse`, `SessionUsageQuery`, and `SessionUsageResponse`.
 
 ## Next [#next]
 

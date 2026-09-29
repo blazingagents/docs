@@ -14,7 +14,7 @@ const client = new BlazingAgents({
   apiKey: process.env.BLAZING_AGENTS_API_KEY!,
 });
 
-const { agents } = await client.agents.list();
+const { data: agents } = await client.agents.list();
 ```
 
 ```python tab="Python"
@@ -22,7 +22,7 @@ from blazing_agents import BlazingAgents
 
 client = BlazingAgents()
 
-agents = client.agents.list().agents
+agents = client.agents.list().data
 ```
 
 Keep your API key on the server. It can reach every resource in your tenant, so never ship it to a browser or mobile app.
