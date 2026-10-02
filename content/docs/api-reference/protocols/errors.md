@@ -21,7 +21,7 @@ Each code links to its own entry. You can link straight to one, for example
 | --- | --- |
 | [Auth and access](#auth-and-access) | [`unauthorized`](#unauthorized), [`forbidden`](#forbidden), [`api_key_limit_reached`](#api_key_limit_reached), [`tenant_deleting`](#tenant_deleting), [`tenant_deletion_in_progress`](#tenant_deletion_in_progress), [`tenant_deletion_not_ready`](#tenant_deletion_not_ready), [`tenant_not_deleting`](#tenant_not_deleting) |
 | [Requests and validation](#requests-and-validation) | [`invalid_request`](#invalid_request), [`idempotency_conflict`](#idempotency_conflict), [`validation_failed`](#validation_failed), [`not_found`](#not_found), [`invalid_cursor`](#invalid_cursor) |
-| [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`agent_version_not_found`](#agent_version_not_found), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
+| [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
 | [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`message_not_found`](#message_not_found), [`tool_approval_continuation_not_found`](#tool_approval_continuation_not_found), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict) |
 | [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
 | [Tasks](#tasks) | [`task_active_run_exists`](#task_active_run_exists) |
@@ -60,7 +60,7 @@ A few codes add the resources you need to act on:
 [`provider_in_use`](#provider_in_use) and
 [`workspace_in_use`](#workspace_in_use) include `details.agentIds`, and
 [`provider_historical_use`](#provider_historical_use) includes
-`details.agentVersions`, `details.sessionIds`, and `details.taskIds`. Details
+`details.sessionIds` and `details.taskRunIds`. Details
 only list your own tenant's resources, but redact any values your users
 supplied before you log them.
 
@@ -369,7 +369,7 @@ HTTP `409`. Retrying the same request fails the same way until you fix the cause
 
 To fix it:
 
-- Enable the agent, then send the request again. See [enable and disable](/agents/versions-and-lifecycle#enable-and-disable).
+- Enable the agent, then send the request again. See [enable and disable](/agents/configuration-snapshots#enable-and-disable).
 
 ### `admin_agent_managed` [#admin_agent_managed]
 
@@ -384,31 +384,17 @@ To fix it:
 - Send only `providerId`, `model`, and `thinkingLevel` when you update this agent.
 - Use one of your own agents for everything else.
 
-### `agent_version_not_found` [#agent_version_not_found]
-
-**The agent version does not exist.**
-
-A turn, session, or task pins a version number the agent never had, or you tried to restore one. Versions start at 1 and increase with each change. Reading a missing version returns [`not_found`](#not_found) instead.
-
-HTTP `404`. Retrying the same request fails the same way until you fix the cause.
-
-To fix it:
-
-- List the agent's versions and choose one that exists.
-- Update any session or task that pins the missing version. See [pin a version](/agents/versions-and-lifecycle#pin-a-version).
-
 ### `provider_required` [#provider_required]
 
-**The agent has no provider and model.**
+**The agent configuration has no provider and model.**
 
-A turn needs a model, and the agent version that would run has none. Nothing ran and nothing was billed.
+A turn needs a model, and the agent configuration saved for this work has none. Nothing ran and nothing was billed.
 
 HTTP `400`. Retrying the same request fails the same way until you fix the cause.
 
 To fix it:
 
-- Set `providerId` and `model` together on the agent.
-- If the turn pins an older version, pin one that has a provider and model. See [providers and models](/agents/providers-and-models).
+- Set `providerId` and `model` together on the agent. New sessions and task runs will use the updated settings.
 
 ### `provider_in_use` [#provider_in_use]
 
@@ -425,16 +411,16 @@ To fix it:
 
 ### `provider_historical_use` [#provider_historical_use]
 
-**Older agent versions, sessions, or tasks still use this provider.**
+**Saved sessions or task runs still use this provider.**
 
-No current agent uses the provider, but older versions or pinned sessions and tasks do. `details.agentVersions`, `details.sessionIds`, and `details.taskIds` list them.
+No current agent uses the provider, but saved sessions or queued or running task runs do. `details.sessionIds` and `details.taskRunIds` list them.
 
 HTTP `409`. Retrying the same request fails the same way until you fix the cause.
 
 To fix it:
 
-- Keep the provider while those versions need to run.
-- Or delete with `confirmVersionInvalidation=true` (`confirm_version_invalidation=True` in Python). Afterwards, running or restoring those versions fails with [`provider_not_found`](#provider_not_found).
+- Keep the provider while that work needs it.
+- Or delete with `confirmSnapshotInvalidation=true` (`confirm_snapshot_invalidation=True` in Python). Saved configuration stays readable, but work that needs the deleted provider fails with [`provider_not_found`](#provider_not_found).
 
 ### `provider_limit_reached` [#provider_limit_reached]
 
@@ -464,14 +450,14 @@ To fix it:
 
 **The provider does not exist in your tenant.**
 
-The `providerId` is wrong or the provider was deleted. A pinned agent version whose provider was deleted also fails this way when it runs or is restored.
+The `providerId` is wrong or the provider was deleted. A session or task run whose saved configuration names a deleted provider fails when it needs that provider.
 
 HTTP `404`. Retrying the same request fails the same way until you fix the cause.
 
 To fix it:
 
 - List your providers and use an existing ID.
-- For a pinned version, pin a newer version or create the provider again and update the agent.
+- Update the agent to use an existing provider for new sessions and task runs.
 
 ### `model_discovery_unsupported` [#model_discovery_unsupported]
 
@@ -489,7 +475,7 @@ To fix it:
 
 **The provider does not offer this model.**
 
-Blazing Agents checks the model ID against the provider when you create an agent with a model, change its model, or restore a version. The ID is not in the provider's current list.
+Blazing Agents checks the model ID against the provider when you create an agent with a model or change its model. The ID is not in the provider's current list.
 
 HTTP `400`. Retrying the same request fails the same way until you fix the cause.
 

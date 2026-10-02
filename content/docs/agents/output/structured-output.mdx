@@ -94,7 +94,7 @@ The schema must be a JSON Schema object with at least `type` or `properties`. An
 - **No history.** Structured output creates no session and saves no transcript, so the agent cannot publish [artifacts](/agents/artifacts) during it. Everything else about the agent applies, including its tools.
 - **Usage is recorded** whether the request succeeds, fails, or is stopped.
 - **Invalid final JSON fails.** If the answer does not parse, `result.object` rejects with `stream_error`, and Python raises a stream error. A dropped connection or abort also ends without a final object.
-- **Saved prompts and versions.** Pass `promptId` with its `variables` instead of `prompt` to use a saved [prompt](/agents/prompts), and `version` to run a specific [agent version](/agents/versions-and-lifecycle).
+- **Saved prompts.** Pass `promptId` with its `variables` instead of `prompt` to use a saved [prompt](/agents/prompts). Each call uses the agent's current configuration.
 
 ## Next [#next]
 

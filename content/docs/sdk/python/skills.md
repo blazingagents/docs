@@ -5,7 +5,7 @@ description: Create, upload, edit, copy, and delete an agent's skills with the P
 
 # Skills
 
-`client.agent(agent_id).skills` manages the skills one agent owns. A skill is a folder of instructions and supporting files, led by a `SKILL.md`, that the agent loads when a task calls for it. Select the agent once, then work with its skills without repeating the ID. Skills are not saved in agent versions.
+`client.agent(agent_id).skills` manages the skills one agent owns. A skill is a folder of instructions and supporting files, led by a `SKILL.md`, that the agent loads when a task calls for it. Select the agent once, then work with its skills without repeating the ID. Saved agent configuration does not copy skill files. Existing sessions use current skill content.
 
 Examples assume `client = BlazingAgents()` and an existing `agent`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, `client.agent(agent_id).skills` has the same method names; await them and use `async for` with `iter()`.
 

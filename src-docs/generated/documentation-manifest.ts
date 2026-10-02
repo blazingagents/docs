@@ -18,6 +18,10 @@ export const documentationPages = [
     "url": "/agents/artifacts"
   },
   {
+    "path": "agents/configuration-snapshots.md",
+    "url": "/agents/configuration-snapshots"
+  },
+  {
     "path": "agents/memory.md",
     "url": "/agents/memory"
   },
@@ -64,10 +68,6 @@ export const documentationPages = [
   {
     "path": "agents/tools/tool-approvals.mdx",
     "url": "/agents/tools/tool-approvals"
-  },
-  {
-    "path": "agents/versions-and-lifecycle.md",
-    "url": "/agents/versions-and-lifecycle"
   },
   {
     "path": "agents/workspaces.mdx",
@@ -455,7 +455,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"data\": [\n    {\n      \"approvalInChat\": {\n        \"default\": \"full\",\n        \"overrides\": []\n      },\n      \"approvalInTasks\": {\n        \"default\": \"full\",\n        \"overrides\": []\n      },\n      \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"name\": \"Support Agent\",\n      \"model\": \"openai/gpt-6-luna\",\n      \"thinkingLevel\": null,\n      \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n      \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n      \"autoCompaction\": true,\n      \"compactionReserveTokens\": 16384,\n      \"memoryInjectionEnabled\": false,\n      \"tools\": [\n        \"workspace\",\n        \"write_todos\"\n      ],\n      \"instructions\": \"Answer billing questions clearly and briefly.\",\n      \"userId\": \"\",\n      \"metadata\": {\n        \"team\": \"support\"\n      },\n      \"mcpConnectionIds\": [],\n      \"avatarUrl\": null,\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n      \"version\": 1,\n      \"status\": \"active\"\n    }\n  ],\n  \"nextCursor\": null\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"approvalInChat\": {\n        \"default\": \"full\",\n        \"overrides\": []\n      },\n      \"approvalInTasks\": {\n        \"default\": \"full\",\n        \"overrides\": []\n      },\n      \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"name\": \"Support Agent\",\n      \"model\": \"openai/gpt-6-luna\",\n      \"thinkingLevel\": null,\n      \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n      \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n      \"autoCompaction\": true,\n      \"compactionReserveTokens\": 16384,\n      \"memoryInjectionEnabled\": false,\n      \"tools\": [\n        \"workspace\",\n        \"write_todos\"\n      ],\n      \"instructions\": \"Answer billing questions clearly and briefly.\",\n      \"userId\": \"\",\n      \"metadata\": {\n        \"team\": \"support\"\n      },\n      \"mcpConnectionIds\": [],\n      \"avatarUrl\": null,\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n      \"status\": \"active\"\n    }\n  ],\n  \"nextCursor\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -549,7 +549,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"instructions\": \"Answer billing questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n  \"version\": 1,\n  \"status\": \"active\"\n}",
+            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"instructions\": \"Answer billing questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n  \"status\": \"active\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "201"
@@ -806,206 +806,6 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/agents/update-agent-mcp-attachment"
       },
       {
-        "description": "List agent versions.",
-        "examples": [
-          {
-            "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/versions\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
-            "label": "cURL",
-            "language": "bash"
-          },
-          {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/versions\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
-            "label": "Python",
-            "language": "python"
-          },
-          {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/versions\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
-            "label": "JavaScript",
-            "language": "javascript"
-          },
-          {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/versions\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
-            "label": "PHP",
-            "language": "php"
-          },
-          {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/versions\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
-            "label": "Go",
-            "language": "go"
-          },
-          {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/versions\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
-            "label": "Java",
-            "language": "java"
-          },
-          {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/versions\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
-            "label": "Ruby",
-            "language": "ruby"
-          }
-        ],
-        "method": "GET",
-        "operation": "list-agent-versions",
-        "path": "/v1/agents/:agentId/versions",
-        "responseMetadata": {
-          "description": "A page of agent versions.",
-          "schema": {
-            "name": "AgentVersionList"
-          }
-        },
-        "responses": [
-          {
-            "code": "{\n  \"data\": [\n    {\n      \"approvalInChat\": {\n        \"default\": \"full\",\n        \"overrides\": []\n      },\n      \"approvalInTasks\": {\n        \"default\": \"full\",\n        \"overrides\": []\n      },\n      \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"version\": 1,\n      \"name\": \"Support Agent\",\n      \"model\": \"openai/gpt-6-luna\",\n      \"thinkingLevel\": null,\n      \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n      \"autoCompaction\": true,\n      \"compactionReserveTokens\": 16384,\n      \"memoryInjectionEnabled\": false,\n      \"tools\": [\n        \"workspace\",\n        \"write_todos\"\n      ],\n      \"instructions\": \"Answer billing questions clearly and briefly.\",\n      \"metadata\": {\n        \"team\": \"support\"\n      },\n      \"mcpConnectionIds\": [],\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\"\n    }\n  ],\n  \"nextCursor\": null\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "200"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "400"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "401"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "402"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "403"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "404"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "500"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "503"
-          }
-        ],
-        "url": "/api-reference/rest-api/agents/list-agent-versions"
-      },
-      {
-        "description": "Get an agent version.",
-        "examples": [
-          {
-            "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/versions/1\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
-            "label": "cURL",
-            "language": "bash"
-          },
-          {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/versions/1\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
-            "label": "Python",
-            "language": "python"
-          },
-          {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/versions/1\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
-            "label": "JavaScript",
-            "language": "javascript"
-          },
-          {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/versions/1\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
-            "label": "PHP",
-            "language": "php"
-          },
-          {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/versions/1\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
-            "label": "Go",
-            "language": "go"
-          },
-          {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/versions/1\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
-            "label": "Java",
-            "language": "java"
-          },
-          {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/versions/1\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
-            "label": "Ruby",
-            "language": "ruby"
-          }
-        ],
-        "method": "GET",
-        "operation": "get-agent-version",
-        "path": "/v1/agents/:agentId/versions/:version",
-        "responseMetadata": {
-          "description": "The agent version.",
-          "schema": {
-            "name": "AgentVersion"
-          }
-        },
-        "responses": [
-          {
-            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"version\": 1,\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"instructions\": \"Answer billing questions clearly and briefly.\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\"\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "200"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "400"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "401"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "402"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "403"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "404"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "500"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "503"
-          }
-        ],
-        "url": "/api-reference/rest-api/agents/get-agent-version"
-      },
-      {
         "description": "Get an agent.",
         "examples": [
           {
@@ -1055,7 +855,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"instructions\": \"Answer billing questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n  \"version\": 1,\n  \"status\": \"active\"\n}",
+            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"instructions\": \"Answer billing questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n  \"status\": \"active\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -1155,7 +955,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\"\n  ],\n  \"instructions\": \"Answer billing and refund questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00.000Z\",\n  \"version\": 2,\n  \"status\": \"active\"\n}",
+            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\"\n  ],\n  \"instructions\": \"Answer billing and refund questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00.000Z\",\n  \"status\": \"active\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -1362,7 +1162,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"instructions\": \"Answer billing questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n  \"version\": 1,\n  \"status\": \"disabled\"\n}",
+            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"instructions\": \"Answer billing questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n  \"status\": \"disabled\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -1468,7 +1268,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"instructions\": \"Answer billing questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n  \"version\": 1,\n  \"status\": \"active\"\n}",
+            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"instructions\": \"Answer billing questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n  \"status\": \"active\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -1574,7 +1374,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"instructions\": \"Answer billing questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": \"https://files.example.com/avatars/ag_4kP9sT2vXq7LmN3a.webp\",\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n  \"version\": 1,\n  \"status\": \"active\"\n}",
+            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"instructions\": \"Answer billing questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": \"https://files.example.com/avatars/ag_4kP9sT2vXq7LmN3a.webp\",\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n  \"status\": \"active\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -1686,7 +1486,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"instructions\": \"Answer billing questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n  \"version\": 1,\n  \"status\": \"active\"\n}",
+            "code": "{\n  \"approvalInChat\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"approvalInTasks\": {\n    \"default\": \"full\",\n    \"overrides\": []\n  },\n  \"id\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Support Agent\",\n  \"model\": \"openai/gpt-6-luna\",\n  \"thinkingLevel\": null,\n  \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n  \"workspaceId\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"autoCompaction\": true,\n  \"compactionReserveTokens\": 16384,\n  \"memoryInjectionEnabled\": false,\n  \"tools\": [\n    \"workspace\",\n    \"write_todos\"\n  ],\n  \"instructions\": \"Answer billing questions clearly and briefly.\",\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"mcpConnectionIds\": [],\n  \"avatarUrl\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\",\n  \"status\": \"active\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -4989,7 +4789,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"data\": [\n    {\n      \"id\": \"ss_6Rt2Mw8KqZ4Nc1Hp\",\n      \"agentVersion\": null,\n      \"messageCount\": 4,\n      \"lastMessagePreview\": \"Open Settings, choose Security, and select Reset password.\",\n      \"userId\": \"user_42\",\n      \"metadata\": {\n        \"plan\": \"pro\"\n      },\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:05:00.000Z\"\n    }\n  ],\n  \"nextCursor\": null\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"ss_6Rt2Mw8KqZ4Nc1Hp\",\n      \"messageCount\": 4,\n      \"lastMessagePreview\": \"Open Settings, choose Security, and select Reset password.\",\n      \"userId\": \"user_42\",\n      \"metadata\": {\n        \"plan\": \"pro\"\n      },\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:05:00.000Z\"\n    }\n  ],\n  \"nextCursor\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -5191,7 +4991,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"data\": [\n    {\n      \"id\": \"ss_6Rt2Mw8KqZ4Nc1Hp\",\n      \"agentVersion\": null,\n      \"messageCount\": 4,\n      \"lastMessagePreview\": \"Open Settings, choose Security, and select Reset password.\",\n      \"userId\": \"user_42\",\n      \"metadata\": {\n        \"plan\": \"pro\"\n      },\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:05:00.000Z\",\n      \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"model\": \"openai/gpt-6-luna\",\n      \"thinkingLevel\": null,\n      \"status\": \"active\"\n    }\n  ],\n  \"nextCursor\": null\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"ss_6Rt2Mw8KqZ4Nc1Hp\",\n      \"messageCount\": 4,\n      \"lastMessagePreview\": \"Open Settings, choose Security, and select Reset password.\",\n      \"userId\": \"user_42\",\n      \"metadata\": {\n        \"plan\": \"pro\"\n      },\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:05:00.000Z\",\n      \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"model\": \"openai/gpt-6-luna\",\n      \"thinkingLevel\": null,\n      \"status\": \"active\"\n    }\n  ],\n  \"nextCursor\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -5236,56 +5036,56 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/list-latest-sessions"
       },
       {
-        "description": "List session messages.",
+        "description": "Get a session and its saved agent configuration.",
         "examples": [
           {
-            "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
+            "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
             "label": "cURL",
             "language": "bash"
           },
           {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
             "label": "Python",
             "language": "python"
           },
           {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
             "label": "JavaScript",
             "language": "javascript"
           },
           {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
             "label": "PHP",
             "language": "php"
           },
           {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
             "label": "Go",
             "language": "go"
           },
           {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
             "label": "Java",
             "language": "java"
           },
           {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
             "label": "Ruby",
             "language": "ruby"
           }
         ],
         "method": "GET",
-        "operation": "list-session-messages",
-        "path": "/v1/agents/:agentId/sessions/:sessionId/messages",
+        "operation": "get-session",
+        "path": "/v1/agents/:agentId/sessions/:sessionId",
         "responseMetadata": {
-          "description": "A page of the session's messages.",
+          "description": "The session and its saved configuration.",
           "schema": {
-            "name": "SessionMessageList"
+            "name": "Session"
           }
         },
         "responses": [
           {
-            "code": "{\n  \"data\": [\n    {\n      \"id\": \"msg_client_1\",\n      \"role\": \"user\",\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"How do I reset my password?\"\n        }\n      ]\n    },\n    {\n      \"id\": \"msg_9Kd3Vx7PqT2bLn5W\",\n      \"role\": \"assistant\",\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"Open Settings, choose Security, and select Reset password.\"\n        }\n      ]\n    }\n  ],\n  \"nextCursor\": null,\n  \"latestCursor\": \"eyJzZXEiOjJ9\"\n}",
+            "code": "{\n  \"id\": \"ss_6Rt2Mw8KqZ4Nc1Hp\",\n  \"messageCount\": 4,\n  \"lastMessagePreview\": \"Open Settings, choose Security, and select Reset password.\",\n  \"userId\": \"user_42\",\n  \"metadata\": {\n    \"plan\": \"pro\"\n  },\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:05:00.000Z\",\n  \"agentConfig\": {\n    \"approvalInChat\": {\n      \"default\": \"full\",\n      \"overrides\": []\n    },\n    \"approvalInTasks\": {\n      \"default\": \"full\",\n      \"overrides\": []\n    },\n    \"name\": \"Support Agent\",\n    \"model\": \"openai/gpt-6-luna\",\n    \"thinkingLevel\": null,\n    \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n    \"autoCompaction\": true,\n    \"compactionReserveTokens\": 16384,\n    \"memoryInjectionEnabled\": false,\n    \"tools\": [\n      \"workspace\",\n      \"write_todos\"\n    ],\n    \"instructions\": \"Answer billing questions clearly and briefly.\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"mcpConnectionIds\": []\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -5333,7 +5133,7 @@ export const restApiOperations = [
             "status": "503"
           }
         ],
-        "url": "/api-reference/rest-api/sessions/list-session-messages"
+        "url": "/api-reference/rest-api/sessions/get-session"
       },
       {
         "description": "Resume a session with the next turn.",
@@ -5543,6 +5343,106 @@ export const restApiOperations = [
           }
         ],
         "url": "/api-reference/rest-api/sessions/delete-session"
+      },
+      {
+        "description": "List session messages.",
+        "examples": [
+          {
+            "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "GET",
+        "operation": "list-session-messages",
+        "path": "/v1/agents/:agentId/sessions/:sessionId/messages",
+        "responseMetadata": {
+          "description": "A page of the session's messages.",
+          "schema": {
+            "name": "SessionMessageList"
+          }
+        },
+        "responses": [
+          {
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"msg_client_1\",\n      \"role\": \"user\",\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"How do I reset my password?\"\n        }\n      ]\n    },\n    {\n      \"id\": \"msg_9Kd3Vx7PqT2bLn5W\",\n      \"role\": \"assistant\",\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"Open Settings, choose Security, and select Reset password.\"\n        }\n      ]\n    }\n  ],\n  \"nextCursor\": null,\n  \"latestCursor\": \"eyJzZXEiOjJ9\"\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "404"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/sessions/list-session-messages"
       },
       {
         "description": "List tool approvals.",
@@ -9315,7 +9215,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"data\": [\n    {\n      \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"agentVersion\": null,\n      \"name\": \"Daily support summary\",\n      \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n      \"schedule\": {\n        \"kind\": \"cron\",\n        \"config\": {\n          \"expression\": \"0 9 * * 1-5\",\n          \"timezone\": \"Europe/London\"\n        }\n      },\n      \"enabled\": true,\n      \"nextFireAt\": null,\n      \"activeRunId\": null,\n      \"latestRunId\": \"tr_9Jd4Ks7NbV2xQm6P\",\n      \"userId\": \"\",\n      \"metadata\": {\n        \"team\": \"support\"\n      },\n      \"deletedAt\": null,\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:03:00.000Z\",\n      \"latestRun\": {\n        \"id\": \"tr_9Jd4Ks7NbV2xQm6P\",\n        \"status\": \"succeeded\",\n        \"finishedAt\": \"2026-07-10T10:03:00.000Z\"\n      }\n    }\n  ],\n  \"nextCursor\": null\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"name\": \"Daily support summary\",\n      \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n      \"schedule\": {\n        \"kind\": \"cron\",\n        \"config\": {\n          \"expression\": \"0 9 * * 1-5\",\n          \"timezone\": \"Europe/London\"\n        }\n      },\n      \"enabled\": true,\n      \"nextFireAt\": null,\n      \"activeRunId\": null,\n      \"latestRunId\": \"tr_9Jd4Ks7NbV2xQm6P\",\n      \"userId\": \"\",\n      \"metadata\": {\n        \"team\": \"support\"\n      },\n      \"deletedAt\": null,\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:03:00.000Z\",\n      \"latestRun\": {\n        \"id\": \"tr_9Jd4Ks7NbV2xQm6P\",\n        \"status\": \"succeeded\",\n        \"finishedAt\": \"2026-07-10T10:03:00.000Z\"\n      }\n    }\n  ],\n  \"nextCursor\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -9409,13 +9309,13 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"task\": {\n    \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n    \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n    \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n    \"agentVersion\": null,\n    \"name\": \"Daily support summary\",\n    \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n    \"schedule\": {\n      \"kind\": \"cron\",\n      \"config\": {\n        \"expression\": \"0 9 * * 1-5\",\n        \"timezone\": \"Europe/London\"\n      }\n    },\n    \"enabled\": true,\n    \"nextFireAt\": \"2026-07-13T08:00:00.000Z\",\n    \"activeRunId\": null,\n    \"latestRunId\": null,\n    \"userId\": \"\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"deletedAt\": null,\n    \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n    \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n  },\n  \"runId\": null\n}",
+            "code": "{\n  \"task\": {\n    \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n    \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n    \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n    \"name\": \"Daily support summary\",\n    \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n    \"schedule\": {\n      \"kind\": \"cron\",\n      \"config\": {\n        \"expression\": \"0 9 * * 1-5\",\n        \"timezone\": \"Europe/London\"\n      }\n    },\n    \"enabled\": true,\n    \"nextFireAt\": \"2026-07-13T08:00:00.000Z\",\n    \"activeRunId\": null,\n    \"latestRunId\": null,\n    \"userId\": \"\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"deletedAt\": null,\n    \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n    \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n  },\n  \"runId\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "201"
           },
           {
-            "code": "{\n  \"task\": {\n    \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n    \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n    \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n    \"agentVersion\": null,\n    \"name\": \"Daily support summary\",\n    \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n    \"schedule\": null,\n    \"enabled\": true,\n    \"nextFireAt\": null,\n    \"activeRunId\": \"tr_9Jd4Ks7NbV2xQm6P\",\n    \"latestRunId\": \"tr_9Jd4Ks7NbV2xQm6P\",\n    \"userId\": \"\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"deletedAt\": null,\n    \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n    \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n  },\n  \"runId\": \"tr_9Jd4Ks7NbV2xQm6P\"\n}",
+            "code": "{\n  \"task\": {\n    \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n    \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n    \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n    \"name\": \"Daily support summary\",\n    \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n    \"schedule\": null,\n    \"enabled\": true,\n    \"nextFireAt\": null,\n    \"activeRunId\": \"tr_9Jd4Ks7NbV2xQm6P\",\n    \"latestRunId\": \"tr_9Jd4Ks7NbV2xQm6P\",\n    \"userId\": \"\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"deletedAt\": null,\n    \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n    \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n  },\n  \"runId\": \"tr_9Jd4Ks7NbV2xQm6P\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "202"
@@ -9527,7 +9427,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"agentVersion\": null,\n  \"name\": \"Daily support summary\",\n  \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n  \"schedule\": {\n    \"kind\": \"cron\",\n    \"config\": {\n      \"expression\": \"0 9 * * 1-5\",\n      \"timezone\": \"Europe/London\"\n    }\n  },\n  \"enabled\": true,\n  \"nextFireAt\": \"2026-07-13T08:00:00.000Z\",\n  \"activeRunId\": null,\n  \"latestRunId\": null,\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"deletedAt\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n}",
+            "code": "{\n  \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"name\": \"Daily support summary\",\n  \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n  \"schedule\": {\n    \"kind\": \"cron\",\n    \"config\": {\n      \"expression\": \"0 9 * * 1-5\",\n      \"timezone\": \"Europe/London\"\n    }\n  },\n  \"enabled\": true,\n  \"nextFireAt\": \"2026-07-13T08:00:00.000Z\",\n  \"activeRunId\": null,\n  \"latestRunId\": null,\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"deletedAt\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -9627,7 +9527,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"agentVersion\": null,\n  \"name\": \"Daily support summary\",\n  \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n  \"schedule\": {\n    \"kind\": \"cron\",\n    \"config\": {\n      \"expression\": \"0 9 * * 1-5\",\n      \"timezone\": \"Europe/London\"\n    }\n  },\n  \"enabled\": false,\n  \"nextFireAt\": null,\n  \"activeRunId\": null,\n  \"latestRunId\": null,\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\",\n    \"pausedBy\": \"ops\"\n  },\n  \"deletedAt\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00.000Z\"\n}",
+            "code": "{\n  \"id\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"name\": \"Daily support summary\",\n  \"prompt\": \"Summarize yesterday's open support cases and flag any that are overdue.\",\n  \"schedule\": {\n    \"kind\": \"cron\",\n    \"config\": {\n      \"expression\": \"0 9 * * 1-5\",\n      \"timezone\": \"Europe/London\"\n    }\n  },\n  \"enabled\": false,\n  \"nextFireAt\": null,\n  \"activeRunId\": null,\n  \"latestRunId\": null,\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\",\n    \"pausedBy\": \"ops\"\n  },\n  \"deletedAt\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00.000Z\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -9835,7 +9735,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"data\": [\n    {\n      \"id\": \"tr_9Jd4Ks7NbV2xQm6P\",\n      \"taskId\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"agentVersion\": 3,\n      \"sessionId\": \"ss_5Ty8Lr2GhW4nZc7F\",\n      \"turnId\": \"turn_3Xp6Mv9QdB1sKe4H\",\n      \"status\": \"succeeded\",\n      \"error\": null,\n      \"userId\": \"\",\n      \"metadata\": {\n        \"team\": \"support\"\n      },\n      \"startedAt\": \"2026-07-10T10:00:01.000Z\",\n      \"finishedAt\": \"2026-07-10T10:03:00.000Z\",\n      \"cancelRequestedAt\": null,\n      \"canceledAt\": null,\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:03:00.000Z\"\n    }\n  ],\n  \"nextCursor\": null\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"tr_9Jd4Ks7NbV2xQm6P\",\n      \"taskId\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n      \"agentConfig\": {\n        \"approvalInChat\": {\n          \"default\": \"full\",\n          \"overrides\": []\n        },\n        \"approvalInTasks\": {\n          \"default\": \"full\",\n          \"overrides\": []\n        },\n        \"name\": \"Support Agent\",\n        \"model\": \"openai/gpt-6-luna\",\n        \"thinkingLevel\": null,\n        \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n        \"autoCompaction\": true,\n        \"compactionReserveTokens\": 16384,\n        \"memoryInjectionEnabled\": false,\n        \"tools\": [\n          \"workspace\",\n          \"write_todos\"\n        ],\n        \"instructions\": \"Answer billing questions clearly and briefly.\",\n        \"metadata\": {\n          \"team\": \"support\"\n        },\n        \"mcpConnectionIds\": []\n      },\n      \"sessionId\": \"ss_5Ty8Lr2GhW4nZc7F\",\n      \"turnId\": \"turn_3Xp6Mv9QdB1sKe4H\",\n      \"status\": \"succeeded\",\n      \"error\": null,\n      \"userId\": \"\",\n      \"metadata\": {\n        \"team\": \"support\"\n      },\n      \"startedAt\": \"2026-07-10T10:00:01.000Z\",\n      \"finishedAt\": \"2026-07-10T10:03:00.000Z\",\n      \"cancelRequestedAt\": null,\n      \"canceledAt\": null,\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:03:00.000Z\"\n    }\n  ],\n  \"nextCursor\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -10041,7 +9941,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"tr_9Jd4Ks7NbV2xQm6P\",\n  \"taskId\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"agentVersion\": 3,\n  \"sessionId\": \"ss_5Ty8Lr2GhW4nZc7F\",\n  \"turnId\": \"turn_3Xp6Mv9QdB1sKe4H\",\n  \"status\": \"succeeded\",\n  \"error\": null,\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"startedAt\": \"2026-07-10T10:00:01.000Z\",\n  \"finishedAt\": \"2026-07-10T10:03:00.000Z\",\n  \"cancelRequestedAt\": null,\n  \"canceledAt\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:03:00.000Z\"\n}",
+            "code": "{\n  \"id\": \"tr_9Jd4Ks7NbV2xQm6P\",\n  \"taskId\": \"tk_6Wq3Hn8ZpL2vRt5C\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"agentId\": \"ag_4kP9sT2vXq7LmN3a\",\n  \"agentConfig\": {\n    \"approvalInChat\": {\n      \"default\": \"full\",\n      \"overrides\": []\n    },\n    \"approvalInTasks\": {\n      \"default\": \"full\",\n      \"overrides\": []\n    },\n    \"name\": \"Support Agent\",\n    \"model\": \"openai/gpt-6-luna\",\n    \"thinkingLevel\": null,\n    \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n    \"autoCompaction\": true,\n    \"compactionReserveTokens\": 16384,\n    \"memoryInjectionEnabled\": false,\n    \"tools\": [\n      \"workspace\",\n      \"write_todos\"\n    ],\n    \"instructions\": \"Answer billing questions clearly and briefly.\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"mcpConnectionIds\": []\n  },\n  \"sessionId\": \"ss_5Ty8Lr2GhW4nZc7F\",\n  \"turnId\": \"turn_3Xp6Mv9QdB1sKe4H\",\n  \"status\": \"succeeded\",\n  \"error\": null,\n  \"userId\": \"\",\n  \"metadata\": {\n    \"team\": \"support\"\n  },\n  \"startedAt\": \"2026-07-10T10:00:01.000Z\",\n  \"finishedAt\": \"2026-07-10T10:03:00.000Z\",\n  \"cancelRequestedAt\": null,\n  \"canceledAt\": null,\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:03:00.000Z\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -11641,12 +11541,12 @@ export const documentationTree: SerializedPageTree = {
             "$ref": "agents/prompts.md"
           },
           {
-            "$id": "agents/versions-and-lifecycle.md",
+            "$id": "agents/configuration-snapshots.md",
             "type": "page",
-            "name": "Versions and lifecycle",
-            "description": "Roll back a bad change, pin a known-good agent config, and pause an agent without deleting it.",
-            "url": "/agents/versions-and-lifecycle",
-            "$ref": "agents/versions-and-lifecycle.md"
+            "name": "Configuration snapshots and lifecycle",
+            "description": "See which settings a session or task run saved, and pause an agent without deleting it.",
+            "url": "/agents/configuration-snapshots",
+            "$ref": "agents/configuration-snapshots.md"
           },
           {
             "$id": "agents/skills.md",
@@ -11927,7 +11827,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/agents.md",
                 "type": "page",
                 "name": "Agents",
-                "description": "Create, configure, version, pause, and delete agents with the TypeScript SDK.",
+                "description": "Create, configure, pause, and delete agents with the TypeScript SDK.",
                 "url": "/sdk/typescript/agents",
                 "$ref": "sdk/typescript/agents.md"
               },
@@ -12058,7 +11958,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/agents.md",
                 "type": "page",
                 "name": "Agents",
-                "description": "Create, configure, version, pause, and delete agents with the Python SDK.",
+                "description": "Create, configure, pause, and delete agents with the Python SDK.",
                 "url": "/sdk/python/agents",
                 "$ref": "sdk/python/agents.md"
               },
@@ -12267,7 +12167,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/rest-api/agents.md",
                 "type": "page",
                 "name": "Agents",
-                "description": "Create, inspect, update, version, disable, and extend Agents.",
+                "description": "Create, inspect, update, disable, and extend Agents.",
                 "url": "/api-reference/rest-api/agents",
                 "$ref": "api-reference/rest-api/agents.md"
               },

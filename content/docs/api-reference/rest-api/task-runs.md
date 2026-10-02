@@ -11,7 +11,7 @@ A task run is one execution of a task. Start a run on demand, poll its status an
 
 ## Tool approval policy [#tool-approval-policy]
 
-Task runs follow the agent version's `approvalInTasks` policy. Nobody is
+Task runs follow the configuration saved when queued, including its `approvalInTasks` policy. Nobody is
 there to approve a tool call during a run, so calls that need manual approval,
 or that automatic review escalates to a person, are denied. The agent is told
 which actions were blocked and keeps going with what it is allowed to do. If a
@@ -50,7 +50,32 @@ Response schema: `TaskRunList`.
       "taskId": "tk_6Wq3Hn8ZpL2vRt5C",
       "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
       "agentId": "ag_4kP9sT2vXq7LmN3a",
-      "agentVersion": 3,
+      "agentConfig": {
+        "approvalInChat": {
+          "default": "full",
+          "overrides": []
+        },
+        "approvalInTasks": {
+          "default": "full",
+          "overrides": []
+        },
+        "name": "Support Agent",
+        "model": "openai/gpt-6-luna",
+        "thinkingLevel": null,
+        "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+        "autoCompaction": true,
+        "compactionReserveTokens": 16384,
+        "memoryInjectionEnabled": false,
+        "tools": [
+          "workspace",
+          "write_todos"
+        ],
+        "instructions": "Answer billing questions clearly and briefly.",
+        "metadata": {
+          "team": "support"
+        },
+        "mcpConnectionIds": []
+      },
       "sessionId": "ss_5Ty8Lr2GhW4nZc7F",
       "turnId": "turn_3Xp6Mv9QdB1sKe4H",
       "status": "succeeded",
@@ -125,7 +150,7 @@ Response schema: `CreatedTaskRun`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`task_active_run_exists`](/api-reference/protocols/errors#task_active_run_exists), [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) | The request conflicts with the resource's current state |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
@@ -143,7 +168,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs"
 
 Get a task run.
 
-Returns a task run's current state. `status` moves from `queued` to `running` and ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota was reached or usage credit ran out; `error` says why. `error` also describes a failed run. `sessionId` and `turnId` stay `null` until the run starts its session, and a run that fails before starting, such as one whose agent version has no provider and model, never gets them. Every final status sets `finishedAt` and lets the task start another run.
+Returns a task run's current state and the agent configuration captured when it was queued. `status` moves from `queued` to `running` and ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota was reached or usage credit ran out; `error` says why. `error` also describes a failed run. `sessionId` and `turnId` stay `null` until the run starts its session, and a run that fails before starting, such as one whose saved agent configuration has no provider and model, never gets them. Every final status sets `finishedAt` and lets the task start another run.
 
 #### Request
 
@@ -166,7 +191,32 @@ Response schema: `TaskRun`.
   "taskId": "tk_6Wq3Hn8ZpL2vRt5C",
   "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "agentId": "ag_4kP9sT2vXq7LmN3a",
-  "agentVersion": 3,
+  "agentConfig": {
+    "approvalInChat": {
+      "default": "full",
+      "overrides": []
+    },
+    "approvalInTasks": {
+      "default": "full",
+      "overrides": []
+    },
+    "name": "Support Agent",
+    "model": "openai/gpt-6-luna",
+    "thinkingLevel": null,
+    "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+    "autoCompaction": true,
+    "compactionReserveTokens": 16384,
+    "memoryInjectionEnabled": false,
+    "tools": [
+      "workspace",
+      "write_todos"
+    ],
+    "instructions": "Answer billing questions clearly and briefly.",
+    "metadata": {
+      "team": "support"
+    },
+    "mcpConnectionIds": []
+  },
   "sessionId": "ss_5Ty8Lr2GhW4nZc7F",
   "turnId": "turn_3Xp6Mv9QdB1sKe4H",
   "status": "succeeded",

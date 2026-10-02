@@ -9,7 +9,7 @@ A task run is one execution of a task. Start a run on demand, poll its status an
 
 ## Tool approval policy [#tool-approval-policy]
 
-Task runs follow the agent version's `approvalInTasks` policy. Nobody is
+Task runs follow the configuration saved when queued, including its `approvalInTasks` policy. Nobody is
 there to approve a tool call during a run, so calls that need manual approval,
 or that automatic review escalates to a person, are denied. The agent is told
 which actions were blocked and keeps going with what it is allowed to do. If a

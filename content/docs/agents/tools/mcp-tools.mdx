@@ -108,7 +108,7 @@ Each attachment decides what end-user context the server receives. Turn on forwa
 
 `reconnect()` replaces a connection's URL and credentials under the same ID. With a token or client credentials, the new details are checked first, and the old ones stay in use if the check fails. With an authorization code, the old credentials are dropped right away and the connection returns to `needs_auth` until someone signs in again.
 
-Agent versions store only the connection ID. Reconnecting therefore changes what older pinned versions use too. You can delete a connection only after every agent has detached it, and restoring a version that names a deleted connection fails.
+A session or task run saves the connection ID, while the connection details and credentials remain current. Reconnecting changes what existing work uses too. Detach a connection from every agent before deleting it.
 
 ## Production checklist [#production-checklist]
 

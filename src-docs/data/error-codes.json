@@ -195,7 +195,7 @@
       "title": "The agent is disabled.",
       "whatHappened": "A disabled agent cannot start turns or task runs. Its configuration and history are kept.",
       "howToFix": [
-        "Enable the agent, then send the request again. See [enable and disable](/agents/versions-and-lifecycle#enable-and-disable)."
+        "Enable the agent, then send the request again. See [enable and disable](/agents/configuration-snapshots#enable-and-disable)."
       ],
       "retryable": false
     },
@@ -212,26 +212,13 @@
       "retryable": false
     },
     {
-      "code": "agent_version_not_found",
-      "group": "agents-and-providers",
-      "statuses": [404],
-      "title": "The agent version does not exist.",
-      "whatHappened": "A turn, session, or task pins a version number the agent never had, or you tried to restore one. Versions start at 1 and increase with each change. Reading a missing version returns [`not_found`](#not_found) instead.",
-      "howToFix": [
-        "List the agent's versions and choose one that exists.",
-        "Update any session or task that pins the missing version. See [pin a version](/agents/versions-and-lifecycle#pin-a-version)."
-      ],
-      "retryable": false
-    },
-    {
       "code": "provider_required",
       "group": "agents-and-providers",
       "statuses": [400],
-      "title": "The agent has no provider and model.",
-      "whatHappened": "A turn needs a model, and the agent version that would run has none. Nothing ran and nothing was billed.",
+      "title": "The agent configuration has no provider and model.",
+      "whatHappened": "A turn needs a model, and the agent configuration saved for this work has none. Nothing ran and nothing was billed.",
       "howToFix": [
-        "Set `providerId` and `model` together on the agent.",
-        "If the turn pins an older version, pin one that has a provider and model. See [providers and models](/agents/providers-and-models)."
+        "Set `providerId` and `model` together on the agent. New sessions and task runs will use the updated settings."
       ],
       "retryable": false
     },
@@ -251,11 +238,11 @@
       "code": "provider_historical_use",
       "group": "agents-and-providers",
       "statuses": [409],
-      "title": "Older agent versions, sessions, or tasks still use this provider.",
-      "whatHappened": "No current agent uses the provider, but older versions or pinned sessions and tasks do. `details.agentVersions`, `details.sessionIds`, and `details.taskIds` list them.",
+      "title": "Saved sessions or task runs still use this provider.",
+      "whatHappened": "No current agent uses the provider, but saved sessions or queued or running task runs do. `details.sessionIds` and `details.taskRunIds` list them.",
       "howToFix": [
-        "Keep the provider while those versions need to run.",
-        "Or delete with `confirmVersionInvalidation=true` (`confirm_version_invalidation=True` in Python). Afterwards, running or restoring those versions fails with [`provider_not_found`](#provider_not_found)."
+        "Keep the provider while that work needs it.",
+        "Or delete with `confirmSnapshotInvalidation=true` (`confirm_snapshot_invalidation=True` in Python). Saved configuration stays readable, but work that needs the deleted provider fails with [`provider_not_found`](#provider_not_found)."
       ],
       "retryable": false
     },
@@ -286,10 +273,10 @@
       "group": "agents-and-providers",
       "statuses": [404],
       "title": "The provider does not exist in your tenant.",
-      "whatHappened": "The `providerId` is wrong or the provider was deleted. A pinned agent version whose provider was deleted also fails this way when it runs or is restored.",
+      "whatHappened": "The `providerId` is wrong or the provider was deleted. A session or task run whose saved configuration names a deleted provider fails when it needs that provider.",
       "howToFix": [
         "List your providers and use an existing ID.",
-        "For a pinned version, pin a newer version or create the provider again and update the agent."
+        "Update the agent to use an existing provider for new sessions and task runs."
       ],
       "retryable": false
     },
@@ -309,7 +296,7 @@
       "group": "agents-and-providers",
       "statuses": [400],
       "title": "The provider does not offer this model.",
-      "whatHappened": "Blazing Agents checks the model ID against the provider when you create an agent with a model, change its model, or restore a version. The ID is not in the provider's current list.",
+      "whatHappened": "Blazing Agents checks the model ID against the provider when you create an agent with a model or change its model. The ID is not in the provider's current list.",
       "howToFix": [
         "List the provider's models and pick one. Check the spelling and any prefix, such as `openai/`.",
         "If the key, provider type, or base URL changed, create a new provider."

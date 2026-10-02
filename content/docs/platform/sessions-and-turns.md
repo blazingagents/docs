@@ -96,9 +96,9 @@ To show an agent's conversations, call `client.sessions.list({ agentId })`. For 
 
 Files the agent deliberately published during a conversation are [artifacts](/agents/artifacts). List them with `client.artifacts.list({ sessionId })`.
 
-## Pin a version and label the user [#pin-a-version-and-label-the-user]
+## Saved configuration and user labels [#saved-configuration-and-user-labels]
 
-By default, each turn runs the agent's latest configuration. Pass `version` when you start a session to pin it to one [agent version](/agents/versions-and-lifecycle) for its whole life. You cannot change the pin on later turns.
+The first turn saves the agent's current configuration. Later turns in the same session use those saved settings, even after you edit the agent. Call `sessions.get()` to read `agentConfig`; message pages contain only the transcript. See [configuration snapshots](/agents/configuration-snapshots).
 
 Pass `userId` and `metadata` on the first turn to label the session with your end user. The `userId` is fixed once the session starts, and it labels usage for reporting. It does not control access, so your backend still decides who may open which session. See [tenancy and attribution](/platform/tenancy-and-attribution).
 

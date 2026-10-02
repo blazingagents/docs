@@ -1,11 +1,11 @@
 ---
 title: Agents
-description: Create, configure, version, pause, and delete agents with the TypeScript SDK.
+description: Create, configure, pause, and delete agents with the TypeScript SDK.
 ---
 
 # Agents
 
-`client.agents` creates and configures your agents, keeps a version for every configuration change, and lets you pause an agent or roll it back. To learn what an agent is and how to design one, read [Agents](/agents/agents).
+`client.agents` creates, configures, and pauses your agents. To learn what an agent is and how to design one, read [Agents](/agents/agents).
 
 ```typescript
 const agent = await client.agents.create({
@@ -17,24 +17,21 @@ const agent = await client.agents.create({
 });
 ```
 
-Every method takes one input object and accepts an optional `abortSignal`. `create()` and `update()` save a new numbered version; the other methods do not. See [Versions and lifecycle](/agents/versions-and-lifecycle).
+Every method takes one input object and accepts an optional `abortSignal`. New sessions and task runs save the current configuration when they start. See [Configuration snapshots and lifecycle](/agents/configuration-snapshots).
 
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`create()`](#create) | Create an agent and its version 1 | `Agent` |
+| [`create()`](#create) | Create an agent | `Agent` |
 | [`list()`](#list) | List agents | `AgentsResponse` |
 | [`get()`](#get) | Read an agent's current configuration | `Agent` |
-| [`update()`](#update) | Change configuration and save a new version | `Agent` |
+| [`update()`](#update) | Change configuration | `Agent` |
 | [`delete()`](#delete) | Delete an agent for good | `void` |
 | [`disable()`](#disable) | Stop new turns | `Agent` |
 | [`enable()`](#enable) | Allow turns again | `Agent` |
 | [`uploadAvatar()`](#upload-avatar) | Set the avatar image | `Agent` |
 | [`removeAvatar()`](#remove-avatar) | Remove the avatar | `Agent` |
-| [`listVersions()`](#list-versions) | List saved versions | `AgentVersionsResponse` |
-| [`getVersion()`](#get-version) | Read one saved version | `AgentVersion` |
-| [`restoreVersion()`](#restore-version) | Copy an old version into a new one | `Agent` |
 | [`listMcpAttachments()`](#list-mcp-attachments) | Read what each MCP connection receives | `McpAttachmentsResponse` |
 | [`updateMcpAttachment()`](#update-mcp-attachment) | Choose what an MCP connection receives | `McpAttachmentResponse` |
 
@@ -42,7 +39,7 @@ Every method takes one input object and accepts an optional `abortSignal`. `crea
 
 ### `create()` [#create]
 
-Creates an agent and saves its configuration as version 1.
+Creates an agent.
 
 **Signature:** `create(input: CreateAgentBody & ResourceRequestOptions): Promise<Agent>`
 
@@ -132,7 +129,7 @@ Returns [`Agent`](#agent). Errors: `validation_failed`, [`not_found`](/api-refer
 
 ### `update()` [#update]
 
-Changes one or more settings and saves the result as the next version.
+Changes one or more settings.
 
 **Signature:** `update(input: UpdateAgentBody & { agentId: string } & ResourceRequestOptions): Promise<Agent>`
 
@@ -152,7 +149,7 @@ Takes `agentId` plus any [`create()`](#create) field except `userId`. Pass at le
 - To switch providers, send `providerId` and `model` together. To unconfigure the agent, send both as `null`.
 - `workspaceId` moves the agent to another workspace. It cannot be cleared.
 
-Returns [`Agent`](#agent) with the new `version`. Errors: `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
+Returns [`Agent`](#agent). Errors: `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
 
 ### `delete()` [#delete]
 
@@ -224,51 +221,6 @@ const agent = await client.agents.removeAvatar({ agentId });
 
 Returns [`Agent`](#agent) with `avatarUrl: null`. Errors: `validation_failed`, `not_found`, `admin_agent_managed`.
 
-### `listVersions()` [#list-versions]
-
-Lists an agent's saved versions, newest first.
-
-**Signature:** `listVersions(input: { agentId: string } & AgentVersionsListOptions): Promise<AgentVersionsResponse>`
-
-```typescript
-const page = await client.agents.listVersions({ agentId, limit: 20 });
-const older = page.nextCursor
-  ? await client.agents.listVersions({ agentId, cursor: page.nextCursor })
-  : null;
-```
-
-| Parameter | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `agentId` | `string` | yes | none | Agent ID (`ag_…`) |
-| `cursor` | `string` | no | none | `nextCursor` from the previous page |
-| `limit` | `number` | no | `50` | 1 to 200 versions per page |
-
-Returns [`AgentVersionsResponse`](#agentversionsresponse). Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), `not_found`.
-
-### `getVersion()` [#get-version]
-
-Reads one saved version.
-
-**Signature:** `getVersion(input: { agentId: string; version: number } & ResourceRequestOptions): Promise<AgentVersion>`
-
-```typescript
-const first = await client.agents.getVersion({ agentId, version: 1 });
-```
-
-Returns [`AgentVersion`](#agentversion). Errors: `validation_failed`, `not_found`.
-
-### `restoreVersion()` [#restore-version]
-
-Copies an old version's configuration into a new latest version. History stays as it was.
-
-**Signature:** `restoreVersion(input: { agentId: string; version: number } & ResourceRequestOptions): Promise<Agent>`
-
-```typescript
-const agent = await client.agents.restoreVersion({ agentId, version: 1 });
-```
-
-The SDK reads the version with [`getVersion()`](#get-version) and saves its fields with [`update()`](#update). The workspace, `userId`, status, and avatar are not part of a version, so they stay as they are. Returns the updated [`Agent`](#agent). It fails with the errors of either call, for example `provider_not_found` when the old provider was deleted.
-
 ### `listMcpAttachments()` [#list-mcp-attachments]
 
 Shows, for each MCP connection the agent uses, whether it receives the end user's ID and which metadata keys.
@@ -283,7 +235,7 @@ Returns `{ mcpAttachments: McpAttachmentResponse[] }`. Errors: `validation_faile
 
 ### `updateMcpAttachment()` [#update-mcp-attachment]
 
-Chooses what one MCP connection receives about the end user on each tool call. It does not save a new version.
+Chooses what one MCP connection receives about the end user on each tool call.
 
 **Signature:** `updateMcpAttachment(input: UpdateMcpAttachmentBody & { agentId: string; mcpConnectionId: string } & ResourceRequestOptions): Promise<McpAttachmentResponse>`
 
@@ -329,27 +281,11 @@ Pass at least one of the two settings. Returns [`McpAttachmentResponse`](#mcpatt
 | `userId` | `string` | The end user this agent belongs to, or `""` |
 | `metadata` | `Record<string, unknown>` | Your labels |
 | `avatarUrl` | `string \| null` | Short-lived avatar URL, or `null` |
-| `version` | `number` | Current version number |
 | `status` | `"active" \| "disabled"` | Whether new turns can start |
 | `createdAt` | `string` | ISO 8601 timestamp |
 | `updatedAt` | `string` | ISO 8601 timestamp |
 
 `AgentsResponse` is `{ data: Agent[], nextCursor: string | null }`. The package exports `Agent`, `ApprovalPolicy`, `ApprovalDecision`, and `ToolReference`.
-
-### `AgentVersion` [#agentversion]
-
-A saved configuration. It has `agentId`, `tenantId`, `version`, `createdAt`, and the versioned fields: `name`, `providerId`, `model`, `thinkingLevel`, `instructions`, `tools`, `mcpConnectionIds`, `memoryInjectionEnabled`, `autoCompaction`, `compactionReserveTokens`, `approvalInChat`, `approvalInTasks`, and `metadata`.
-
-### `AgentVersionsResponse` [#agentversionsresponse]
-
-```typescript
-interface AgentVersionsResponse {
-  data: AgentVersion[];
-  nextCursor: string | null;
-}
-```
-
-`nextCursor` is `null` on the last page.
 
 ### `McpAttachmentResponse` [#mcpattachmentresponse]
 
@@ -368,7 +304,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | Code | Meaning |
 | --- | --- |
 | `validation_failed` | An ID or field is invalid; `param` names it |
-| `not_found` | No such agent, version, or connection in your tenant |
+| `not_found` | No such agent or connection in your tenant |
 | `provider_not_found` | The provider does not exist |
 | `model_not_found` | The provider does not offer this model |
 | `agent_mcp_connection_not_found` | A listed MCP connection does not exist |
@@ -379,5 +315,5 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 ## Next [#next]
 
 - [Agents](/agents/agents)
-- [Versions and lifecycle](/agents/versions-and-lifecycle)
+- [Configuration snapshots and lifecycle](/agents/configuration-snapshots)
 - [Providers and models](/agents/providers-and-models)

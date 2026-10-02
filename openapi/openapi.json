@@ -129,7 +129,6 @@
                   "checkout_evidence_mismatch",
                   "agent_disabled",
                   "admin_agent_managed",
-                  "agent_version_not_found",
                   "agent_mcp_connection_not_found",
                   "agent_mcp_connections_invalid",
                   "provider_required",
@@ -2279,11 +2278,6 @@
             "type": "string",
             "format": "date-time"
           },
-          "version": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 2147483647
-          },
           "status": {
             "type": "string",
             "enum": [
@@ -2311,7 +2305,6 @@
           "avatarUrl",
           "createdAt",
           "updatedAt",
-          "version",
           "status"
         ]
       },
@@ -2418,349 +2411,6 @@
           "forwardedMetadataKeys",
           "createdAt",
           "updatedAt"
-        ]
-      },
-      "AgentVersionList": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AgentVersion"
-            }
-          },
-          "nextCursor": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "data",
-          "nextCursor"
-        ],
-        "additionalProperties": false
-      },
-      "AgentVersion": {
-        "type": "object",
-        "properties": {
-          "approvalInChat": {
-            "type": "object",
-            "properties": {
-              "default": {
-                "type": "string",
-                "enum": [
-                  "full",
-                  "deny",
-                  "manual",
-                  "auto"
-                ]
-              },
-              "overrides": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "tool": {
-                      "oneOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "type": {
-                              "type": "string",
-                              "enum": [
-                                "builtin"
-                              ]
-                            },
-                            "name": {
-                              "type": "string",
-                              "enum": [
-                                "read",
-                                "write",
-                                "edit",
-                                "grep",
-                                "glob",
-                                "bash",
-                                "publish_artifacts",
-                                "write_todos",
-                                "save_memory",
-                                "get_memory",
-                                "search_memories",
-                                "update_memory",
-                                "delete_memory",
-                                "activate_skill"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "type",
-                            "name"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "type": {
-                              "type": "string",
-                              "enum": [
-                                "mcp"
-                              ]
-                            },
-                            "connectionId": {
-                              "type": "string",
-                              "pattern": "^mcp_[0-9A-Za-z]{16}$"
-                            },
-                            "name": {
-                              "type": "string",
-                              "minLength": 1
-                            }
-                          },
-                          "required": [
-                            "type",
-                            "connectionId",
-                            "name"
-                          ],
-                          "additionalProperties": false
-                        }
-                      ]
-                    },
-                    "decision": {
-                      "type": "string",
-                      "enum": [
-                        "full",
-                        "deny",
-                        "manual",
-                        "auto"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "tool",
-                    "decision"
-                  ],
-                  "additionalProperties": false
-                },
-                "default": []
-              }
-            },
-            "default": {
-              "default": "full",
-              "overrides": []
-            },
-            "required": [
-              "default"
-            ],
-            "additionalProperties": false
-          },
-          "approvalInTasks": {
-            "type": "object",
-            "properties": {
-              "default": {
-                "type": "string",
-                "enum": [
-                  "full",
-                  "deny",
-                  "manual",
-                  "auto"
-                ]
-              },
-              "overrides": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "tool": {
-                      "oneOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "type": {
-                              "type": "string",
-                              "enum": [
-                                "builtin"
-                              ]
-                            },
-                            "name": {
-                              "type": "string",
-                              "enum": [
-                                "read",
-                                "write",
-                                "edit",
-                                "grep",
-                                "glob",
-                                "bash",
-                                "publish_artifacts",
-                                "write_todos",
-                                "save_memory",
-                                "get_memory",
-                                "search_memories",
-                                "update_memory",
-                                "delete_memory",
-                                "activate_skill"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "type",
-                            "name"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "type": {
-                              "type": "string",
-                              "enum": [
-                                "mcp"
-                              ]
-                            },
-                            "connectionId": {
-                              "type": "string",
-                              "pattern": "^mcp_[0-9A-Za-z]{16}$"
-                            },
-                            "name": {
-                              "type": "string",
-                              "minLength": 1
-                            }
-                          },
-                          "required": [
-                            "type",
-                            "connectionId",
-                            "name"
-                          ],
-                          "additionalProperties": false
-                        }
-                      ]
-                    },
-                    "decision": {
-                      "type": "string",
-                      "enum": [
-                        "full",
-                        "deny",
-                        "manual",
-                        "auto"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "tool",
-                    "decision"
-                  ],
-                  "additionalProperties": false
-                },
-                "default": []
-              }
-            },
-            "default": {
-              "default": "full",
-              "overrides": []
-            },
-            "required": [
-              "default"
-            ],
-            "additionalProperties": false
-          },
-          "agentId": {
-            "type": "string",
-            "pattern": "^ag_[0-9A-Za-z]{16}$"
-          },
-          "tenantId": {
-            "type": "string",
-            "pattern": "^ten_[0-9A-Za-z]{16}$"
-          },
-          "version": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 2147483647
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 80
-          },
-          "model": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "minLength": 1
-          },
-          "thinkingLevel": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "minLength": 1
-          },
-          "providerId": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "pattern": "^prv_[0-9A-Za-z]{16}$"
-          },
-          "autoCompaction": {
-            "type": "boolean"
-          },
-          "compactionReserveTokens": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
-          },
-          "memoryInjectionEnabled": {
-            "type": "boolean"
-          },
-          "tools": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "workspace",
-                "write_todos",
-                "memory"
-              ]
-            }
-          },
-          "instructions": {
-            "type": "string",
-            "maxLength": 3000
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": {}
-          },
-          "mcpConnectionIds": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "pattern": "^mcp_[0-9A-Za-z]{16}$"
-            },
-            "maxItems": 10
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "agentId",
-          "tenantId",
-          "version",
-          "name",
-          "model",
-          "thinkingLevel",
-          "providerId",
-          "autoCompaction",
-          "compactionReserveTokens",
-          "memoryInjectionEnabled",
-          "tools",
-          "instructions",
-          "metadata",
-          "mcpConnectionIds",
-          "createdAt"
         ]
       },
       "Skill": {
@@ -3049,14 +2699,6 @@
             "items": {
               "type": "object",
               "properties": {
-                "agentVersion": {
-                  "type": [
-                    "integer",
-                    "null"
-                  ],
-                  "minimum": 1,
-                  "maximum": 2147483647
-                },
                 "id": {
                   "type": "string",
                   "pattern": "^ss_[0-9A-Za-z]{16}$"
@@ -3088,7 +2730,6 @@
                 }
               },
               "required": [
-                "agentVersion",
                 "id",
                 "messageCount",
                 "lastMessagePreview",
@@ -3119,14 +2760,6 @@
             "items": {
               "type": "object",
               "properties": {
-                "agentVersion": {
-                  "type": [
-                    "integer",
-                    "null"
-                  ],
-                  "minimum": 1,
-                  "maximum": 2147483647
-                },
                 "id": {
                   "type": "string",
                   "pattern": "^ss_[0-9A-Za-z]{16}$"
@@ -3183,7 +2816,6 @@
                 }
               },
               "required": [
-                "agentVersion",
                 "id",
                 "messageCount",
                 "lastMessagePreview",
@@ -3209,6 +2841,351 @@
           "data",
           "nextCursor"
         ]
+      },
+      "Session": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^ss_[0-9A-Za-z]{16}$"
+          },
+          "messageCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lastMessagePreview": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userId": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "agentConfig": {
+            "type": "object",
+            "properties": {
+              "approvalInChat": {
+                "type": "object",
+                "properties": {
+                  "default": {
+                    "type": "string",
+                    "enum": [
+                      "full",
+                      "deny",
+                      "manual",
+                      "auto"
+                    ]
+                  },
+                  "overrides": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "tool": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "builtin"
+                                  ]
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "enum": [
+                                    "read",
+                                    "write",
+                                    "edit",
+                                    "grep",
+                                    "glob",
+                                    "bash",
+                                    "publish_artifacts",
+                                    "write_todos",
+                                    "save_memory",
+                                    "get_memory",
+                                    "search_memories",
+                                    "update_memory",
+                                    "delete_memory",
+                                    "activate_skill"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "mcp"
+                                  ]
+                                },
+                                "connectionId": {
+                                  "type": "string",
+                                  "pattern": "^mcp_[0-9A-Za-z]{16}$"
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "connectionId",
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "decision": {
+                          "type": "string",
+                          "enum": [
+                            "full",
+                            "deny",
+                            "manual",
+                            "auto"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "tool",
+                        "decision"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "default": []
+                  }
+                },
+                "default": {
+                  "default": "full",
+                  "overrides": []
+                },
+                "required": [
+                  "default"
+                ],
+                "additionalProperties": false
+              },
+              "approvalInTasks": {
+                "type": "object",
+                "properties": {
+                  "default": {
+                    "type": "string",
+                    "enum": [
+                      "full",
+                      "deny",
+                      "manual",
+                      "auto"
+                    ]
+                  },
+                  "overrides": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "tool": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "builtin"
+                                  ]
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "enum": [
+                                    "read",
+                                    "write",
+                                    "edit",
+                                    "grep",
+                                    "glob",
+                                    "bash",
+                                    "publish_artifacts",
+                                    "write_todos",
+                                    "save_memory",
+                                    "get_memory",
+                                    "search_memories",
+                                    "update_memory",
+                                    "delete_memory",
+                                    "activate_skill"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "mcp"
+                                  ]
+                                },
+                                "connectionId": {
+                                  "type": "string",
+                                  "pattern": "^mcp_[0-9A-Za-z]{16}$"
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "connectionId",
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "decision": {
+                          "type": "string",
+                          "enum": [
+                            "full",
+                            "deny",
+                            "manual",
+                            "auto"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "tool",
+                        "decision"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "default": []
+                  }
+                },
+                "default": {
+                  "default": "full",
+                  "overrides": []
+                },
+                "required": [
+                  "default"
+                ],
+                "additionalProperties": false
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "model": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              },
+              "thinkingLevel": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              },
+              "providerId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^prv_[0-9A-Za-z]{16}$"
+              },
+              "autoCompaction": {
+                "type": "boolean"
+              },
+              "compactionReserveTokens": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "memoryInjectionEnabled": {
+                "type": "boolean"
+              },
+              "tools": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "workspace",
+                    "write_todos",
+                    "memory"
+                  ]
+                }
+              },
+              "instructions": {
+                "type": "string",
+                "maxLength": 3000
+              },
+              "metadata": {
+                "type": "object",
+                "additionalProperties": {}
+              },
+              "mcpConnectionIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^mcp_[0-9A-Za-z]{16}$"
+                },
+                "maxItems": 10
+              }
+            },
+            "required": [
+              "name",
+              "model",
+              "thinkingLevel",
+              "providerId",
+              "autoCompaction",
+              "compactionReserveTokens",
+              "memoryInjectionEnabled",
+              "tools",
+              "instructions",
+              "metadata",
+              "mcpConnectionIds"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "messageCount",
+          "lastMessagePreview",
+          "userId",
+          "metadata",
+          "createdAt",
+          "updatedAt",
+          "agentConfig"
+        ],
+        "additionalProperties": false
       },
       "SessionMessageList": {
         "type": "object",
@@ -6044,14 +6021,6 @@
                 "type": "string",
                 "pattern": "^ag_[0-9A-Za-z]{16}$"
               },
-              "agentVersion": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "minimum": 1,
-                "maximum": 2147483647
-              },
               "name": {
                 "type": "string",
                 "minLength": 1,
@@ -6213,7 +6182,6 @@
               "id",
               "tenantId",
               "agentId",
-              "agentVersion",
               "name",
               "prompt",
               "schedule",
@@ -6260,14 +6228,6 @@
                 "agentId": {
                   "type": "string",
                   "pattern": "^ag_[0-9A-Za-z]{16}$"
-                },
-                "agentVersion": {
-                  "type": [
-                    "integer",
-                    "null"
-                  ],
-                  "minimum": 1,
-                  "maximum": 2147483647
                 },
                 "name": {
                   "type": "string",
@@ -6465,7 +6425,6 @@
                 "id",
                 "tenantId",
                 "agentId",
-                "agentVersion",
                 "name",
                 "prompt",
                 "schedule",
@@ -6508,14 +6467,6 @@
           "agentId": {
             "type": "string",
             "pattern": "^ag_[0-9A-Za-z]{16}$"
-          },
-          "agentVersion": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "minimum": 1,
-            "maximum": 2147483647
           },
           "name": {
             "type": "string",
@@ -6678,7 +6629,6 @@
           "id",
           "tenantId",
           "agentId",
-          "agentVersion",
           "name",
           "prompt",
           "schedule",
@@ -6729,10 +6679,305 @@
                   "type": "string",
                   "pattern": "^ag_[0-9A-Za-z]{16}$"
                 },
-                "agentVersion": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 2147483647
+                "agentConfig": {
+                  "type": "object",
+                  "properties": {
+                    "approvalInChat": {
+                      "type": "object",
+                      "properties": {
+                        "default": {
+                          "type": "string",
+                          "enum": [
+                            "full",
+                            "deny",
+                            "manual",
+                            "auto"
+                          ]
+                        },
+                        "overrides": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "tool": {
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "builtin"
+                                        ]
+                                      },
+                                      "name": {
+                                        "type": "string",
+                                        "enum": [
+                                          "read",
+                                          "write",
+                                          "edit",
+                                          "grep",
+                                          "glob",
+                                          "bash",
+                                          "publish_artifacts",
+                                          "write_todos",
+                                          "save_memory",
+                                          "get_memory",
+                                          "search_memories",
+                                          "update_memory",
+                                          "delete_memory",
+                                          "activate_skill"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "type",
+                                      "name"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "mcp"
+                                        ]
+                                      },
+                                      "connectionId": {
+                                        "type": "string",
+                                        "pattern": "^mcp_[0-9A-Za-z]{16}$"
+                                      },
+                                      "name": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      }
+                                    },
+                                    "required": [
+                                      "type",
+                                      "connectionId",
+                                      "name"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
+                              },
+                              "decision": {
+                                "type": "string",
+                                "enum": [
+                                  "full",
+                                  "deny",
+                                  "manual",
+                                  "auto"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "tool",
+                              "decision"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "default": []
+                        }
+                      },
+                      "default": {
+                        "default": "full",
+                        "overrides": []
+                      },
+                      "required": [
+                        "default"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "approvalInTasks": {
+                      "type": "object",
+                      "properties": {
+                        "default": {
+                          "type": "string",
+                          "enum": [
+                            "full",
+                            "deny",
+                            "manual",
+                            "auto"
+                          ]
+                        },
+                        "overrides": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "tool": {
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "builtin"
+                                        ]
+                                      },
+                                      "name": {
+                                        "type": "string",
+                                        "enum": [
+                                          "read",
+                                          "write",
+                                          "edit",
+                                          "grep",
+                                          "glob",
+                                          "bash",
+                                          "publish_artifacts",
+                                          "write_todos",
+                                          "save_memory",
+                                          "get_memory",
+                                          "search_memories",
+                                          "update_memory",
+                                          "delete_memory",
+                                          "activate_skill"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "type",
+                                      "name"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "mcp"
+                                        ]
+                                      },
+                                      "connectionId": {
+                                        "type": "string",
+                                        "pattern": "^mcp_[0-9A-Za-z]{16}$"
+                                      },
+                                      "name": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      }
+                                    },
+                                    "required": [
+                                      "type",
+                                      "connectionId",
+                                      "name"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
+                              },
+                              "decision": {
+                                "type": "string",
+                                "enum": [
+                                  "full",
+                                  "deny",
+                                  "manual",
+                                  "auto"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "tool",
+                              "decision"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "default": []
+                        }
+                      },
+                      "default": {
+                        "default": "full",
+                        "overrides": []
+                      },
+                      "required": [
+                        "default"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "model": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "minLength": 1
+                    },
+                    "thinkingLevel": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "minLength": 1
+                    },
+                    "providerId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^prv_[0-9A-Za-z]{16}$"
+                    },
+                    "autoCompaction": {
+                      "type": "boolean"
+                    },
+                    "compactionReserveTokens": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "memoryInjectionEnabled": {
+                      "type": "boolean"
+                    },
+                    "tools": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "workspace",
+                          "write_todos",
+                          "memory"
+                        ]
+                      }
+                    },
+                    "instructions": {
+                      "type": "string",
+                      "maxLength": 3000
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    },
+                    "mcpConnectionIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^mcp_[0-9A-Za-z]{16}$"
+                      },
+                      "maxItems": 10
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "model",
+                    "thinkingLevel",
+                    "providerId",
+                    "autoCompaction",
+                    "compactionReserveTokens",
+                    "memoryInjectionEnabled",
+                    "tools",
+                    "instructions",
+                    "metadata",
+                    "mcpConnectionIds"
+                  ]
                 },
                 "sessionId": {
                   "type": [
@@ -6814,7 +7059,7 @@
                 "taskId",
                 "tenantId",
                 "agentId",
-                "agentVersion",
+                "agentConfig",
                 "sessionId",
                 "turnId",
                 "status",
@@ -6861,10 +7106,305 @@
             "type": "string",
             "pattern": "^ag_[0-9A-Za-z]{16}$"
           },
-          "agentVersion": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 2147483647
+          "agentConfig": {
+            "type": "object",
+            "properties": {
+              "approvalInChat": {
+                "type": "object",
+                "properties": {
+                  "default": {
+                    "type": "string",
+                    "enum": [
+                      "full",
+                      "deny",
+                      "manual",
+                      "auto"
+                    ]
+                  },
+                  "overrides": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "tool": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "builtin"
+                                  ]
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "enum": [
+                                    "read",
+                                    "write",
+                                    "edit",
+                                    "grep",
+                                    "glob",
+                                    "bash",
+                                    "publish_artifacts",
+                                    "write_todos",
+                                    "save_memory",
+                                    "get_memory",
+                                    "search_memories",
+                                    "update_memory",
+                                    "delete_memory",
+                                    "activate_skill"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "mcp"
+                                  ]
+                                },
+                                "connectionId": {
+                                  "type": "string",
+                                  "pattern": "^mcp_[0-9A-Za-z]{16}$"
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "connectionId",
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "decision": {
+                          "type": "string",
+                          "enum": [
+                            "full",
+                            "deny",
+                            "manual",
+                            "auto"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "tool",
+                        "decision"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "default": []
+                  }
+                },
+                "default": {
+                  "default": "full",
+                  "overrides": []
+                },
+                "required": [
+                  "default"
+                ],
+                "additionalProperties": false
+              },
+              "approvalInTasks": {
+                "type": "object",
+                "properties": {
+                  "default": {
+                    "type": "string",
+                    "enum": [
+                      "full",
+                      "deny",
+                      "manual",
+                      "auto"
+                    ]
+                  },
+                  "overrides": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "tool": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "builtin"
+                                  ]
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "enum": [
+                                    "read",
+                                    "write",
+                                    "edit",
+                                    "grep",
+                                    "glob",
+                                    "bash",
+                                    "publish_artifacts",
+                                    "write_todos",
+                                    "save_memory",
+                                    "get_memory",
+                                    "search_memories",
+                                    "update_memory",
+                                    "delete_memory",
+                                    "activate_skill"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "mcp"
+                                  ]
+                                },
+                                "connectionId": {
+                                  "type": "string",
+                                  "pattern": "^mcp_[0-9A-Za-z]{16}$"
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "connectionId",
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "decision": {
+                          "type": "string",
+                          "enum": [
+                            "full",
+                            "deny",
+                            "manual",
+                            "auto"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "tool",
+                        "decision"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "default": []
+                  }
+                },
+                "default": {
+                  "default": "full",
+                  "overrides": []
+                },
+                "required": [
+                  "default"
+                ],
+                "additionalProperties": false
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "model": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              },
+              "thinkingLevel": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              },
+              "providerId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^prv_[0-9A-Za-z]{16}$"
+              },
+              "autoCompaction": {
+                "type": "boolean"
+              },
+              "compactionReserveTokens": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "memoryInjectionEnabled": {
+                "type": "boolean"
+              },
+              "tools": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "workspace",
+                    "write_todos",
+                    "memory"
+                  ]
+                }
+              },
+              "instructions": {
+                "type": "string",
+                "maxLength": 3000
+              },
+              "metadata": {
+                "type": "object",
+                "additionalProperties": {}
+              },
+              "mcpConnectionIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^mcp_[0-9A-Za-z]{16}$"
+                },
+                "maxItems": 10
+              }
+            },
+            "required": [
+              "name",
+              "model",
+              "thinkingLevel",
+              "providerId",
+              "autoCompaction",
+              "compactionReserveTokens",
+              "memoryInjectionEnabled",
+              "tools",
+              "instructions",
+              "metadata",
+              "mcpConnectionIds"
+            ]
           },
           "sessionId": {
             "type": [
@@ -6946,7 +7486,7 @@
           "taskId",
           "tenantId",
           "agentId",
-          "agentVersion",
+          "agentConfig",
           "sessionId",
           "turnId",
           "status",
@@ -10905,7 +11445,7 @@
           "providers"
         ],
         "summary": "Delete a provider",
-        "description": "Deletes a provider and its key. While a current agent uses the provider, deletion fails with `provider_in_use` and the agent IDs in `details.agentIds`; point those agents at another provider first. When only older agent versions, pinned sessions, or tasks use it, deletion fails with `provider_historical_use` and their IDs in `details`, unless you send `confirmVersionInvalidation=true`.",
+        "description": "Deletes a provider and its key. While a current agent uses the provider, deletion fails with `provider_in_use` and the agent IDs in `details.agentIds`; point those agents at another provider first. When saved session or task run configurations use it, deletion fails with `provider_historical_use` and their IDs in `details`, unless you send `confirmSnapshotInvalidation=true`.",
         "parameters": [
           {
             "schema": {
@@ -10926,12 +11466,12 @@
                 "false"
               ],
               "default": "false",
-              "description": "`true` confirms that pinned sessions, tasks, and version restores that use this provider may stop working. It never overrides use by a current agent.",
+              "description": "`true` confirms that sessions and queued or running task runs with a saved reference to this provider may stop working. It never overrides use by a current agent.",
               "example": "false"
             },
             "required": false,
-            "description": "`true` confirms that pinned sessions, tasks, and version restores that use this provider may stop working. It never overrides use by a current agent.",
-            "name": "confirmVersionInvalidation",
+            "description": "`true` confirms that sessions and queued or running task runs with a saved reference to this provider may stop working. It never overrides use by a current agent.",
+            "name": "confirmSnapshotInvalidation",
             "in": "query"
           }
         ],
@@ -13469,7 +14009,6 @@
                   "avatarUrl": null,
                   "createdAt": "2026-07-10T10:00:00.000Z",
                   "updatedAt": "2026-07-10T10:00:00.000Z",
-                  "version": 1,
                   "status": "active"
                 },
                 "schema": {
@@ -13671,7 +14210,6 @@
                       "avatarUrl": null,
                       "createdAt": "2026-07-10T10:00:00.000Z",
                       "updatedAt": "2026-07-10T10:00:00.000Z",
-                      "version": 1,
                       "status": "active"
                     }
                   ],
@@ -14007,309 +14545,6 @@
         }
       }
     },
-    "/v1/agents/{agentId}/versions": {
-      "get": {
-        "operationId": "listAgentVersions",
-        "tags": [
-          "agents"
-        ],
-        "summary": "List agent versions",
-        "description": "Lists an agent's saved versions, newest first. Each version is a complete snapshot of the configuration and never changes. Pass `nextCursor` as `cursor` to get the next page.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$",
-              "description": "ID of the agent."
-            },
-            "required": true,
-            "description": "ID of the agent.",
-            "name": "agentId",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "description": "`nextCursor` from the previous page. Leave it out for the first page."
-            },
-            "required": false,
-            "description": "`nextCursor` from the previous page. Leave it out for the first page.",
-            "name": "cursor",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 50,
-              "description": "Maximum number of versions to return."
-            },
-            "required": false,
-            "description": "Maximum number of versions to return.",
-            "name": "limit",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A page of agent versions",
-            "content": {
-              "application/json": {
-                "example": {
-                  "data": [
-                    {
-                      "approvalInChat": {
-                        "default": "full",
-                        "overrides": []
-                      },
-                      "approvalInTasks": {
-                        "default": "full",
-                        "overrides": []
-                      },
-                      "agentId": "ag_4kP9sT2vXq7LmN3a",
-                      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
-                      "version": 1,
-                      "name": "Support Agent",
-                      "model": "openai/gpt-6-luna",
-                      "thinkingLevel": null,
-                      "providerId": "prv_7Tn4Kd9QwE2sLx5R",
-                      "autoCompaction": true,
-                      "compactionReserveTokens": 16384,
-                      "memoryInjectionEnabled": false,
-                      "tools": [
-                        "workspace",
-                        "write_todos"
-                      ],
-                      "instructions": "Answer billing questions clearly and briefly.",
-                      "metadata": {
-                        "team": "support"
-                      },
-                      "mcpConnectionIds": [],
-                      "createdAt": "2026-07-10T10:00:00.000Z"
-                    }
-                  ],
-                  "nextCursor": null
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/AgentVersionList"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request is invalid",
-            "x-error-codes": [
-              "invalid_request",
-              "validation_failed",
-              "invalid_cursor"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "The credential is missing or invalid",
-            "x-error-codes": [
-              "unauthorized"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "402": {
-            "description": "An active subscription or usage credit is required",
-            "x-error-codes": [
-              "subscription_required"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "The end user cannot run this request",
-            "x-error-codes": [
-              "forbidden"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "The resource was not found",
-            "x-error-codes": [
-              "not_found"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/agents/{agentId}/versions/{version}": {
-      "get": {
-        "operationId": "getAgentVersion",
-        "tags": [
-          "agents"
-        ],
-        "summary": "Get an agent version",
-        "description": "Returns one saved version of an agent, a complete snapshot of its configuration at that point.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$",
-              "description": "ID of the agent."
-            },
-            "required": true,
-            "description": "ID of the agent.",
-            "name": "agentId",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "number",
-              "description": "Version number, starting at 1.",
-              "example": 1
-            },
-            "required": true,
-            "description": "Version number, starting at 1.",
-            "name": "version",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The agent version",
-            "content": {
-              "application/json": {
-                "example": {
-                  "approvalInChat": {
-                    "default": "full",
-                    "overrides": []
-                  },
-                  "approvalInTasks": {
-                    "default": "full",
-                    "overrides": []
-                  },
-                  "agentId": "ag_4kP9sT2vXq7LmN3a",
-                  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
-                  "version": 1,
-                  "name": "Support Agent",
-                  "model": "openai/gpt-6-luna",
-                  "thinkingLevel": null,
-                  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
-                  "autoCompaction": true,
-                  "compactionReserveTokens": 16384,
-                  "memoryInjectionEnabled": false,
-                  "tools": [
-                    "workspace",
-                    "write_todos"
-                  ],
-                  "instructions": "Answer billing questions clearly and briefly.",
-                  "metadata": {
-                    "team": "support"
-                  },
-                  "mcpConnectionIds": [],
-                  "createdAt": "2026-07-10T10:00:00.000Z"
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/AgentVersion"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request is invalid",
-            "x-error-codes": [
-              "invalid_request",
-              "validation_failed"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "The credential is missing or invalid",
-            "x-error-codes": [
-              "unauthorized"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "402": {
-            "description": "An active subscription or usage credit is required",
-            "x-error-codes": [
-              "subscription_required"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "The end user cannot run this request",
-            "x-error-codes": [
-              "forbidden"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "The resource was not found",
-            "x-error-codes": [
-              "not_found"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/agents/{agentId}": {
       "get": {
         "operationId": "getAgent",
@@ -14368,7 +14603,6 @@
                   "avatarUrl": null,
                   "createdAt": "2026-07-10T10:00:00.000Z",
                   "updatedAt": "2026-07-10T10:00:00.000Z",
-                  "version": 1,
                   "status": "active"
                 },
                 "schema": {
@@ -14451,7 +14685,7 @@
           "agents"
         ],
         "summary": "Update an agent",
-        "description": "Updates an agent and saves the result as a new version. Send at least one field. Fields you leave out keep their values, and arrays replace the current list. Changing `providerId` requires `model` in the same request, and sending both as `null` clears them. On the platform-managed `ba assist` agent, only `providerId`, `model`, and `thinkingLevel` can change.",
+        "description": "Updates the current agent configuration. New sessions and future task runs use these settings; existing sessions and queued runs keep their saved configuration. Send at least one field. Fields you leave out keep their values, and arrays replace the current list. Changing `providerId` requires `model` in the same request, and sending both as `null` clears them. On the platform-managed `ba assist` agent, only `providerId`, `model`, and `thinkingLevel` can change.",
         "parameters": [
           {
             "schema": {
@@ -14812,7 +15046,6 @@
                   "avatarUrl": null,
                   "createdAt": "2026-07-10T10:00:00.000Z",
                   "updatedAt": "2026-07-10T10:15:00.000Z",
-                  "version": 2,
                   "status": "active"
                 },
                 "schema": {
@@ -15100,7 +15333,6 @@
                   "avatarUrl": null,
                   "createdAt": "2026-07-10T10:00:00.000Z",
                   "updatedAt": "2026-07-10T10:00:00.000Z",
-                  "version": 1,
                   "status": "disabled"
                 },
                 "schema": {
@@ -15249,7 +15481,6 @@
                   "avatarUrl": null,
                   "createdAt": "2026-07-10T10:00:00.000Z",
                   "updatedAt": "2026-07-10T10:00:00.000Z",
-                  "version": 1,
                   "status": "active"
                 },
                 "schema": {
@@ -15424,7 +15655,6 @@
                   "avatarUrl": "https://files.example.com/avatars/ag_4kP9sT2vXq7LmN3a.webp",
                   "createdAt": "2026-07-10T10:00:00.000Z",
                   "updatedAt": "2026-07-10T10:00:00.000Z",
-                  "version": 1,
                   "status": "active"
                 },
                 "schema": {
@@ -15584,7 +15814,6 @@
                   "avatarUrl": null,
                   "createdAt": "2026-07-10T10:00:00.000Z",
                   "updatedAt": "2026-07-10T10:00:00.000Z",
-                  "version": 1,
                   "status": "active"
                 },
                 "schema": {
@@ -17244,12 +17473,6 @@
                     ],
                     "description": "What to stream back: `{\"type\":\"text\"}` for text, or `{\"type\":\"object\",\"schema\":{…}}` for JSON that matches a JSON Schema."
                   },
-                  "version": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 2147483647,
-                    "description": "Agent version to run. Leave it out to run the current version."
-                  },
                   "userId": {
                     "type": "string",
                     "default": "",
@@ -17346,7 +17569,6 @@
             "description": "The resource was not found",
             "x-error-codes": [
               "not_found",
-              "agent_version_not_found",
               "workspace_not_found"
             ],
             "content": {
@@ -17465,7 +17687,6 @@
                   "data": [
                     {
                       "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
-                      "agentVersion": null,
                       "messageCount": 4,
                       "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
                       "userId": "user_42",
@@ -17546,7 +17767,7 @@
           "sessions"
         ],
         "summary": "Create a session and run the first turn",
-        "description": "Starts a session and runs its first turn. The new session's URL is in the `Location` header. A rejected request creates no session; a turn that fails while running still leaves a session you can continue. Send `version` to pin the session to that agent version for every turn, or leave it out to use the agent's current version each time. `trigger: \"regenerate-message\"` is not allowed here. Send exactly one of `message` or `promptId`; `variables` is allowed only with `promptId`. The answer streams back as an AI SDK UI message stream. A failure before the stream starts returns a JSON error. Once the stream has started, a failure arrives as an error chunk; the turn still counts toward usage, and the conversation is left as it was.",
+        "description": "Starts a session and runs its first turn. The new session's URL is in the `Location` header. A rejected request creates no session; a turn that fails while running still leaves a session you can continue. The session saves the agent configuration selected for its first turn and uses it for subsequent turns. `trigger: \"regenerate-message\"` is not allowed here. Send exactly one of `message` or `promptId`; `variables` is allowed only with `promptId`. The answer streams back as an AI SDK UI message stream. A failure before the stream starts returns a JSON error. Once the stream has started, a failure arrives as an error chunk; the turn still counts toward usage, and the conversation is left as it was.",
         "parameters": [
           {
             "schema": {
@@ -17611,12 +17832,6 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "With `regenerate-message`, the message to cut the conversation back to before the answer is generated again."
-                  },
-                  "version": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 2147483647,
-                    "description": "Agent version to pin the session to. Allowed only when starting a session. Leave it out to use the agent's current version on every turn."
                   },
                   "userId": {
                     "type": "string",
@@ -17742,7 +17957,6 @@
             "x-error-codes": [
               "not_found",
               "provider_not_found",
-              "agent_version_not_found",
               "workspace_not_found"
             ],
             "content": {
@@ -17867,7 +18081,6 @@
                   "data": [
                     {
                       "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
-                      "agentVersion": null,
                       "messageCount": 4,
                       "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
                       "userId": "user_42",
@@ -17935,6 +18148,534 @@
             "description": "The end user cannot run this request",
             "x-error-codes": [
               "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agentId}/sessions/{sessionId}": {
+      "get": {
+        "operationId": "getSession",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Get a session and its saved agent configuration",
+        "description": "Returns session details and the agent configuration selected for its first turn. Later agent edits do not change this configuration. Credentials, workspace attachment, skills, and external resources remain live. Functions supplied by a backend belong to individual chat requests and are not part of this configuration. Use the messages endpoint to read the conversation.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The session and its saved configuration",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
+                  "messageCount": 4,
+                  "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
+                  "userId": "user_42",
+                  "metadata": {
+                    "plan": "pro"
+                  },
+                  "createdAt": "2026-07-10T10:00:00.000Z",
+                  "updatedAt": "2026-07-10T10:05:00.000Z",
+                  "agentConfig": {
+                    "approvalInChat": {
+                      "default": "full",
+                      "overrides": []
+                    },
+                    "approvalInTasks": {
+                      "default": "full",
+                      "overrides": []
+                    },
+                    "name": "Support Agent",
+                    "model": "openai/gpt-6-luna",
+                    "thinkingLevel": null,
+                    "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                    "autoCompaction": true,
+                    "compactionReserveTokens": 16384,
+                    "memoryInjectionEnabled": false,
+                    "tools": [
+                      "workspace",
+                      "write_todos"
+                    ],
+                    "instructions": "Answer billing questions clearly and briefly.",
+                    "metadata": {
+                      "team": "support"
+                    },
+                    "mcpConnectionIds": []
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteSession",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Delete a session",
+        "description": "Deletes a session. Afterwards it can no longer be read or continued, and every request for it returns `404`. Set `deleteArtifacts` to choose whether its artifacts are deleted too. While a tool approval is waiting for a decision, or the turn it resumes is still running, the session cannot be deleted.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "description": "`true` also deletes the session's artifacts permanently; `false` keeps them.",
+              "example": "false"
+            },
+            "required": true,
+            "description": "`true` also deletes the session's artifacts permanently; `false` keeps them.",
+            "name": "deleteArtifacts",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The session was deleted"
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "session_busy"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "resumeSessionTurn",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Resume a session with the next turn",
+        "description": "Continues a session with a new turn. A session that does not exist or was deleted returns `404`; it is never created. The session keeps its saved agent configuration. To generate an answer again, set `trigger: \"regenerate-message\"` and optionally `messageId`; the conversation is cut back to that message (by default, the last answer) and the answer is generated again, and a failed regeneration keeps the previous answer. Returns `409 session_busy` while another turn is running or a tool approval is waiting for a decision. Send exactly one of `message` or `promptId`; `variables` is allowed only with `promptId`. The answer streams back as an AI SDK UI message stream. A failure before the stream starts returns a JSON error. Once the stream has started, a failure arrives as an error chunk; the turn still counts toward usage, and the conversation is left as it was.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "message": {
+                  "id": "msg_client_2",
+                  "role": "user",
+                  "parts": [
+                    {
+                      "type": "text",
+                      "text": "What if I no longer have my email?"
+                    }
+                  ]
+                }
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "description": "The message to send, as an AI SDK `UIMessage` with `role: \"user\"`, an `id`, and non-empty `parts`. Parts can be text or images. Send either `message` or `promptId`."
+                  },
+                  "promptId": {
+                    "type": "string",
+                    "pattern": "^prompt_[0-9A-Za-z]{16}$",
+                    "description": "ID of a saved prompt to send instead of `message`."
+                  },
+                  "variables": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables."
+                  },
+                  "trigger": {
+                    "type": "string",
+                    "enum": [
+                      "submit-message",
+                      "regenerate-message"
+                    ],
+                    "default": "submit-message",
+                    "description": "`submit-message` (the default) sends a new message. `regenerate-message` generates the answer again and is allowed only when continuing a session."
+                  },
+                  "messageId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "With `regenerate-message`, the message to cut the conversation back to before the answer is generated again."
+                  },
+                  "userId": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Your end user's ID. Starting a session records it on the session, and every turn in that session keeps the session's end user."
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {},
+                    "default": {},
+                    "description": "Your own key-value data. Recorded on a new session and on the turn's usage."
+                  },
+                  "functions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "inputSchema": {
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "description",
+                        "inputSchema"
+                      ],
+                      "type": "object"
+                    },
+                    "description": "Caller-local functions the model may call during this turn, keyed by name; each entry has a `description` and a JSON Schema `inputSchema`. Your backend claims and answers each call through the function-call endpoints."
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server-sent events, each carrying one AI SDK UI message chunk",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnStreamChunk"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed",
+              "provider_required",
+              "prompt_variable_missing",
+              "prompt_variable_unknown"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required",
+              "usage_credit_required",
+              "merchant_subscription_required",
+              "merchant_balance_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden",
+              "merchant_customer_unmapped"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found",
+              "provider_not_found",
+              "message_not_found",
+              "workspace_not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "agent_disabled",
+              "session_busy",
+              "tenant_deleting"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "x-error-codes": [
+              "quota_exceeded",
+              "rate_limited"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The service is temporarily unavailable",
+            "x-error-codes": [
+              "service_unavailable",
+              "merchant_eligibility_unavailable"
             ],
             "content": {
               "application/json": {
@@ -18109,393 +18850,6 @@
             "description": "The resource was not found",
             "x-error-codes": [
               "not_found"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/agents/{agentId}/sessions/{sessionId}": {
-      "delete": {
-        "operationId": "deleteSession",
-        "tags": [
-          "sessions"
-        ],
-        "summary": "Delete a session",
-        "description": "Deletes a session. Afterwards it can no longer be read or continued, and every request for it returns `404`. Set `deleteArtifacts` to choose whether its artifacts are deleted too. While a tool approval is waiting for a decision, or the turn it resumes is still running, the session cannot be deleted.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$",
-              "description": "ID of the agent."
-            },
-            "required": true,
-            "description": "ID of the agent.",
-            "name": "agentId",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^ss_[0-9A-Za-z]{16}$",
-              "description": "ID of the session."
-            },
-            "required": true,
-            "description": "ID of the session.",
-            "name": "sessionId",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true",
-                "false"
-              ],
-              "description": "`true` also deletes the session's artifacts permanently; `false` keeps them.",
-              "example": "false"
-            },
-            "required": true,
-            "description": "`true` also deletes the session's artifacts permanently; `false` keeps them.",
-            "name": "deleteArtifacts",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "The session was deleted"
-          },
-          "400": {
-            "description": "The request is invalid",
-            "x-error-codes": [
-              "invalid_request",
-              "validation_failed"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "The credential is missing or invalid",
-            "x-error-codes": [
-              "unauthorized"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "402": {
-            "description": "An active subscription or usage credit is required",
-            "x-error-codes": [
-              "subscription_required"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "The end user cannot run this request",
-            "x-error-codes": [
-              "forbidden"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "The resource was not found",
-            "x-error-codes": [
-              "not_found"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "The request conflicts with the resource's current state",
-            "x-error-codes": [
-              "session_busy"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "operationId": "resumeSessionTurn",
-        "tags": [
-          "sessions"
-        ],
-        "summary": "Resume a session with the next turn",
-        "description": "Continues a session with a new turn. A session that does not exist or was deleted returns `404`; it is never created. `version` is not allowed: a pinned session keeps its version, and an unpinned one uses the agent's current version. To generate an answer again, set `trigger: \"regenerate-message\"` and optionally `messageId`; the conversation is cut back to that message (by default, the last answer) and the answer is generated again, and a failed regeneration keeps the previous answer. Returns `409 session_busy` while another turn is running or a tool approval is waiting for a decision. Send exactly one of `message` or `promptId`; `variables` is allowed only with `promptId`. The answer streams back as an AI SDK UI message stream. A failure before the stream starts returns a JSON error. Once the stream has started, a failure arrives as an error chunk; the turn still counts toward usage, and the conversation is left as it was.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$",
-              "description": "ID of the agent."
-            },
-            "required": true,
-            "description": "ID of the agent.",
-            "name": "agentId",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^ss_[0-9A-Za-z]{16}$",
-              "description": "ID of the session."
-            },
-            "required": true,
-            "description": "ID of the session.",
-            "name": "sessionId",
-            "in": "path"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "message": {
-                  "id": "msg_client_2",
-                  "role": "user",
-                  "parts": [
-                    {
-                      "type": "text",
-                      "text": "What if I no longer have my email?"
-                    }
-                  ]
-                }
-              },
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "description": "The message to send, as an AI SDK `UIMessage` with `role: \"user\"`, an `id`, and non-empty `parts`. Parts can be text or images. Send either `message` or `promptId`."
-                  },
-                  "promptId": {
-                    "type": "string",
-                    "pattern": "^prompt_[0-9A-Za-z]{16}$",
-                    "description": "ID of a saved prompt to send instead of `message`."
-                  },
-                  "variables": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "type": "string"
-                    },
-                    "description": "Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables."
-                  },
-                  "trigger": {
-                    "type": "string",
-                    "enum": [
-                      "submit-message",
-                      "regenerate-message"
-                    ],
-                    "default": "submit-message",
-                    "description": "`submit-message` (the default) sends a new message. `regenerate-message` generates the answer again and is allowed only when continuing a session."
-                  },
-                  "messageId": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "With `regenerate-message`, the message to cut the conversation back to before the answer is generated again."
-                  },
-                  "version": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 2147483647,
-                    "description": "Agent version to pin the session to. Allowed only when starting a session. Leave it out to use the agent's current version on every turn."
-                  },
-                  "userId": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Your end user's ID. Starting a session records it on the session, and every turn in that session keeps the session's end user."
-                  },
-                  "metadata": {
-                    "type": "object",
-                    "additionalProperties": {},
-                    "default": {},
-                    "description": "Your own key-value data. Recorded on a new session and on the turn's usage."
-                  },
-                  "functions": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "additionalProperties": false,
-                      "properties": {
-                        "description": {
-                          "type": "string"
-                        },
-                        "inputSchema": {
-                          "type": "object"
-                        }
-                      },
-                      "required": [
-                        "description",
-                        "inputSchema"
-                      ],
-                      "type": "object"
-                    },
-                    "description": "Caller-local functions the model may call during this turn, keyed by name; each entry has a `description` and a JSON Schema `inputSchema`. Your backend claims and answers each call through the function-call endpoints."
-                  }
-                },
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Server-sent events, each carrying one AI SDK UI message chunk",
-            "content": {
-              "text/event-stream": {
-                "schema": {
-                  "$ref": "#/components/schemas/TurnStreamChunk"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request is invalid",
-            "x-error-codes": [
-              "invalid_request",
-              "validation_failed",
-              "provider_required",
-              "prompt_variable_missing",
-              "prompt_variable_unknown"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "The credential is missing or invalid",
-            "x-error-codes": [
-              "unauthorized"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "402": {
-            "description": "An active subscription or usage credit is required",
-            "x-error-codes": [
-              "subscription_required",
-              "usage_credit_required",
-              "merchant_subscription_required",
-              "merchant_balance_required"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "The end user cannot run this request",
-            "x-error-codes": [
-              "forbidden",
-              "merchant_customer_unmapped"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "The resource was not found",
-            "x-error-codes": [
-              "not_found",
-              "provider_not_found",
-              "message_not_found",
-              "workspace_not_found"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "The request conflicts with the resource's current state",
-            "x-error-codes": [
-              "agent_disabled",
-              "session_busy",
-              "tenant_deleting"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too many requests",
-            "x-error-codes": [
-              "quota_exceeded",
-              "rate_limited"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "The service is temporarily unavailable",
-            "x-error-codes": [
-              "service_unavailable",
-              "merchant_eligibility_unavailable"
             ],
             "content": {
               "application/json": {
@@ -23856,16 +24210,6 @@
                     "pattern": "^ag_[0-9A-Za-z]{16}$",
                     "description": "ID of the agent that runs the task. It cannot change later."
                   },
-                  "agentVersion": {
-                    "type": [
-                      "integer",
-                      "null"
-                    ],
-                    "minimum": 1,
-                    "maximum": 2147483647,
-                    "default": null,
-                    "description": "Agent version to run. `null` runs whatever version is current when each run starts."
-                  },
                   "name": {
                     "type": "string",
                     "minLength": 1,
@@ -24028,7 +24372,6 @@
                     "id": "tk_6Wq3Hn8ZpL2vRt5C",
                     "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
                     "agentId": "ag_4kP9sT2vXq7LmN3a",
-                    "agentVersion": null,
                     "name": "Daily support summary",
                     "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
                     "schedule": {
@@ -24067,7 +24410,6 @@
                     "id": "tk_6Wq3Hn8ZpL2vRt5C",
                     "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
                     "agentId": "ag_4kP9sT2vXq7LmN3a",
-                    "agentVersion": null,
                     "name": "Daily support summary",
                     "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
                     "schedule": null,
@@ -24147,8 +24489,7 @@
           "404": {
             "description": "The resource was not found",
             "x-error-codes": [
-              "not_found",
-              "agent_version_not_found"
+              "not_found"
             ],
             "content": {
               "application/json": {
@@ -24268,7 +24609,6 @@
                       "id": "tk_6Wq3Hn8ZpL2vRt5C",
                       "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
                       "agentId": "ag_4kP9sT2vXq7LmN3a",
-                      "agentVersion": null,
                       "name": "Daily support summary",
                       "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
                       "schedule": {
@@ -24391,7 +24731,6 @@
                   "id": "tk_6Wq3Hn8ZpL2vRt5C",
                   "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
                   "agentId": "ag_4kP9sT2vXq7LmN3a",
-                  "agentVersion": null,
                   "name": "Daily support summary",
                   "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
                   "schedule": {
@@ -24521,15 +24860,6 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "agentVersion": {
-                    "type": [
-                      "integer",
-                      "null"
-                    ],
-                    "minimum": 1,
-                    "maximum": 2147483647,
-                    "description": "Agent version to run. `null` runs whatever version is current when each run starts."
-                  },
                   "name": {
                     "type": "string",
                     "minLength": 1,
@@ -24673,7 +25003,6 @@
                   "id": "tk_6Wq3Hn8ZpL2vRt5C",
                   "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
                   "agentId": "ag_4kP9sT2vXq7LmN3a",
-                  "agentVersion": null,
                   "name": "Daily support summary",
                   "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
                   "schedule": {
@@ -24758,8 +25087,7 @@
           "404": {
             "description": "The resource was not found",
             "x-error-codes": [
-              "not_found",
-              "agent_version_not_found"
+              "not_found"
             ],
             "content": {
               "application/json": {
@@ -24989,8 +25317,7 @@
           "404": {
             "description": "The resource was not found",
             "x-error-codes": [
-              "not_found",
-              "agent_version_not_found"
+              "not_found"
             ],
             "content": {
               "application/json": {
@@ -25073,7 +25400,32 @@
                       "taskId": "tk_6Wq3Hn8ZpL2vRt5C",
                       "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
                       "agentId": "ag_4kP9sT2vXq7LmN3a",
-                      "agentVersion": 3,
+                      "agentConfig": {
+                        "approvalInChat": {
+                          "default": "full",
+                          "overrides": []
+                        },
+                        "approvalInTasks": {
+                          "default": "full",
+                          "overrides": []
+                        },
+                        "name": "Support Agent",
+                        "model": "openai/gpt-6-luna",
+                        "thinkingLevel": null,
+                        "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                        "autoCompaction": true,
+                        "compactionReserveTokens": 16384,
+                        "memoryInjectionEnabled": false,
+                        "tools": [
+                          "workspace",
+                          "write_todos"
+                        ],
+                        "instructions": "Answer billing questions clearly and briefly.",
+                        "metadata": {
+                          "team": "support"
+                        },
+                        "mcpConnectionIds": []
+                      },
                       "sessionId": "ss_5Ty8Lr2GhW4nZc7F",
                       "turnId": "turn_3Xp6Mv9QdB1sKe4H",
                       "status": "succeeded",
@@ -25175,7 +25527,7 @@
           "task-runs"
         ],
         "summary": "Get a task run",
-        "description": "Returns a task run's current state. `status` moves from `queued` to `running` and ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota was reached or usage credit ran out; `error` says why. `error` also describes a failed run. `sessionId` and `turnId` stay `null` until the run starts its session, and a run that fails before starting, such as one whose agent version has no provider and model, never gets them. Every final status sets `finishedAt` and lets the task start another run.",
+        "description": "Returns a task run's current state and the agent configuration captured when it was queued. `status` moves from `queued` to `running` and ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota was reached or usage credit ran out; `error` says why. `error` also describes a failed run. `sessionId` and `turnId` stay `null` until the run starts its session, and a run that fails before starting, such as one whose saved agent configuration has no provider and model, never gets them. Every final status sets `finishedAt` and lets the task start another run.",
         "parameters": [
           {
             "schema": {
@@ -25210,7 +25562,32 @@
                   "taskId": "tk_6Wq3Hn8ZpL2vRt5C",
                   "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
                   "agentId": "ag_4kP9sT2vXq7LmN3a",
-                  "agentVersion": 3,
+                  "agentConfig": {
+                    "approvalInChat": {
+                      "default": "full",
+                      "overrides": []
+                    },
+                    "approvalInTasks": {
+                      "default": "full",
+                      "overrides": []
+                    },
+                    "name": "Support Agent",
+                    "model": "openai/gpt-6-luna",
+                    "thinkingLevel": null,
+                    "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                    "autoCompaction": true,
+                    "compactionReserveTokens": 16384,
+                    "memoryInjectionEnabled": false,
+                    "tools": [
+                      "workspace",
+                      "write_todos"
+                    ],
+                    "instructions": "Answer billing questions clearly and briefly.",
+                    "metadata": {
+                      "team": "support"
+                    },
+                    "mcpConnectionIds": []
+                  },
                   "sessionId": "ss_5Ty8Lr2GhW4nZc7F",
                   "turnId": "turn_3Xp6Mv9QdB1sKe4H",
                   "status": "succeeded",

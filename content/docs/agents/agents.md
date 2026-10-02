@@ -53,7 +53,7 @@ print(client.completion(agent_id=agent.id, prompt="How do I reset my password?")
 
 You see `Agent: ag_...` followed by the answer. Each run creates a new agent, even when its name matches an existing one. Save the ID to reuse the same agent.
 
-The new agent starts at version `1` with status `active`, and it comes with its own [workspace](/agents/workspaces) for files. The workspace costs nothing until the agent first reads, writes, or runs something in it.
+The new agent starts with status `active`, and it comes with its own [workspace](/agents/workspaces) for files. The workspace costs nothing until the agent first reads, writes, or runs something in it.
 
 ## What an agent controls [#what-an-agent-controls]
 
@@ -87,7 +87,7 @@ await client.agents.update({
 client.agents.update(agent.id, tools=["workspace", "memory"])
 ```
 
-Lists such as `tools` replace the old list rather than adding to it. To switch models, send `providerId` and `model` together. Each update saves a new [version](/agents/versions-and-lifecycle) you can pin or roll back to. To stop an agent without deleting it, [disable it](/agents/versions-and-lifecycle#enable-and-disable).
+Lists such as `tools` replace the old list rather than adding to it. To switch models, send `providerId` and `model` together. New sessions and task runs save the updated configuration when they start. To stop an agent without deleting it, [disable it](/agents/configuration-snapshots#enable-and-disable).
 
 ## Automatic context compaction [#automatic-context-compaction]
 
@@ -97,7 +97,7 @@ Long conversations eventually outgrow the model's context window. With `autoComp
 
 When the model's context window is not known, Blazing Agents assumes 128,000 tokens. That is an estimate, so the provider can still reject a long request. If the provider rejects a request as too long before any answer streams, Blazing Agents compacts once and retries. When a single message is too large to summarize, or the retry fails, the turn ends with an error.
 
-Summaries run on the agent's own provider and model and count toward the turn's token usage. Both settings belong to each version, so pinning or restoring a version brings its compaction settings too. Set `autoCompaction` to `false` to stop new compaction. Summaries already in a session stay in place.
+Summaries use the provider and model saved for the session and count toward the turn's token usage. Compaction settings are saved with that configuration, so later edits affect new work. Set `autoCompaction` to `false` to stop new compaction. Summaries already in a session stay in place.
 
 ## Delete an agent [#delete-an-agent]
 
@@ -111,18 +111,18 @@ await client.agents.delete({ agentId: agent.id, includeArtifacts: false });
 client.agents.delete(agent.id, include_artifacts=False)
 ```
 
-This removes the agent's versions, sessions, tasks, memories, skills, linked prompts, and avatar. Its workspace, provider, and MCP connections stay, so you can attach them to another agent. Artifacts you keep and past usage records still show the deleted agent's ID.
+This removes the agent's sessions, tasks, memories, skills, linked prompts, and avatar. Its workspace, provider, and MCP connections stay, so you can attach them to another agent. Artifacts you keep and past usage records still show the deleted agent's ID.
 
 ## The admin agent [#the-admin-agent]
 
 Every tenant has exactly one admin agent. It is the agent behind [`ba assist`](/cli/assist), the built-in assistant that manages your tenant, and Blazing Agents creates it for you. It appears in `agents.list()` next to your own agents, and the dashboard marks it **Powers BA Assist for this tenant**.
 
-You choose its provider and model, plus an optional thinking level. Each change saves a new [version](/agents/versions-and-lifecycle), and you can read its version history like any other agent's. Blazing Agents manages everything else: you cannot rename it, change its instructions, tools, or avatar, restore an old version, disable it, delete it, or give it a task. Those requests fail with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
+You choose its provider and model, plus an optional thinking level. New sessions and task runs save its current configuration. Blazing Agents manages everything else: you cannot rename it, change its instructions, tools, or avatar, disable it, delete it, or give it a task. Those requests fail with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
 
 Its workspace is reserved for it. That workspace does not appear in your workspace list and cannot be attached to another agent. Its sessions and usage belong to your tenant, the same as any other agent's.
 
 ## Next [#next]
 
 - [Providers and models](/agents/providers-and-models) to connect a model account and pick a model.
-- [Versions and lifecycle](/agents/versions-and-lifecycle) to pin, roll back, and disable agents.
+- [Configuration snapshots and lifecycle](/agents/configuration-snapshots) to inspect saved settings and disable agents.
 - [Sessions and turns](/platform/sessions-and-turns) to hold a conversation with your agent.

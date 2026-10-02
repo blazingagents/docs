@@ -115,7 +115,7 @@ Skill files are read-only to the agent and are not part of its [workspace](/agen
 
 ## Manage skills [#manage-skills]
 
-- **Edit.** Replace or delete single files, or upload a new archive. The agent uses the new content on its next turn. Skills are not part of [versions](/agents/versions-and-lifecycle), so restoring an old version does not bring back old skill content.
+- **Edit.** Replace or delete single files, or upload a new archive. The agent uses the new content on its next turn. Existing sessions use the current skill content on their next turn. The saved [agent configuration](/agents/configuration-snapshots) does not copy skill files.
 - **Copy.** Copy a skill to other agents. Each copy is independent, and if one destination fails the others still succeed.
 - **Delete.** Deleting a skill removes all its files. Deleting the agent deletes its skills.
 

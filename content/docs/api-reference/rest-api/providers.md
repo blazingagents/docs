@@ -336,7 +336,7 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF
 
 Delete a provider.
 
-Deletes a provider and its key. While a current agent uses the provider, deletion fails with `provider_in_use` and the agent IDs in `details.agentIds`; point those agents at another provider first. When only older agent versions, pinned sessions, or tasks use it, deletion fails with `provider_historical_use` and their IDs in `details`, unless you send `confirmVersionInvalidation=true`.
+Deletes a provider and its key. While a current agent uses the provider, deletion fails with `provider_in_use` and the agent IDs in `details.agentIds`; point those agents at another provider first. When saved session or task run configurations use it, deletion fails with `provider_historical_use` and their IDs in `details`, unless you send `confirmSnapshotInvalidation=true`.
 
 #### Request
 
@@ -345,7 +345,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `id` | string | path | required | ID of the provider. |
-| `confirmVersionInvalidation` | string | query |  | `true` confirms that pinned sessions, tasks, and version restores that use this provider may stop working. It never overrides use by a current agent. One of `true`, `false`. Defaults to `false`. |
+| `confirmSnapshotInvalidation` | string | query |  | `true` confirms that sessions and queued or running task runs with a saved reference to this provider may stop working. It never overrides use by a current agent. One of `true`, `false`. Defaults to `false`. |
 
 #### Response
 

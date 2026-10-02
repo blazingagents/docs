@@ -35,7 +35,6 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `promptId` | string | body |  | ID of a saved prompt to use instead of `prompt`. |
 | `variables` | object | body |  | Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables. |
 | `output` | object | body | required | What to stream back: `{"type":"text"}` for text, or `{"type":"object","schema":{…}}` for JSON that matches a JSON Schema. |
-| `version` | integer | body |  | Agent version to run. Leave it out to run the current version. 1–2147483647. |
 | `userId` | string | body |  | Your end user's ID, used for usage attribution. Defaults to `""`. |
 | `metadata` | object | body |  | Your own key-value data, recorded with the usage. Defaults to `{}`. |
 
@@ -55,7 +54,7 @@ Open Settings, choose Security, and select Reset password.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required), [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required), [`merchant_subscription_required`](/api-reference/protocols/errors#merchant_subscription_required), [`merchant_balance_required`](/api-reference/protocols/errors#merchant_balance_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped) | The end user cannot run this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
 | `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) | The request conflicts with the resource's current state |
 | `429` | [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded), [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
