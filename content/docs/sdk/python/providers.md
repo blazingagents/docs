@@ -141,7 +141,7 @@ client.providers.delete(provider.id, confirm_snapshot_invalidation=True)
 | [`provider_in_use`](/api-reference/protocols/errors#provider_in_use) | A current agent uses it. Move the agent first; confirmation does not override this |
 | [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) | Saved sessions or queued or running task runs use it. `error.details.sessionIds` and `error.details.taskRunIds` list them. Pass `confirm_snapshot_invalidation=True` to delete anyway |
 
-After a confirmed delete, history is kept, but running or restoring anything that needs the provider raises [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
+After a confirmed delete, session and task run history remains, but any later turn that needs the provider raises [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
 
 ## Response models [#response-models]
 

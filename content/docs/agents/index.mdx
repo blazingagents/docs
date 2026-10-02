@@ -26,7 +26,7 @@ If you have not built one yet, start with [Run your first agent](/getting-starte
 
 ## How the pieces fit [#how-the-pieces-fit]
 
-Each call to an agent is a turn. On every turn, Blazing Agents reads the agent's current settings, or a version you pinned, and sends the conversation to its model. During the turn the agent can load a skill, read or save memory, work with files in its workspace, and call tools. The answer streams back as text or arrives as structured JSON.
+Each call to an agent is a turn. The first turn in a session saves the agent's configuration for later turns in that session. A task run saves it when queued. A one-off turn uses the agent's current configuration. During the turn the agent can load a skill, read or save memory, work with files in its workspace, and call tools. The answer streams back as text or arrives as structured JSON.
 
 Turns that belong to a conversation live in a [session](/platform/sessions-and-turns). Scheduled and background turns run as [tasks](/automation/tasks).
 

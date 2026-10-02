@@ -357,7 +357,7 @@ To fix it:
 
 ## Agents and providers [#agents-and-providers]
 
-Agent configuration, versions, providers, models, and prompts.
+Agent configuration, providers, models, and prompts.
 
 ### `agent_disabled` [#agent_disabled]
 

@@ -13,7 +13,7 @@
     {
       "id": "agents-and-providers",
       "title": "Agents and providers",
-      "summary": "Agent configuration, versions, providers, models, and prompts."
+      "summary": "Agent configuration, providers, models, and prompts."
     },
     {
       "id": "sessions-and-turns",
