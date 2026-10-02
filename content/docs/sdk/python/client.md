@@ -39,7 +39,7 @@ The SDK owns two headers. It always sets `Authorization` from your tenant API ke
 
 The SDK closes the HTTPX client it creates when you close the SDK client. An `http_client` you pass in stays yours; the SDK never closes it.
 
-Ordinary requests time out after 60 seconds by default, and `None` disables the timeout. Streaming requests keep the connect, write, and pool timeouts but have no read deadline. The SDK never retries on its own.
+Ordinary requests time out after 60 seconds by default, and `None` disables the timeout. Streaming requests keep the connect, write, and pool timeouts but have no read deadline. Backend function claims and result submissions retry transient failures. Other requests do not retry automatically.
 
 ### `agent()` [#agent]
 
@@ -123,7 +123,11 @@ Branch on `error.code`, not the message. Cancellation, `KeyboardInterrupt`, and 
 
 ## Logging and telemetry [#logging-and-telemetry]
 
-The SDK is silent by default. It sends no telemetry and starts no background tasks. If you enable the `blazing_agents` logger at debug level, each record contains only the method, the path without query, the status, elapsed time, and the request ID. It never logs credentials, headers, query values, bodies, schemas, file data, or stream content.
+The SDK sends no telemetry. The `blazing_agents` logger emits warnings for failed backend functions, invalid results, and failed claim or result requests. These records can include the function name, call ID, and API error message. Handler exception details are omitted.
+
+At debug level, HTTP records include the method, path without query, status, elapsed time, and request ID. Function records also identify skipped or refused calls. The SDK does not log credentials, headers, request bodies, schemas, or stream content.
+
+Chats with backend functions run handlers in background threads or async tasks while you consume the stream.
 
 ## Generation methods [#generation-methods]
 
@@ -137,9 +141,9 @@ Give each call exactly one input: a literal `message` or `prompt`, or a saved pr
 
 ### `chat()` [#chat]
 
-**Signature:** `chat(*, agent_id, message=..., prompt_id=..., variables=..., trigger=..., message_id=..., session_id=..., version=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> ChatStream`
+**Signature:** `chat(*, agent_id, message=..., prompt_id=..., variables=..., trigger=..., message_id=..., session_id=..., version=..., user_id=..., metadata=..., functions=..., client_request_id=None, extra_headers=None, timeout=...) -> ChatStream`
 
-Sends a message in a session and returns a `ChatStream` of the server's AI SDK SSE bytes, exactly as sent. The SDK does not decode or re-encode `UIMessageChunk` values.
+Sends a message in a session and returns a `ChatStream` of AI SDK SSE bytes. When you attach backend functions, the SDK consumes private callback events and forwards the remaining events to your application.
 
 ```python
 with client.chat(
@@ -158,6 +162,26 @@ with client.chat(
 Omit `session_id` to start a new session. Its `ss_...` ID is available as `stream.session_id` before you read the body. Pass it on a later call to continue the conversation. You can pin `version` only when you start a session, not when you continue one. `trigger="regenerate-message"` works only in an existing session and can target a `message_id`.
 
 With the async client, call `stream = await client.chat(...)`, then use `async with stream` and `async for chunk in stream`.
+
+Pass `functions` to attach handlers created with `define_function()`. Supply the handlers again on each request. The same `extra_headers` apply to the chat and its function claims and results. See [backend functions](/agents/tools/backend-functions).
+
+Keep consuming the stream while the chat runs. Function calls are dispatched as you read their events, so pausing iteration delays new calls. Running handlers do not block iteration.
+
+### `define_function()` [#define-function]
+
+**Signature:** `define_function(*, description, input_schema, execute) -> ChatFunction`
+
+The exported helper takes a Pydantic-compatible input type that describes an object. The handler receives the validated input and a `FunctionContext` with `idempotency_key`, `deadline_at`, and a `cancelled` threading event. It returns a plain JSON value. Convert Pydantic results with `model_dump(mode="json")` before returning them.
+
+`BlazingAgents` accepts synchronous handlers. `AsyncBlazingAgents` accepts async handlers and runs synchronous handlers in a worker thread. Synchronous cancellation is cooperative. See [handle cancellation and retries](/agents/tools/backend-functions#handle-cancellation-and-retries).
+
+### `resume_chat()` [#resume-chat]
+
+**Signature:** `resume_chat(*, agent_id, session_id, functions, extra_headers=None, timeout=...) -> ChatStream`
+
+After you submit all pending approval decisions, reattach the handlers to start or join the session's queued or running continuation. With `AsyncBlazingAgents`, await this method and consume the returned `AsyncChatStream`. Set a correlation ID through `client.with_options(client_request_id=...)`.
+
+Calling `resume_chat()` with no ready continuation raises an error. Observer methods such as `sessions.join_tool_approval_continuation()` do not attach handlers. See [resume after approval](/agents/tools/backend-functions#resume-after-approval).
 
 ### `completion()` [#completion]
 

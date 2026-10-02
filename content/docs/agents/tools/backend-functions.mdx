@@ -1,0 +1,143 @@
+---
+title: Backend functions
+description: Let a chat agent call functions in your backend with typed inputs and your existing application credentials.
+---
+
+# Backend functions
+
+Attach your backend functions to a chat request so the agent can use your application code. The function runs in your backend, where it can use your database connections and credentials. Blazing Agents receives its description, input schema, and result.
+
+## Attach a function [#attach-a-function]
+
+Use a published agent with a configured provider and model. For this example, set `approvalInChat.default` to `"full"` so the function can run without a manual decision. Set `BLAZING_AGENTS_API_KEY` and `BLAZING_AGENTS_AGENT_ID` in your backend environment.
+
+This example gives the agent a shipping quote function. Replace the sample rates with your application's pricing service.
+
+```typescript tab="TypeScript"
+import { BlazingAgents, defineFunction } from "@blazingagents/sdk";
+import { z } from "zod";
+
+const client = new BlazingAgents({
+	apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
+
+const functions = {
+	shippingQuote: defineFunction({
+		description: "Get the shipping price for a destination country.",
+		inputSchema: z.object({ country: z.enum(["GB", "US"]) }),
+		execute: ({ country }) => ({
+			currency: "GBP",
+			amountMinor: country === "GB" ? 499 : 1499,
+		}),
+	}),
+};
+
+const result = await client.chat({
+	agentId: process.env.BLAZING_AGENTS_AGENT_ID!,
+	message: {
+		id: crypto.randomUUID(),
+		role: "user",
+		parts: [{ type: "text", text: "How much is shipping to the US?" }],
+	},
+	functions,
+});
+
+for await (const chunk of result.toStream()) {
+	process.stdout.write(chunk);
+}
+```
+
+```python tab="Python"
+import os
+import sys
+from typing import Literal
+
+from blazing_agents import BlazingAgents, FunctionContext, define_function
+from pydantic import BaseModel
+
+
+class ShippingInput(BaseModel):
+	country: Literal["GB", "US"]
+
+
+def shipping_quote(value: ShippingInput, context: FunctionContext) -> dict:
+	return {
+		"currency": "GBP",
+		"amountMinor": 499 if value.country == "GB" else 1499,
+	}
+
+
+functions = {
+	"shippingQuote": define_function(
+		description="Get the shipping price for a destination country.",
+		input_schema=ShippingInput,
+		execute=shipping_quote,
+	),
+}
+
+with BlazingAgents() as client:
+	with client.chat(
+		agent_id=os.environ["BLAZING_AGENTS_AGENT_ID"],
+		message={
+			"id": "shipping-question",
+			"role": "user",
+			"parts": [{"type": "text", "text": "How much is shipping to the US?"}],
+		},
+		functions=functions,
+	) as stream:
+		for chunk in stream:
+			sys.stdout.buffer.write(chunk)
+```
+
+The SDK validates the call's arguments, runs your handler, and sends its JSON result to the agent. Keep reading or relaying the stream until the answer finishes. In a TypeScript HTTP route, return `result.toResponse()` to stream the answer to your browser.
+
+Supply `functions` again on each new chat request. The functions belong to that request and are not saved in the agent's configuration. Tasks, including scheduled tasks, and stateless generation cannot use backend functions. Use [MCP tools](/agents/tools/mcp-tools) for those workloads.
+
+## Use application identity [#use-application-identity]
+
+Build handlers after you authenticate the request. Capture the signed-in user's identity in the handler and use it in database queries. A model-provided user ID is not proof that the caller may access another user's data.
+
+With TypeScript, use `client.forUser(userId)` to scope the chat session to the authenticated user. Python applications must authorize session access in their backend. Keep your API key and the function handlers on the server.
+
+## Resume after approval [#resume-after-approval]
+
+Backend functions follow the agent's `approvalInChat.default` policy. Per-tool overrides apply to built-in and MCP tools. See [tool approvals](/agents/tools/tool-approvals) to configure the policy and submit a reviewer's decision.
+
+If a chat has backend functions, any manual approval pauses the chat until your backend attaches the handlers again. After all pending calls have a decision, call `resumeChat()` or `resume_chat()` with the session and your functions:
+
+```typescript tab="TypeScript"
+const resumed = await client.resumeChat({ agentId, sessionId, functions });
+return resumed.toResponse();
+```
+
+```python tab="Python"
+with client.resume_chat(
+	agent_id=agent_id,
+	session_id=session_id,
+	functions=functions,
+) as stream:
+	for chunk in stream:
+		sys.stdout.buffer.write(chunk)
+```
+
+The resumed chat uses the saved descriptions and schemas. Keep the handlers compatible with those schemas. A missing handler or invalid input becomes a tool error. Reading a continuation's stream alone does not attach handlers or start a chat that is waiting for them.
+
+## Handle cancellation and retries [#handle-cancellation-and-retries]
+
+Each handler receives a context. TypeScript provides `idempotencyKey` and `signal`. Python provides `idempotency_key`, `deadline_at`, and a `cancelled` event.
+
+Each function call has a 60-second deadline, including the time spent claiming the call. Keep handlers within that limit.
+
+Use the idempotency key when you call a service that supports duplicate prevention. It identifies one function execution. If a user sends the same request again, the new call has a new key, so business operations such as payments still need your own stable transaction ID.
+
+Cancellation is cooperative. Pass the TypeScript signal to operations that accept it, and check Python's cancellation event in synchronous handlers. Python async handlers are cancelled when their deadline expires or their stream closes. Cancellation cannot undo a side effect that already happened.
+
+The SDK retries transient failures when it claims a call or submits a result. It does not rerun your handler for those retries. Permanent request failures and malformed callback events raise an error while you read the stream. A conflicting claim or an expired retry window does not raise a stream error. If the connection fails after a side effect, its outcome may be unknown. Check your application's records before repeating it.
+
+Return plain JSON values. Convert dates or model instances explicitly before you return them. Handler exceptions, invalid arguments, and invalid results become sanitized tool errors. Exception details are not sent to the agent.
+
+## Next [#next]
+
+- [Tool approvals](/agents/tools/tool-approvals)
+- [MCP tools](/agents/tools/mcp-tools)
+- [Connect your app](/getting-started/connect-your-app)

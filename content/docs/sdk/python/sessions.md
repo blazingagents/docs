@@ -149,7 +149,9 @@ with client.sessions.join_tool_approval_continuation(
 
 **Signature:** `join_tool_approval_continuation(*, agent_id: str, session_id: str, continuation_id: str) -> ByteStream`
 
-The stream first replays everything already produced, then follows live output to the end. The work runs whether or not you watch: closing the stream only stops your reader, and you can join again with the same ID. With the async client, call `stream = await client.sessions.join_tool_approval_continuation(...)`, then use `async with stream` and `async for`.
+The stream replays saved output, then follows live output to the end. It removes private backend function events without executing handlers. Closing the stream only stops your reader, and you can join again with the same ID.
+
+A queued continuation that needs backend functions waits for an executor. Call [`resume_chat()`](/sdk/python/client#resume-chat) with your handlers to start it. With the async client, call `stream = await client.sessions.join_tool_approval_continuation(...)`, then use `async with stream` and `async for`.
 
 Raises [`session_busy`](/api-reference/protocols/errors#session_busy) while the continuation is still `"waiting"` for other decisions, or `not_found`. Reading the stream can raise `StreamError`.
 

@@ -747,13 +747,14 @@
       },
       "cards": [
         "/agents/tools/built-in-tools",
+        "/agents/tools/backend-functions",
         "/agents/tools/mcp-tools",
         "/agents/tools/tool-approvals"
       ],
       "callout": null,
       "componentCounts": {
         "Cards": 1,
-        "Card": 3
+        "Card": 4
       },
       "fences": {
         "endpointCurls": false,
@@ -796,6 +797,48 @@
         ]
       },
       "file": "agents/tools/built-in-tools.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          }
+        ]
+      },
+      "file": "agents/tools/backend-functions.mdx",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -1307,6 +1350,8 @@
           "agent",
           "with-options",
           "chat",
+          "define-function",
+          "resume-chat",
           "completion",
           "object"
         ],
@@ -2175,6 +2220,8 @@
           "close",
           "aclose",
           "chat",
+          "define-function",
+          "resume-chat",
           "completion",
           "completion-stream",
           "object",
@@ -4082,6 +4129,13 @@
       "publishable": true,
       "title": "Built-in tools",
       "url": "/agents/tools/built-in-tools"
+    },
+    {
+      "file": "agents/tools/backend-functions.mdx",
+      "name": "Backend functions",
+      "publishable": true,
+      "title": "Backend functions",
+      "url": "/agents/tools/backend-functions"
     },
     {
       "file": "agents/tools/mcp-tools.mdx",
