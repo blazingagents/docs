@@ -37,7 +37,7 @@ if "workspace" not in agent.tools:
     client.agents.update(agent_id, tools=[*agent.tools, "workspace"])
 ```
 
-Like any agent update, this creates a new [version](/agents/versions-and-lifecycle).
+New sessions and task runs use this update. Existing sessions keep their saved tool group list.
 
 ## Workspace tools [#workspace-tools]
 

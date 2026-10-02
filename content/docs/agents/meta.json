@@ -5,7 +5,7 @@
     "agents",
     "providers-and-models",
     "prompts",
-    "versions-and-lifecycle",
+    "configuration-snapshots",
     "skills",
     "memory",
     "workspaces",

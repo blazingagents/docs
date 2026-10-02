@@ -50,7 +50,6 @@ Response schema: `SessionList`.
   "data": [
     {
       "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
-      "agentVersion": null,
       "messageCount": 4,
       "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
       "userId": "user_42",
@@ -87,7 +86,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions" \
 
 Create a session and run the first turn.
 
-Starts a session and runs its first turn. The new session's URL is in the `Location` header. A rejected request creates no session; a turn that fails while running still leaves a session you can continue. Send `version` to pin the session to that agent version for every turn, or leave it out to use the agent's current version each time. `trigger: "regenerate-message"` is not allowed here. Send exactly one of `message` or `promptId`; `variables` is allowed only with `promptId`. The answer streams back as an AI SDK UI message stream. A failure before the stream starts returns a JSON error. Once the stream has started, a failure arrives as an error chunk; the turn still counts toward usage, and the conversation is left as it was.
+Starts a session and runs its first turn. The new session's URL is in the `Location` header. A rejected request creates no session; a turn that fails while running still leaves a session you can continue. The session saves the agent configuration selected for its first turn and uses it for subsequent turns. `trigger: "regenerate-message"` is not allowed here. Send exactly one of `message` or `promptId`; `variables` is allowed only with `promptId`. The answer streams back as an AI SDK UI message stream. A failure before the stream starts returns a JSON error. Once the stream has started, a failure arrives as an error chunk; the turn still counts toward usage, and the conversation is left as it was.
 
 #### Request
 
@@ -101,7 +100,6 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `variables` | object | body |  | Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables. |
 | `trigger` | string | body |  | `submit-message` (the default) sends a new message. `regenerate-message` generates the answer again and is allowed only when continuing a session. One of `submit-message`, `regenerate-message`. Defaults to `submit-message`. |
 | `messageId` | string | body |  | With `regenerate-message`, the message to cut the conversation back to before the answer is generated again. |
-| `version` | integer | body |  | Agent version to pin the session to. Allowed only when starting a session. Leave it out to use the agent's current version on every turn. 1–2147483647. |
 | `userId` | string | body |  | Your end user's ID. Starting a session records it on the session, and every turn in that session keeps the session's end user. Defaults to `""`. |
 | `metadata` | object | body |  | Your own key-value data. Recorded on a new session and on the turn's usage. Defaults to `{}`. |
 | `functions` | object | body |  | Caller-local functions the model may call during this turn, keyed by name; each entry has a `description` and a JSON Schema `inputSchema`. Your backend claims and answers each call through the function-call endpoints. |
@@ -118,7 +116,7 @@ Returns `201 Created` as `text/event-stream`. Server-sent events, each carrying 
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required), [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required), [`merchant_subscription_required`](/api-reference/protocols/errors#merchant_subscription_required), [`merchant_balance_required`](/api-reference/protocols/errors#merchant_balance_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped) | The end user cannot run this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
 | `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) | The request conflicts with the resource's current state |
 | `429` | [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded), [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
@@ -162,7 +160,6 @@ Response schema: `LatestSessionList`.
   "data": [
     {
       "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
-      "agentVersion": null,
       "messageCount": 4,
       "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
       "userId": "user_42",
@@ -196,6 +193,177 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 
 ```bash
 curl "$BLAZING_AGENTS_BASE_URL/v1/sessions/latest" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### GET /v1/agents/:agentId/sessions/:sessionId [#get-session]
+
+Get a session and its saved agent configuration.
+
+Returns session details and the agent configuration selected for its first turn. Later agent edits do not change this configuration. Credentials, workspace attachment, skills, and external resources remain live. Functions supplied by a backend belong to individual chat requests and are not part of this configuration. Use the messages endpoint to read the conversation.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The session and its saved configuration.
+
+Response schema: `Session`.
+
+```json
+{
+  "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
+  "messageCount": 4,
+  "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
+  "userId": "user_42",
+  "metadata": {
+    "plan": "pro"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:05:00.000Z",
+  "agentConfig": {
+    "approvalInChat": {
+      "default": "full",
+      "overrides": []
+    },
+    "approvalInTasks": {
+      "default": "full",
+      "overrides": []
+    },
+    "name": "Support Agent",
+    "model": "openai/gpt-6-luna",
+    "thinkingLevel": null,
+    "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+    "autoCompaction": true,
+    "compactionReserveTokens": 16384,
+    "memoryInjectionEnabled": false,
+    "tools": [
+      "workspace",
+      "write_todos"
+    ],
+    "instructions": "Answer billing questions clearly and briefly.",
+    "metadata": {
+      "team": "support"
+    },
+    "mcpConnectionIds": []
+  }
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/agents/:agentId/sessions/:sessionId [#resume-session-turn]
+
+Resume a session with the next turn.
+
+Continues a session with a new turn. A session that does not exist or was deleted returns `404`; it is never created. The session keeps its saved agent configuration. To generate an answer again, set `trigger: "regenerate-message"` and optionally `messageId`; the conversation is cut back to that message (by default, the last answer) and the answer is generated again, and a failed regeneration keeps the previous answer. Returns `409 session_busy` while another turn is running or a tool approval is waiting for a decision. Send exactly one of `message` or `promptId`; `variables` is allowed only with `promptId`. The answer streams back as an AI SDK UI message stream. A failure before the stream starts returns a JSON error. Once the stream has started, a failure arrives as an error chunk; the turn still counts toward usage, and the conversation is left as it was.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `message` | any | body |  | The message to send, as an AI SDK `UIMessage` with `role: "user"`, an `id`, and non-empty `parts`. Parts can be text or images. Send either `message` or `promptId`. |
+| `promptId` | string | body |  | ID of a saved prompt to send instead of `message`. |
+| `variables` | object | body |  | Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables. |
+| `trigger` | string | body |  | `submit-message` (the default) sends a new message. `regenerate-message` generates the answer again and is allowed only when continuing a session. One of `submit-message`, `regenerate-message`. Defaults to `submit-message`. |
+| `messageId` | string | body |  | With `regenerate-message`, the message to cut the conversation back to before the answer is generated again. |
+| `userId` | string | body |  | Your end user's ID. Starting a session records it on the session, and every turn in that session keeps the session's end user. Defaults to `""`. |
+| `metadata` | object | body |  | Your own key-value data. Recorded on a new session and on the turn's usage. Defaults to `{}`. |
+| `functions` | object | body |  | Caller-local functions the model may call during this turn, keyed by name; each entry has a `description` and a JSON Schema `inputSchema`. Your backend claims and answers each call through the function-call endpoints. |
+
+#### Response
+
+Returns `200 OK` as `text/event-stream`. Server-sent events, each carrying one AI SDK UI message chunk.
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_required`](/api-reference/protocols/errors#provider_required), [`prompt_variable_missing`](/api-reference/protocols/errors#prompt_variable_missing), [`prompt_variable_unknown`](/api-reference/protocols/errors#prompt_variable_unknown) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required), [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required), [`merchant_subscription_required`](/api-reference/protocols/errors#merchant_subscription_required), [`merchant_balance_required`](/api-reference/protocols/errors#merchant_balance_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`message_not_found`](/api-reference/protocols/errors#message_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`session_busy`](/api-reference/protocols/errors#session_busy), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) | The request conflicts with the resource's current state |
+| `429` | [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded), [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --no-buffer --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"message":{"id":"msg_client_2","role":"user","parts":[{"type":"text","text":"What if I no longer have my email?"}]}}'
+```
+
+### DELETE /v1/agents/:agentId/sessions/:sessionId [#delete-session]
+
+Delete a session.
+
+Deletes a session. Afterwards it can no longer be read or continued, and every request for it returns `404`. Set `deleteArtifacts` to choose whether its artifacts are deleted too. While a tool approval is waiting for a decision, or the turn it resumes is still running, the session cannot be deleted.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `deleteArtifacts` | string | query | required | `true` also deletes the session's artifacts permanently; `false` keeps them. One of `true`, `false`. |
+
+#### Response
+
+Returns `204 No Content`. The session was deleted.
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`session_busy`](/api-reference/protocols/errors#session_busy) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF?deleteArtifacts=false" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
@@ -268,98 +436,6 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 
 ```bash
 curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/messages" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-### POST /v1/agents/:agentId/sessions/:sessionId [#resume-session-turn]
-
-Resume a session with the next turn.
-
-Continues a session with a new turn. A session that does not exist or was deleted returns `404`; it is never created. `version` is not allowed: a pinned session keeps its version, and an unpinned one uses the agent's current version. To generate an answer again, set `trigger: "regenerate-message"` and optionally `messageId`; the conversation is cut back to that message (by default, the last answer) and the answer is generated again, and a failed regeneration keeps the previous answer. Returns `409 session_busy` while another turn is running or a tool approval is waiting for a decision. Send exactly one of `message` or `promptId`; `variables` is allowed only with `promptId`. The answer streams back as an AI SDK UI message stream. A failure before the stream starts returns a JSON error. Once the stream has started, a failure arrives as an error chunk; the turn still counts toward usage, and the conversation is left as it was.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
-
-| Field | Type | Location | Required | Description |
-| --- | --- | --- | --- | --- |
-| `agentId` | string | path | required | ID of the agent. |
-| `sessionId` | string | path | required | ID of the session. |
-| `message` | any | body |  | The message to send, as an AI SDK `UIMessage` with `role: "user"`, an `id`, and non-empty `parts`. Parts can be text or images. Send either `message` or `promptId`. |
-| `promptId` | string | body |  | ID of a saved prompt to send instead of `message`. |
-| `variables` | object | body |  | Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables. |
-| `trigger` | string | body |  | `submit-message` (the default) sends a new message. `regenerate-message` generates the answer again and is allowed only when continuing a session. One of `submit-message`, `regenerate-message`. Defaults to `submit-message`. |
-| `messageId` | string | body |  | With `regenerate-message`, the message to cut the conversation back to before the answer is generated again. |
-| `version` | integer | body |  | Agent version to pin the session to. Allowed only when starting a session. Leave it out to use the agent's current version on every turn. 1–2147483647. |
-| `userId` | string | body |  | Your end user's ID. Starting a session records it on the session, and every turn in that session keeps the session's end user. Defaults to `""`. |
-| `metadata` | object | body |  | Your own key-value data. Recorded on a new session and on the turn's usage. Defaults to `{}`. |
-| `functions` | object | body |  | Caller-local functions the model may call during this turn, keyed by name; each entry has a `description` and a JSON Schema `inputSchema`. Your backend claims and answers each call through the function-call endpoints. |
-
-#### Response
-
-Returns `200 OK` as `text/event-stream`. Server-sent events, each carrying one AI SDK UI message chunk.
-
-#### Errors
-
-| Status | Codes | Description |
-| --- | --- | --- |
-| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_required`](/api-reference/protocols/errors#provider_required), [`prompt_variable_missing`](/api-reference/protocols/errors#prompt_variable_missing), [`prompt_variable_unknown`](/api-reference/protocols/errors#prompt_variable_unknown) | The request is invalid |
-| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
-| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required), [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required), [`merchant_subscription_required`](/api-reference/protocols/errors#merchant_subscription_required), [`merchant_balance_required`](/api-reference/protocols/errors#merchant_balance_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped) | The end user cannot run this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`message_not_found`](/api-reference/protocols/errors#message_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
-| `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`session_busy`](/api-reference/protocols/errors#session_busy), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) | The request conflicts with the resource's current state |
-| `429` | [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded), [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
-| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
-
-See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
-
-#### cURL
-
-```bash
-curl --no-buffer --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{"message":{"id":"msg_client_2","role":"user","parts":[{"type":"text","text":"What if I no longer have my email?"}]}}'
-```
-
-### DELETE /v1/agents/:agentId/sessions/:sessionId [#delete-session]
-
-Delete a session.
-
-Deletes a session. Afterwards it can no longer be read or continued, and every request for it returns `404`. Set `deleteArtifacts` to choose whether its artifacts are deleted too. While a tool approval is waiting for a decision, or the turn it resumes is still running, the session cannot be deleted.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication).
-
-| Field | Type | Location | Required | Description |
-| --- | --- | --- | --- | --- |
-| `agentId` | string | path | required | ID of the agent. |
-| `sessionId` | string | path | required | ID of the session. |
-| `deleteArtifacts` | string | query | required | `true` also deletes the session's artifacts permanently; `false` keeps them. One of `true`, `false`. |
-
-#### Response
-
-Returns `204 No Content`. The session was deleted.
-
-#### Errors
-
-| Status | Codes | Description |
-| --- | --- | --- |
-| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
-| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
-| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
-| `409` | [`session_busy`](/api-reference/protocols/errors#session_busy) | The request conflicts with the resource's current state |
-
-See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
-
-#### cURL
-
-```bash
-curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF?deleteArtifacts=false" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 

@@ -22,6 +22,7 @@ for session in page.data:
 | [`list()`](#list) | Get one page of an agent's sessions | `SessionsPage` |
 | [`iter()`](#iter) | Iterate every session of an agent | `Iterator[Session]` |
 | [`list_latest()`](#list-latest) | Get recent sessions across agents | `LatestSessionsPage` |
+| [`get()`](#get) | Read saved session configuration | `SessionResponse` |
 | [`messages()`](#messages) | Read or poll the transcript | `SessionMessagesPage` |
 | [`tool_approvals()`](#tool-approvals) | List proposed tool calls | `ToolApprovals` |
 | [`decide_tool_approval()`](#decide-tool-approval) | Approve or deny one call | `ToolApprovalDecision` |
@@ -74,6 +75,19 @@ for session in inbox.data:
 By default one agent can appear several times. `by_agent=True` returns at most one session per agent, its latest. `user_id` limits the result to one end user's sessions.
 
 Returns `LatestSessionsPage`. Each item has the [`Session`](#session) fields plus the agent's `agent_id`, current `model`, `thinking_level`, and `status` (`"active"` or `"disabled"`). Disabled agents are included. Raises `validation_failed` or `invalid_cursor`.
+
+### `get()` [#get]
+
+Reads the session and the agent configuration saved at its first turn.
+
+```python
+session = client.sessions.get(agent_id=agent_id, session_id=session_id)
+print(session.agent_config.model)
+```
+
+**Signature:** `get(agent_id: str, session_id: str) -> SessionResponse`
+
+`SessionResponse` adds required `agent_config` to the session summary. Lists remain compact, and message pages contain only transcript messages. Raises `validation_failed` or `not_found`.
 
 ### `messages()` [#messages]
 
@@ -174,7 +188,6 @@ client.sessions.delete(agent_id=agent_id, session_id=session_id, delete_artifact
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `str` | Session ID (`ss_...`) |
-| `agent_version` | `int \| None` | Pinned agent version, or `None` to follow the latest |
 | `message_count` | `int` | Number of stored messages |
 | `last_message_preview` | `str \| None` | Short preview of the last message |
 | `user_id` | `str` | End user, or `""` for tenant level |

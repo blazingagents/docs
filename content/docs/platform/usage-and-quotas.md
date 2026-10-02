@@ -52,7 +52,7 @@ You see one line per agent that ran in July, then the saved quota: a token ceili
 
 ## What is recorded [#what-is-recorded]
 
-Each turn adds one usage record with input tokens, output tokens, one request, duration, the agent version, provider, model, session, and the turn's [user label](/platform/tenancy-and-attribution).
+Each turn adds one usage record with input tokens, output tokens, one request, duration, the provider, model, session, and the turn's [user label](/platform/tenancy-and-attribution).
 
 Failed and cancelled turns are recorded too. A turn that fails before the model responds records zero tokens but still counts the request and duration. If it fails after some model steps finished, the tokens from those steps stay in usage.
 

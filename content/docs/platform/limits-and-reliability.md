@@ -83,7 +83,7 @@ Lists return a `nextCursor`. Pass it back to the same call with the same filters
 | Symptom | Check | Fix |
 | --- | --- | --- |
 | `unauthorized` (HTTP `401`) | Your backend sends one valid key. | Create a new key in the dashboard, deploy it, then revoke the old one. |
-| [`provider_required`](/api-reference/protocols/errors#provider_required) | The agent, or its pinned version, has a provider and model. | Set a provider and model on the agent. |
+| [`provider_required`](/api-reference/protocols/errors#provider_required) | The agent configuration saved for this work has a provider and model. | Set a provider and model on the agent. |
 | [`model_not_found`](/api-reference/protocols/errors#model_not_found) or [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable) | The provider's current model list. | Pick a listed model. Create a new provider if the key, type, or base URL changed. |
 | `stream_error` after output began | Whether any text arrived, and the request ID. | Retry only if the whole call is safe to repeat. |
 | MCP connection test fails or shows `error` | The connection's status and test result. | Test, reconnect, or finish OAuth sign-in. See [MCP tools](/agents/tools/mcp-tools). |
@@ -91,7 +91,7 @@ Lists return a `nextCursor`. Pass it back to the same call with the same filters
 | Task run `failed` or `canceled` | The run and its transcript. | Submit a new run once repeating its effects is safe. |
 | `quota_exceeded` or run `blocked` | Your usage against your quota. | Wait for the reset day or raise the quota. |
 
-When you replace a provider, older agent versions may still point at the old one. Move your agents and any pinned tasks and sessions to the new provider first. Delete the old provider only after nothing you still need to run refers to it.
+When you replace a provider, saved sessions and queued or running task runs may still use the old one. Move current agents to the new provider first. See [provider deletion](/agents/providers-and-models) before removing the old provider.
 
 ## Log errors safely [#log-errors-safely]
 
