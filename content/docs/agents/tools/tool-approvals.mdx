@@ -50,7 +50,7 @@ client.agents.update(
 
 To target an MCP tool, use `{ type: "mcp", connectionId, name }` with the tool's original name and a connection attached to the agent (`connection_id` in Python). Each tool can appear once per policy, and it must be available to the agent, so update your rules when you remove a tool group or connection.
 
-Sending a policy replaces it, and leaving one out keeps it as it is. Both policies are part of the agent's [versions](/agents/versions-and-lifecycle), so pinning or restoring a version brings its policies with it.
+Sending a policy replaces it, and leaving one out keeps it as it is. Each session and task run saves its approval policy in [agent configuration](/agents/configuration-snapshots). Later policy edits apply to new work.
 
 <span id="review-availability"></span>
 Only interactive chat can wait for a person. In tasks and stateless generation, there is nobody to ask, so `manual` calls and `auto` calls that need a person are blocked, and the agent carries on with the work it is allowed to do. Automatic review uses the agent's model, so it counts toward the turn's usage.

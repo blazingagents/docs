@@ -134,15 +134,15 @@ Deletes a provider and its key.
 **Signature:** `delete(input: DeleteProviderOptions & { providerId: string } & ResourceRequestOptions): Promise<void>`
 
 ```typescript
-await client.providers.delete({ providerId, confirmVersionInvalidation: true });
+await client.providers.delete({ providerId, confirmSnapshotInvalidation: true });
 ```
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `providerId` | `string` | yes | none | Provider ID (`prv_…`) |
-| `confirmVersionInvalidation` | `boolean` | no | `false` | Delete even though old agent versions or pinned sessions and tasks use it |
+| `confirmSnapshotInvalidation` | `boolean` | no | `false` | Delete even though saved sessions and queued or running task runs use it |
 
-Deletion fails with [`provider_in_use`](/api-reference/protocols/errors#provider_in_use) while any agent's current configuration uses the provider; move those agents first. It fails with [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) when only old versions, pinned sessions, or tasks refer to it; `details` lists them. Pass `confirmVersionInvalidation: true` to delete anyway. History stays readable, but running or restoring those versions then fails with [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
+Deletion fails with [`provider_in_use`](/api-reference/protocols/errors#provider_in_use) while any agent's current configuration uses the provider; move those agents first. It fails with [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) when only saved sessions or queued or running task runs refer to it; `details.sessionIds` and `details.taskRunIds` list them. Pass `confirmSnapshotInvalidation: true` to delete anyway. Saved configuration stays readable, but work that needs that provider fails with [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
 
 ## Response types [#response-types]
 
@@ -167,7 +167,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The provid
 | `model_discovery_unsupported` | Custom providers have no model list |
 | `model_validation_unavailable` | The provider's model list could not be fetched; try again |
 | `provider_in_use` | An agent currently uses this provider |
-| `provider_historical_use` | Old versions, sessions, or tasks use it; confirm to delete |
+| `provider_historical_use` | Saved sessions or queued or running task runs use it; confirm to delete |
 
 ## Next [#next]
 

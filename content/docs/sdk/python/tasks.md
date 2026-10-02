@@ -64,14 +64,13 @@ created = client.tasks.create(
 task = created.task
 ```
 
-**Signature:** `create(*, agent_id: str, name: str, prompt: str, agent_version=..., schedule=..., enabled=..., submit=..., user_id=..., metadata=...) -> TaskCreateResponse`
+**Signature:** `create(*, agent_id: str, name: str, prompt: str, schedule=..., enabled=..., submit=..., user_id=..., metadata=...) -> TaskCreateResponse`
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
 | `agent_id` | `str` | required | Agent that runs the task |
 | `name` | `str` | required | 1 to 80 characters |
 | `prompt` | `str` | required | Message sent to the agent, up to 6,000 characters |
-| `agent_version` | `int \| None` | `None` | Pin a version; `None` always uses the latest |
 | `schedule` | `TaskScheduleInput \| None` | `None` | When to run; `None` means on demand only |
 | `enabled` | `bool` | `True` | Whether the schedule fires |
 | `submit` | `bool` | `False` | Also start the first run now |
@@ -88,7 +87,7 @@ A schedule is one of:
 
 The SDK checks the schedule shape before sending and raises `TypeError` or `ValueError` for a malformed one. `submit=True` does not make creation safe to retry: retrying creates another task.
 
-Returns `TaskCreateResponse` with `task` and `run_id`, which is set only when `submit=True`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found), or [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit=True` and the agent is disabled.
+Returns `TaskCreateResponse` with `task` and `run_id`, which is set only when `submit=True`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit=True` and the agent is disabled.
 
 ### `list()` [#list]
 
@@ -129,17 +128,17 @@ Returns [`Task`](#task). Raises `validation_failed` or [`not_found`](/api-refere
 
 ### `update()` [#update]
 
-Changes a task's prompt, schedule, version pin, or other settings.
+Changes a task's prompt, schedule, or other settings.
 
 ```python
 task = client.tasks.update(task.id, enabled=False, metadata={"paused_by": "ops"})
 ```
 
-**Signature:** `update(task_id: str, *, agent_version=..., name=..., prompt=..., schedule=..., enabled=..., metadata=...) -> Task`
+**Signature:** `update(task_id: str, *, name=..., prompt=..., schedule=..., enabled=..., metadata=...) -> Task`
 
-Omitted parameters keep their current value. `agent_version=None` unpins the task, and `schedule=None` makes it on demand only. `agent_id` and `user_id` cannot change, and past runs are unaffected. Calling `update()` with nothing to change raises `ValueError` before any request.
+Omitted parameters keep their current value. `schedule=None` makes it on demand only. `agent_id` and `user_id` cannot change, and queued runs keep their saved agent configuration. Calling `update()` with nothing to change raises `ValueError` before any request.
 
-Returns [`Task`](#task). Raises `validation_failed`, `not_found`, or `agent_version_not_found`.
+Returns [`Task`](#task). Raises `validation_failed` or `not_found`.
 
 ### `delete()` [#delete]
 
@@ -166,7 +165,7 @@ run_id = submission.run_id
 
 With an `idempotency_key`, retrying with the same key returns the same `run_id` instead of starting another run. The key must not be blank. Without a key, or with a different one, a submit while another run is active raises `task_active_run_exists`.
 
-Returns `TaskRunSubmission` with `run_id`. Also raises `validation_failed`, `not_found`, `agent_version_not_found`, or `agent_disabled`.
+Returns `TaskRunSubmission` with `run_id`. Also raises `validation_failed`, `not_found`, or `agent_disabled`.
 
 ### `list_runs()` [#list-runs]
 
@@ -244,7 +243,6 @@ A queued run is canceled right away. A running one stops at its next safe point,
 | `id` | `str` | Task ID (`tk_...`) |
 | `tenant_id`, `agent_id` | `str` | Owner and agent |
 | `name`, `prompt` | `str` | Name and prompt |
-| `agent_version` | `int \| None` | Pinned version, or `None` for the latest |
 | `schedule` | `TaskSchedule \| None` | Schedule, or `None` for on demand |
 | `enabled` | `bool` | Whether the schedule fires |
 | `active_run_id`, `latest_run_id` | `str \| None` | Current and most recent runs |
@@ -261,7 +259,7 @@ A queued run is canceled right away. A running one stops at its next safe point,
 | --- | --- | --- |
 | `id` | `str` | Run ID (`tr_...`) |
 | `task_id`, `tenant_id`, `agent_id` | `str` | Owners |
-| `agent_version` | `int` | Version the run used |
+| `agent_config` | `AgentConfig` | Agent configuration saved when queued |
 | `session_id` | `str \| None` | The run's session, once created |
 | `turn_id` | `str \| None` | The run's metered turn, once started |
 | `status` | `str` | `queued`, `running`, `blocked`, `succeeded`, `failed`, or `canceled` |

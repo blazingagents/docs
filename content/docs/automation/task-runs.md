@@ -72,7 +72,7 @@ When the run is done, you see its final status and the agent's last answer. A ru
 | `canceled` | You cancelled the run before it finished. |
 | `blocked` | The agent did not run because a quota, subscription, or usage credit check failed. It is not a failure. See [usage and quotas](/platform/usage-and-quotas). |
 
-Each run that executes gets a fresh [session](/platform/sessions-and-turns), so the transcript holds only this run. A run blocked before its session was created has an empty transcript. Use `client.tasks.getRun()` when you need the run's timestamps, session ID, or the agent version it used.
+Each run that executes gets a fresh [session](/platform/sessions-and-turns), so the transcript holds only this run. A run blocked before its session was created has an empty transcript. Use `client.tasks.getRun()` when you need the run's timestamps, session ID, or its saved `agentConfig`.
 
 ## Cancel a run [#cancel-a-run]
 

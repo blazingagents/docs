@@ -72,11 +72,10 @@ const { task } = await client.tasks.create({
 | `enabled` | `boolean` | no | `true` | Whether the schedule fires |
 | `submit` | `boolean` | no | `false` | Also start a run right away |
 | `idempotencyKey` | `string` | no | none | Reuse the same task and initial run when a create request is retried |
-| `agentVersion` | `number \| null` | no | `null` | Agent version to pin; `null` uses the current version at each run |
 | `userId` | `string` | no | `""` | The end user it runs for; cannot change later |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your labels, copied onto each run |
 
-Without `idempotencyKey`, calling `create()` twice creates two tasks. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID. Reusing a key with different task fields or after deleting the task returns `idempotency_conflict`. Returns [`CreateTaskResponse`](#createtaskresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found), [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), and [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit` is `true`.
+Without `idempotencyKey`, calling `create()` twice creates two tasks. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID. Reusing a key with different task fields or after deleting the task returns `idempotency_conflict`. Returns [`CreateTaskResponse`](#createtaskresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), and [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit` is `true`.
 
 ### `list()` [#list]
 
@@ -112,7 +111,7 @@ Returns [`TaskResponse`](#taskresponse). Errors: `validation_failed`, [`not_foun
 
 ### `update()` [#update]
 
-Changes a task's name, prompt, schedule, version pin, or metadata, or pauses its schedule.
+Changes a task's name, prompt, schedule, enabled state, or metadata.
 
 **Signature:** `update(input: UpdateTaskBody & { taskId: string } & ResourceRequestOptions): Promise<TaskResponse>`
 
@@ -120,9 +119,9 @@ Changes a task's name, prompt, schedule, version pin, or metadata, or pauses its
 const task = await client.tasks.update({ taskId, enabled: false });
 ```
 
-Takes `taskId` plus any of `name`, `prompt`, `schedule`, `enabled`, `agentVersion`, and `metadata`, with at least one. Fields you leave out stay as they are. `schedule: null` makes the task on-demand, and `agentVersion: null` goes back to the current version. `agentId` and `userId` cannot change, and runs that already exist keep their settings.
+Takes `taskId` plus any of `name`, `prompt`, `schedule`, `enabled`, and `metadata`, with at least one. Fields you leave out stay as they are. `schedule: null` makes the task on demand. `agentId` and `userId` cannot change. Queued runs keep their saved agent configuration.
 
-Returns [`TaskResponse`](#taskresponse). Errors: `validation_failed`, `not_found`, `agent_version_not_found`, `admin_agent_managed`.
+Returns [`TaskResponse`](#taskresponse). Errors: `validation_failed`, `not_found`, `admin_agent_managed`.
 
 ### `delete()` [#delete]
 
@@ -154,7 +153,7 @@ const { runId } = await client.tasks.createRun({
 | `taskId` | `string` | yes | Task ID (`tk_…`) |
 | `idempotencyKey` | `string` | no | Your key for this run; retrying with the same key returns the same run |
 
-Returns `{ runId: string }`. Save it and check the run later with [`getRun()`](#get-run). Errors: `validation_failed`, `not_found`, `task_active_run_exists`, `agent_version_not_found`, `agent_disabled`.
+Returns `{ runId: string }`. Save it and check the run later with [`getRun()`](#get-run). Errors: `validation_failed`, `not_found`, `task_active_run_exists`, `agent_disabled`.
 
 ### `listRuns()` [#list-runs]
 
@@ -232,7 +231,6 @@ The run stops at its next safe point; poll [`getRun()`](#get-run) until its stat
 | `id` | `string` | Task ID (`tk_…`) |
 | `tenantId` | `string` | Your tenant ID |
 | `agentId` | `string` | The agent that runs it |
-| `agentVersion` | `number \| null` | Pinned version, or `null` for current |
 | `name` | `string` | Task name |
 | `prompt` | `string` | The instruction |
 | `schedule` | `TaskScheduleInput \| null` | Schedule, or `null` for on-demand |
@@ -274,7 +272,7 @@ interface TasksListResponse {
 | --- | --- | --- |
 | `id` | `string` | Run ID (`tr_…`) |
 | `taskId`, `tenantId`, `agentId` | `string` | Owning task, tenant, and agent |
-| `agentVersion` | `number` | The agent version the run uses |
+| `agentConfig` | `AgentConfig` | Agent configuration saved when queued |
 | `sessionId` | `string \| null` | The run's session, once started |
 | `turnId` | `string \| null` | The turn in your usage records, once started |
 | `status` | `TaskRunStatus` | Where the run is |
@@ -329,7 +327,6 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The task c
 | --- | --- |
 | `task_active_run_exists` | A run is already active; wait or cancel it |
 | `idempotency_conflict` | A create key was reused with different task fields |
-| `agent_version_not_found` | The pinned agent version does not exist |
 | `agent_disabled` | The agent is disabled, so no run can start |
 | `admin_agent_managed` | The [admin agent](/agents/agents#the-admin-agent) cannot run tasks |
 

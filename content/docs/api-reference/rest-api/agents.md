@@ -1,6 +1,6 @@
 ---
 title: Agents
-description: Create, inspect, update, version, disable, and extend Agents.
+description: Create, inspect, update, disable, and extend Agents.
 ---
 
 # Agents
@@ -9,7 +9,7 @@ description: Create, inspect, update, version, disable, and extend Agents.
 
 An agent holds the configuration Blazing Agents uses to run a turn: its
 provider and model, instructions, tools, workspace, and attachments. Use these
-endpoints to create and change agents, read their saved versions, attach MCP
+endpoints to create and change agents, attach MCP
 servers, and turn an agent off and on again. `userId` is fixed once the agent
 is created. Names are display labels and can repeat. List results use `data`
 and `nextCursor`; pass the cursor with the same filters to read another page.
@@ -18,8 +18,7 @@ and `nextCursor`; pass the cursor with the same filters to read another page.
 
 `POST` and `PUT` accept `autoCompaction` (default `true` on create) and
 `compactionReserveTokens` (default `16384` on create, a nonnegative safe
-integer). Leave them out of an update to keep the saved values. Agents and
-agent versions both return them. See
+integer). Leave them out of an update to keep the saved values. Agents return them. See
 [context compaction](/agents/agents#automatic-context-compaction) for how
 summaries work, what they cost, and what happens when they fail.
 
@@ -28,7 +27,7 @@ summaries work, what they cost, and what happens when they fail.
 `POST` and `PUT` accept `thinkingLevel: string | null`. It defaults to `null`
 on create. Leave it out of an update to keep it, or send `null` to clear it. A
 non-null value must be non-empty and needs a configured provider and model.
-Agent and version responses include it. A level the model is known not to
+Agent responses include it. A level the model is known not to
 support returns `validation_failed` with the valid choices, and nothing is
 saved. On the [admin agent](/agents/agents#the-admin-agent) you can change the
 thinking level along with its provider and model, but nothing else.
@@ -37,7 +36,7 @@ thinking level along with its provider and model, but nothing else.
 
 `POST` and `PUT` accept `approvalInChat` and `approvalInTasks`, each an
 [ApprovalPolicy](/api-reference/protocols/objects-and-schemas#approval-policy).
-Agent and version responses include both. Each defaults to
+Agent responses include both. Each defaults to
 `{"default":"full","overrides":[]}` on create. Leave a policy out of an update
 to keep it; send one to replace it, and a missing or empty `overrides` clears
 the list. Neither accepts `null`. Built-in tools you name must be available.
@@ -106,7 +105,6 @@ Response schema: `AgentList`.
       "avatarUrl": null,
       "createdAt": "2026-07-10T10:00:00.000Z",
       "updatedAt": "2026-07-10T10:00:00.000Z",
-      "version": 1,
       "status": "active"
     }
   ],
@@ -199,7 +197,6 @@ Response schema: `Agent`.
   "avatarUrl": null,
   "createdAt": "2026-07-10T10:00:00.000Z",
   "updatedAt": "2026-07-10T10:00:00.000Z",
-  "version": 1,
   "status": "active"
 }
 ```
@@ -338,158 +335,6 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/mcp
   --data '{"forwardUserId":true,"forwardedMetadataKeys":["plan"]}'
 ```
 
-### GET /v1/agents/:agentId/versions [#list-agent-versions]
-
-List agent versions.
-
-Lists an agent's saved versions, newest first. Each version is a complete snapshot of the configuration and never changes. Pass `nextCursor` as `cursor` to get the next page.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication).
-
-| Field | Type | Location | Required | Description |
-| --- | --- | --- | --- | --- |
-| `agentId` | string | path | required | ID of the agent. |
-| `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
-| `limit` | integer | query |  | Maximum number of versions to return. 1–200. Defaults to `50`. |
-
-#### Response
-
-Returns `200 OK` as `application/json`. A page of agent versions.
-
-Response schema: `AgentVersionList`.
-
-```json
-{
-  "data": [
-    {
-      "approvalInChat": {
-        "default": "full",
-        "overrides": []
-      },
-      "approvalInTasks": {
-        "default": "full",
-        "overrides": []
-      },
-      "agentId": "ag_4kP9sT2vXq7LmN3a",
-      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
-      "version": 1,
-      "name": "Support Agent",
-      "model": "openai/gpt-6-luna",
-      "thinkingLevel": null,
-      "providerId": "prv_7Tn4Kd9QwE2sLx5R",
-      "autoCompaction": true,
-      "compactionReserveTokens": 16384,
-      "memoryInjectionEnabled": false,
-      "tools": [
-        "workspace",
-        "write_todos"
-      ],
-      "instructions": "Answer billing questions clearly and briefly.",
-      "metadata": {
-        "team": "support"
-      },
-      "mcpConnectionIds": [],
-      "createdAt": "2026-07-10T10:00:00.000Z"
-    }
-  ],
-  "nextCursor": null
-}
-```
-
-#### Errors
-
-| Status | Codes | Description |
-| --- | --- | --- |
-| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
-| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
-| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
-
-See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
-
-#### cURL
-
-```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/versions" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-### GET /v1/agents/:agentId/versions/:version [#get-agent-version]
-
-Get an agent version.
-
-Returns one saved version of an agent, a complete snapshot of its configuration at that point.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication).
-
-| Field | Type | Location | Required | Description |
-| --- | --- | --- | --- | --- |
-| `agentId` | string | path | required | ID of the agent. |
-| `version` | number | path | required | Version number, starting at 1. |
-
-#### Response
-
-Returns `200 OK` as `application/json`. The agent version.
-
-Response schema: `AgentVersion`.
-
-```json
-{
-  "approvalInChat": {
-    "default": "full",
-    "overrides": []
-  },
-  "approvalInTasks": {
-    "default": "full",
-    "overrides": []
-  },
-  "agentId": "ag_4kP9sT2vXq7LmN3a",
-  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
-  "version": 1,
-  "name": "Support Agent",
-  "model": "openai/gpt-6-luna",
-  "thinkingLevel": null,
-  "providerId": "prv_7Tn4Kd9QwE2sLx5R",
-  "autoCompaction": true,
-  "compactionReserveTokens": 16384,
-  "memoryInjectionEnabled": false,
-  "tools": [
-    "workspace",
-    "write_todos"
-  ],
-  "instructions": "Answer billing questions clearly and briefly.",
-  "metadata": {
-    "team": "support"
-  },
-  "mcpConnectionIds": [],
-  "createdAt": "2026-07-10T10:00:00.000Z"
-}
-```
-
-#### Errors
-
-| Status | Codes | Description |
-| --- | --- | --- |
-| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
-| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
-| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
-
-See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
-
-#### cURL
-
-```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/versions/1" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
 ### GET /v1/agents/:agentId [#get-agent]
 
 Get an agent.
@@ -543,7 +388,6 @@ Response schema: `Agent`.
   "avatarUrl": null,
   "createdAt": "2026-07-10T10:00:00.000Z",
   "updatedAt": "2026-07-10T10:00:00.000Z",
-  "version": 1,
   "status": "active"
 }
 ```
@@ -571,7 +415,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
 
 Update an agent.
 
-Updates an agent and saves the result as a new version. Send at least one field. Fields you leave out keep their values, and arrays replace the current list. Changing `providerId` requires `model` in the same request, and sending both as `null` clears them. On the platform-managed `ba assist` agent, only `providerId`, `model`, and `thinkingLevel` can change.
+Updates the current agent configuration. New sessions and future task runs use these settings; existing sessions and queued runs keep their saved configuration. Send at least one field. Fields you leave out keep their values, and arrays replace the current list. Changing `providerId` requires `model` in the same request, and sending both as `null` clears them. On the platform-managed `ba assist` agent, only `providerId`, `model`, and `thinkingLevel` can change.
 
 #### Request
 
@@ -633,7 +477,6 @@ Response schema: `Agent`.
   "avatarUrl": null,
   "createdAt": "2026-07-10T10:00:00.000Z",
   "updatedAt": "2026-07-10T10:15:00.000Z",
-  "version": 2,
   "status": "active"
 }
 ```
@@ -753,7 +596,6 @@ Response schema: `Agent`.
   "avatarUrl": null,
   "createdAt": "2026-07-10T10:00:00.000Z",
   "updatedAt": "2026-07-10T10:00:00.000Z",
-  "version": 1,
   "status": "disabled"
 }
 ```
@@ -831,7 +673,6 @@ Response schema: `Agent`.
   "avatarUrl": null,
   "createdAt": "2026-07-10T10:00:00.000Z",
   "updatedAt": "2026-07-10T10:00:00.000Z",
-  "version": 1,
   "status": "active"
 }
 ```
@@ -910,7 +751,6 @@ Response schema: `Agent`.
   "avatarUrl": "https://files.example.com/avatars/ag_4kP9sT2vXq7LmN3a.webp",
   "createdAt": "2026-07-10T10:00:00.000Z",
   "updatedAt": "2026-07-10T10:00:00.000Z",
-  "version": 1,
   "status": "active"
 }
 ```
@@ -990,7 +830,6 @@ Response schema: `Agent`.
   "avatarUrl": null,
   "createdAt": "2026-07-10T10:00:00.000Z",
   "updatedAt": "2026-07-10T10:00:00.000Z",
-  "version": 1,
   "status": "active"
 }
 ```
@@ -1018,5 +857,5 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/av
 ## Next [#next]
 
 - [Agents](/agents/agents) to decide what each setting does.
-- [Versions and lifecycle](/agents/versions-and-lifecycle) to pin and restore versions.
+- [Configuration snapshots and lifecycle](/agents/configuration-snapshots) to inspect saved settings.
 - [Sessions API](/api-reference/rest-api/sessions) to start a conversation with the agent.

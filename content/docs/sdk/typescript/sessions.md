@@ -23,6 +23,7 @@ Every method takes one input object and accepts an optional `abortSignal`.
 | --- | --- | --- |
 | [`list()`](#list) | List one agent's sessions | `SessionsListResponse` |
 | [`listLatest()`](#list-latest) | List recent sessions across agents | `LatestSessionsListResponse` |
+| [`get()`](#get) | Read one session and its saved `agentConfig` | `SessionResponse` |
 | [`messages()`](#messages) | Load or poll a session's messages | `SessionMessagesResponse` |
 | [`delete()`](#delete) | Delete a session for good | `void` |
 | [`toolApprovals()`](#tool-approvals) | List the session's tool approvals | `ToolApprovalsResponse` |
@@ -74,6 +75,19 @@ for (const session of inbox.data) {
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Use `byAgent: true` to build an inbox with one row per agent, instead of calling `list()` for each agent. Sessions of disabled agents are included. Returns [`LatestSessionsListResponse`](#latestsessionslistresponse). Errors: `validation_failed`, `invalid_cursor`.
+
+### `get()` [#get]
+
+Reads one session with the configuration saved at its first turn. Session lists remain compact, and message pages contain only transcript messages.
+
+**Signature:** `get(input: { agentId: string; sessionId: string } & ResourceRequestOptions): Promise<SessionResponse>`
+
+```typescript
+const session = await client.sessions.get({ agentId, sessionId });
+console.log(session.agentConfig.model);
+```
+
+Returns `SessionResponse`, the session summary plus required `agentConfig`. Errors: `validation_failed`, `not_found`.
 
 ### `messages()` [#messages]
 
@@ -188,7 +202,6 @@ interface SessionsListResponse {
 
 interface SessionListItem {
   id: string;
-  agentVersion: number | null;
   messageCount: number;
   lastMessagePreview: string | null;
   userId: string;
@@ -198,7 +211,7 @@ interface SessionListItem {
 }
 ```
 
-`agentVersion` is the version the session is pinned to, or `null` when each turn uses the agent's current version.
+`SessionResponse` adds `agentConfig: AgentConfig` to a `SessionListItem`. It holds the saved settings for every turn in that session.
 
 ### `LatestSessionsListResponse` [#latestsessionslistresponse]
 
@@ -216,7 +229,7 @@ interface LatestSessionListItem extends SessionListItem {
 }
 ```
 
-`model`, `thinkingLevel`, and `status` describe the agent as it is now, not the version the session is pinned to.
+`model`, `thinkingLevel`, and `status` describe the agent as it is now, while `agentConfig` on `get()` describes the session.
 
 ### `SessionMessagesResponse` [#sessionmessagesresponse]
 

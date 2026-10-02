@@ -13,7 +13,7 @@ Pass `idempotencyKey` when creating a task that your backend may retry. Repeatin
 
 ## Tool approval policy [#tool-approval-policy]
 
-Task runs follow the agent version's `approvalInTasks` policy. Nobody is
+Task runs follow the configuration saved when queued, including its `approvalInTasks` policy. Nobody is
 there to approve a tool call during a run, so calls that need manual approval,
 or that automatic review escalates to a person, are denied. The agent is told
 which actions were blocked and keeps going with what it is allowed to do. If a
@@ -52,7 +52,6 @@ Response schema: `TaskList`.
       "id": "tk_6Wq3Hn8ZpL2vRt5C",
       "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
       "agentId": "ag_4kP9sT2vXq7LmN3a",
-      "agentVersion": null,
       "name": "Daily support summary",
       "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
       "schedule": {
@@ -116,7 +115,6 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | --- | --- | --- | --- | --- |
 | `idempotencyKey` | string | body |  | Retry the same creation with this key to return the current task and its original initial run. Changed requests or deleted tasks return a conflict. |
 | `agentId` | string | body | required | ID of the agent that runs the task. It cannot change later. |
-| `agentVersion` | integer \| null | body |  | Agent version to run. `null` runs whatever version is current when each run starts. 1–2147483647. Defaults to `null`. |
 | `name` | string | body | required | Display name, 1 to 80 characters. 1–80 characters. |
 | `prompt` | string | body | required | The prompt the agent receives on every run, 1 to 6,000 characters. 1–6000 characters. |
 | `schedule` | object \| null | body |  | When the task runs by itself: `once` at a time, every `everyMs` milliseconds (at least 60,000) for `interval`, or a five-field cron expression in an IANA timezone for `cron`. `null` means the task runs only when you start it. Defaults to `null`. |
@@ -137,7 +135,6 @@ Response schema: `CreatedTask`.
     "id": "tk_6Wq3Hn8ZpL2vRt5C",
     "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
     "agentId": "ag_4kP9sT2vXq7LmN3a",
-    "agentVersion": null,
     "name": "Daily support summary",
     "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
     "schedule": {
@@ -173,7 +170,6 @@ Response schema: `CreatedTask`.
     "id": "tk_6Wq3Hn8ZpL2vRt5C",
     "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
     "agentId": "ag_4kP9sT2vXq7LmN3a",
-    "agentVersion": null,
     "name": "Daily support summary",
     "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
     "schedule": null,
@@ -201,7 +197,7 @@ Response schema: `CreatedTask`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict) | The request conflicts with the resource's current state |
 | `429` | [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
@@ -242,7 +238,6 @@ Response schema: `Task`.
   "id": "tk_6Wq3Hn8ZpL2vRt5C",
   "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "agentId": "ag_4kP9sT2vXq7LmN3a",
-  "agentVersion": null,
   "name": "Daily support summary",
   "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
   "schedule": {
@@ -298,7 +293,6 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `taskId` | string | path | required | ID of the task. |
-| `agentVersion` | integer \| null | body |  | Agent version to run. `null` runs whatever version is current when each run starts. 1–2147483647. |
 | `name` | string | body |  | Display name, 1 to 80 characters. 1–80 characters. |
 | `prompt` | string | body |  | The prompt the agent receives on every run, 1 to 6,000 characters. 1–6000 characters. |
 | `schedule` | object \| null | body |  | When the task runs by itself: `once` at a time, every `everyMs` milliseconds (at least 60,000) for `interval`, or a five-field cron expression in an IANA timezone for `cron`. `null` means the task runs only when you start it. |
@@ -316,7 +310,6 @@ Response schema: `Task`.
   "id": "tk_6Wq3Hn8ZpL2vRt5C",
   "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "agentId": "ag_4kP9sT2vXq7LmN3a",
-  "agentVersion": null,
   "name": "Daily support summary",
   "prompt": "Summarize yesterday's open support cases and flag any that are overdue.",
   "schedule": {
@@ -349,7 +342,7 @@ Response schema: `Task`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`agent_version_not_found`](/api-reference/protocols/errors#agent_version_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

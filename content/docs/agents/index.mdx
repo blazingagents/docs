@@ -5,7 +5,7 @@ description: Set up an agent once, then give it a model, instructions, files, sk
 
 # Agents
 
-An agent is the part of Blazing Agents you configure. You choose its model, write its instructions, and decide what it can use: files, skills, memory, and tools. Your app then calls it by ID for chat, one-off answers, or background work, and every call runs with that setup.
+An agent is the part of Blazing Agents you configure. You choose its model, write its instructions, and decide what it can use: files, skills, memory, and tools. Your app then calls it by ID for chat, one-off answers, or background work.
 
 If you have not built one yet, start with [Run your first agent](/getting-started/quickstart).
 
@@ -16,7 +16,7 @@ If you have not built one yet, start with [Run your first agent](/getting-starte
 | [Agents](/agents/agents) | Create an agent and choose what it controls. |
 | [Providers and models](/agents/providers-and-models) | Connect your model account and pick the model. |
 | [Prompts](/agents/prompts) | Save message templates and fill them in per call. |
-| [Versions and lifecycle](/agents/versions-and-lifecycle) | Roll back changes, pin a version, and pause an agent. |
+| [Configuration snapshots and lifecycle](/agents/configuration-snapshots) | Inspect saved session and run settings, and pause an agent. |
 | [Skills](/agents/skills) | Teach workflows the agent loads only when needed. |
 | [Memory](/agents/memory) | Remember facts about each user across sessions. |
 | [Workspaces](/agents/workspaces) | Give the agent files and a shell that persist. |
@@ -26,7 +26,7 @@ If you have not built one yet, start with [Run your first agent](/getting-starte
 
 ## How the pieces fit [#how-the-pieces-fit]
 
-Each call to an agent is a turn. On every turn, Blazing Agents reads the agent's current settings, or a version you pinned, and sends the conversation to its model. During the turn the agent can load a skill, read or save memory, work with files in its workspace, and call tools. The answer streams back as text or arrives as structured JSON.
+Each call to an agent is a turn. The first turn in a session saves the agent's configuration for later turns in that session. A task run saves it when queued. A one-off turn uses the agent's current configuration. During the turn the agent can load a skill, read or save memory, work with files in its workspace, and call tools. The answer streams back as text or arrives as structured JSON.
 
 Turns that belong to a conversation live in a [session](/platform/sessions-and-turns). Scheduled and background turns run as [tasks](/automation/tasks).
 

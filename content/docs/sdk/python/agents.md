@@ -1,13 +1,13 @@
 ---
 title: Agents
-description: Create, configure, version, pause, and delete agents with the Python SDK.
+description: Create, configure, pause, and delete agents with the Python SDK.
 ---
 
 # Agents
 
-`client.agents` creates and configures your agents. Every configuration change saves a numbered version you can inspect or restore, and you can pause an agent without losing its setup.
+`client.agents` creates and configures your agents. You can pause an agent without losing its setup. Sessions and task runs save the configuration they start with.
 
-Examples assume `client = BlazingAgents()` and reuse objects such as `provider` and `agent` from earlier examples. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names and use `async for` with `iter_versions()`.
+Examples assume `client = BlazingAgents()` and reuse objects such as `provider` and `agent` from earlier examples. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names.
 
 ```python
 import os
@@ -26,26 +26,22 @@ agent = client.agents.create(
     model="openai/gpt-6-luna",
     instructions="Write concise release notes.",
 )
-print(agent.id, agent.version)
+print(agent.id, agent.name)
 ```
 
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`create()`](#create) | Create an agent and its version 1 | `Agent` |
+| [`create()`](#create) | Create an agent | `Agent` |
 | [`list()`](#list) | List agents | `AgentsPage` |
 | [`get()`](#get) | Get the current configuration | `Agent` |
-| [`update()`](#update) | Change configuration and save a new version | `Agent` |
+| [`update()`](#update) | Change configuration | `Agent` |
 | [`delete()`](#delete) | Permanently delete an agent | `None` |
 | [`disable()`](#disable) | Stop new turns | `Agent` |
 | [`enable()`](#enable) | Allow new turns again | `Agent` |
 | [`upload_avatar()`](#upload-avatar) | Set the avatar image | `Agent` |
 | [`remove_avatar()`](#remove-avatar) | Remove the avatar | `Agent` |
-| [`list_versions()`](#list-versions) | Get one page of versions | `AgentVersionsPage` |
-| [`iter_versions()`](#iter-versions) | Iterate every version | `Iterator[AgentVersion]` |
-| [`get_version()`](#get-version) | Get one version | `AgentVersion` |
-| [`restore_version()`](#restore-version) | Copy an old version into a new one | `Agent` |
 | [`list_mcp_attachments()`](#list-mcp-attachments) | List MCP forwarding settings | `McpAttachments` |
 | [`update_mcp_attachment()`](#update-mcp-attachment) | Change MCP forwarding settings | `McpAttachment` |
 
@@ -53,7 +49,7 @@ print(agent.id, agent.version)
 
 ### `create()` [#create]
 
-Creates an agent and saves its configuration as version 1.
+Creates an agent.
 
 ```python
 agent = client.agents.create(
@@ -128,7 +124,7 @@ Returns [`Agent`](#agent). Raises `validation_failed` for a malformed ID or [`no
 
 ### `update()` [#update]
 
-Changes an agent's configuration and saves the result as the next version, even when the values are unchanged.
+Changes an agent's current configuration.
 
 ```python
 agent = client.agents.update(
@@ -146,11 +142,11 @@ Accepts every [`create()`](#create) parameter except `user_id`, which never chan
 - `thinking_level=None` resets to the provider default.
 - `workspace_id` moves the agent to another workspace. It cannot be cleared.
 
-Calling `update()` with no parameters raises `ValueError` before any request. Returns [`Agent`](#agent) with the new `version`. Raises `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, or `agent_mcp_connections_invalid`.
+Calling `update()` with no parameters raises `ValueError` before any request. Returns [`Agent`](#agent). Raises `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, or `agent_mcp_connections_invalid`.
 
 ### `delete()` [#delete]
 
-Permanently deletes an agent with its versions, sessions, tasks, and memories. Its workspace, providers, and MCP connections are kept.
+Permanently deletes an agent with its sessions, tasks, and memories. Its workspace, providers, and MCP connections are kept.
 
 ```python
 client.agents.delete(agent.id, include_artifacts=False)
@@ -186,7 +182,7 @@ Returns [`Agent`](#agent) with `status == "active"`. Calling it again is harmles
 
 ### `upload_avatar()` [#upload-avatar]
 
-Sets or replaces the agent's avatar. This does not create a version.
+Sets or replaces the agent's avatar.
 
 ```python
 from pathlib import Path
@@ -202,7 +198,7 @@ Returns [`Agent`](#agent) whose `avatar_url` is a short-lived signed URL. A miss
 
 ### `remove_avatar()` [#remove-avatar]
 
-Removes the avatar. This does not create a version, and calling it again is harmless.
+Removes the avatar. Calling it again is harmless.
 
 ```python
 agent = client.agents.remove_avatar(agent.id)
@@ -211,57 +207,6 @@ agent = client.agents.remove_avatar(agent.id)
 **Signature:** `remove_avatar(agent_id: str) -> Agent`
 
 Returns [`Agent`](#agent) with `avatar_url is None`. Raises `validation_failed` or `not_found`.
-
-### `list_versions()` [#list-versions]
-
-Gets one page of the agent's saved versions, newest first.
-
-```python
-page = client.agents.list_versions(agent.id, limit=20)
-```
-
-**Signature:** `list_versions(agent_id: str, *, cursor=..., limit=...) -> AgentVersionsPage`
-
-`limit` is 1 to 200 and defaults to 50. Pass the previous page's `next_cursor` as `cursor` to get the next page. Returns `AgentVersionsPage` with `data: list[AgentVersion]` and `next_cursor: str | None`. Raises `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `not_found`.
-
-### `iter_versions()` [#iter-versions]
-
-Iterates every version, fetching pages as you go.
-
-```python
-for version in client.agents.iter_versions(agent.id, limit=20):
-    print(version.version, version.model)
-```
-
-**Signature:** `iter_versions(agent_id: str, *, cursor=..., limit=...) -> Iterator[AgentVersion]`
-
-No request is sent until you start iterating. On the async client, use `async for` directly on `iter_versions(...)`; do not await it. Each page request can raise the same errors as [`list_versions()`](#list-versions).
-
-### `get_version()` [#get-version]
-
-Gets one saved version by number.
-
-```python
-first = client.agents.get_version(agent.id, 1)
-```
-
-**Signature:** `get_version(agent_id: str, version: int) -> AgentVersion`
-
-Returns [`AgentVersion`](#agentversion). Raises `validation_failed` or `not_found`.
-
-### `restore_version()` [#restore-version]
-
-Copies an old version's configuration into a new latest version. History is never rewritten.
-
-```python
-agent = client.agents.restore_version(agent.id, 1)
-```
-
-**Signature:** `restore_version(agent_id: str, version: int) -> Agent`
-
-The SDK reads the version with [`get_version()`](#get-version), then saves its fields through [`update()`](#update). That copies the name, provider and model, thinking level, compaction settings, memory injection, tools, approval policies, instructions, metadata, and MCP connections. The workspace, `user_id`, status, and avatar stay as they are, because versions do not store them.
-
-Returns the updated [`Agent`](#agent). It can raise any error from either call, for example `provider_not_found` when the old provider was deleted.
 
 ### `list_mcp_attachments()` [#list-mcp-attachments]
 
@@ -277,7 +222,7 @@ Returns `McpAttachments`, whose `mcp_attachments` field is `list[McpAttachment]`
 
 ### `update_mcp_attachment()` [#update-mcp-attachment]
 
-Chooses whether the agent sends the end user's ID and selected metadata keys to one MCP connection. This does not create a version.
+Chooses whether the agent sends the end user's ID and selected metadata keys to one MCP connection.
 
 ```python
 attachment = client.agents.update_mcp_attachment(
@@ -320,13 +265,8 @@ Pass at least one; omitting both raises `ValueError`. Returns [`McpAttachment`](
 | `metadata` | `dict[str, object]` | Your own data |
 | `mcp_connection_ids` | `list[str]` | Selected MCP connections |
 | `avatar_url` | `AnyUrl \| None` | Short-lived avatar URL |
-| `version` | `int` | Current version number |
 | `status` | `str` | `"active"` or `"disabled"` |
 | `created_at`, `updated_at` | `datetime` | Timestamps |
-
-### `AgentVersion` [#agentversion]
-
-A saved configuration. It has `agent_id`, `tenant_id`, `version`, `created_at`, and the same configuration fields as `Agent`: `name`, `provider_id`, `model`, `thinking_level`, `tools`, `instructions`, `memory_injection_enabled`, `auto_compaction`, `compaction_reserve_tokens`, `approval_in_chat`, `approval_in_tasks`, `metadata`, and `mcp_connection_ids`. It has no `workspace_id`, `user_id`, avatar, status, or `updated_at`.
 
 ### `McpAttachment` [#mcpattachment]
 
@@ -340,5 +280,5 @@ A saved configuration. It has `agent_id`, `tenant_id`, `version`, `created_at`, 
 ## Next [#next]
 
 - [Agents guide](/agents/agents)
-- [Versions and lifecycle](/agents/versions-and-lifecycle)
+- [Configuration snapshots and lifecycle](/agents/configuration-snapshots)
 - [Providers](/sdk/python/providers)

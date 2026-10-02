@@ -48,7 +48,7 @@ You see `tk_... null` (`None` in Python). With no schedule, the task runs only w
 ## What a task controls [#what-a-task-controls]
 
 - **Agent and instruction.** Every run sends the same `prompt` to the same agent.
-- **Version.** By default each run uses the agent's latest configuration at the moment the run is queued. Set `agentVersion` to pin a known-good [version](/agents/versions-and-lifecycle) instead.
+- **Configuration.** Each run saves the agent's current configuration when queued. Editing the agent changes future runs. Read `agentConfig` with `tasks.getRun()`, including before a session exists.
 - **Schedule and enabled state.** A schedule starts runs automatically. Setting `enabled: false` pauses scheduled runs, but you can still start a run yourself.
 - **User label.** The task's `userId` and `metadata` carry over to every run, its session, its usage, and its artifacts. See [tenancy and attribution](/platform/tenancy-and-attribution).
 
@@ -56,11 +56,11 @@ The task also shows its current active run and latest run, so you can see what i
 
 ## Tool approvals in tasks [#tool-approvals-in-tasks]
 
-No one is present to approve a tool call during a task. Tasks follow the agent's `approvalInTasks` policy. A tool call that would need a person is denied, and the agent is told so it can continue with other work. If a run still ends up waiting for a person, it fails. See [tool approvals](/agents/tools/tool-approvals).
+No one is present to approve a tool call during a task. Each run saves the agent's `approvalInTasks` policy when queued. A tool call that would need a person is denied, and the agent is told so it can continue with other work. If a run still ends up waiting for a person, it fails. See [tool approvals](/agents/tools/tool-approvals).
 
 ## Change or delete a task [#change-or-delete-a-task]
 
-Changes apply to future runs only. A run that is already queued or running keeps the version and settings it started with. The `agentId` and `userId` cannot change after creation.
+Changes apply to future runs only. A run that is already queued or running keeps the settings it saved when queued. The `agentId` and `userId` cannot change after creation.
 
 Deleting a task removes it and its schedule. It does not undo anything earlier runs did, such as files written or messages sent. Cancel an active run first if you need it stopped.
 

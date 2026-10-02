@@ -133,7 +133,7 @@ Chats with backend functions run handlers in background threads or async tasks w
 
 The client has five generation methods: `chat()` for conversations that Blazing Agents stores as sessions, plus buffered and streaming forms of stateless text and structured output. Every call runs one metered turn. All arguments are keyword-only.
 
-Give each call exactly one input: a literal `message` or `prompt`, or a saved prompt through `prompt_id`. `variables` works only with `prompt_id`. Every generation method also accepts `version` to pin an agent version, `user_id` and `metadata` to attribute the turn to an end user, `client_request_id`, `extra_headers`, and `timeout`.
+Give each call exactly one input: a literal `message` or `prompt`, or a saved prompt through `prompt_id`. `variables` works only with `prompt_id`. Every generation method also accepts `user_id` and `metadata` to attribute the turn to an end user, `client_request_id`, `extra_headers`, and `timeout`.
 
 `AsyncBlazingAgents` has the same five method names; you await them.
 
@@ -141,7 +141,7 @@ Give each call exactly one input: a literal `message` or `prompt`, or a saved pr
 
 ### `chat()` [#chat]
 
-**Signature:** `chat(*, agent_id, message=..., prompt_id=..., variables=..., trigger=..., message_id=..., session_id=..., version=..., user_id=..., metadata=..., functions=..., client_request_id=None, extra_headers=None, timeout=...) -> ChatStream`
+**Signature:** `chat(*, agent_id, message=..., prompt_id=..., variables=..., trigger=..., message_id=..., session_id=..., user_id=..., metadata=..., functions=..., client_request_id=None, extra_headers=None, timeout=...) -> ChatStream`
 
 Sends a message in a session and returns a `ChatStream` of AI SDK SSE bytes. When you attach backend functions, the SDK consumes private callback events and forwards the remaining events to your application.
 
@@ -159,7 +159,7 @@ with client.chat(
         print(chunk.decode(), end="")
 ```
 
-Omit `session_id` to start a new session. Its `ss_...` ID is available as `stream.session_id` before you read the body. Pass it on a later call to continue the conversation. You can pin `version` only when you start a session, not when you continue one. `trigger="regenerate-message"` works only in an existing session and can target a `message_id`.
+Omit `session_id` to start a new session. Its `ss_...` ID is available as `stream.session_id` before you read the body. Pass it on a later call to continue the conversation. The first turn saves the current agent configuration for every later turn. Read it with `sessions.get()`. `trigger="regenerate-message"` works only in an existing session and can target a `message_id`.
 
 With the async client, call `stream = await client.chat(...)`, then use `async with stream` and `async for chunk in stream`.
 
@@ -185,7 +185,7 @@ Calling `resume_chat()` with no ready continuation raises an error. Observer met
 
 ### `completion()` [#completion]
 
-**Signature:** `completion(*, agent_id, prompt=..., prompt_id=..., variables=..., version=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> Completion`
+**Signature:** `completion(*, agent_id, prompt=..., prompt_id=..., variables=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> Completion`
 
 Returns the complete text answer. `Completion` is a `str` subclass that also carries `request_id`.
 
@@ -201,7 +201,7 @@ Use `await client.completion(...)` with `AsyncBlazingAgents`.
 
 ### `completion_stream()` [#completion-stream]
 
-**Signature:** `completion_stream(*, agent_id, prompt=..., prompt_id=..., variables=..., version=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> CompletionStream`
+**Signature:** `completion_stream(*, agent_id, prompt=..., prompt_id=..., variables=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> CompletionStream`
 
 Streams the text answer as decoded text deltas. `get_final_text()` reads anything you have not consumed yet and returns the full `Completion`. Reading to the end closes the stream; call `close()` to stop early.
 
@@ -219,7 +219,7 @@ With the async client, call `stream = await client.completion_stream(...)`, then
 
 ### `object()` [#object]
 
-**Signature:** `object(*, agent_id, output_type=..., json_schema=..., prompt=..., prompt_id=..., variables=..., version=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> T | JsonValue`
+**Signature:** `object(*, agent_id, output_type=..., json_schema=..., prompt=..., prompt_id=..., variables=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> T | JsonValue`
 
 Returns structured output. Pass exactly one of `output_type` or `json_schema`. With a Pydantic-compatible `output_type`, the SDK derives the JSON Schema, decodes the complete response, and validates it with Pydantic's `TypeAdapter`, so you get an instance of `output_type`. With a raw `json_schema`, you get the decoded JSON value without validation.
 
@@ -241,7 +241,7 @@ Use `await client.object(...)` with the async client.
 
 ### `object_stream()` [#object-stream]
 
-**Signature:** `object_stream(*, agent_id, output_type=..., json_schema=..., prompt=..., prompt_id=..., variables=..., version=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> ObjectStream[T] | ObjectStream[JsonValue]`
+**Signature:** `object_stream(*, agent_id, output_type=..., json_schema=..., prompt=..., prompt_id=..., variables=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> ObjectStream[T] | ObjectStream[JsonValue]`
 
 Streams structured output as raw JSON text deltas. It never yields partial Pydantic models. `get_final_object()` reads any remaining data and validates only after the stream finishes. Invalid, truncated, or mismatched output raises the matching `Object...Error`.
 

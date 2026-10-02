@@ -24,9 +24,10 @@ it. See [Attribution](#attribution).
 | Schema                                                                | Fields and state                                         | Mutable                                            | Timestamps                                                                                                             | Nullability and omission                                                   |
 | --------------------------------------------------------------------- | -------------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | [Agent](#agent)                                                       | configuration; `active` or `disabled`                    | configuration through update; lifecycle separately | `createdAt`, `updatedAt`                                                                                               | Provider and avatar may be `null`; Workspace is always present; omitted updates are unchanged |
+| [AgentConfig](#agentconfig) | saved execution settings | none | none | Provider and model may be `null` |
 | [Workspace](#workspace)                                               | durable private Agent files                              | name and metadata                                  | `createdAt`, `updatedAt`                                                                                               | name may be `null`; `userId: ""` is tenant-level                           |
-| [AgentVersion](#agentversion)                                         | numbered immutable configuration copy                    | none                                               | `createdAt`                                                                                                            | preserves the nullable Provider reference                                  |
-| [SessionListItem](#sessionlistitem)                                   | Session summary and configured Version Pin               | none                                               | `createdAt`, `updatedAt`                                                                                               | Pin and preview may be `null`                                              |
+| [SessionListItem](#sessionlistitem)                                   | Compact Session summary               | none                                               | `createdAt`, `updatedAt`                                                                                               | Preview may be `null`                                              |
+| [SessionResponse](#sessionresponse) | Session summary and saved `agentConfig` | none | `createdAt`, `updatedAt` | `agentConfig` is required |
 | [SessionMessage](#sessionmessage)                                     | AI SDK role, parts, optional metadata                    | platform-owned transcript                          | none                                                                                                                   | metadata may be omitted                                                    |
 | [UsageSummary](#usagesummary)                                         | per-Turn metering; `succeeded`, `cancelled`, or `failed` | none                                               | `startedAt`, `completedAt`                                                                                             | `errorMessage` may be `null`; `sessionId: ""` means stateless              |
 | [BlazingAgentsChatMessageMetadata](#blazingagentschatmessagemetadata) | nested usage; `succeeded`, `cancelled`, or `failed`      | none                                               | `blazingAgents.usage.startedAt`, `blazingAgents.usage.completedAt`                                                     | nested Usage summary preserves its null and sentinel behavior              |
@@ -36,7 +37,7 @@ it. See [Attribution](#attribution).
 | [McpAttachmentResponse](#mcpattachmentresponse)                       | one Agent–Connection attachment                          | forwarding settings                                | `createdAt`, `updatedAt`                                                                                               | fields are present, not nullable                                           |
 | [Memory](#memory)                                                     | Agent-owned text and access timestamp                    | text                                               | `createdAt`, `updatedAt`, `lastAccessedAt`                                                                             | public reads do not alter access time                                      |
 | [ArtifactListItem](#artifactlistitem)                                 | append-only published file                               | publish or hard-delete                              | `createdAt`, `updatedAt`                                                                                               | fields are present, not nullable                                           |
-| [Task](#task)                                                         | schedule and run pointers                                | documented update fields                           | `deletedAt`, `createdAt`, `updatedAt`                                                                                  | Version Pin, schedule, and lifecycle pointers may be `null`                |
+| [Task](#task)                                                         | schedule and run pointers                                | documented update fields                           | `deletedAt`, `createdAt`, `updatedAt`                                                                                  | Schedule and lifecycle pointers may be `null`                |
 | [TaskListItem](#tasklistitem)                                         | Task plus compact latest run                             | documented Task update fields                      | `deletedAt`, `createdAt`, `updatedAt`, `latestRun.finishedAt`                                                          | `latestRun` and its `finishedAt` may be `null`                             |
 | [TaskRun](#taskrun)                                                   | queued-to-terminal execution state                       | cooperative cancel only                            | `startedAt`, `finishedAt`, `cancelRequestedAt`, `canceledAt`, `createdAt`, `updatedAt`                                 | Session, error, and lifecycle times follow state                           |
 | [Prompt](#prompt)                                                     | template and inferred variables                          | name, template, metadata                           | `createdAt`, `updatedAt`                                                                                               | omitted updates are unchanged                                              |
@@ -65,7 +66,7 @@ it. See [Attribution](#attribution).
 
 ### ApprovalPolicy [#approval-policy]
 
-Agent and AgentVersion expose `approvalInChat` and `approvalInTasks`:
+Agent and AgentConfig expose `approvalInChat` and `approvalInTasks`:
 
 ```typescript
 type PolicyMode = "full" | "deny" | "manual" | "auto";
@@ -89,10 +90,8 @@ preserves the field; supplying a policy replaces it. See [approval policies](/ag
 <span id="agent-response"></span><span id="agents-response"></span>
 
 `agentSchema` / `Agent` is the current Agent configuration. `status` is
-`active` or `disabled`; `version` starts at 1. `providerId`, `model`, and `avatarUrl` are
-nullable. Provider and model form an optional pair: both are null or both are present. `workspaceId` always identifies the current attachment. Ordinary configuration updates create an immutable
-Version. Avatar and lifecycle changes use separate operations and do not
-create Versions. `userId`, IDs, timestamps, and the current Version number are
+`active` or `disabled`. `providerId`, `model`, and `avatarUrl` are
+nullable. Provider and model form an optional pair: both are null or both are present. `workspaceId` always identifies the current attachment. Avatar and lifecycle changes use separate operations. `userId`, IDs, and timestamps are
 read-only. Names can repeat. `agentsResponseSchema` returns
 `{ data, nextCursor }` for list responses.
 
@@ -112,26 +111,17 @@ See [SDK Workspaces](/sdk/typescript/workspaces),
 [REST Workspaces](/api-reference/rest-api/workspaces), and
 [Workspaces](/agents/workspaces).
 
-### AgentVersion [#agentversion]
+### AgentConfig [#agentconfig]
 
-<span id="agent-version"></span><span id="agent-versions-response"></span>
+`agentConfigSchema` / `AgentConfig` contains the saved name, provider and model IDs, thinking level, instructions, tool groups, MCP connection IDs, approval policies, compaction settings, memory injection setting, and metadata. It excludes identity, timestamps, status, avatar, workspace attachment, credentials, and executable callback handlers. A session saves it at its first turn; a task run saves it when queued.
 
-`agentVersionSchema` / `AgentVersion` is a numbered, immutable copy of the
-Agent fields accepted by update, including `metadata`. It excludes avatar,
-status, and `userId`.
-Provider and MCP Connection references do not copy those resources. Restoring
-a Version creates a new latest Version instead of changing history.
-
-See [SDK Agent Versions](/sdk/typescript/agents#list-versions),
-[REST Agent Versions](/api-reference/rest-api/agents#list-agent-versions), and
-[Versions and lifecycle](/agents/versions-and-lifecycle).
+See [Configuration snapshots and lifecycle](/agents/configuration-snapshots).
 
 ### SessionListItem [#sessionlistitem]
 
 <span id="sessions-list-response"></span>
 
-`sessionListItemSchema` / `SessionListItem` contains `id`, nullable configured
-`agentVersion` Pin, message count, nullable last-message preview, Attribution, and
+`sessionListItemSchema` / `SessionListItem` contains `id`, message count, nullable last-message preview, Attribution, and
 timestamps. A session is saved as soon as its first turn is accepted, before
 the model runs. If that turn fails, the session keeps your message; if you
 cancel it, the session can be empty. Sessions have no update operation, and
@@ -144,6 +134,10 @@ See [SDK Sessions](/sdk/typescript/sessions),
 [REST Sessions](/api-reference/rest-api/sessions), and
 [Sessions and Turns](/platform/sessions-and-turns).
 
+### SessionResponse [#sessionresponse]
+
+`sessionResponseSchema` / `SessionResponse` extends the compact session summary with required `agentConfig`. Read it with `GET /v1/agents/{agentId}/sessions/{sessionId}`. Message pages contain no configuration.
+
 ### LatestSessionListItem [#latestsessionlistitem]
 
 <span id="latest-sessions-list-response"></span>
@@ -151,7 +145,7 @@ See [SDK Sessions](/sdk/typescript/sessions),
 `latestSessionListItemSchema` / `LatestSessionListItem` extends
 `SessionListItem` with the owning `agentId`, nullable `model`, nullable
 `thinkingLevel`, and `status` (`"active"` or `"disabled"`). These fields describe
-the Agent's current state, independently of a Session's pinned Version.
+the Agent's current state, independently of the Session's saved `agentConfig`.
 `latestSessionsListResponseSchema` is the paginated envelope returned by
 `GET /v1/sessions/latest`. The default mode returns the latest Sessions across
 the Tenant; `byAgent=true` returns at most one item per Agent.
@@ -179,7 +173,7 @@ See [SDK Session messages](/sdk/typescript/sessions#messages),
 assistant message. `status` is `succeeded`, `cancelled`, or `failed`;
 `startedAt` and `completedAt` bound the metered duration. `errorMessage` is
 nullable, and stateless generation uses `sessionId: ""`. The record also
-identifies the resolved Agent Version, model, Turn, commit, token totals,
+identifies the model, Turn, commit, token totals,
 step usage, and Attribution.
 
 See [SDK Session messages](/sdk/typescript/sessions#messages),
@@ -320,7 +314,7 @@ and [REST Artifact download URLs](/api-reference/rest-api/artifacts#create-artif
 <span id="create-task-response"></span><span id="task-response"></span><span id="tasks-list-response"></span>
 
 `taskSchema` / `Task` is the definition. A schedule is `once`, `interval`, or
-`cron`. Update may change the nullable Agent Version Pin, name, prompt,
+`cron`. Update may change the name, prompt,
 schedule, `enabled`, or metadata. `agentId` and `userId` are immutable.
 Run pointers and deletion timestamps are nullable lifecycle fields.
 
@@ -345,8 +339,7 @@ See [SDK Task listing](/sdk/typescript/tasks#list),
 
 `taskRunSchema` / `TaskRun` status is `queued`, `running`, `blocked`,
 `succeeded`, `failed`, or `canceled`. Session, error, start, finish, and cancel
-timestamps are nullable according to lifecycle. Attribution and the resolved
-Agent Version are fixed when the run is queued. `turnId` is `null` until the
+timestamps are nullable according to lifecycle. Attribution and required `agentConfig` are fixed when the run is queued. `turnId` is `null` until the
 run's turn starts, so a blocked run keeps `turnId: null`. Cancel is
 the only caller-driven mutation.
 
@@ -447,12 +440,10 @@ This complete MCP Attachment response is intentionally small:
 }
 ```
 
-This Task update leaves omitted fields unchanged while explicitly clearing the
-Version Pin and schedule:
+This Task update leaves omitted fields unchanged while clearing the schedule:
 
 ```json
 {
-  "agentVersion": null,
   "schedule": null
 }
 ```

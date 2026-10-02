@@ -17,7 +17,7 @@ more pages in that direction. Cursors are opaque: do not decode, edit, or reuse
 one on another list. A cursor the API cannot read returns `400
 invalid_cursor`; other bad paging parameters return `400 validation_failed`.
 
-Lists run newest first: agent versions by version number, tasks by
+Lists run newest first: tasks by
 `updatedAt`, memories by `createdAt` then `id`, and other lists by their own
 timestamp. Transcripts return the newest page first, with messages in
 chronological order inside each page.
@@ -25,7 +25,6 @@ chronological order inside each page.
 | Collection        | SDK method                                                                                                         | REST operation                                                                                                     | Response cursor fields       | Page size                                       | Filters                                      |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ----------------------------------------------- | -------------------------------------------- |
 | Agents            | [`agents.list`](/sdk/typescript/agents#list)                                                             | [`list-agents`](/api-reference/rest-api/agents#list-agents)                                                            | `nextCursor`                 | default 50, max 100                             | `userId`, `workspaceId`                      |
-| Agent Versions    | [`agents.listVersions`](/sdk/typescript/agents#list-versions)                                            | [`list-agent-versions`](/api-reference/rest-api/agents#list-agent-versions)                                            | `nextCursor`                 | default 50, max 200                             | none                                            |
 | Providers         | [`providers.list`](/sdk/typescript/providers#list)                                                       | [`list-providers`](/api-reference/rest-api/providers#list-providers)                                                   | none                         | bounded; no public `limit`                      | none                                            |
 | MCP Connections   | [`mcpConnections.list`](/sdk/typescript/mcp-connections#list)                                            | [`list-mcp-connections`](/api-reference/rest-api/mcp-connections#list-mcp-connections)                                 | none                         | bounded; no public `limit`                      | none                                            |
 | MCP Attachments   | [`agents.listMcpAttachments`](/sdk/typescript/agents#list-mcp-attachments)                               | [`list-agent-mcp-attachments`](/api-reference/rest-api/agents#list-agent-mcp-attachments)                              | none                         | bounded; no public `limit`                      | owning Agent path                            |

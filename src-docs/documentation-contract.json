@@ -496,7 +496,7 @@
           }
         ]
       },
-      "file": "agents/versions-and-lifecycle.md",
+      "file": "agents/configuration-snapshots.md",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -1422,9 +1422,6 @@
           "enable",
           "upload-avatar",
           "remove-avatar",
-          "list-versions",
-          "get-version",
-          "restore-version",
           "list-mcp-attachments",
           "update-mcp-attachment"
         ],
@@ -1436,22 +1433,6 @@
       "fences": {
         "endpointCurls": false,
         "items": [
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
-          {
-            "language": "typescript",
-            "metadata": {}
-          },
           {
             "language": "typescript",
             "metadata": {}
@@ -1644,6 +1625,7 @@
         "assignedIds": [
           "list",
           "list-latest",
+          "get",
           "messages",
           "delete",
           "tool-approvals",
@@ -1658,6 +1640,10 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
           {
             "language": "typescript",
             "metadata": {}
@@ -2286,10 +2272,6 @@
           "enable",
           "upload-avatar",
           "remove-avatar",
-          "list-versions",
-          "iter-versions",
-          "get-version",
-          "restore-version",
           "list-mcp-attachments",
           "update-mcp-attachment"
         ],
@@ -2301,22 +2283,6 @@
       "fences": {
         "endpointCurls": false,
         "items": [
-          {
-            "language": "python",
-            "metadata": {}
-          },
-          {
-            "language": "python",
-            "metadata": {}
-          },
-          {
-            "language": "python",
-            "metadata": {}
-          },
-          {
-            "language": "python",
-            "metadata": {}
-          },
           {
             "language": "python",
             "metadata": {}
@@ -2504,6 +2470,7 @@
           "list",
           "iter",
           "list-latest",
+          "get",
           "messages",
           "tool-approvals",
           "decide-tool-approval",
@@ -2518,6 +2485,10 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
           {
             "language": "python",
             "metadata": {}
@@ -3236,8 +3207,6 @@
           "create-agent",
           "list-agent-mcp-attachments",
           "update-agent-mcp-attachment",
-          "list-agent-versions",
-          "get-agent-version",
           "get-agent",
           "update-agent",
           "delete-agent",
@@ -3405,12 +3374,16 @@
           "list-sessions",
           "create-session-turn",
           "list-latest-sessions",
-          "list-session-messages",
+          "get-session",
           "resume-session-turn",
           "delete-session",
+          "list-session-messages",
           "list-tool-approvals",
           "decide-tool-approval",
-          "join-tool-approval-continuation"
+          "join-tool-approval-continuation",
+          "resume-tool-approval-continuation",
+          "claim-chat-function-call",
+          "resolve-chat-function-call"
         ],
         "kind": "operations"
       },
@@ -3709,8 +3682,9 @@
         "assignedHeadings": [
           "Agent",
           "Workspace",
-          "AgentVersion",
+          "AgentConfig",
           "SessionListItem",
+          "SessionResponse",
           "SessionMessage",
           "UsageSummary",
           "BlazingAgentsChatMessageMetadata",
@@ -3734,8 +3708,9 @@
         "assignedIds": [
           "agent",
           "workspace",
-          "agentversion",
+          "agentconfig",
           "sessionlistitem",
+          "sessionresponse",
           "sessionmessage",
           "usagesummary",
           "blazingagentschatmessagemetadata",
@@ -3760,8 +3735,9 @@
         "assignedSchemas": [
           "agentSchema",
           "workspaceSchema",
-          "agentVersionSchema",
+          "agentConfigSchema",
           "sessionListItemSchema",
+          "sessionResponseSchema",
           "sessionMessageSchema",
           "usageSummarySchema",
           "blazingAgentsChatMessageMetadataSchema",
@@ -4061,11 +4037,11 @@
       "url": "/agents/prompts"
     },
     {
-      "file": "agents/versions-and-lifecycle.md",
-      "name": "Versions and lifecycle",
+      "file": "agents/configuration-snapshots.md",
+      "name": "Configuration snapshots and lifecycle",
       "publishable": true,
-      "title": "Versions and lifecycle",
-      "url": "/agents/versions-and-lifecycle"
+      "title": "Configuration snapshots and lifecycle",
+      "url": "/agents/configuration-snapshots"
     },
     {
       "file": "agents/skills.md",

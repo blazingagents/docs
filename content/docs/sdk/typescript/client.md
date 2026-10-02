@@ -218,7 +218,6 @@ const response = next.toResponse(); // return this from your route
 | `promptId` | `string` | one source | Saved prompt ID (`prompt_…`) |
 | `variables` | `Record<string, string>` | no | Saved prompt variables; only with `promptId` |
 | `sessionId` | `string` | no | Session to continue (`ss_…`); omit to start one |
-| `version` | `number` | no | Agent version to pin; only when starting a session |
 | `trigger` | `"submit-message" \| "regenerate-message"` | no | Defaults to `submit-message`; `regenerate-message` needs `sessionId` |
 | `messageId` | `string` | no | Message to regenerate from |
 | `userId` | `string` | no | Your end user's ID, for usage and reporting |
@@ -228,7 +227,7 @@ const response = next.toResponse(); // return this from your route
 
 Pass `functions` to attach a map of backend handlers created with `defineFunction()`. The SDK sends their descriptions and schemas, executes approved calls in your backend, and removes private callback events from the browser stream. Supply the handlers on each request. See [backend functions](/agents/tools/backend-functions).
 
-Pass `version` to pin a new session to one agent version for its whole life; without it, each turn uses the agent's current version. You cannot pass `version` when you continue a session. To regenerate an answer, send `trigger: "regenerate-message"` with a `message` or `promptId` as usual. The transcript is cut from `messageId`, or from the latest assistant message when you omit it, and replaced only if the new turn succeeds.
+The first turn saves the agent's current configuration. Later turns use that saved configuration. Read it with `sessions.get()`. To regenerate an answer, send `trigger: "regenerate-message"` with a `message` or `promptId` as usual. The transcript is cut from `messageId`, or from the latest assistant message when you omit it, and replaced only if the new turn succeeds.
 
 Returns [`ChatResult`](#types). `sessionId` resolves as soon as the server accepts the turn, before the answer streams, so save it right away. From that point the session keeps the user's message even if the turn later fails. Read the body once, through either `toResponse()` (a `Response` you can return from a route) or `toStream()` (the same bytes as a `ReadableStream`).
 
@@ -273,7 +272,6 @@ for await (const text of completion.textStream) {
 | `prompt` | `string` | one source | The prompt text |
 | `promptId` | `string` | one source | Saved prompt ID (`prompt_…`) |
 | `variables` | `Record<string, string>` | no | Saved prompt variables; only with `promptId` |
-| `version` | `number` | no | Agent version to use |
 | `userId` | `string` | no | Your end user's ID |
 | `metadata` | `Record<string, unknown>` | no | Your labels for the turn |
 | `clientRequestId` | `string` | no | Your correlation ID |
