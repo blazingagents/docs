@@ -162,6 +162,7 @@
                   "session_version_mismatch",
                   "tool_approval_continuation_not_found",
                   "tool_approval_decision_conflict",
+                  "function_call_conflict",
                   "skill_invalid_archive",
                   "skill_invalid_markdown",
                   "skill_limit_reached",
@@ -3341,6 +3342,26 @@
                       "required": [
                         "type",
                         "connectionId",
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "function"
+                          ]
+                        },
+                        "name": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+                        }
+                      },
+                      "required": [
+                        "type",
                         "name"
                       ],
                       "additionalProperties": false
@@ -17607,6 +17628,26 @@
                     "additionalProperties": {},
                     "default": {},
                     "description": "Your own key-value data. Recorded on a new session and on the turn's usage."
+                  },
+                  "functions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "inputSchema": {
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "description",
+                        "inputSchema"
+                      ],
+                      "type": "object"
+                    },
+                    "description": "Caller-local functions the model may call during this turn, keyed by name; each entry has a `description` and a JSON Schema `inputSchema`. Your backend claims and answers each call through the function-call endpoints."
                   }
                 },
                 "additionalProperties": false
@@ -18307,6 +18348,26 @@
                     "additionalProperties": {},
                     "default": {},
                     "description": "Your own key-value data. Recorded on a new session and on the turn's usage."
+                  },
+                  "functions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "inputSchema": {
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "description",
+                        "inputSchema"
+                      ],
+                      "type": "object"
+                    },
+                    "description": "Caller-local functions the model may call during this turn, keyed by name; each entry has a `description` and a JSON Schema `inputSchema`. Your backend claims and answers each call through the function-call endpoints."
                   }
                 },
                 "additionalProperties": false
@@ -18881,6 +18942,564 @@
             "description": "The request conflicts with the resource's current state",
             "x-error-codes": [
               "session_busy"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agentId}/sessions/{sessionId}/tool-approval-continuations/{continuationId}/resume": {
+      "post": {
+        "operationId": "resumeToolApprovalContinuation",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Resume a tool-approval continuation",
+        "description": "Starts a queued continuation, or joins a running one, from the backend that runs the conversation's functions, and streams the rest of the turn as an AI SDK UI message stream. Function calls are announced in the stream and executed through the function-call operations. Unlike joining, resuming can start a continuation that needs functions. Returns `409 session_busy` while an approval is still waiting for a decision, and `409 tool_approval_decision_conflict` once the continuation has finished. A failure before the stream starts returns a JSON error; later failures arrive as error chunks in the stream.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "ID of the continuation, from the decision's `continuationId` or the approval list's `continuation.id`.",
+              "example": "tac_5Wq8Hn2KxR7mTb4C"
+            },
+            "required": true,
+            "description": "ID of the continuation, from the decision's `continuationId` or the approval list's `continuation.id`.",
+            "name": "continuationId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {},
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server-sent events, each carrying one AI SDK UI message chunk",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found",
+              "tool_approval_continuation_not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "session_busy",
+              "tool_approval_decision_conflict"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agentId}/sessions/{sessionId}/function-calls/{functionCallId}/claim": {
+      "post": {
+        "operationId": "claimChatFunctionCall",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Claim a function call",
+        "description": "Claims one caller-local function call announced by a `data-ba-function-call` event, before running its handler. Retrying with the same `claimRequestId` returns the same grant; a different `claimRequestId` never takes the call over. Returns `409 function_call_conflict` when another claimant holds the call, its Turn or continuation is no longer active, or its deadline has passed.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^fc_[0-9A-Za-z]{16}$",
+              "description": "ID of the function call, from the ready event's `data.id`.",
+              "example": "fc_0123456789abcdef"
+            },
+            "required": true,
+            "description": "ID of the function call, from the ready event's `data.id`.",
+            "name": "functionCallId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "claimRequestId": "6f9619ff-8b86-4d01-b42d-00cf4fc964ff"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "claimRequestId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "A UUID you generate once per call and reuse on every retry of its claim and result."
+                  }
+                },
+                "required": [
+                  "claimRequestId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The claim was granted to this `claimRequestId`",
+            "content": {
+              "application/json": {
+                "example": {
+                  "claimed": true
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "claimed": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "claimed"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "function_call_conflict"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agentId}/sessions/{sessionId}/function-calls/{functionCallId}/result": {
+      "post": {
+        "operationId": "resolveChatFunctionCall",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Submit a function call result",
+        "description": "Submits the outcome of a claimed function call: its JSON output or a sanitized error. Use the `claimRequestId` that won the claim. Retrying an accepted outcome unchanged succeeds even after the Turn ends; a different outcome does not. Returns `409 function_call_conflict` when another claimant holds the call, its Turn or continuation is no longer active, or its deadline has passed.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^fc_[0-9A-Za-z]{16}$",
+              "description": "ID of the function call, from the ready event's `data.id`.",
+              "example": "fc_0123456789abcdef"
+            },
+            "required": true,
+            "description": "ID of the function call, from the ready event's `data.id`.",
+            "name": "functionCallId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "claimRequestId": "6f9619ff-8b86-4d01-b42d-00cf4fc964ff",
+                "outcome": {
+                  "kind": "output",
+                  "value": {
+                    "status": "shipped"
+                  }
+                }
+              },
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "claimRequestId",
+                  "outcome"
+                ],
+                "properties": {
+                  "claimRequestId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "A UUID you generate once per call and reuse on every retry of its claim and result."
+                  },
+                  "outcome": {
+                    "description": "The handler's JSON output, or a sanitized error message for the model.",
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "kind",
+                          "value"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "output"
+                          },
+                          "value": {
+                            "type": [
+                              "null",
+                              "boolean",
+                              "number",
+                              "string",
+                              "array",
+                              "object"
+                            ],
+                            "description": "The function's JSON output: any JSON value."
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "kind",
+                          "message"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "error"
+                          },
+                          "message": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 4096
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The outcome was accepted",
+            "content": {
+              "application/json": {
+                "example": {
+                  "accepted": true
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accepted": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "accepted"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "function_call_conflict"
             ],
             "content": {
               "application/json": {

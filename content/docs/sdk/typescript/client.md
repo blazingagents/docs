@@ -226,11 +226,29 @@ const response = next.toResponse(); // return this from your route
 | `clientRequestId` | `string` | no | Your correlation ID |
 | `abortSignal` | `AbortSignal` | no | Cancels the request |
 
+Pass `functions` to attach a map of backend handlers created with `defineFunction()`. The SDK sends their descriptions and schemas, executes approved calls in your backend, and removes private callback events from the browser stream. Supply the handlers on each request. See [backend functions](/agents/tools/backend-functions).
+
 Pass `version` to pin a new session to one agent version for its whole life; without it, each turn uses the agent's current version. You cannot pass `version` when you continue a session. To regenerate an answer, send `trigger: "regenerate-message"` with a `message` or `promptId` as usual. The transcript is cut from `messageId`, or from the latest assistant message when you omit it, and replaced only if the new turn succeeds.
 
 Returns [`ChatResult`](#types). `sessionId` resolves as soon as the server accepts the turn, before the answer streams, so save it right away. From that point the session keeps the user's message even if the turn later fails. Read the body once, through either `toResponse()` (a `Response` you can return from a route) or `toStream()` (the same bytes as a `ReadableStream`).
 
 Errors before streaming throw from `chat()` itself. Reading the body twice raises `stream_error`. See [`POST /v1/agents/:agentId/sessions`](/api-reference/rest-api/sessions#create-session-turn).
+
+### `defineFunction()` [#define-function]
+
+The exported `defineFunction({ description, inputSchema, execute })` helper declares a backend function. `inputSchema` is a Zod schema for an object. The handler receives the parsed input and a context with `idempotencyKey: string` and `signal: AbortSignal`. It returns a plain JSON value or a promise of one.
+
+Function names start with a letter and contain up to 64 letters, digits, underscores, or hyphens. Built-in names and the `mcp__` prefix are reserved. Functions follow `approvalInChat.default` and are available only in interactive chat.
+
+### `resumeChat()` [#resume-chat]
+
+**Signature:** `resumeChat({ agentId, sessionId, functions, continuationId?, abortSignal?, clientRequestId? }): Promise<ChatResult>`
+
+After you submit all pending approval decisions, reattach the backend functions to start or join the session's queued or running continuation. The SDK uses the same callback handling as `chat()`. Calling `resumeChat()` with no ready continuation raises an error.
+
+Pass `continuationId` from the approval decision to resume that continuation. If you omit it, the SDK looks up the session's active continuation.
+
+See [resume after approval](/agents/tools/backend-functions#resume-after-approval). Observer methods such as `sessions.joinToolApprovalContinuation()` do not attach handlers.
 
 ### `completion()` [#completion]
 

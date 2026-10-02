@@ -104,6 +104,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `version` | integer | body |  | Agent version to pin the session to. Allowed only when starting a session. Leave it out to use the agent's current version on every turn. 1–2147483647. |
 | `userId` | string | body |  | Your end user's ID. Starting a session records it on the session, and every turn in that session keeps the session's end user. Defaults to `""`. |
 | `metadata` | object | body |  | Your own key-value data. Recorded on a new session and on the turn's usage. Defaults to `{}`. |
+| `functions` | object | body |  | Caller-local functions the model may call during this turn, keyed by name; each entry has a `description` and a JSON Schema `inputSchema`. Your backend claims and answers each call through the function-call endpoints. |
 
 #### Response
 
@@ -292,6 +293,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `version` | integer | body |  | Agent version to pin the session to. Allowed only when starting a session. Leave it out to use the agent's current version on every turn. 1–2147483647. |
 | `userId` | string | body |  | Your end user's ID. Starting a session records it on the session, and every turn in that session keeps the session's end user. Defaults to `""`. |
 | `metadata` | object | body |  | Your own key-value data. Recorded on a new session and on the turn's usage. Defaults to `{}`. |
+| `functions` | object | body |  | Caller-local functions the model may call during this turn, keyed by name; each entry has a `description` and a JSON Schema `inputSchema`. Your backend claims and answers each call through the function-call endpoints. |
 
 #### Response
 
@@ -520,6 +522,147 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 ```bash
 curl --no-buffer "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/agents/:agentId/sessions/:sessionId/tool-approval-continuations/:continuationId/resume [#resume-tool-approval-continuation]
+
+Resume a tool-approval continuation.
+
+Starts a queued continuation, or joins a running one, from the backend that runs the conversation's functions, and streams the rest of the turn as an AI SDK UI message stream. Function calls are announced in the stream and executed through the function-call operations. Unlike joining, resuming can start a continuation that needs functions. Returns `409 session_busy` while an approval is still waiting for a decision, and `409 tool_approval_decision_conflict` once the continuation has finished. A failure before the stream starts returns a JSON error; later failures arrive as error chunks in the stream.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `continuationId` | string | path | required | ID of the continuation, from the decision's `continuationId` or the approval list's `continuation.id`. |
+
+#### Response
+
+Returns `200 OK` as `text/event-stream`. Server-sent events, each carrying one AI SDK UI message chunk.
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`tool_approval_continuation_not_found`](/api-reference/protocols/errors#tool_approval_continuation_not_found) | The resource was not found |
+| `409` | [`session_busy`](/api-reference/protocols/errors#session_busy), [`tool_approval_decision_conflict`](/api-reference/protocols/errors#tool_approval_decision_conflict) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --no-buffer --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C/resume" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{}'
+```
+
+### POST /v1/agents/:agentId/sessions/:sessionId/function-calls/:functionCallId/claim [#claim-chat-function-call]
+
+Claim a function call.
+
+Claims one caller-local function call announced by a `data-ba-function-call` event, before running its handler. Retrying with the same `claimRequestId` returns the same grant; a different `claimRequestId` never takes the call over. Returns `409 function_call_conflict` when another claimant holds the call, its Turn or continuation is no longer active, or its deadline has passed.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `functionCallId` | string | path | required | ID of the function call, from the ready event's `data.id`. |
+| `claimRequestId` | string | body | required | A UUID you generate once per call and reuse on every retry of its claim and result. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The claim was granted to this `claimRequestId`.
+
+```json
+{
+  "claimed": true
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`function_call_conflict`](/api-reference/protocols/errors#function_call_conflict) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/function-calls/fc_0123456789abcdef/claim" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"claimRequestId":"6f9619ff-8b86-4d01-b42d-00cf4fc964ff"}'
+```
+
+### POST /v1/agents/:agentId/sessions/:sessionId/function-calls/:functionCallId/result [#resolve-chat-function-call]
+
+Submit a function call result.
+
+Submits the outcome of a claimed function call: its JSON output or a sanitized error. Use the `claimRequestId` that won the claim. Retrying an accepted outcome unchanged succeeds even after the Turn ends; a different outcome does not. Returns `409 function_call_conflict` when another claimant holds the call, its Turn or continuation is no longer active, or its deadline has passed.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `functionCallId` | string | path | required | ID of the function call, from the ready event's `data.id`. |
+| `claimRequestId` | string | body | required | A UUID you generate once per call and reuse on every retry of its claim and result. |
+| `outcome` | object | body | required | The handler's JSON output, or a sanitized error message for the model. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The outcome was accepted.
+
+```json
+{
+  "accepted": true
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`function_call_conflict`](/api-reference/protocols/errors#function_call_conflict) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/function-calls/fc_0123456789abcdef/result" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"claimRequestId":"6f9619ff-8b86-4d01-b42d-00cf4fc964ff","outcome":{"kind":"output","value":{"status":"shipped"}}}'
 ```
 
 ## Next [#next]

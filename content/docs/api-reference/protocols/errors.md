@@ -22,7 +22,7 @@ Each code links to its own entry. You can link straight to one, for example
 | [Auth and access](#auth-and-access) | [`unauthorized`](#unauthorized), [`forbidden`](#forbidden), [`api_key_limit_reached`](#api_key_limit_reached), [`tenant_deleting`](#tenant_deleting), [`tenant_deletion_in_progress`](#tenant_deletion_in_progress), [`tenant_deletion_not_ready`](#tenant_deletion_not_ready), [`tenant_not_deleting`](#tenant_not_deleting) |
 | [Requests and validation](#requests-and-validation) | [`invalid_request`](#invalid_request), [`idempotency_conflict`](#idempotency_conflict), [`validation_failed`](#validation_failed), [`not_found`](#not_found), [`invalid_cursor`](#invalid_cursor) |
 | [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`agent_version_not_found`](#agent_version_not_found), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
-| [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`session_version_mismatch`](#session_version_mismatch), [`message_not_found`](#message_not_found), [`tool_approval_continuation_not_found`](#tool_approval_continuation_not_found), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict) |
+| [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`message_not_found`](#message_not_found), [`tool_approval_continuation_not_found`](#tool_approval_continuation_not_found), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict) |
 | [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
 | [Tasks](#tasks) | [`task_active_run_exists`](#task_active_run_exists) |
 | [Quotas and billing](#quotas-and-billing) | [`quota_exceeded`](#quota_exceeded), [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`checkout_evidence_mismatch`](#checkout_evidence_mismatch), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_binding_required`](#merchant_binding_required), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable) |
@@ -552,6 +552,19 @@ To fix it:
 - Decide any pending tool approvals.
 - Wait for the running work to finish, then send again. See [busy and concurrent sessions](/platform/sessions-and-turns#busy-and-concurrent-sessions).
 
+### `function_call_conflict` [#function_call_conflict]
+
+**The backend function call cannot accept this claim or result.**
+
+The call expired, its turn ended, another backend claimed it, or a different result was already accepted.
+
+HTTP `409`. Retrying the same request fails the same way until you fix the cause.
+
+To fix it:
+
+- Use the SDK to claim calls and submit results. It handles retries with the same call identifier and claim nonce.
+- Do not run a handler after a rejected claim. If an operation may have completed, check your application records before repeating it. See [backend functions](/agents/tools/backend-functions).
+
 ### `session_version_mismatch` [#session_version_mismatch]
 
 **The session changed while this turn was being saved.**
@@ -592,15 +605,15 @@ To fix it:
 
 ### `tool_approval_decision_conflict` [#tool_approval_decision_conflict]
 
-**This tool approval was already decided the other way.**
+**The approval operation conflicts with the saved state.**
 
-Sending the same decision again is safe, but you cannot reverse a decision once it is saved.
+You tried to reverse a saved approval decision or resume a continuation that already succeeded or failed. Sending the same approval decision again is safe.
 
 HTTP `409`. Retrying the same request fails the same way until you fix the cause.
 
 To fix it:
 
-- Read the session's approvals to see the saved decision, and treat it as final. See [tool approvals](/agents/tools/tool-approvals#retries-and-busy-sessions).
+- Read the session's approvals and messages to see the saved decision or continuation result. Treat a saved decision as final. See [tool approvals](/agents/tools/tool-approvals#retries-and-busy-sessions).
 
 ## Tools and MCP [#tools-and-mcp]
 

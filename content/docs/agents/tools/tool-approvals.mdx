@@ -66,7 +66,9 @@ Only interactive chat can wait for a person. In tasks and stateless generation, 
 3. Your backend sends the reviewer's decision. If several calls are waiting, each one needs a decision.
 4. The agent resumes. Approved calls run, and denied calls return a denied result to the agent. Your app streams the resumed answer.
 
-The resumed run is called a **continuation**, and reading its stream is called **joining** it. It is a new turn in the same session, and it counts toward usage like any other. You never run the tool yourself.
+The resumed run is called a **continuation**, and reading its stream is called **joining** it. It is a new turn in the same session, and it counts toward usage like any other.
+
+If the chat includes [backend functions](/agents/tools/backend-functions), your backend must attach the handlers with `resumeChat()` or `resume_chat()` after all decisions are recorded. This applies even when a built-in or MCP tool caused the pause. The join methods below only observe a continuation that needs backend functions.
 
 ## List and decide an approval [#list-and-decide-an-approval]
 
