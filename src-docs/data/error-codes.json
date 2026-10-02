@@ -363,6 +363,18 @@
       "retryable": true
     },
     {
+      "code": "function_call_conflict",
+      "group": "sessions-and-turns",
+      "statuses": [409],
+      "title": "The backend function call cannot accept this claim or result.",
+      "whatHappened": "The call expired, its turn ended, another backend claimed it, or a different result was already accepted.",
+      "howToFix": [
+        "Use the SDK to claim calls and submit results. It handles retries with the same call identifier and claim nonce.",
+        "Do not run a handler after a rejected claim. If an operation may have completed, check your application records before repeating it. See [backend functions](/agents/tools/backend-functions)."
+      ],
+      "retryable": false
+    },
+    {
       "code": "session_version_mismatch",
       "group": "sessions-and-turns",
       "statuses": [409],
@@ -401,10 +413,10 @@
       "code": "tool_approval_decision_conflict",
       "group": "sessions-and-turns",
       "statuses": [409],
-      "title": "This tool approval was already decided the other way.",
-      "whatHappened": "Sending the same decision again is safe, but you cannot reverse a decision once it is saved.",
+      "title": "The approval operation conflicts with the saved state.",
+      "whatHappened": "You tried to reverse a saved approval decision or resume a continuation that already succeeded or failed. Sending the same approval decision again is safe.",
       "howToFix": [
-        "Read the session's approvals to see the saved decision, and treat it as final. See [tool approvals](/agents/tools/tool-approvals#retries-and-busy-sessions)."
+        "Read the session's approvals and messages to see the saved decision or continuation result. Treat a saved decision as final. See [tool approvals](/agents/tools/tool-approvals#retries-and-busy-sessions)."
       ],
       "retryable": false
     },

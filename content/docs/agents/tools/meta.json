@@ -1,4 +1,4 @@
 {
   "title": "Tools",
-  "pages": ["index", "built-in-tools", "mcp-tools", "tool-approvals"]
+  "pages": ["index", "built-in-tools", "backend-functions", "mcp-tools", "tool-approvals"]
 }
