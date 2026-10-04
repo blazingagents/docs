@@ -123,7 +123,7 @@ const newer = page.latestCursor
 | `cursor` | `string` | no | none | Go back to older messages |
 | `after` | `string` | no | none | Fetch messages added since an earlier `latestCursor` |
 
-The first page holds the newest messages, in chronological order within the page. Pass `nextCursor` as `cursor` to go further back. Save `latestCursor` and pass it later as `after` to fetch only what is new. Do not pass `cursor` and `after` together.
+The first page holds the newest messages, in chronological order within the page. Pass `nextCursor` as `cursor` to go further back. Save `latestCursor` and pass it later as `after` to fetch only what is new. Do not pass `cursor` and `after` together. `after` does not return the assistant message that a tool approval continuation updated in place; reload the newest page without a cursor when the continuation ends.
 
 Returns [`SessionMessagesResponse`](#sessionmessagesresponse). Errors: `validation_failed`, `invalid_cursor`, [`not_found`](/api-reference/protocols/errors#not_found).
 
