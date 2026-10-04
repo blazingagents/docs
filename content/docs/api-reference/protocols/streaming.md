@@ -19,6 +19,8 @@ cancellation and failures.
 | Text generation                   | `200`; `text/plain; charset=utf-8`                                                                      | chunked text                  | `textStream`, awaited `text`, `toResponse()`            |
 | Object generation                 | `200`; `text/plain; charset=utf-8`                                                                      | chunked partial JSON text     | `partialObjectStream`, awaited `object`, `toResponse()` |
 | Tool approval continuation        | `200`; UI-message SSE headers                                                                           | persisted continuation chunks | `joinToolApprovalContinuation()` terminal result        |
+| Session input submission          | `202`; `application/json`                                                                               | input receipt and activity    | `submitInput()` resolved value                          |
+| Queued input turn                 | `200`; UI-message SSE headers                                                                           | persisted turn chunks         | `joinInputTurn()` or `runInputs()` terminal result      |
 
 
 UI-message streams are `data:` records, each holding an AI SDK
@@ -70,6 +72,15 @@ details.
 Deciding a tool approval returns `202` with a continuation ID. Joining that
 continuation returns its final SSE stream; it does not reopen the original
 response.
+
+Submitting a
+[session input](/platform/sessions-and-turns#send-while-the-agent-is-working)
+returns `202` with a JSON receipt, not a stream. A turn that runs queued
+inputs streams through its own join endpoint, using the session's turn ID.
+Like a continuation, each join replays the turn from its first chunk and then
+follows it live, and disconnecting does not stop it. A dropped ordinary chat
+stream cannot be rejoined; read its answer from the history with the `after`
+cursor once the turn ends.
 
 ## Examples [#examples]
 

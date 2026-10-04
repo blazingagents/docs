@@ -22,7 +22,7 @@ Each code links to its own entry. You can link straight to one, for example
 | [Auth and access](#auth-and-access) | [`unauthorized`](#unauthorized), [`forbidden`](#forbidden), [`api_key_limit_reached`](#api_key_limit_reached), [`tenant_deleting`](#tenant_deleting), [`tenant_deletion_in_progress`](#tenant_deletion_in_progress), [`tenant_deletion_not_ready`](#tenant_deletion_not_ready), [`tenant_not_deleting`](#tenant_not_deleting) |
 | [Requests and validation](#requests-and-validation) | [`invalid_request`](#invalid_request), [`idempotency_conflict`](#idempotency_conflict), [`validation_failed`](#validation_failed), [`not_found`](#not_found), [`invalid_cursor`](#invalid_cursor) |
 | [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
-| [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`message_not_found`](#message_not_found), [`tool_approval_continuation_not_found`](#tool_approval_continuation_not_found), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict) |
+| [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`input_idempotency_conflict`](#input_idempotency_conflict), [`input_not_pending`](#input_not_pending), [`message_not_found`](#message_not_found), [`tool_approval_continuation_not_found`](#tool_approval_continuation_not_found), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict) |
 | [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
 | [Tasks](#tasks) | [`task_active_run_exists`](#task_active_run_exists) |
 | [Quotas and billing](#quotas-and-billing) | [`quota_exceeded`](#quota_exceeded), [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`checkout_evidence_mismatch`](#checkout_evidence_mismatch), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_binding_required`](#merchant_binding_required), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable) |
@@ -529,14 +529,15 @@ Running turns, regenerating answers, and tool approvals.
 
 **The session is busy with another operation.**
 
-A tool approval is waiting for a decision, an approved tool call is still running, or another turn holds the session. New turns, regeneration, and deletion wait until it settles. Joining a continuation also returns this code while its approvals still need decisions.
+A turn is running, a tool approval is waiting for a decision, an approved tool call is still running, or another turn holds the session. New chat turns, regeneration, and deletion wait until it settles. Joining a continuation also returns this code while its approvals still need decisions. Stopping a turn or resuming the session's inputs returns it while an approval waits. Running the session's inputs with your backend functions returns it when nothing is waiting, a turn is running, or an approval waits.
 
 HTTP `409`. Retrying the same request can succeed.
 
 To fix it:
 
 - Decide any pending tool approvals.
-- Wait for the running work to finish, then send again. See [busy and concurrent sessions](/platform/sessions-and-turns#busy-and-concurrent-sessions).
+- To send while a turn runs, submit the message as a session input. See [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
+- Otherwise wait for the running work to finish, then send again. See [busy and concurrent sessions](/platform/sessions-and-turns#busy-and-concurrent-sessions).
 
 ### `function_call_conflict` [#function_call_conflict]
 
@@ -563,6 +564,32 @@ To fix it:
 
 - Read the session's messages to see what was saved.
 - Send one turn at a time per session, and resend this one if you still need it.
+
+### `input_idempotency_conflict` [#input_idempotency_conflict]
+
+**This request ID or message ID was already used for a different input.**
+
+A session input with this `requestId` already exists with a different message or mode, or this `message.id` was already sent under another `requestId`. The original input is unchanged, even after it was promoted or finished.
+
+HTTP `409`. Retrying the same request fails the same way until you fix the cause.
+
+To fix it:
+
+- To retry a send whose outcome you do not know, resend the original message and mode with the original `requestId`.
+- For a new message, use a new `requestId` and a new `message.id`. See [queue, steer, and withdraw](/platform/sessions-and-turns#queue-steer-and-withdraw).
+
+### `input_not_pending` [#input_not_pending]
+
+**The session input is no longer waiting.**
+
+A turn already picked up this input, or it already finished, so you can no longer promote it to steer or delete it. Work that already started from it may have had effects.
+
+HTTP `409`. Retrying the same request fails the same way until you fix the cause.
+
+To fix it:
+
+- List the session's inputs to read its current state. See [show progress and recover after a reload](/platform/sessions-and-turns#show-progress-and-recover-after-a-reload).
+- To stop work already in progress, stop the running turn.
 
 ### `message_not_found` [#message_not_found]
 

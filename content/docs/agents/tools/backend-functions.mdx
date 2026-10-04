@@ -122,6 +122,27 @@ with client.resume_chat(
 
 The resumed chat uses the saved descriptions and schemas. Keep the handlers compatible with those schemas. A missing handler or invalid input becomes a tool error. Reading a continuation's stream alone does not attach handlers or start a chat that is waiting for them.
 
+## Run queued messages [#run-queued-messages]
+
+Messages queued as [session inputs](/platform/sessions-and-turns#send-while-the-agent-is-working) never run your handlers unattended. After a chat that used backend functions, the queue waits with the reason `function_executor_required`. Run it from your backend with the same functions:
+
+```typescript tab="TypeScript"
+const queued = await client.sessions.runInputs({ agentId, sessionId, functions });
+return queued.toResponse();
+```
+
+```python tab="Python"
+with client.run_inputs(
+	agent_id=agent_id,
+	session_id=session_id,
+	functions=functions,
+) as stream:
+	for chunk in stream:
+		sys.stdout.buffer.write(chunk)
+```
+
+This runs every waiting message in one turn and streams it. It sends no new message. The queue waits again after that turn, so call it for each later batch.
+
 ## Handle cancellation and retries [#handle-cancellation-and-retries]
 
 Each handler receives a context. TypeScript provides `idempotencyKey` and `signal`. Python provides `idempotency_key`, `deadline_at`, and a `cancelled` event.

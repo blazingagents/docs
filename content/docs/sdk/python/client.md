@@ -183,6 +183,20 @@ After you submit all pending approval decisions, reattach the handlers to start 
 
 Calling `resume_chat()` with no ready continuation raises an error. Observer methods such as `sessions.join_tool_approval_continuation()` do not attach handlers. See [resume after approval](/agents/tools/backend-functions#resume-after-approval).
 
+### `run_inputs()` [#run-inputs]
+
+**Signature:** `run_inputs(*, agent_id, session_id, functions=..., extra_headers=None, timeout=...) -> ChatStream`
+
+Runs every waiting [session input](/platform/sessions-and-turns#send-while-the-agent-is-working), in order, as one turn with your backend functions attached, and streams it. After a turn that used backend functions, queued inputs never run on their own, and the session pauses with the reason `function_executor_required`. Pass the same functions to clear that pause. It sends no new message, and it never runs a batch that is already running. The pause comes back after that turn, so call it again for later queued work.
+
+Raises `session_busy` when nothing is waiting, a turn is running, or a tool approval waits. With `AsyncBlazingAgents`, await this method and consume the returned `AsyncChatStream`. See [run queued messages](/agents/tools/backend-functions#run-queued-messages).
+
+### `join_input_turn()` [#join-input-turn]
+
+**Signature:** `join_input_turn(*, agent_id, session_id, turn_id, functions, extra_headers=None, timeout=...) -> ChatStream`
+
+Streams a turn that already started from queued inputs and runs its backend function calls with your handlers. Like [`sessions.join_input_turn()`](/sdk/python/sessions#join-input-turn), it replays the turn from the beginning and never starts or restarts work. Use the sessions method to watch without running handlers.
+
 ### `completion()` [#completion]
 
 **Signature:** `completion(*, agent_id, prompt=..., prompt_id=..., variables=..., user_id=..., metadata=..., client_request_id=None, extra_headers=None, timeout=...) -> Completion`
