@@ -11568,7 +11568,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "agents/workspaces.mdx",
             "type": "page",
             "name": "Workspaces",
-            "description": "Give your agent a private file system and shell whose files survive between sessions.",
+            "description": "Give your agent a private file system and shell to reuse across sessions.",
             "url": "/agents/workspaces",
             "$ref": "agents/workspaces.mdx"
           },

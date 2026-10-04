@@ -613,12 +613,18 @@
             "metadata": {
               "tab": "TypeScript"
             }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
       "file": "agents/workspaces.mdx",
       "filesTree": [],
-      "recipe": "Canonical documentation",
+      "recipe": "Workspace sharing, network access, and background backup recovery",
       "steps": []
     },
     {
