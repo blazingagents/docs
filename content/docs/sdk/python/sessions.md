@@ -115,7 +115,7 @@ if page.latest_cursor is not None:
 
 **Signature:** `messages(*, agent_id: str, session_id: str, cursor=..., after=..., limit=...) -> SessionMessagesPage`
 
-Without a cursor you get the newest messages, in chronological order. To page further back, pass `next_cursor` as `cursor`. To poll for new messages, save `latest_cursor` and pass it as `after`; when a forward page has more, pass its `next_cursor` as the next `after`. Do not pass both `cursor` and `after`. `limit` is 1 to 200 and defaults to 50. `after` does not return the assistant message that a tool approval continuation updated in place; reload the newest page without a cursor when the continuation ends.
+Without a cursor you get the newest messages, in chronological order. To page further back, pass `next_cursor` as `cursor`. To poll for new messages, save `latest_cursor` and pass it as `after`; when a forward page has more, pass its `next_cursor` as the next `after`. Do not pass both `cursor` and `after`. `limit` is 1 to 200 and defaults to 50. `after` does not return the assistant message that a tool approval decision or continuation updated in place. While a tool part is `approval-requested` or `approval-responded`, reload the newest page without a cursor.
 
 Returns `SessionMessagesPage` with `data: list[SessionMessage]`, `next_cursor`, and `latest_cursor`. Raises `validation_failed` when you combine `cursor` and `after`, `invalid_cursor`, or [`not_found`](/api-reference/protocols/errors#not_found).
 

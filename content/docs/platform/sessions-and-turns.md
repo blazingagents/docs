@@ -92,7 +92,7 @@ The [chatbot guide](/getting-started/chatbot) shows send, stop, edit, and regene
 
 `client.sessions.messages()` returns AI SDK `UIMessage` objects, oldest first within each page. With no cursor you get the newest page. Pass `nextCursor` back as `cursor` to load older pages, or pass `latestCursor` back as `after` to fetch only messages added since your last read. See [`sessions.messages()`](/sdk/typescript/sessions#messages) for page sizes and cursor rules.
 
-`after` never returns a message that changed in place. A [tool approval](/agents/tools/tool-approvals) continuation adds its results to the assistant message that asked for approval instead of adding a new one. When a continuation ends, reload the newest page without a cursor and replace messages by ID.
+`after` never returns a message that changed in place. A [tool approval](/agents/tools/tool-approvals) decision, and the continuation after it, update the assistant message that asked for approval instead of adding a new one. While a tool part in your newest page is `approval-requested` or `approval-responded`, reload the newest page without a cursor and replace messages by ID. Go back to `after` once those tool parts have a result or an error.
 
 To show an agent's conversations, call `client.sessions.list({ agentId })`. For an inbox across all agents, call `client.sessions.listLatest({ byAgent: true })` to get each agent's latest session in one request.
 
