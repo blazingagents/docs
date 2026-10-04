@@ -5,7 +5,7 @@ description: List sessions, load their messages, delete them, and answer tool ap
 
 # Sessions
 
-`client.sessions` reads the conversations Blazing Agents stores for you. Use it to show a user their past chats, reload a transcript, delete a conversation, and approve or deny a tool call the agent is waiting on. To start or continue a session, call [`client.chat()`](/sdk/typescript/client#chat). To learn how sessions and turns behave, read [Sessions and turns](/platform/sessions-and-turns).
+`client.sessions` reads the conversations Blazing Agents stores for you. Use it to show a user their past chats, reload a transcript, delete a conversation, approve or deny a tool call the agent is waiting on, and queue or steer messages while the agent works. To start or continue a session, call [`client.chat()`](/sdk/typescript/client#chat). To learn how sessions and turns behave, read [Sessions and turns](/platform/sessions-and-turns).
 
 ```typescript
 const { data: sessions } = await client.sessions.list({ agentId, userId: "user_123" });
@@ -29,6 +29,14 @@ Every method takes one input object and accepts an optional `abortSignal`.
 | [`toolApprovals()`](#tool-approvals) | List the session's tool approvals | `ToolApprovalsResponse` |
 | [`decideToolApproval()`](#decide-tool-approval) | Approve or deny one tool call | `ToolApprovalDecisionResponse` |
 | [`joinToolApprovalContinuation()`](#join-tool-approval-continuation) | Stream the rest of the turn after approvals | `TerminalStreamResult` |
+| [`submitInput()`](#submit-input) | Send a message to queue or steer | `SessionInputResponse` |
+| [`inputs()`](#inputs) | List waiting inputs and the session's activity | `SessionInputsResponse` |
+| [`promoteInput()`](#promote-input) | Steer a queued input into the running turn | `SessionInputResponse` |
+| [`deleteInput()`](#delete-input) | Withdraw a waiting input | `SessionInputResponse` |
+| [`stop()`](#stop) | Stop a turn and wait until it has stopped | `StopSessionResponse` |
+| [`resumeInputs()`](#resume-inputs) | Run the queue again after a pause | `ResumeSessionInputsResponse` |
+| [`joinInputTurn()`](#join-input-turn) | Stream a turn that runs queued inputs | `TerminalStreamResult` |
+| [`runInputs()`](#run-inputs) | Run the queue with your backend functions attached | `TerminalStreamResult` |
 
 ## Methods [#methods]
 
@@ -190,6 +198,145 @@ The stream uses the same format as `chat()`, and you can join it more than once:
 
 Returns [`TerminalStreamResult`](#terminalstreamresult). Errors: [`session_busy`](/api-reference/protocols/errors#session_busy) while some calls still wait for a decision, `not_found`, and `stream_error` for a broken stream. A failure inside the resumed turn arrives as an `error` chunk in the stream.
 
+### `submitInput()` [#submit-input]
+
+Sends a user message to an existing session without waiting for the running turn. Blazing Agents saves it before the call returns. See [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
+
+**Signature:** `submitInput(input: { agentId: string; sessionId: string; requestId: string; message: UIMessage; whenBusy?: SessionInputMode } & ResourceRequestOptions): Promise<SessionInputResponse>`
+
+```typescript
+const { data: input, activity } = await client.sessions.submitInput({
+  agentId,
+  sessionId,
+  requestId,
+  message: {
+    id: crypto.randomUUID(),
+    role: "user",
+    parts: [{ type: "text", text: "Please also compare costs." }],
+  },
+  whenBusy: "queue",
+});
+```
+
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | `string` | yes | none | Agent ID (`ag_…`) |
+| `sessionId` | `string` | yes | none | Session ID (`ss_…`) |
+| `requestId` | `string` | yes | none | Your ID for this input, 1 to 128 characters, other than `.` or `..` |
+| `message` | `UIMessage` | yes | none | A user message with text and image parts |
+| `whenBusy` | `"queue" \| "steer"` | no | `"queue"` | Wait for the next turn, or join the running one |
+
+When the session is idle, the input starts a turn right away. Resending the same `requestId` with the same message and `whenBusy` returns the same input, so retry with the original values after a timeout. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `validation_failed`, `not_found`, [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `requestId` or `message.id` was already used for different content.
+
+### `inputs()` [#inputs]
+
+Lists the session's inputs in the order they arrived, with the session's current activity.
+
+**Signature:** `inputs(input: { agentId: string; sessionId: string; includeCompleted?: boolean; limit?: number; cursor?: string } & ResourceRequestOptions): Promise<SessionInputsResponse>`
+
+```typescript
+const { data, activity } = await client.sessions.inputs({ agentId, sessionId });
+const waiting = data.filter((input) => input.state === "accepted" || input.state === "delivered");
+```
+
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | `string` | yes | none | Agent ID (`ag_…`) |
+| `sessionId` | `string` | yes | none | Session ID (`ss_…`) |
+| `includeCompleted` | `boolean` | no | `false` | Also return `committed` and `cancelled` inputs |
+| `limit` | `number` | no | `100` | 1 to 200 per page |
+| `cursor` | `string` | no | none | `nextCursor` from the previous page |
+
+Without `includeCompleted`, you get `accepted`, `delivered`, `consumed`, and `uncertain` inputs. To watch for changes, call it again without a cursor; the cursor only pages through a long list. Returns [`SessionInputsResponse`](#sessioninputsresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
+
+### `promoteInput()` [#promote-input]
+
+Turns a queued input into a steering message, keeping its place in the order.
+
+**Signature:** `promoteInput(input: { agentId: string; sessionId: string; requestId: string } & ResourceRequestOptions): Promise<SessionInputResponse>`
+
+```typescript
+const { data: input } = await client.sessions.promoteInput({ agentId, sessionId, requestId });
+```
+
+Promoting an input that already steers returns it unchanged. If no turn can take it now, it waits for the next one. Promoting does not skip a pending tool approval. A `requestId` of `.` or `..` throws before any request is sent. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `not_found`, [`input_not_pending`](/api-reference/protocols/errors#input_not_pending) once a turn has picked the input up.
+
+### `deleteInput()` [#delete-input]
+
+Withdraws an input that is still waiting.
+
+**Signature:** `deleteInput(input: { agentId: string; sessionId: string; requestId: string } & ResourceRequestOptions): Promise<SessionInputResponse>`
+
+```typescript
+const { data: input } = await client.sessions.deleteInput({ agentId, sessionId, requestId });
+```
+
+The input comes back `cancelled` with `reason: "deleted"`. Deleting it again returns the same result. It stays in `inputs({ includeCompleted: true })`, and its `requestId` cannot be reused for a different message. A `requestId` of `.` or `..` throws before any request is sent. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `not_found`, `input_not_pending` when a turn picked it up first.
+
+### `stop()` [#stop]
+
+Stops one turn and returns once it has fully stopped and its usage is recorded.
+
+**Signature:** `stop(input: { agentId: string; sessionId: string; turnId: string } & ResourceRequestOptions): Promise<StopSessionResponse>`
+
+```typescript
+const { activity } = await client.sessions.inputs({ agentId, sessionId });
+if (activity.turnId && activity.state === "running") {
+  const stopped = await client.sessions.stop({ agentId, sessionId, turnId: activity.turnId });
+  console.log(stopped.activity.state);
+}
+```
+
+Take `turnId` from the session's activity. Stopping a turn that already ended succeeds, and never stops a later turn. The returned `activity` can show the next queued turn already running. Waiting inputs stay queued. Returns [`StopSessionResponse`](#stopsessionresponse). Errors: `validation_failed`, `not_found` for a turn that is not this session's, and `session_busy` while a tool approval waits.
+
+### `resumeInputs()` [#resume-inputs]
+
+Runs the waiting queue again after a failed turn paused it.
+
+**Signature:** `resumeInputs(input: { agentId: string; sessionId: string } & ResourceRequestOptions): Promise<ResumeSessionInputsResponse>`
+
+```typescript
+const { activity } = await client.sessions.resumeInputs({ agentId, sessionId });
+```
+
+Calling it twice starts only one turn, and `uncertain` inputs never run again. With nothing waiting, the session goes `idle`. It does not clear a `function_executor_required` pause; use [`runInputs()`](#run-inputs) for that. Returns [`ResumeSessionInputsResponse`](#resumesessioninputsresponse). Errors: `not_found`, `session_busy` while a tool approval waits.
+
+### `joinInputTurn()` [#join-input-turn]
+
+Streams a turn that Blazing Agents started from queued inputs, from its first chunk.
+
+**Signature:** `joinInputTurn(input: { agentId: string; sessionId: string; turnId: string; functions?: ChatFunctions } & ResourceRequestOptions): Promise<TerminalStreamResult>`
+
+```typescript
+const { activity } = await client.sessions.inputs({ agentId, sessionId });
+if (activity.turnId && activity.state === "running") {
+  const turn = await client.sessions.joinInputTurn({ agentId, sessionId, turnId: activity.turnId });
+  const response = turn.toResponse(); // return this from your route
+}
+```
+
+The stream uses the same format as `chat()`. Each join replays the turn from the beginning and then follows it live, so show the assistant message by its ID instead of appending it again. Joining never starts or restarts work, and closing the stream does not stop the turn; call [`stop()`](#stop) for that. Read the body once per join.
+
+Without `functions`, you only watch the turn. If the turn uses your [backend functions](/agents/tools/backend-functions), pass the same `functions` to run their calls from your backend. Returns [`TerminalStreamResult`](#terminalstreamresult). Errors: `not_found` for a turn that did not start from queued inputs or is not this session's, and `stream_error` for a broken stream.
+
+### `runInputs()` [#run-inputs]
+
+Runs the waiting queue in one turn with your backend functions attached, and streams it.
+
+**Signature:** `runInputs(input: { agentId: string; sessionId: string; functions?: ChatFunctions } & ResourceRequestOptions): Promise<TerminalStreamResult>`
+
+```typescript
+const { activity } = await client.sessions.inputs({ agentId, sessionId });
+if (activity.reason === "function_executor_required") {
+  const turn = await client.sessions.runInputs({ agentId, sessionId, functions });
+  const response = turn.toResponse(); // return this from your route
+}
+```
+
+After a turn that used your backend functions, queued inputs never run on their own; the session pauses with the reason `function_executor_required`. Call `runInputs()` with the same functions to run every waiting input, in order, as one turn. It sends no new message, and it never runs a batch that is already running. To stream a batch that already started, call [`joinInputTurn()`](#join-input-turn) with your functions. The pause comes back after that turn, so call it again for later queued work.
+
+Returns [`TerminalStreamResult`](#terminalstreamresult). Errors: `not_found`, and `session_busy` when nothing is waiting, a turn is running, or a tool approval waits.
+
 ## Response types [#response-types]
 
 ### `SessionsListResponse` [#sessionslistresponse]
@@ -293,6 +440,67 @@ interface TerminalStreamResult {
 }
 ```
 
+### `SessionInputResponse` [#sessioninputresponse]
+
+```typescript
+interface SessionInputResponse {
+  data: SessionInput;
+  activity: SessionActivity;
+}
+
+interface SessionInput {
+  requestId: string;
+  sequence: number;
+  message: SessionMessage;
+  mode: "queue" | "steer";
+  state: SessionInputState;
+  turnId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  consumedAt: string | null;
+  reason: "stopped" | "failed" | "owner_lost" | "deleted" | null;
+}
+
+type SessionInputState = "accepted" | "delivered" | "consumed" | "committed" | "cancelled" | "uncertain";
+
+interface SessionActivity {
+  state: "idle" | "running" | "stopping" | "approval" | "paused";
+  turnId: string | null;
+  reason: "failed" | "owner_lost" | "function_executor_required" | null;
+}
+```
+
+`sequence` is the input's place in the order and never changes. `turnId` is set once a turn takes the input. `consumedAt` is set once the agent has read it, even if the turn later stopped or failed. `owner_lost` means Blazing Agents lost the turn before it finished. Inputs the agent may already have read become `uncertain`, and Blazing Agents does not run them again. See [what each state means](/platform/sessions-and-turns#show-progress-and-recover-after-a-reload).
+
+### `SessionInputsResponse` [#sessioninputsresponse]
+
+```typescript
+interface SessionInputsResponse {
+  data: SessionInput[];
+  nextCursor: string | null;
+  activity: SessionActivity;
+}
+```
+
+### `StopSessionResponse` [#stopsessionresponse]
+
+```typescript
+interface StopSessionResponse {
+  stoppedTurnId: string;
+  activity: SessionActivity;
+}
+```
+
+### `ResumeSessionInputsResponse` [#resumesessioninputsresponse]
+
+```typescript
+interface ResumeSessionInputsResponse {
+  activity: SessionActivity;
+}
+```
+
+The package exports these types and `SessionInputMode`. Their Zod schemas are in `@blazingagents/sdk/contracts`.
+
 ## Errors [#errors]
 
 Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes you are most likely to handle:
@@ -303,6 +511,8 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | `not_found` | No such session, approval, or continuation for this agent |
 | `tool_approval_decision_conflict` | The call was already decided; reload the approvals |
 | `session_busy` | Some calls still wait for a decision; decide them first |
+| [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) | The `requestId` or `message.id` was used for different content; retry with the original values |
+| [`input_not_pending`](/api-reference/protocols/errors#input_not_pending) | A turn already took the input; reload `inputs()` |
 | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) | The agent is disabled, so the turn cannot resume |
 
 ## Next [#next]
