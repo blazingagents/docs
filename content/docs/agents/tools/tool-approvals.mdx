@@ -177,6 +177,8 @@ This is the smallest client that works. Add the pieces your UI needs next, by ha
 
 - Sending the same decision twice is safe. Reversing a decision returns `409`.
 - While approvals are pending or a continuation is running, new chat turns and regeneration return [`session_busy`](/api-reference/protocols/errors#session_busy).
+- [Session inputs](/platform/sessions-and-turns#send-while-the-agent-is-working) sent during an approval wait until every call is decided, whether queued or steering. Stopping while a decision is pending returns `session_busy` and leaves the approval pending.
+- The resumed turn takes no steering. A steer sent while a decision is pending or while the continuation runs waits as a queued input, keeps its place in the order, and runs in the next turn. You can stop a running continuation.
 - Disconnecting from the stream does not stop the continuation. Join the same `continuationId` again to keep reading.
 - A failed continuation reports its error. Joining it again does not run the tool a second time.
 
