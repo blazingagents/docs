@@ -1,11 +1,11 @@
 ---
 title: Workspaces
-description: Give your agent a private file system and shell whose files survive between sessions.
+description: Give your agent a private file system and shell to reuse across sessions.
 ---
 
 # Workspaces
 
-Give your agent a place to keep files and run commands. Every agent comes with a workspace: a private file system with a shell. Files the agent writes stay there after the session ends, so the next session, task run, or another agent that shares the workspace can pick up where it left off.
+Give your agent a place to keep files and run commands. Every agent comes with a workspace: a private file system with a shell. The next session, task run, or another agent that shares the workspace can use the files your agent writes. Background backups support recovery if the workspace stops unexpectedly.
 
 ## Share a workspace between agents [#share-a-workspace-between-agents]
 
@@ -42,7 +42,7 @@ Both agents now read and write the same files. The agents also need the `workspa
 
 ## How a workspace behaves [#how-a-workspace-behaves]
 
-- **Files outlive sessions.** A file written in one session is there in the next one, in task runs, and in stateless generation. Persistence follows the workspace, not the session. [Verify it yourself](/agents/tools/built-in-tools#verify-durable-file-operations).
+- **Files belong to the workspace.** Sessions, task runs, and stateless generation use the same files when they share a workspace. [Verify it yourself](/agents/tools/built-in-tools#verify-durable-file-operations).
 - **The agent works under `/workspace`.** Relative paths resolve there, and `bash` starts there.
 - **A workspace costs nothing until it is used.** Creating one, or an agent, starts no compute. The first file or shell operation does.
 - **Your model keys never enter it.** The agent reasons outside the workspace. Only file and shell calls run inside, and they receive no provider credentials or application environment variables.
@@ -61,6 +61,14 @@ Each workspace has a network policy that applies to every command run inside it:
 | `offline` | Nothing. |
 
 Pick the narrowest mode the work needs. You can change it later with `client.workspaces.update()`; the next operation uses the new policy.
+
+## Backup and recovery [#backup-and-recovery]
+
+A successful turn that uses a workspace requests a backup. Your response finishes without waiting for the backup, and the next turn can use the live files immediately.
+
+If the workspace stops unexpectedly before the backup finishes, recovery can lose file changes from completed turns. The saved conversation can therefore describe files that were not recovered. Recovery uses the latest available backup; if that backup has expired, the workspace starts with its initial files.
+
+Backups capture files while agents may still be writing. They do not represent one exact moment or one particular turn.
 
 ## Shared files and failed turns [#shared-files-and-failed-turns]
 
