@@ -354,7 +354,7 @@ A `SessionMessage` has `id`, `role` (`"system"`, `"user"`, or `"assistant"`), `p
 | --- | --- | --- |
 | `request_id` | `str` | Your ID for the input |
 | `sequence` | `int` | Place in the order; never changes |
-| `message` | `SessionMessage` | The user message you sent |
+| `message` | `SessionInputMessage` | The message you sent, with `id`, `role` (always `"user"`), `parts`, and `metadata` |
 | `mode` | `str` | `"queue"` or `"steer"` |
 | `state` | `str` | `"accepted"`, `"delivered"`, `"consumed"`, `"committed"`, `"cancelled"`, or `"uncertain"` |
 | `turn_id` | `str \| None` | The turn that took the input |
