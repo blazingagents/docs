@@ -53,6 +53,11 @@ Session and task-run transcripts add `latestCursor`:
 - In forward mode, pass a non-null `nextCursor` back as `after` to finish the
   current result. `latestCursor` marks where the next poll starts once you have
   drained it.
+- `after` returns only messages added after the cursor. A tool approval
+  decision and its continuation update the assistant message that asked for
+  approval in place, so `after` does not return that update. While a tool part
+  in the newest page is `approval-requested` or `approval-responded`, reload
+  the newest page without a cursor and replace messages by ID.
 
 Every `userId` filter works the same way: leave it out to include everyone,
 send `""` for tenant-level records, or send a value to select that end user.

@@ -117,6 +117,8 @@
                 "enum": [
                   "invalid_request",
                   "idempotency_conflict",
+                  "input_idempotency_conflict",
+                  "input_not_pending",
                   "validation_failed",
                   "unauthorized",
                   "not_found",
@@ -19854,6 +19856,2057 @@
             "description": "The request conflicts with the resource's current state",
             "x-error-codes": [
               "function_call_conflict"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agentId}/sessions/{sessionId}/inputs": {
+      "post": {
+        "operationId": "submitSessionInput",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Submit a session input",
+        "description": "Saves one user message for the session before responding. While a turn runs, the message waits for the next turn, or joins the running turn when `whenBusy` is `steer`. Retry with the same `requestId`, message, and `whenBusy`; changing them returns `input_idempotency_conflict`. Inputs never skip a pending tool approval. Steering also stays queued while an approved tool continuation runs.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "requestId": "request_1",
+                "message": {
+                  "id": "message_1",
+                  "role": "user",
+                  "parts": [
+                    {
+                      "type": "text",
+                      "text": "Compare costs too"
+                    }
+                  ]
+                },
+                "whenBusy": "queue"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "description": "Unique retry identity, excluding the exact values `.` and `..`."
+                  },
+                  "message": {
+                    "description": "An AI SDK user UIMessage containing text or images."
+                  },
+                  "whenBusy": {
+                    "type": "string",
+                    "enum": [
+                      "queue",
+                      "steer"
+                    ],
+                    "default": "queue",
+                    "description": "`queue` waits for the next turn. `steer` joins the running turn if it can still take messages, and otherwise waits like `queue`."
+                  }
+                },
+                "required": [
+                  "requestId",
+                  "message"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "The saved input and the session's activity",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "requestId": "request_1",
+                    "sequence": 1,
+                    "message": {
+                      "id": "message_1",
+                      "role": "user",
+                      "parts": [
+                        {
+                          "type": "text",
+                          "text": "Compare costs too"
+                        }
+                      ]
+                    },
+                    "mode": "queue",
+                    "state": "accepted",
+                    "turnId": null,
+                    "createdAt": "2026-10-04T12:00:00Z",
+                    "updatedAt": "2026-10-04T12:00:00Z",
+                    "consumedAt": null,
+                    "reason": null
+                  },
+                  "activity": {
+                    "state": "idle",
+                    "turnId": null,
+                    "reason": null
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 128
+                        },
+                        "sequence": {
+                          "type": "integer",
+                          "exclusiveMinimum": 0
+                        },
+                        "message": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "role": {
+                              "type": "string",
+                              "enum": [
+                                "user"
+                              ]
+                            },
+                            "parts": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "required": [
+                                  "type"
+                                ],
+                                "additionalProperties": {}
+                              },
+                              "minItems": 1
+                            },
+                            "metadata": {}
+                          },
+                          "required": [
+                            "id",
+                            "role",
+                            "parts"
+                          ],
+                          "additionalProperties": {}
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "queue",
+                            "steer"
+                          ]
+                        },
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "accepted",
+                            "delivered",
+                            "consumed",
+                            "committed",
+                            "cancelled",
+                            "uncertain"
+                          ]
+                        },
+                        "turnId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^turn_[0-9A-Za-z]{16}$"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "consumedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "reason": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "stopped",
+                            "failed",
+                            "owner_lost",
+                            "deleted",
+                            null
+                          ]
+                        }
+                      },
+                      "required": [
+                        "requestId",
+                        "sequence",
+                        "message",
+                        "mode",
+                        "state",
+                        "turnId",
+                        "createdAt",
+                        "updatedAt",
+                        "consumedAt",
+                        "reason"
+                      ]
+                    },
+                    "activity": {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "idle",
+                            "running",
+                            "stopping",
+                            "approval",
+                            "paused"
+                          ]
+                        },
+                        "turnId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^turn_[0-9A-Za-z]{16}$"
+                        },
+                        "reason": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "failed",
+                            "owner_lost",
+                            "function_executor_required",
+                            null
+                          ]
+                        }
+                      },
+                      "required": [
+                        "state",
+                        "turnId",
+                        "reason"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "activity"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "input_idempotency_conflict",
+              "input_not_pending",
+              "session_busy"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listSessionInputs",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "List session inputs",
+        "description": "Lists the session's inputs in the order they arrived, with its current activity. To watch for changes, request the first page again; the cursor only pages through a long list.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "default": "false",
+              "description": "Also return `committed` and `cancelled` inputs. Defaults to `false`."
+            },
+            "required": false,
+            "description": "Also return `committed` and `cancelled` inputs. Defaults to `false`.",
+            "name": "includeCompleted",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 100,
+              "description": "Maximum receipts per page, from 1 to 200."
+            },
+            "required": false,
+            "description": "Maximum receipts per page, from 1 to 200.",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The previous page's nextCursor."
+            },
+            "required": false,
+            "description": "The previous page's nextCursor.",
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Inputs in arrival order and the session's activity",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "requestId": "request_1",
+                      "sequence": 1,
+                      "message": {
+                        "id": "message_1",
+                        "role": "user",
+                        "parts": [
+                          {
+                            "type": "text",
+                            "text": "Compare costs too"
+                          }
+                        ]
+                      },
+                      "mode": "queue",
+                      "state": "accepted",
+                      "turnId": null,
+                      "createdAt": "2026-10-04T12:00:00Z",
+                      "updatedAt": "2026-10-04T12:00:00Z",
+                      "consumedAt": null,
+                      "reason": null
+                    }
+                  ],
+                  "nextCursor": null,
+                  "activity": {
+                    "state": "idle",
+                    "turnId": null,
+                    "reason": null
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "requestId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                          },
+                          "sequence": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0
+                          },
+                          "message": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "role": {
+                                "type": "string",
+                                "enum": [
+                                  "user"
+                                ]
+                              },
+                              "parts": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ],
+                                  "additionalProperties": {}
+                                },
+                                "minItems": 1
+                              },
+                              "metadata": {}
+                            },
+                            "required": [
+                              "id",
+                              "role",
+                              "parts"
+                            ],
+                            "additionalProperties": {}
+                          },
+                          "mode": {
+                            "type": "string",
+                            "enum": [
+                              "queue",
+                              "steer"
+                            ]
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "accepted",
+                              "delivered",
+                              "consumed",
+                              "committed",
+                              "cancelled",
+                              "uncertain"
+                            ]
+                          },
+                          "turnId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "pattern": "^turn_[0-9A-Za-z]{16}$"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "consumedAt": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "reason": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "enum": [
+                              "stopped",
+                              "failed",
+                              "owner_lost",
+                              "deleted",
+                              null
+                            ]
+                          }
+                        },
+                        "required": [
+                          "requestId",
+                          "sequence",
+                          "message",
+                          "mode",
+                          "state",
+                          "turnId",
+                          "createdAt",
+                          "updatedAt",
+                          "consumedAt",
+                          "reason"
+                        ]
+                      }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "activity": {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "idle",
+                            "running",
+                            "stopping",
+                            "approval",
+                            "paused"
+                          ]
+                        },
+                        "turnId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^turn_[0-9A-Za-z]{16}$"
+                        },
+                        "reason": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "failed",
+                            "owner_lost",
+                            "function_executor_required",
+                            null
+                          ]
+                        }
+                      },
+                      "required": [
+                        "state",
+                        "turnId",
+                        "reason"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "nextCursor",
+                    "activity"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed",
+              "invalid_cursor"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agentId}/sessions/{sessionId}/inputs/{requestId}/promote": {
+      "post": {
+        "operationId": "promoteSessionInput",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Promote a pending input",
+        "description": "Turns a waiting queued input into a steering message, keeping its ID and place in the order. If no turn can take it now, it waits for the next one. Returns `input_not_pending` once a turn has taken the input.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "description": "The input's original requestId. Encode it as a URL path segment."
+            },
+            "required": true,
+            "description": "The input's original requestId. Encode it as a URL path segment.",
+            "name": "requestId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The existing input receipt",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "requestId": "request_1",
+                    "sequence": 1,
+                    "message": {
+                      "id": "message_1",
+                      "role": "user",
+                      "parts": [
+                        {
+                          "type": "text",
+                          "text": "Compare costs too"
+                        }
+                      ]
+                    },
+                    "mode": "queue",
+                    "state": "accepted",
+                    "turnId": null,
+                    "createdAt": "2026-10-04T12:00:00Z",
+                    "updatedAt": "2026-10-04T12:00:00Z",
+                    "consumedAt": null,
+                    "reason": null
+                  },
+                  "activity": {
+                    "state": "idle",
+                    "turnId": null,
+                    "reason": null
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 128
+                        },
+                        "sequence": {
+                          "type": "integer",
+                          "exclusiveMinimum": 0
+                        },
+                        "message": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "role": {
+                              "type": "string",
+                              "enum": [
+                                "user"
+                              ]
+                            },
+                            "parts": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "required": [
+                                  "type"
+                                ],
+                                "additionalProperties": {}
+                              },
+                              "minItems": 1
+                            },
+                            "metadata": {}
+                          },
+                          "required": [
+                            "id",
+                            "role",
+                            "parts"
+                          ],
+                          "additionalProperties": {}
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "queue",
+                            "steer"
+                          ]
+                        },
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "accepted",
+                            "delivered",
+                            "consumed",
+                            "committed",
+                            "cancelled",
+                            "uncertain"
+                          ]
+                        },
+                        "turnId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^turn_[0-9A-Za-z]{16}$"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "consumedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "reason": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "stopped",
+                            "failed",
+                            "owner_lost",
+                            "deleted",
+                            null
+                          ]
+                        }
+                      },
+                      "required": [
+                        "requestId",
+                        "sequence",
+                        "message",
+                        "mode",
+                        "state",
+                        "turnId",
+                        "createdAt",
+                        "updatedAt",
+                        "consumedAt",
+                        "reason"
+                      ]
+                    },
+                    "activity": {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "idle",
+                            "running",
+                            "stopping",
+                            "approval",
+                            "paused"
+                          ]
+                        },
+                        "turnId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^turn_[0-9A-Za-z]{16}$"
+                        },
+                        "reason": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "failed",
+                            "owner_lost",
+                            "function_executor_required",
+                            null
+                          ]
+                        }
+                      },
+                      "required": [
+                        "state",
+                        "turnId",
+                        "reason"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "activity"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "input_idempotency_conflict",
+              "input_not_pending",
+              "session_busy"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agentId}/sessions/{sessionId}/inputs/{requestId}": {
+      "delete": {
+        "operationId": "deleteSessionInput",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Delete a pending input",
+        "description": "Withdraws an input that is still waiting. Returns `input_not_pending` if a turn took it first. Deleting it again returns the same result.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "description": "The input's original requestId. Encode it as a URL path segment."
+            },
+            "required": true,
+            "description": "The input's original requestId. Encode it as a URL path segment.",
+            "name": "requestId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The cancelled receipt",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "requestId": "request_1",
+                    "sequence": 1,
+                    "message": {
+                      "id": "message_1",
+                      "role": "user",
+                      "parts": [
+                        {
+                          "type": "text",
+                          "text": "Compare costs too"
+                        }
+                      ]
+                    },
+                    "mode": "queue",
+                    "state": "cancelled",
+                    "turnId": null,
+                    "createdAt": "2026-10-04T12:00:00Z",
+                    "updatedAt": "2026-10-04T12:00:00Z",
+                    "consumedAt": null,
+                    "reason": "deleted"
+                  },
+                  "activity": {
+                    "state": "idle",
+                    "turnId": null,
+                    "reason": null
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 128
+                        },
+                        "sequence": {
+                          "type": "integer",
+                          "exclusiveMinimum": 0
+                        },
+                        "message": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "role": {
+                              "type": "string",
+                              "enum": [
+                                "user"
+                              ]
+                            },
+                            "parts": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "required": [
+                                  "type"
+                                ],
+                                "additionalProperties": {}
+                              },
+                              "minItems": 1
+                            },
+                            "metadata": {}
+                          },
+                          "required": [
+                            "id",
+                            "role",
+                            "parts"
+                          ],
+                          "additionalProperties": {}
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "queue",
+                            "steer"
+                          ]
+                        },
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "accepted",
+                            "delivered",
+                            "consumed",
+                            "committed",
+                            "cancelled",
+                            "uncertain"
+                          ]
+                        },
+                        "turnId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^turn_[0-9A-Za-z]{16}$"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "consumedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "reason": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "stopped",
+                            "failed",
+                            "owner_lost",
+                            "deleted",
+                            null
+                          ]
+                        }
+                      },
+                      "required": [
+                        "requestId",
+                        "sequence",
+                        "message",
+                        "mode",
+                        "state",
+                        "turnId",
+                        "createdAt",
+                        "updatedAt",
+                        "consumedAt",
+                        "reason"
+                      ]
+                    },
+                    "activity": {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "idle",
+                            "running",
+                            "stopping",
+                            "approval",
+                            "paused"
+                          ]
+                        },
+                        "turnId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^turn_[0-9A-Za-z]{16}$"
+                        },
+                        "reason": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "failed",
+                            "owner_lost",
+                            "function_executor_required",
+                            null
+                          ]
+                        }
+                      },
+                      "required": [
+                        "state",
+                        "turnId",
+                        "reason"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "activity"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "input_idempotency_conflict",
+              "input_not_pending",
+              "session_busy"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agentId}/sessions/{sessionId}/inputs/resume": {
+      "post": {
+        "operationId": "resumeSessionInputs",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Resume pending session inputs",
+        "description": "Runs the waiting inputs again after a failed turn paused them. Inputs in the `uncertain` state never run again. It does not skip a pending tool approval and does not clear a `function_executor_required` pause.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The session’s activity",
+            "content": {
+              "application/json": {
+                "example": {
+                  "activity": {
+                    "state": "idle",
+                    "turnId": null,
+                    "reason": null
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "activity": {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "idle",
+                            "running",
+                            "stopping",
+                            "approval",
+                            "paused"
+                          ]
+                        },
+                        "turnId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^turn_[0-9A-Za-z]{16}$"
+                        },
+                        "reason": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "failed",
+                            "owner_lost",
+                            "function_executor_required",
+                            null
+                          ]
+                        }
+                      },
+                      "required": [
+                        "state",
+                        "turnId",
+                        "reason"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "activity"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "input_idempotency_conflict",
+              "input_not_pending",
+              "session_busy"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agentId}/sessions/{sessionId}/stop": {
+      "post": {
+        "operationId": "stopSessionTurn",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Stop a session turn",
+        "description": "Stops the named turn and responds once it has fully stopped and its usage is recorded. Retrying with the same `turnId` never stops a later turn. Waiting inputs then run in the next turn. Returns `session_busy` while a tool approval waits.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "turnId": "turn_4kP9sT2vXq7LmN3a"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "turnId": {
+                    "type": "string",
+                    "pattern": "^turn_[0-9A-Za-z]{16}$",
+                    "description": "The current activity's turnId, captured before requesting Stop."
+                  }
+                },
+                "required": [
+                  "turnId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The stopped turn's ID and the session's activity",
+            "content": {
+              "application/json": {
+                "example": {
+                  "stoppedTurnId": "turn_4kP9sT2vXq7LmN3a",
+                  "activity": {
+                    "state": "idle",
+                    "turnId": null,
+                    "reason": null
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "stoppedTurnId": {
+                      "type": "string",
+                      "pattern": "^turn_[0-9A-Za-z]{16}$"
+                    },
+                    "activity": {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "idle",
+                            "running",
+                            "stopping",
+                            "approval",
+                            "paused"
+                          ]
+                        },
+                        "turnId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^turn_[0-9A-Za-z]{16}$"
+                        },
+                        "reason": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "failed",
+                            "owner_lost",
+                            "function_executor_required",
+                            null
+                          ]
+                        }
+                      },
+                      "required": [
+                        "state",
+                        "turnId",
+                        "reason"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "stoppedTurnId",
+                    "activity"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "input_idempotency_conflict",
+              "input_not_pending",
+              "session_busy"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agentId}/sessions/{sessionId}/inputs/run": {
+      "post": {
+        "operationId": "runSessionInputs",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Run pending session inputs",
+        "description": "Runs every waiting input, in order, as one turn and streams it. Pass `functions` to run a queue paused with `function_executor_required`. It sends no new message. Returns `session_busy` when nothing is waiting, a turn is running, or a tool approval waits.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {},
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "functions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "inputSchema": {
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "description",
+                        "inputSchema"
+                      ],
+                      "type": "object"
+                    },
+                    "description": "Backend functions that your server runs for this turn."
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The queued Turn as AI SDK UI message chunks",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnStreamChunk"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "input_idempotency_conflict",
+              "input_not_pending",
+              "session_busy"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agentId}/sessions/{sessionId}/input-turns/{turnId}": {
+      "get": {
+        "operationId": "joinSessionInputTurn",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Join a queued input turn",
+        "description": "Streams a turn that runs queued inputs, from its first chunk, as AI SDK UI message chunks. It never starts or restarts work. Show the assistant message by its ID so a repeat join does not duplicate it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^turn_[0-9A-Za-z]{16}$",
+              "description": "The turn ID from an input or from the session's activity."
+            },
+            "required": true,
+            "description": "The turn ID from an input or from the session's activity.",
+            "name": "turnId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The queued Turn as AI SDK UI message chunks",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnStreamChunk"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
             ],
             "content": {
               "application/json": {
