@@ -20,6 +20,22 @@ Approval records also carry `tool`, `assistantMessageId`, `createdAt`, and
 `decidedAt`. Some of these fields are optional, so do not require them; see
 [tool approval metadata](/api-reference/protocols/objects-and-schemas#tool-approval-metadata).
 
+## Session inputs [#session-inputs]
+
+The `/inputs` endpoints accept user messages for an existing session while a
+turn runs. `POST /inputs` saves the message before it returns `202` with a
+receipt. Retry it with the same `requestId` and body; a changed body returns
+`input_idempotency_conflict`. `GET /inputs` returns the receipts and the
+session's `activity`, so poll it from the first page to follow progress.
+Promote and delete work only while a receipt is `accepted`, and return
+`input_not_pending` once a turn has taken it.
+
+`POST /stop` takes the `turnId` from `activity` and returns after that turn has
+stopped. `POST /inputs/resume` restarts a queue that a failed turn paused.
+`GET /input-turns/{turnId}` streams a queued turn from its first chunk, and
+`POST /inputs/run` runs the queue with your backend functions attached. See
+[send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
+
 ## Endpoints [#endpoints]
 
 ### GET /v1/agents/:agentId/sessions [#list-sessions]
@@ -739,6 +755,481 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sess
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
   --data '{"claimRequestId":"6f9619ff-8b86-4d01-b42d-00cf4fc964ff","outcome":{"kind":"output","value":{"status":"shipped"}}}'
+```
+
+### GET /v1/agents/:agentId/sessions/:sessionId/inputs [#list-session-inputs]
+
+List session inputs.
+
+Recovers pending inputs and current activity. Poll from the first page for updates. Cursor pages by admission order and is not a change cursor.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `includeCompleted` | string | query |  | Include terminal receipts. Defaults to false. One of `true`, `false`. Defaults to `false`. |
+| `limit` | integer | query |  | Maximum receipts per page, from 1 to 200. 1–200. Defaults to `100`. |
+| `cursor` | string | query |  | The previous page's nextCursor. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. Inputs in admission order and current activity.
+
+```json
+{
+  "data": [
+    {
+      "requestId": "request_1",
+      "sequence": 1,
+      "message": {
+        "id": "message_1",
+        "role": "user",
+        "parts": [
+          {
+            "type": "text",
+            "text": "Compare costs too"
+          }
+        ]
+      },
+      "mode": "queue",
+      "state": "accepted",
+      "turnId": null,
+      "createdAt": "2026-10-04T12:00:00Z",
+      "updatedAt": "2026-10-04T12:00:00Z",
+      "consumedAt": null,
+      "reason": null
+    }
+  ],
+  "nextCursor": null,
+  "activity": {
+    "state": "idle",
+    "turnId": null,
+    "reason": null
+  }
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/agents/:agentId/sessions/:sessionId/inputs [#submit-session-input]
+
+Submit a session input.
+
+Accepts one durable user message. When busy, queue it by default or request steering. Retry the same requestId with the same message and mode. A changed payload conflicts. Approval waits remain blocked.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `requestId` | string | body | required | Unique retry identity, excluding the exact values `.` and `..`. 1–128 characters. |
+| `message` | any | body | required | An AI SDK user UIMessage containing text or images. |
+| `whenBusy` | string | body |  | Queue by default, or steer the active Turn when admission is open. One of `queue`, `steer`. Defaults to `queue`. |
+
+#### Response
+
+Returns `202 Accepted` as `application/json`. The durable input receipt.
+
+```json
+{
+  "data": {
+    "requestId": "request_1",
+    "sequence": 1,
+    "message": {
+      "id": "message_1",
+      "role": "user",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Compare costs too"
+        }
+      ]
+    },
+    "mode": "queue",
+    "state": "accepted",
+    "turnId": null,
+    "createdAt": "2026-10-04T12:00:00Z",
+    "updatedAt": "2026-10-04T12:00:00Z",
+    "consumedAt": null,
+    "reason": null
+  },
+  "activity": {
+    "state": "idle",
+    "turnId": null,
+    "reason": null
+  }
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict), [`input_not_pending`](/api-reference/protocols/errors#input_not_pending), [`session_busy`](/api-reference/protocols/errors#session_busy) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"requestId":"request_1","message":{"id":"message_1","role":"user","parts":[{"type":"text","text":"Compare costs too"}]},"whenBusy":"queue"}'
+```
+
+### POST /v1/agents/:agentId/sessions/:sessionId/inputs/:requestId/promote [#promote-session-input]
+
+Promote a pending input.
+
+Requests steering for the existing input without changing its identity or order. A late promotion remains queued. Delivery wins races with promotion.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `requestId` | string | path | required | The input's original requestId. Encode it as a URL path segment. 1–128 characters. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The existing input receipt.
+
+```json
+{
+  "data": {
+    "requestId": "request_1",
+    "sequence": 1,
+    "message": {
+      "id": "message_1",
+      "role": "user",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Compare costs too"
+        }
+      ]
+    },
+    "mode": "queue",
+    "state": "accepted",
+    "turnId": null,
+    "createdAt": "2026-10-04T12:00:00Z",
+    "updatedAt": "2026-10-04T12:00:00Z",
+    "consumedAt": null,
+    "reason": null
+  },
+  "activity": {
+    "state": "idle",
+    "turnId": null,
+    "reason": null
+  }
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict), [`input_not_pending`](/api-reference/protocols/errors#input_not_pending), [`session_busy`](/api-reference/protocols/errors#session_busy) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/$REQUEST_ID/promote" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### DELETE /v1/agents/:agentId/sessions/:sessionId/inputs/:requestId [#delete-session-input]
+
+Delete a pending input.
+
+Withdraws an accepted input. Delivery and deletion are atomic competitors; already delivered inputs cannot be deleted. Repeating a successful deletion is safe.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `requestId` | string | path | required | The input's original requestId. Encode it as a URL path segment. 1–128 characters. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The cancelled receipt.
+
+```json
+{
+  "data": {
+    "requestId": "request_1",
+    "sequence": 1,
+    "message": {
+      "id": "message_1",
+      "role": "user",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Compare costs too"
+        }
+      ]
+    },
+    "mode": "queue",
+    "state": "cancelled",
+    "turnId": null,
+    "createdAt": "2026-10-04T12:00:00Z",
+    "updatedAt": "2026-10-04T12:00:00Z",
+    "consumedAt": null,
+    "reason": "deleted"
+  },
+  "activity": {
+    "state": "idle",
+    "turnId": null,
+    "reason": null
+  }
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict), [`input_not_pending`](/api-reference/protocols/errors#input_not_pending), [`session_busy`](/api-reference/protocols/errors#session_busy) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/$REQUEST_ID" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/agents/:agentId/sessions/:sessionId/inputs/resume [#resume-session-inputs]
+
+Resume pending session inputs.
+
+Clears an error pause and schedules accepted inputs. Uncertain inputs are never replayed. Approval waits and function executor requirements remain blocked.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. Current activity.
+
+```json
+{
+  "activity": {
+    "state": "idle",
+    "turnId": null,
+    "reason": null
+  }
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict), [`input_not_pending`](/api-reference/protocols/errors#input_not_pending), [`session_busy`](/api-reference/protocols/errors#session_busy) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/resume" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
+```
+
+### POST /v1/agents/:agentId/sessions/:sessionId/stop [#stop-session-turn]
+
+Stop a session turn.
+
+Stops the named Turn and waits for settlement. Retry with the same turnId so a successor is never cancelled. Pending queue drains after successful settlement. Approval waits cannot be bypassed.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `turnId` | string | body | required | The current activity's turnId, captured before requesting Stop. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The stopped Turn and current activity.
+
+```json
+{
+  "stoppedTurnId": "turn_4kP9sT2vXq7LmN3a",
+  "activity": {
+    "state": "idle",
+    "turnId": null,
+    "reason": null
+  }
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict), [`input_not_pending`](/api-reference/protocols/errors#input_not_pending), [`session_busy`](/api-reference/protocols/errors#session_busy) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/stop" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"turnId":"turn_4kP9sT2vXq7LmN3a"}'
+```
+
+### POST /v1/agents/:agentId/sessions/:sessionId/inputs/run [#run-session-inputs]
+
+Run pending session inputs.
+
+Admits all pending inputs as one Turn and streams its answer. Supply functions to resume a queue requiring its function executor. This operation never submits a new message. Empty, busy and approval-waiting queues conflict.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `functions` | object | body |  | Caller-local function definitions for this batch. |
+
+#### Response
+
+Returns `200 OK` as `text/event-stream`. The queued Turn as AI SDK UI message chunks.
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict), [`input_not_pending`](/api-reference/protocols/errors#input_not_pending), [`session_busy`](/api-reference/protocols/errors#session_busy) | The request conflicts with the resource's current state |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --no-buffer --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/run" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{}'
+```
+
+### GET /v1/agents/:agentId/sessions/:sessionId/input-turns/:turnId [#join-session-input-turn]
+
+Join a queued input turn.
+
+Streams the queued Turn from its beginning using AI SDK UI message chunks. It never starts work. Merge the assistant by message identity and remember completed Turns to avoid repeated attachment.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication).
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `turnId` | string | path | required | The queued Turn ID from an input receipt or current activity. |
+
+#### Response
+
+Returns `200 OK` as `text/event-stream`. The queued Turn as AI SDK UI message chunks.
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --no-buffer "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/input-turns/turn_1234567890ABCDEF" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
 ## Next [#next]

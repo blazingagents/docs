@@ -342,10 +342,11 @@
       "group": "sessions-and-turns",
       "statuses": [409],
       "title": "The session is busy with another operation.",
-      "whatHappened": "A tool approval is waiting for a decision, an approved tool call is still running, or another turn holds the session. New turns, regeneration, and deletion wait until it settles. Joining a continuation also returns this code while its approvals still need decisions.",
+      "whatHappened": "A turn is running, a tool approval is waiting for a decision, an approved tool call is still running, or another turn holds the session. New chat turns, regeneration, and deletion wait until it settles. Joining a continuation also returns this code while its approvals still need decisions. Stopping a turn or resuming the session's inputs returns it while an approval waits.",
       "howToFix": [
         "Decide any pending tool approvals.",
-        "Wait for the running work to finish, then send again. See [busy and concurrent sessions](/platform/sessions-and-turns#busy-and-concurrent-sessions)."
+        "To send while a turn runs, submit the message as a session input. See [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).",
+        "Otherwise wait for the running work to finish, then send again. See [busy and concurrent sessions](/platform/sessions-and-turns#busy-and-concurrent-sessions)."
       ],
       "retryable": true
     },
@@ -372,6 +373,30 @@
         "Send one turn at a time per session, and resend this one if you still need it."
       ],
       "retryable": true
+    },
+    {
+      "code": "input_idempotency_conflict",
+      "group": "sessions-and-turns",
+      "statuses": [409],
+      "title": "This request ID or message ID was already used for a different input.",
+      "whatHappened": "A session input with this `requestId` already exists with a different message or mode, or this `message.id` was already sent under another `requestId`. The original input is unchanged, even after it was promoted or finished.",
+      "howToFix": [
+        "To retry a send whose outcome you do not know, resend the original message and mode with the original `requestId`.",
+        "For a new message, use a new `requestId` and a new `message.id`. See [queue, steer, and withdraw](/platform/sessions-and-turns#queue-steer-and-withdraw)."
+      ],
+      "retryable": false
+    },
+    {
+      "code": "input_not_pending",
+      "group": "sessions-and-turns",
+      "statuses": [409],
+      "title": "The session input is no longer waiting.",
+      "whatHappened": "A turn already picked up this input, or it already finished, so you can no longer promote it to steer or delete it. Work that already started from it may have had effects.",
+      "howToFix": [
+        "List the session's inputs to read its current state. See [show progress and recover after a reload](/platform/sessions-and-turns#show-progress-and-recover-after-a-reload).",
+        "To stop work already in progress, stop the running turn."
+      ],
+      "retryable": false
     },
     {
       "code": "message_not_found",

@@ -18,6 +18,22 @@ Approval records also carry `tool`, `assistantMessageId`, `createdAt`, and
 `decidedAt`. Some of these fields are optional, so do not require them; see
 [tool approval metadata](/api-reference/protocols/objects-and-schemas#tool-approval-metadata).
 
+## Session inputs [#session-inputs]
+
+The `/inputs` endpoints accept user messages for an existing session while a
+turn runs. `POST /inputs` saves the message before it returns `202` with a
+receipt. Retry it with the same `requestId` and body; a changed body returns
+`input_idempotency_conflict`. `GET /inputs` returns the receipts and the
+session's `activity`, so poll it from the first page to follow progress.
+Promote and delete work only while a receipt is `accepted`, and return
+`input_not_pending` once a turn has taken it.
+
+`POST /stop` takes the `turnId` from `activity` and returns after that turn has
+stopped. `POST /inputs/resume` restarts a queue that a failed turn paused.
+`GET /input-turns/{turnId}` streams a queued turn from its first chunk, and
+`POST /inputs/run` runs the queue with your backend functions attached. See
+[send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
+
 ## Next [#next]
 
 - [Sessions and turns](/platform/sessions-and-turns) to continue, stop, and reload conversations.
