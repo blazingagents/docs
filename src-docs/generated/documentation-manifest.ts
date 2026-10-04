@@ -6509,7 +6509,7 @@ export const restApiOperations = [
         "operation": "resume-session-inputs",
         "path": "/v1/agents/:agentId/sessions/:sessionId/inputs/resume",
         "responseMetadata": {
-          "description": "Suggested activity."
+          "description": "The session’s activity."
         },
         "responses": [
           {

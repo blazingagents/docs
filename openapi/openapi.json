@@ -21283,7 +21283,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Suggested activity",
+            "description": "The session’s activity",
             "content": {
               "application/json": {
                 "example": {

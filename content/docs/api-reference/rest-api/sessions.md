@@ -1066,7 +1066,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 #### Response
 
-Returns `200 OK` as `application/json`. Suggested activity.
+Returns `200 OK` as `application/json`. The session’s activity.
 
 ```json
 {
