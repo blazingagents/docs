@@ -6103,7 +6103,7 @@ export const restApiOperations = [
         "operation": "list-session-inputs",
         "path": "/v1/agents/:agentId/sessions/:sessionId/inputs",
         "responseMetadata": {
-          "description": "Inputs in admission order and current activity."
+          "description": "Inputs in arrival order and the session's activity."
         },
         "responses": [
           {
@@ -6200,7 +6200,7 @@ export const restApiOperations = [
         "operation": "submit-session-input",
         "path": "/v1/agents/:agentId/sessions/:sessionId/inputs",
         "responseMetadata": {
-          "description": "The durable input receipt."
+          "description": "The saved input and the session's activity."
         },
         "responses": [
           {
@@ -6509,7 +6509,7 @@ export const restApiOperations = [
         "operation": "resume-session-inputs",
         "path": "/v1/agents/:agentId/sessions/:sessionId/inputs/resume",
         "responseMetadata": {
-          "description": "Current activity."
+          "description": "Suggested activity."
         },
         "responses": [
           {
@@ -6612,7 +6612,7 @@ export const restApiOperations = [
         "operation": "stop-session-turn",
         "path": "/v1/agents/:agentId/sessions/:sessionId/stop",
         "responseMetadata": {
-          "description": "The stopped Turn and current activity."
+          "description": "The stopped turn's ID and the session's activity."
         },
         "responses": [
           {

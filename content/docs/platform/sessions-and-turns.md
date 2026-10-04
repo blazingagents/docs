@@ -106,7 +106,7 @@ Pass `userId` and `metadata` on the first turn to label the session with your en
 
 ## Busy and concurrent sessions [#busy-and-concurrent-sessions]
 
-`client.chat()` on an existing session returns [`session_busy`](/api-reference/protocols/errors#session_busy) (HTTP `409`) while a turn is running, a [tool approval](/agents/tools/tool-approvals) is waiting for a decision, or an approved call is still running. Deleting a session also returns `session_busy` while an approved call is running.
+`client.chat()` on an existing session returns [`session_busy`](/api-reference/protocols/errors#session_busy) (HTTP `409`) while a turn is running, a [tool approval](/agents/tools/tool-approvals) is waiting for a decision, or an approved call is still running. Deleting a session also returns `session_busy` while a turn runs, including one started from the queue, or while an approved call is running.
 
 To let users keep typing while the agent works, send their messages as session inputs instead. See [send while the agent is working](#send-while-the-agent-is-working).
 
