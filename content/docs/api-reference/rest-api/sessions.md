@@ -761,7 +761,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sess
 
 List session inputs.
 
-Recovers pending inputs and current activity. Poll from the first page for updates. Cursor pages by admission order and is not a change cursor.
+Lists the session's inputs in the order they arrived, with its current activity. To watch for changes, request the first page again; the cursor only pages through a long list.
 
 #### Request
 
@@ -771,13 +771,13 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `sessionId` | string | path | required | ID of the session. |
-| `includeCompleted` | string | query |  | Include terminal receipts. Defaults to false. One of `true`, `false`. Defaults to `false`. |
+| `includeCompleted` | string | query |  | Also return `committed` and `cancelled` inputs. Defaults to `false`. One of `true`, `false`. Defaults to `false`. |
 | `limit` | integer | query |  | Maximum receipts per page, from 1 to 200. 1–200. Defaults to `100`. |
 | `cursor` | string | query |  | The previous page's nextCursor. |
 
 #### Response
 
-Returns `200 OK` as `application/json`. Inputs in admission order and current activity.
+Returns `200 OK` as `application/json`. Inputs in arrival order and the session's activity.
 
 ```json
 {
@@ -836,7 +836,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567
 
 Submit a session input.
 
-Accepts one durable user message. When busy, queue it by default or request steering. Retry the same requestId with the same message and mode. A changed payload conflicts. Approval waits remain blocked.
+Saves one user message for the session before responding. While a turn runs, the message waits for the next turn, or joins the running turn when `whenBusy` is `steer`. Retry with the same `requestId`, message, and `whenBusy`; changing them returns `input_idempotency_conflict`. Inputs never skip a pending tool approval. Steering also stays queued while an approved tool continuation runs.
 
 #### Request
 
@@ -848,11 +848,11 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `sessionId` | string | path | required | ID of the session. |
 | `requestId` | string | body | required | Unique retry identity, excluding the exact values `.` and `..`. 1–128 characters. |
 | `message` | any | body | required | An AI SDK user UIMessage containing text or images. |
-| `whenBusy` | string | body |  | Queue by default, or steer the active Turn when admission is open. One of `queue`, `steer`. Defaults to `queue`. |
+| `whenBusy` | string | body |  | `queue` waits for the next turn. `steer` joins the running turn if it can still take messages, and otherwise waits like `queue`. One of `queue`, `steer`. Defaults to `queue`. |
 
 #### Response
 
-Returns `202 Accepted` as `application/json`. The durable input receipt.
+Returns `202 Accepted` as `application/json`. The saved input and the session's activity.
 
 ```json
 {
@@ -911,7 +911,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sess
 
 Promote a pending input.
 
-Requests steering for the existing input without changing its identity or order. A late promotion remains queued. Delivery wins races with promotion.
+Turns a waiting queued input into a steering message, keeping its ID and place in the order. If no turn can take it now, it waits for the next one. Returns `input_not_pending` once a turn has taken the input.
 
 #### Request
 
@@ -982,7 +982,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sess
 
 Delete a pending input.
 
-Withdraws an accepted input. Delivery and deletion are atomic competitors; already delivered inputs cannot be deleted. Repeating a successful deletion is safe.
+Withdraws an input that is still waiting. Returns `input_not_pending` if a turn took it first. Deleting it again returns the same result.
 
 #### Request
 
@@ -1053,7 +1053,7 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/se
 
 Resume pending session inputs.
 
-Clears an error pause and schedules accepted inputs. Uncertain inputs are never replayed. Approval waits and function executor requirements remain blocked.
+Runs the waiting inputs again after a failed turn paused them. Inputs in the `uncertain` state never run again. It does not skip a pending tool approval and does not clear a `function_executor_required` pause.
 
 #### Request
 
@@ -1066,7 +1066,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 #### Response
 
-Returns `200 OK` as `application/json`. Current activity.
+Returns `200 OK` as `application/json`. Suggested activity.
 
 ```json
 {
@@ -1102,7 +1102,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sess
 
 Stop a session turn.
 
-Stops the named Turn and waits for settlement. Retry with the same turnId so a successor is never cancelled. Pending queue drains after successful settlement. Approval waits cannot be bypassed.
+Stops the named turn and responds once it has fully stopped and its usage is recorded. Retrying with the same `turnId` never stops a later turn. Waiting inputs then run in the next turn. Returns `session_busy` while a tool approval waits.
 
 #### Request
 
@@ -1116,7 +1116,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 #### Response
 
-Returns `200 OK` as `application/json`. The stopped Turn and current activity.
+Returns `200 OK` as `application/json`. The stopped turn's ID and the session's activity.
 
 ```json
 {
@@ -1155,7 +1155,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sess
 
 Run pending session inputs.
 
-Admits all pending inputs as one Turn and streams its answer. Supply functions to resume a queue requiring its function executor. This operation never submits a new message. Empty, busy and approval-waiting queues conflict.
+Runs every waiting input, in order, as one turn and streams it. Pass `functions` to run a queue paused with `function_executor_required`. It sends no new message. Returns `session_busy` when nothing is waiting, a turn is running, or a tool approval waits.
 
 #### Request
 
@@ -1165,7 +1165,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `sessionId` | string | path | required | ID of the session. |
-| `functions` | object | body |  | Caller-local function definitions for this batch. |
+| `functions` | object | body |  | Backend functions that your server runs for this turn. |
 
 #### Response
 
@@ -1197,7 +1197,7 @@ curl --no-buffer --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_123456789
 
 Join a queued input turn.
 
-Streams the queued Turn from its beginning using AI SDK UI message chunks. It never starts work. Merge the assistant by message identity and remember completed Turns to avoid repeated attachment.
+Streams a turn that runs queued inputs, from its first chunk, as AI SDK UI message chunks. It never starts or restarts work. Show the assistant message by its ID so a repeat join does not duplicate it.
 
 #### Request
 
@@ -1207,7 +1207,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `sessionId` | string | path | required | ID of the session. |
-| `turnId` | string | path | required | The queued Turn ID from an input receipt or current activity. |
+| `turnId` | string | path | required | The turn ID from an input or from the session's activity. |
 
 #### Response
 

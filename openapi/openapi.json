@@ -19875,7 +19875,7 @@
           "sessions"
         ],
         "summary": "Submit a session input",
-        "description": "Accepts one durable user message. When busy, queue it by default or request steering. Retry the same requestId with the same message and mode. A changed payload conflicts. Approval waits remain blocked.",
+        "description": "Saves one user message for the session before responding. While a turn runs, the message waits for the next turn, or joins the running turn when `whenBusy` is `steer`. Retry with the same `requestId`, message, and `whenBusy`; changing them returns `input_idempotency_conflict`. Inputs never skip a pending tool approval. Steering also stays queued while an approved tool continuation runs.",
         "parameters": [
           {
             "schema": {
@@ -19937,7 +19937,7 @@
                       "steer"
                     ],
                     "default": "queue",
-                    "description": "Queue by default, or steer the active Turn when admission is open."
+                    "description": "`queue` waits for the next turn. `steer` joins the running turn if it can still take messages, and otherwise waits like `queue`."
                   }
                 },
                 "required": [
@@ -19951,7 +19951,7 @@
         },
         "responses": {
           "202": {
-            "description": "The durable input receipt",
+            "description": "The saved input and the session's activity",
             "content": {
               "application/json": {
                 "example": {
@@ -20240,7 +20240,7 @@
           "sessions"
         ],
         "summary": "List session inputs",
-        "description": "Recovers pending inputs and current activity. Poll from the first page for updates. Cursor pages by admission order and is not a change cursor.",
+        "description": "Lists the session's inputs in the order they arrived, with its current activity. To watch for changes, request the first page again; the cursor only pages through a long list.",
         "parameters": [
           {
             "schema": {
@@ -20272,10 +20272,10 @@
                 "false"
               ],
               "default": "false",
-              "description": "Include terminal receipts. Defaults to false."
+              "description": "Also return `committed` and `cancelled` inputs. Defaults to `false`."
             },
             "required": false,
-            "description": "Include terminal receipts. Defaults to false.",
+            "description": "Also return `committed` and `cancelled` inputs. Defaults to `false`.",
             "name": "includeCompleted",
             "in": "query"
           },
@@ -20306,7 +20306,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Inputs in admission order and current activity",
+            "description": "Inputs in arrival order and the session's activity",
             "content": {
               "application/json": {
                 "example": {
@@ -20596,7 +20596,7 @@
           "sessions"
         ],
         "summary": "Promote a pending input",
-        "description": "Requests steering for the existing input without changing its identity or order. A late promotion remains queued. Delivery wins races with promotion.",
+        "description": "Turns a waiting queued input into a steering message, keeping its ID and place in the order. If no turn can take it now, it waits for the next one. Returns `input_not_pending` once a turn has taken the input.",
         "parameters": [
           {
             "schema": {
@@ -20926,7 +20926,7 @@
           "sessions"
         ],
         "summary": "Delete a pending input",
-        "description": "Withdraws an accepted input. Delivery and deletion are atomic competitors; already delivered inputs cannot be deleted. Repeating a successful deletion is safe.",
+        "description": "Withdraws an input that is still waiting. Returns `input_not_pending` if a turn took it first. Deleting it again returns the same result.",
         "parameters": [
           {
             "schema": {
@@ -21256,7 +21256,7 @@
           "sessions"
         ],
         "summary": "Resume pending session inputs",
-        "description": "Clears an error pause and schedules accepted inputs. Uncertain inputs are never replayed. Approval waits and function executor requirements remain blocked.",
+        "description": "Runs the waiting inputs again after a failed turn paused them. Inputs in the `uncertain` state never run again. It does not skip a pending tool approval and does not clear a `function_executor_required` pause.",
         "parameters": [
           {
             "schema": {
@@ -21283,7 +21283,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Current activity",
+            "description": "Suggested activity",
             "content": {
               "application/json": {
                 "example": {
@@ -21434,7 +21434,7 @@
           "sessions"
         ],
         "summary": "Stop a session turn",
-        "description": "Stops the named Turn and waits for settlement. Retry with the same turnId so a successor is never cancelled. Pending queue drains after successful settlement. Approval waits cannot be bypassed.",
+        "description": "Stops the named turn and responds once it has fully stopped and its usage is recorded. Retrying with the same `turnId` never stops a later turn. Waiting inputs then run in the next turn. Returns `session_busy` while a tool approval waits.",
         "parameters": [
           {
             "schema": {
@@ -21485,7 +21485,7 @@
         },
         "responses": {
           "200": {
-            "description": "The stopped Turn and current activity",
+            "description": "The stopped turn's ID and the session's activity",
             "content": {
               "application/json": {
                 "example": {
@@ -21642,7 +21642,7 @@
           "sessions"
         ],
         "summary": "Run pending session inputs",
-        "description": "Admits all pending inputs as one Turn and streams its answer. Supply functions to resume a queue requiring its function executor. This operation never submits a new message. Empty, busy and approval-waiting queues conflict.",
+        "description": "Runs every waiting input, in order, as one turn and streams it. Pass `functions` to run a queue paused with `function_executor_required`. It sends no new message. Returns `session_busy` when nothing is waiting, a turn is running, or a tool approval waits.",
         "parameters": [
           {
             "schema": {
@@ -21693,7 +21693,7 @@
                       ],
                       "type": "object"
                     },
-                    "description": "Caller-local function definitions for this batch."
+                    "description": "Backend functions that your server runs for this turn."
                   }
                 },
                 "additionalProperties": false
@@ -21803,7 +21803,7 @@
           "sessions"
         ],
         "summary": "Join a queued input turn",
-        "description": "Streams the queued Turn from its beginning using AI SDK UI message chunks. It never starts work. Merge the assistant by message identity and remember completed Turns to avoid repeated attachment.",
+        "description": "Streams a turn that runs queued inputs, from its first chunk, as AI SDK UI message chunks. It never starts or restarts work. Show the assistant message by its ID so a repeat join does not duplicate it.",
         "parameters": [
           {
             "schema": {
@@ -21831,10 +21831,10 @@
             "schema": {
               "type": "string",
               "pattern": "^turn_[0-9A-Za-z]{16}$",
-              "description": "The queued Turn ID from an input receipt or current activity."
+              "description": "The turn ID from an input or from the session's activity."
             },
             "required": true,
-            "description": "The queued Turn ID from an input receipt or current activity.",
+            "description": "The turn ID from an input or from the session's activity.",
             "name": "turnId",
             "in": "path"
           }
