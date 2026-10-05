@@ -529,7 +529,7 @@ Running turns, regenerating answers, and tool approvals.
 
 **The session is busy with another operation.**
 
-A turn is running, a tool approval is waiting for a decision, an approved tool call is still running, or another turn holds the session. New chat turns, regeneration, and deletion wait until it settles. Joining a continuation also returns this code while its approvals still need decisions. Stopping a turn or resuming the session's inputs returns it while an approval waits. Running the session's inputs with your backend functions returns it when nothing is waiting, a turn is running, or an approval waits.
+A turn is running, a tool approval is waiting for a decision, an approved tool call is still running, or another turn holds the session. New chat turns, regeneration, and deletion wait until it settles. Joining a continuation also returns this code while its approvals still need decisions. Stopping a turn or resuming the session's inputs returns it while an approval waits. Running the session's inputs returns it when nothing is waiting, a turn is running, an approval waits, or the queue is paused. A queue paused for backend functions runs only when you pass them.
 
 HTTP `409`. Retrying the same request can succeed.
 

@@ -30,10 +30,12 @@ session's `activity`, so poll it from the first page to follow progress.
 Promote and delete work only while a receipt is `accepted`, and return
 `input_not_pending` once a turn has taken it.
 
-`POST /stop` takes the `turnId` from `activity` and returns after that turn has
-stopped. `POST /inputs/resume` restarts a queue that a failed turn paused.
-`GET /input-turns/{turnId}` streams a queued turn from its first chunk, and
-`POST /inputs/run` runs the queue with your backend functions attached. See
+Waiting inputs never start a turn on their own. After a turn ends, call
+`POST /inputs/run` to run every waiting input as one turn. The turn streams
+back to that request only, and it cannot be rejoined. Pass `functions` when
+the session needs your backend functions. `POST /stop` takes the `turnId` from
+`activity` and returns after that turn has stopped. `POST /inputs/resume` lets
+a queue that a failed turn paused run again, without starting a turn. See
 [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
 
 ## Endpoints [#endpoints]
