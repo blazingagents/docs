@@ -114,59 +114,45 @@ To let users keep typing while the agent works, send their messages as session i
 
 A session input is a user message you hand to Blazing Agents for a session that already exists. It is saved before the call returns, so a reload or a dropped connection never loses it. Each input has a mode:
 
-- **Queue** (the default). The message waits until the current turn ends, then runs in the next turn.
+- **Queue** (the default). The message waits for the next turn, which your app starts when the current turn ends.
 - **Steer**. The message joins the turn that is running now. The agent reads it at its next step, between tool calls or after the current model response, and answers in the same turn.
 
-When the session is idle, an input starts a new turn right away, whichever mode you choose.
+Blazing Agents never starts a turn for queued messages on its own. Your app calls `runInputs()` (`client.run_inputs()` in Python) to run them, and the answer streams back to that call. Until a client makes that call, the messages wait, and none are lost. An input sent to an idle session also waits for that call, whichever mode you choose.
 
-Continuing the first example, this sends a message as a session input and waits until the agent has answered it:
+Continuing the first example, this sends a message as a session input, then runs it and prints the answer stream:
 
 ```typescript tab="TypeScript"
-import { setTimeout } from "node:timers/promises";
-
-const requestId = crypto.randomUUID();
 await client.sessions.submitInput({
   agentId,
   sessionId,
-  requestId,
+  requestId: crypto.randomUUID(),
   message: userMessage("Add a rainy-day option."),
 });
 
-for (;;) {
-  const page = await client.sessions.inputs({ agentId, sessionId, includeCompleted: true });
-  const input = page.data.find((item) => item.requestId === requestId);
-  console.log(page.activity.state, input?.state);
-  if (input?.state === "committed" || input?.state === "cancelled") break;
-  if (input?.state === "uncertain" || page.activity.state === "paused") break;
-  await setTimeout(1000);
+const batch = await client.sessions.runInputs({ agentId, sessionId });
+// Raw AI SDK stream chunks; in a route, return batch.toResponse() instead.
+for await (const chunk of batch.toStream()) {
+  process.stdout.write(chunk);
 }
 ```
 
 ```python tab="Python"
-import time
+import sys
 
-request_id = str(uuid.uuid4())
 client.sessions.submit_input(
     agent_id=agent_id,
     session_id=session_id,
-    request_id=request_id,
+    request_id=str(uuid.uuid4()),
     message=user_message("Add a rainy-day option."),
 )
 
-while True:
-    page = client.sessions.inputs(
-        agent_id=agent_id, session_id=session_id, include_completed=True
-    )
-    item = next((i for i in page.data if i.request_id == request_id), None)
-    print(page.activity.state, item and item.state)
-    if item and item.state in ("committed", "cancelled", "uncertain"):
-        break
-    if page.activity.state == "paused":
-        break
-    time.sleep(1)
+with client.run_inputs(agent_id=agent_id, session_id=session_id) as stream:
+    for chunk in stream:
+        # Raw AI SDK stream chunks; relay them to your frontend instead.
+        sys.stdout.buffer.write(chunk)
 ```
 
-Pass `whenBusy: "steer"` (`when_busy="steer"` in Python) to steer instead of queueing. Once the input is `committed`, the agent's answer is in the [history](#read-the-history).
+The stream uses the same format as `client.chat()`. Once the turn succeeds, the input is `committed` and the agent's answer is in the [history](#read-the-history). Pass `whenBusy: "steer"` (`when_busy="steer"` in Python) to steer instead of queueing.
 
 ### Queue, steer, and withdraw [#queue-steer-and-withdraw]
 
@@ -188,15 +174,19 @@ client.sessions.delete_input(agent_id=agent_id, session_id=session_id, request_i
 
 ### When queued messages run [#when-queued-messages-run]
 
-When a turn finishes, or the user stops it, every waiting queued input runs together in one new turn. Each stays a separate user message, in order. Messages that arrive after that turn starts wait for the next one. When nothing is waiting, the session goes idle.
+Queued messages run when your app calls `runInputs()` after a turn finishes or the user stops it. Every waiting input then runs together in one new turn. Each stays a separate user message, in order. Messages that arrive after that turn starts wait for the next call.
 
-Queued turns use the session's saved configuration. You cannot attach a saved prompt, regeneration, or [backend functions](/agents/tools/backend-functions) to an input. Every turn, including a queued one, is metered on its own.
+Make the call when activity is `idle` and inputs are waiting. It returns [`session_busy`](/api-reference/protocols/errors#session_busy) when nothing is waiting, a turn is running, a tool approval waits, or an error paused the queue. Two clients therefore cannot run the same batch twice.
 
-Some events pause the queue instead of running it:
+Only the client that made the call receives the stream. Blazing Agents does not save it for replay, so another client, or the same one after a dropped connection, cannot rejoin it. Closing the stream ends the turn the same way closing a chat stream does. To see what happened, list the inputs and read the [history](#read-the-history).
+
+Queued turns use the session's saved configuration. You cannot attach a saved prompt or regeneration to an input. Every turn, including a queued one, is metered on its own.
+
+Some events pause the queue:
 
 - **A tool approval.** Waiting inputs stay where they are until every pending call is decided. Neither queue nor steer skips an approval, and Stop does not decide one. Once the decisions are in, the agent finishes the approved work without taking steering. A steer sent before or during that work waits as a queued input, keeps its place in the order, and runs in the next turn. You can still stop that work.
-- **An error.** If a turn fails, waiting inputs stay and the session reports `paused`. New inputs wait too, so sending alone does not restart it. Show the error, and resume the queue when the user asks, for example from a resume button or right after they send.
-- **Backend functions.** Queued work never runs your [backend functions](/agents/tools/backend-functions) unattended. After a turn that used them, the queue pauses with the reason `function_executor_required`. Call [`runInputs()`](/sdk/typescript/sessions#run-inputs) from your backend with the same functions to run the waiting inputs and stream that turn. Resuming does not clear this pause.
+- **An error.** If a turn fails, waiting inputs stay and the session reports `paused`. New inputs wait too, and `runInputs()` returns `session_busy` until you resume the queue. Show the error, and resume when the user asks, for example from a resume button or right after they send.
+- **Backend functions.** After a turn that used your [backend functions](/agents/tools/backend-functions), the queue pauses with the reason `function_executor_required`. Call [`runInputs()`](/sdk/typescript/sessions#run-inputs) from your backend with the same functions to run the waiting inputs. Without them, it returns `session_busy`. Resuming does not clear this pause.
 
 ```typescript tab="TypeScript"
 const { activity } = await client.sessions.inputs({ agentId, sessionId });
@@ -211,13 +201,13 @@ if activity.state == "paused" and activity.reason != "function_executor_required
     client.sessions.resume_inputs(agent_id=agent_id, session_id=session_id)
 ```
 
-Resuming never repeats a turn that already ran, never reruns `uncertain` inputs, and calling it twice starts only one turn.
+Resuming starts no turn. It lets the waiting inputs run again, so call `runInputs()` next. It never repeats a turn that already ran, and it never reruns `uncertain` inputs.
 
 Deleting an idle session that still has queued inputs is allowed. They never run, and they are not moved to another session.
 
 ### Stop a turn [#stop-a-turn]
 
-Stopping needs the ID of the turn you mean, which you read from the session's activity. Blazing Agents waits until that turn has fully stopped and its usage is recorded before it answers, so the queued turn never overlaps it. Stopping the same turn again succeeds without stopping anything new, even if a queued turn has started since. The answer can already show that next turn running.
+Stopping needs the ID of the turn you mean, which you read from the session's activity. Blazing Agents waits until that turn has fully stopped and its usage is recorded before it answers, so you can call `runInputs()` right after. Stopping the same turn again succeeds without stopping anything new, even if a later turn has started since. Waiting inputs stay queued until a client runs them.
 
 ```typescript tab="TypeScript"
 const { activity } = await client.sessions.inputs({ agentId, sessionId });
@@ -253,29 +243,7 @@ Each input reports a `state`:
 | `cancelled` | Deleted, or its turn stopped or failed. `reason` says which |
 | `uncertain` | The agent may have read it before work was interrupted. It is not run again, so let the user decide whether to resend |
 
-When activity shows a running turn that started from queued inputs, stream its answer live with its `turnId`. Open one stream per turn. The stream uses the same format as chat and always starts from the beginning of the turn, so a reconnect replays it. Show the streamed assistant message by its ID, and when you later load the history, replace that message with the saved one of the same ID rather than adding a second copy. Closing this stream does not stop the turn; use [Stop](#stop-a-turn) for that.
-
-```typescript tab="TypeScript"
-const { activity } = await client.sessions.inputs({ agentId, sessionId });
-if (activity.turnId && activity.state === "running") {
-  const turn = await client.sessions.joinInputTurn({ agentId, sessionId, turnId: activity.turnId });
-  await turn.toResponse().text();
-}
-```
-
-```python tab="Python"
-activity = client.sessions.inputs(agent_id=agent_id, session_id=session_id).activity
-if activity.turn_id is not None and activity.state == "running":
-    with client.sessions.join_input_turn(
-        agent_id=agent_id, session_id=session_id, turn_id=activity.turn_id
-    ) as stream:
-        for _ in stream:
-            pass
-```
-
-A turn you started with `client.chat()` is not a queued turn, so joining it returns `not_found`.
-
-A dropped ordinary chat stream cannot be rejoined. Its answer is in the history once the turn succeeds, so fetch new messages with the `after` cursor when activity shows the turn has ended. See [read the history](#read-the-history).
+A dropped stream cannot be rejoined, whether it came from `client.chat()` or `runInputs()`. Its answer is in the history once the turn succeeds, so fetch new messages with the `after` cursor when activity shows the turn has ended. See [read the history](#read-the-history). Then, if activity is `idle` and inputs are still `accepted`, call `runInputs()` to run them.
 
 ## Concurrent turns [#concurrent-turns]
 
@@ -335,7 +303,7 @@ Keep these rules in your handler:
 
 - Take the agent ID, session ID, and `userId` from your own server-side state, never from the request body.
 - Accept exactly one new user message per request. The session already holds the rest.
-- If your UI queues or steers messages, give each session input call its own backend route, and check that the signed-in user owns the session on every one, including list, stop, and join.
+- If your UI queues or steers messages, give each session input call its own backend route, and check that the signed-in user owns the session on every one, including list, stop, and run.
 - Save the new session ID before you relay the stream. If two first requests for the same chat can arrive together, hold a lock until the ID is saved so you do not create two sessions.
 - Return `result.toResponse()` unchanged so the stream and its headers reach the browser intact, and forward the request's abort signal so a closed tab cancels the turn.
 

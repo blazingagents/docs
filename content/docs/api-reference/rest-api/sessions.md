@@ -30,10 +30,12 @@ session's `activity`, so poll it from the first page to follow progress.
 Promote and delete work only while a receipt is `accepted`, and return
 `input_not_pending` once a turn has taken it.
 
-`POST /stop` takes the `turnId` from `activity` and returns after that turn has
-stopped. `POST /inputs/resume` restarts a queue that a failed turn paused.
-`GET /input-turns/{turnId}` streams a queued turn from its first chunk, and
-`POST /inputs/run` runs the queue with your backend functions attached. See
+Waiting inputs never start a turn on their own. After a turn ends, call
+`POST /inputs/run` to run every waiting input as one turn. The turn streams
+back to that request only, and it cannot be rejoined. Pass `functions` when
+the session needs your backend functions. `POST /stop` takes the `turnId` from
+`activity` and returns after that turn has stopped. `POST /inputs/resume` lets
+a queue that a failed turn paused run again, without starting a turn. See
 [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
 
 ## Endpoints [#endpoints]
@@ -836,7 +838,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567
 
 Submit a session input.
 
-Saves one user message for the session before responding. While a turn runs, the message waits for the next turn, or joins the running turn when `whenBusy` is `steer`. Retry with the same `requestId`, message, and `whenBusy`; changing them returns `input_idempotency_conflict`. Inputs never skip a pending tool approval. Steering also stays queued while an approved tool continuation runs.
+Saves one user message for the session before responding. While a turn runs, the message waits for the next turn, or joins the running turn when `whenBusy` is `steer`. Retry with the same `requestId`, message, and `whenBusy`; changing them returns `input_idempotency_conflict`. Inputs never skip a pending tool approval. Steering also stays queued while an approved tool continuation runs. Waiting inputs run only when a client calls `POST /inputs/run`.
 
 #### Request
 
@@ -1053,7 +1055,7 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/se
 
 Resume pending session inputs.
 
-Runs the waiting inputs again after a failed turn paused them. Inputs in the `uncertain` state never run again. It does not skip a pending tool approval and does not clear a `function_executor_required` pause.
+Allows waiting inputs to run after a failed turn paused them. Call `POST /inputs/run` to start the batch. Inputs in the `uncertain` state never run again. It does not skip a pending tool approval and does not clear a `function_executor_required` pause.
 
 #### Request
 
@@ -1102,7 +1104,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sess
 
 Stop a session turn.
 
-Stops the named turn and responds once it has fully stopped and its usage is recorded. Retrying with the same `turnId` never stops a later turn. Waiting inputs then run in the next turn. Returns `session_busy` while a tool approval waits.
+Stops the named turn and responds once it has fully stopped and its usage is recorded. Retrying with the same `turnId` never stops a later turn. Waiting inputs stay accepted until a client calls `POST /inputs/run`. Returns `session_busy` while a tool approval waits.
 
 #### Request
 
@@ -1155,7 +1157,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sess
 
 Run pending session inputs.
 
-Runs every waiting input, in order, as one turn and streams it. Pass `functions` to run a queue paused with `function_executor_required`. It sends no new message. Returns `session_busy` when nothing is waiting, a turn is running, or a tool approval waits.
+Runs every waiting input, in order, as one turn and streams it to this caller. Queued turns start only when a client calls this operation. Output is not replayed; reconnecting clients read settled results from session history. Pass `functions` to run a queue paused with `function_executor_required`. It sends no new message. Returns `session_busy` when nothing is waiting, a turn is running, or a tool approval waits.
 
 #### Request
 
@@ -1191,45 +1193,6 @@ curl --no-buffer --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_123456789
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
   --data '{}'
-```
-
-### GET /v1/agents/:agentId/sessions/:sessionId/input-turns/:turnId [#join-session-input-turn]
-
-Join a queued input turn.
-
-Streams a turn that runs queued inputs, from its first chunk, as AI SDK UI message chunks. It never starts or restarts work. Show the assistant message by its ID so a repeat join does not duplicate it.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication).
-
-| Field | Type | Location | Required | Description |
-| --- | --- | --- | --- | --- |
-| `agentId` | string | path | required | ID of the agent. |
-| `sessionId` | string | path | required | ID of the session. |
-| `turnId` | string | path | required | The turn ID from an input or from the session's activity. |
-
-#### Response
-
-Returns `200 OK` as `text/event-stream`. The queued Turn as AI SDK UI message chunks.
-
-#### Errors
-
-| Status | Codes | Description |
-| --- | --- | --- |
-| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
-| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
-| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
-
-See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
-
-#### cURL
-
-```bash
-curl --no-buffer "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/input-turns/turn_1234567890ABCDEF" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
 ## Next [#next]

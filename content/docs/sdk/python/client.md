@@ -187,15 +187,11 @@ Calling `resume_chat()` with no ready continuation raises an error. Observer met
 
 **Signature:** `run_inputs(*, agent_id, session_id, functions=..., extra_headers=None, timeout=...) -> ChatStream`
 
-Runs every waiting [session input](/platform/sessions-and-turns#send-while-the-agent-is-working), in order, as one turn with your backend functions attached, and streams it. After a turn that used backend functions, queued inputs never run on their own, and the session pauses with the reason `function_executor_required`. Pass the same functions to clear that pause. It sends no new message, and it never runs a batch that is already running. The pause comes back after that turn, so call it again for later queued work.
+Runs every waiting [session input](/platform/sessions-and-turns#send-while-the-agent-is-working), in order, as one turn and streams it to you. Queued inputs never start a turn on their own, so call it after a turn ends, when activity is `"idle"` and inputs are waiting. It sends no new message. Only this call receives the stream, and it cannot be rejoined, so after a dropped connection read the answer from [`sessions.messages()`](/sdk/python/sessions#messages).
 
-Raises `session_busy` when nothing is waiting, a turn is running, or a tool approval waits. With `AsyncBlazingAgents`, await this method and consume the returned `AsyncChatStream`. See [run queued messages](/agents/tools/backend-functions#run-queued-messages).
+After a turn that used backend functions, the session pauses with the reason `function_executor_required`. Pass the same `functions` to run the queue. The pause comes back after that turn, so pass them on every later run.
 
-### `join_input_turn()` [#join-input-turn]
-
-**Signature:** `join_input_turn(*, agent_id, session_id, turn_id, functions, extra_headers=None, timeout=...) -> ChatStream`
-
-Streams a turn that already started from queued inputs and runs its backend function calls with your handlers. Like [`sessions.join_input_turn()`](/sdk/python/sessions#join-input-turn), it replays the turn from the beginning and never starts or restarts work. Use the sessions method to watch without running handlers.
+Raises `session_busy` when nothing is waiting, a turn is running, a tool approval waits, or the queue is paused. With `AsyncBlazingAgents`, await this method and consume the returned `AsyncChatStream`. See [run queued messages](/agents/tools/backend-functions#run-queued-messages).
 
 ### `completion()` [#completion]
 
