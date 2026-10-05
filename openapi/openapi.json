@@ -19875,7 +19875,7 @@
           "sessions"
         ],
         "summary": "Submit a session input",
-        "description": "Saves one user message for the session before responding. While a turn runs, the message waits for the next turn, or joins the running turn when `whenBusy` is `steer`. Retry with the same `requestId`, message, and `whenBusy`; changing them returns `input_idempotency_conflict`. Inputs never skip a pending tool approval. Steering also stays queued while an approved tool continuation runs.",
+        "description": "Saves one user message for the session before responding. While a turn runs, the message waits for the next turn, or joins the running turn when `whenBusy` is `steer`. Retry with the same `requestId`, message, and `whenBusy`; changing them returns `input_idempotency_conflict`. Inputs never skip a pending tool approval. Steering also stays queued while an approved tool continuation runs. Waiting inputs run only when a client calls `POST /inputs/run`.",
         "parameters": [
           {
             "schema": {
@@ -21256,7 +21256,7 @@
           "sessions"
         ],
         "summary": "Resume pending session inputs",
-        "description": "Runs the waiting inputs again after a failed turn paused them. Inputs in the `uncertain` state never run again. It does not skip a pending tool approval and does not clear a `function_executor_required` pause.",
+        "description": "Allows waiting inputs to run after a failed turn paused them. Call `POST /inputs/run` to start the batch. Inputs in the `uncertain` state never run again. It does not skip a pending tool approval and does not clear a `function_executor_required` pause.",
         "parameters": [
           {
             "schema": {
@@ -21434,7 +21434,7 @@
           "sessions"
         ],
         "summary": "Stop a session turn",
-        "description": "Stops the named turn and responds once it has fully stopped and its usage is recorded. Retrying with the same `turnId` never stops a later turn. Waiting inputs then run in the next turn. Returns `session_busy` while a tool approval waits.",
+        "description": "Stops the named turn and responds once it has fully stopped and its usage is recorded. Retrying with the same `turnId` never stops a later turn. Waiting inputs stay accepted until a client calls `POST /inputs/run`. Returns `session_busy` while a tool approval waits.",
         "parameters": [
           {
             "schema": {
@@ -21642,7 +21642,7 @@
           "sessions"
         ],
         "summary": "Run pending session inputs",
-        "description": "Runs every waiting input, in order, as one turn and streams it. Pass `functions` to run a queue paused with `function_executor_required`. It sends no new message. Returns `session_busy` when nothing is waiting, a turn is running, or a tool approval waits.",
+        "description": "Runs every waiting input, in order, as one turn and streams it to this caller. Queued turns start only when a client calls this operation. Output is not replayed; reconnecting clients read settled results from session history. Pass `functions` to run a queue paused with `function_executor_required`. It sends no new message. Returns `session_busy` when nothing is waiting, a turn is running, or a tool approval waits.",
         "parameters": [
           {
             "schema": {
@@ -21784,129 +21784,6 @@
               "input_idempotency_conflict",
               "input_not_pending",
               "session_busy"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/agents/{agentId}/sessions/{sessionId}/input-turns/{turnId}": {
-      "get": {
-        "operationId": "joinSessionInputTurn",
-        "tags": [
-          "sessions"
-        ],
-        "summary": "Join a queued input turn",
-        "description": "Streams a turn that runs queued inputs, from its first chunk, as AI SDK UI message chunks. It never starts or restarts work. Show the assistant message by its ID so a repeat join does not duplicate it.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^ag_[0-9A-Za-z]{16}$",
-              "description": "ID of the agent."
-            },
-            "required": true,
-            "description": "ID of the agent.",
-            "name": "agentId",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^ss_[0-9A-Za-z]{16}$",
-              "description": "ID of the session."
-            },
-            "required": true,
-            "description": "ID of the session.",
-            "name": "sessionId",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^turn_[0-9A-Za-z]{16}$",
-              "description": "The turn ID from an input or from the session's activity."
-            },
-            "required": true,
-            "description": "The turn ID from an input or from the session's activity.",
-            "name": "turnId",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The queued Turn as AI SDK UI message chunks",
-            "content": {
-              "text/event-stream": {
-                "schema": {
-                  "$ref": "#/components/schemas/TurnStreamChunk"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request is invalid",
-            "x-error-codes": [
-              "invalid_request",
-              "validation_failed"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "The credential is missing or invalid",
-            "x-error-codes": [
-              "unauthorized"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "402": {
-            "description": "An active subscription or usage credit is required",
-            "x-error-codes": [
-              "subscription_required"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "The end user cannot run this request",
-            "x-error-codes": [
-              "forbidden"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "The resource was not found",
-            "x-error-codes": [
-              "not_found"
             ],
             "content": {
               "application/json": {

@@ -20,7 +20,7 @@ cancellation and failures.
 | Object generation                 | `200`; `text/plain; charset=utf-8`                                                                      | chunked partial JSON text     | `partialObjectStream`, awaited `object`, `toResponse()` |
 | Tool approval continuation        | `200`; UI-message SSE headers                                                                           | persisted continuation chunks | `joinToolApprovalContinuation()` terminal result        |
 | Session input submission          | `202`; `application/json`                                                                               | input receipt and activity    | `submitInput()` resolved value                          |
-| Queued input turn                 | `200`; UI-message SSE headers                                                                           | persisted turn chunks         | `joinInputTurn()` or `runInputs()` terminal result      |
+| Session input batch               | `200`; UI-message SSE headers                                                                           | AI SDK `UIMessageChunk` SSE   | `runInputs()` terminal result                           |
 
 
 UI-message streams are `data:` records, each holding an AI SDK
@@ -75,12 +75,11 @@ response.
 
 Submitting a
 [session input](/platform/sessions-and-turns#send-while-the-agent-is-working)
-returns `202` with a JSON receipt, not a stream. A turn that runs queued
-inputs streams through its own join endpoint, using the session's turn ID.
-Like a continuation, each join replays the turn from its first chunk and then
-follows it live, and disconnecting does not stop it. A dropped ordinary chat
-stream cannot be rejoined; read its answer from the history with the `after`
-cursor once the turn ends.
+returns `202` with a JSON receipt, not a stream. Running the waiting inputs
+with `POST /inputs/run` streams that turn back to the same request, in the
+same format as a chat turn. Neither stream is saved for replay, so a dropped
+chat or input batch stream cannot be rejoined; read its answer from the
+history with the `after` cursor once the turn ends.
 
 ## Examples [#examples]
 

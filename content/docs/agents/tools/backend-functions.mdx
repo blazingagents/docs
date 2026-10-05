@@ -124,7 +124,7 @@ The resumed chat uses the saved descriptions and schemas. Keep the handlers comp
 
 ## Run queued messages [#run-queued-messages]
 
-Messages queued as [session inputs](/platform/sessions-and-turns#send-while-the-agent-is-working) never run your handlers unattended. After a chat that used backend functions, the queue waits with the reason `function_executor_required`. Run it from your backend with the same functions:
+Messages queued as [session inputs](/platform/sessions-and-turns#send-while-the-agent-is-working) run only when a client calls `runInputs()` or `run_inputs()`. After a chat that used backend functions, the queue pauses with the reason `function_executor_required`, and only a call with your functions runs it. Run it from your backend with the same functions:
 
 ```typescript tab="TypeScript"
 const queued = await client.sessions.runInputs({ agentId, sessionId, functions });
@@ -141,7 +141,7 @@ with client.run_inputs(
 		sys.stdout.buffer.write(chunk)
 ```
 
-This runs every waiting message in one turn and streams it. It sends no new message. The queue waits again after that turn, so call it for each later batch.
+This runs every waiting message in one turn and streams it to this call. It sends no new message. The queue pauses again after that turn, so pass your functions on each later run.
 
 ## Handle cancellation and retries [#handle-cancellation-and-retries]
 
