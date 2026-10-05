@@ -131,17 +131,17 @@ Chats with backend functions run handlers in background threads or async tasks w
 
 ## Generation methods [#generation-methods]
 
-The client has five generation methods: `chat()` for conversations that Blazing Agents stores as sessions, plus buffered and streaming forms of stateless text and structured output. Every call runs one metered turn. All arguments are keyword-only.
+The client has six generation methods: `chat()` and `continue_chat()` for conversations that Blazing Agents stores as sessions, plus buffered and streaming forms of stateless text and structured output. Every call runs one metered turn. All arguments are keyword-only.
 
-Give each call exactly one input: a literal `message` or `prompt`, or a saved prompt through `prompt_id`. `variables` works only with `prompt_id`. Every generation method also accepts `user_id` and `metadata` to attribute the turn to an end user, `client_request_id`, `extra_headers`, and `timeout`.
+Give each call exactly one input: a literal `message` or `messages`, a `decisions` list for `continue_chat()`, a `prompt`, or a saved prompt through `prompt_id`. `variables` works only with `prompt_id`. Every generation method also accepts `user_id` and `metadata` to attribute the turn to an end user, `client_request_id`, `extra_headers`, and `timeout`.
 
-`AsyncBlazingAgents` has the same five method names; you await them.
+`AsyncBlazingAgents` has the same six method names; you await them.
 
 ## Methods [#methods]
 
 ### `chat()` [#chat]
 
-**Signature:** `chat(*, agent_id, message=..., prompt_id=..., variables=..., trigger=..., message_id=..., session_id=..., user_id=..., metadata=..., functions=..., client_request_id=None, extra_headers=None, timeout=...) -> ChatStream`
+**Signature:** `chat(*, agent_id, message=..., messages=..., prompt_id=..., variables=..., trigger=..., message_id=..., session_id=..., user_id=..., metadata=..., functions=..., client_request_id=None, extra_headers=None, timeout=...) -> ChatStream`
 
 Sends a message in a session and returns a `ChatStream` of AI SDK SSE bytes. When you attach backend functions, the SDK consumes private callback events and forwards the remaining events to your application.
 
@@ -161,6 +161,8 @@ with client.chat(
 
 Omit `session_id` to start a new session. Its `ss_...` ID is available as `stream.session_id` before you read the body. Pass it on a later call to continue the conversation. The first turn saves the current agent configuration for every later turn. Read it with `sessions.get()`. `trigger="regenerate-message"` works only in an existing session and can target a `message_id`.
 
+Pass `messages` (a list of user messages) instead of `message` to send several waiting messages in one turn; each stays a separate user message in the history, in order.
+
 With the async client, call `stream = await client.chat(...)`, then use `async with stream` and `async for chunk in stream`.
 
 Pass `functions` to attach handlers created with `define_function()`. Supply the handlers again on each request. The same `extra_headers` apply to the chat and its function claims and results. See [backend functions](/agents/tools/backend-functions).
@@ -175,23 +177,28 @@ The exported helper takes a Pydantic-compatible input type that describes an obj
 
 `BlazingAgents` accepts synchronous handlers. `AsyncBlazingAgents` accepts async handlers and runs synchronous handlers in a worker thread. Synchronous cancellation is cooperative. See [handle cancellation and retries](/agents/tools/backend-functions#handle-cancellation-and-retries).
 
-### `resume_chat()` [#resume-chat]
+### `continue_chat()` [#continue-chat]
 
-**Signature:** `resume_chat(*, agent_id, session_id, functions, extra_headers=None, timeout=...) -> ChatStream`
+**Signature:** `continue_chat(*, agent_id, session_id, decisions, functions=..., client_request_id=None, extra_headers=None, timeout=...) -> ChatStream`
 
-After you submit all pending approval decisions, reattach the handlers to start or join the session's queued or running continuation. With `AsyncBlazingAgents`, await this method and consume the returned `AsyncChatStream`. Set a correlation ID through `client.with_options(client_request_id=...)`.
+Records one complete tool approval round and streams the rest of the turn. Pass one decision for every call pending in the round: `{"approval_id": ..., "approved": ..., "reason": ...}` with the reason optional. Nothing runs until you make this call, and a dropped continuation stream cannot be rejoined.
 
-Calling `resume_chat()` with no ready continuation raises an error. Observer methods such as `sessions.join_tool_approval_continuation()` do not attach handlers. See [resume after approval](/agents/tools/backend-functions#resume-after-approval).
+```python
+with client.continue_chat(
+    agent_id=agent_id,
+    session_id=session_id,
+    decisions=[
+        {"approval_id": "apr_1", "approved": True},
+        {"approval_id": "apr_2", "approved": False, "reason": "Too risky to run."},
+    ],
+) as stream:
+    for chunk in stream:
+        print(chunk.decode(), end="")
+```
 
-### `run_inputs()` [#run-inputs]
+Attach `functions` when the chat uses [backend functions](/agents/tools/backend-functions). With `AsyncBlazingAgents`, await this method and consume the returned `AsyncChatStream`.
 
-**Signature:** `run_inputs(*, agent_id, session_id, functions=..., extra_headers=None, timeout=...) -> ChatStream`
-
-Runs every waiting [session input](/platform/sessions-and-turns#send-while-the-agent-is-working), in order, as one turn and streams it to you. Queued inputs never start a turn on their own, so call it after a turn ends, when activity is `"idle"` and inputs are waiting. It sends no new message. Only this call receives the stream, and it cannot be rejoined, so after a dropped connection read the answer from [`sessions.messages()`](/sdk/python/sessions#messages).
-
-After a turn that used backend functions, the session pauses with the reason `function_executor_required`. Pass the same `functions` to run the queue. The pause comes back after that turn, so pass them on every later run.
-
-Raises `session_busy` when nothing is waiting, a turn is running, a tool approval waits, or the queue is paused. With `AsyncBlazingAgents`, await this method and consume the returned `AsyncChatStream`. See [run queued messages](/agents/tools/backend-functions#run-queued-messages).
+Repeating the same decisions is safe. A missing, duplicate, or mixed round raises `validation_failed`; a changed decision raises `tool_approval_decision_conflict`; a retry while the continuation runs raises `session_busy`; and a finished round raises `tool_approval_continuation_settled`. See [tool approvals](/agents/tools/tool-approvals).
 
 ### `completion()` [#completion]
 

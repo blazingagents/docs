@@ -18,9 +18,9 @@ cancellation and failures.
 | Resumed Session Turn              | `200`; no `Location`; same stream headers                                                               | AI SDK `UIMessageChunk` SSE   | same, using the supplied Session ID                     |
 | Text generation                   | `200`; `text/plain; charset=utf-8`                                                                      | chunked text                  | `textStream`, awaited `text`, `toResponse()`            |
 | Object generation                 | `200`; `text/plain; charset=utf-8`                                                                      | chunked partial JSON text     | `partialObjectStream`, awaited `object`, `toResponse()` |
-| Tool approval continuation        | `200`; UI-message SSE headers                                                                           | persisted continuation chunks | `joinToolApprovalContinuation()` terminal result        |
-| Session input submission          | `202`; `application/json`                                                                               | input receipt and activity    | `submitInput()` resolved value                          |
-| Session input batch               | `200`; UI-message SSE headers                                                                           | AI SDK `UIMessageChunk` SSE   | `runInputs()` terminal result                           |
+| Tool approval continuation        | `200`; UI-message SSE headers                                                                           | AI SDK `UIMessageChunk` SSE   | `continueChat()` result                                 |
+| Session steer submission          | `202`; `application/json`                                                                               | steer receipt and activity    | `submitInput()` resolved value                          |
+| Session turn stop                 | `200`; `application/json`                                                                               | stopped turn ID and activity  | `sessions.stop()` resolved value                        |
 
 
 UI-message streams are `data:` records, each holding an AI SDK
@@ -36,9 +36,9 @@ session keeps your message without an assistant reply. If you cancel, the saved
 session stays as it is. A request rejected before the turn starts creates no
 session.
 
-You can claim the body of a chat or tool-approval continuation result once,
-through `toResponse()`; a second claim throws `stream_error`. Completion and
-object results let you read the iterator, await the final value, and relay the
+You can claim the body of a chat or approval continuation result once,
+through `toResponse()` or `toStream()`; a second claim throws `stream_error`.
+Completion and object results let you read the iterator, await the final value, and relay the
 response from the same result. `toResponse()` builds a relay response that
 keeps the original success status, `X-Request-Id`, `Location`, and streaming
 headers.
@@ -58,8 +58,8 @@ Failures depend on when they happen:
 
 To cancel a chat turn, abort its `AbortSignal` or cancel the stream you are
 reading or relaying. Completion and object calls also accept `abortSignal`;
-use it rather than canceling one reader. Canceling a tool-approval join only
-stops your polling; the continuation keeps running.
+use it rather than canceling one reader. Canceling a continuation stream only
+stops your reader; the resumed turn keeps running.
 
 A failed or canceled chat turn leaves the transcript as it was, including the
 previous answer when you regenerate. Both still count toward usage, and tool
@@ -69,17 +69,31 @@ saves the final assistant message, including any failure, when the run ends.
 Failed or canceled task runs therefore keep their transcript and failure
 details.
 
-Deciding a tool approval returns `202` with a continuation ID. Joining that
-continuation returns its final SSE stream; it does not reopen the original
-response.
+Deciding a tool approval round and continuing the turn are one call:
+`POST /tool-approvals/continue` records the round's decisions, then streams
+the rest of the turn as an ordinary UI message stream in the same request.
+Nothing is saved for replay, so a dropped chat or continuation stream cannot
+be rejoined; read its answer from the history with the `after` cursor once
+the turn ends.
 
-Submitting a
-[session input](/platform/sessions-and-turns#send-while-the-agent-is-working)
-returns `202` with a JSON receipt, not a stream. Running the waiting inputs
-with `POST /inputs/run` streams that turn back to the same request, in the
-same format as a chat turn. Neither stream is saved for replay, so a dropped
-chat or input batch stream cannot be rejoined; read its answer from the
-history with the `after` cursor once the turn ends.
+[Steering a running turn](/platform/sessions-and-turns#steer-a-running-turn)
+returns `202` with a JSON receipt, not a stream. Stopping a turn returns
+`200` as soon as the stop is recorded; the turn's own stream still runs until
+it settles, so keep reading the stream you already have.
+
+## Steer events [#steer-events]
+
+When a steering message is picked up, the running turn's stream carries one
+transient event for it:
+
+```text
+data: {"type":"data-ba-steer-consumed","transient":true,"data":{"requestId":"req_1","turnId":"turn_...","sequence":3,"message":{"id":"m2","role":"user","parts":[{"type":"text","text":"Compare costs too"}]}}}
+```
+
+The event is provisional, not proof the message is saved. Render it and
+deduplicate by `message.id`, then confirm from the history after the turn
+ends; the receipt in `GET /inputs` turns `committed` once the message is
+durable.
 
 ## Examples [#examples]
 

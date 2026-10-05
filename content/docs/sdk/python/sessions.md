@@ -5,7 +5,7 @@ description: List conversations, read transcripts, approve tool calls, and delet
 
 # Sessions
 
-`client.sessions` reads and deletes the conversations Blazing Agents stores for you, and lets you approve or deny tool calls an agent is waiting on. You start and continue a session with [`client.chat()`](/sdk/python/client#chat).
+`client.sessions` reads and deletes the conversations Blazing Agents stores for you, lists the tool calls an agent is waiting on, and steers messages into a running turn. You start and continue a session with [`client.chat()`](/sdk/python/client#chat), and send approval decisions with [`client.continue_chat()`](/sdk/python/client#continue-chat).
 
 Examples assume `client = BlazingAgents()` with `agent_id` and `session_id` from an earlier chat. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names and use `async for` with `iter()`.
 
@@ -25,15 +25,10 @@ for session in page.data:
 | [`get()`](#get) | Read saved session configuration | `SessionResponse` |
 | [`messages()`](#messages) | Read or poll the transcript | `SessionMessagesPage` |
 | [`tool_approvals()`](#tool-approvals) | List proposed tool calls | `ToolApprovals` |
-| [`decide_tool_approval()`](#decide-tool-approval) | Approve or deny one call | `ToolApprovalDecision` |
-| [`join_tool_approval_continuation()`](#join-tool-approval-continuation) | Stream the agent's work after a decision | `ByteStream` |
 | [`delete()`](#delete) | Permanently delete a session | `None` |
-| [`submit_input()`](#submit-input) | Send a message to queue or steer | `SessionInputResponse` |
-| [`inputs()`](#inputs) | List waiting inputs and the session's activity | `SessionInputsPage` |
-| [`promote_input()`](#promote-input) | Steer a queued input into the running turn | `SessionInputResponse` |
-| [`delete_input()`](#delete-input) | Withdraw a waiting input | `SessionInputResponse` |
-| [`stop()`](#stop) | Stop a turn and wait until it has stopped | `SessionStopResponse` |
-| [`resume_inputs()`](#resume-inputs) | Let a paused queue run again | `SessionActivityResponse` |
+| [`submit_input()`](#submit-input) | Steer a message into the running turn | `SessionInputResponse` |
+| [`inputs()`](#inputs) | List steer receipts and the session's activity | `SessionInputsPage` |
+| [`stop()`](#stop) | Record a turn stop | `SessionStopResponse` |
 
 ## Methods [#methods]
 
@@ -129,51 +124,9 @@ pending = [item for item in approvals.data if item.decision == "pending"]
 
 **Signature:** `tool_approvals(*, agent_id: str, session_id: str) -> ToolApprovals`
 
-An agent waits for approval when its `approval_in_chat` policy marks a tool as needing review. See [tool approvals](/agents/tools/tool-approvals) for the policy options. Once you decide a call, the list shows every call in that round, with its decision, until the agent's continuation finishes. Listing does not decide or claim anything.
+An agent waits for approval when its `approval_in_chat` policy marks a tool as needing review. See [tool approvals](/agents/tools/tool-approvals) for the policy options. Once you decide a round, the list shows every call in that round, with its decision, until the continuation finishes. Listing does not decide or claim anything. To send the round's decisions and stream the rest of the turn, call [`client.continue_chat()`](/sdk/python/client#continue-chat).
 
 Returns [`ToolApprovals`](#toolapprovals). Raises `validation_failed` or `not_found`.
-
-### `decide_tool_approval()` [#decide-tool-approval]
-
-Approves or denies one pending tool call.
-
-```python
-decision = client.sessions.decide_tool_approval(
-    agent_id=agent_id,
-    session_id=session_id,
-    approval_id=pending[0].approval_id,
-    approved=True,
-    reason="Reviewed by the operator.",
-)
-```
-
-**Signature:** `decide_tool_approval(*, agent_id: str, session_id: str, approval_id: str, approved: bool, reason=...) -> ToolApprovalDecision`
-
-`reason` is optional; when given it must be 1 to 1,000 characters. Sending the same decision again is harmless. Reversing a decision raises [`tool_approval_decision_conflict`](/api-reference/protocols/errors#tool_approval_decision_conflict).
-
-Your decision lets the agent continue in the same session. Returns `ToolApprovalDecision` with `continuation_id` and its `state`: `"waiting"`, `"queued"`, `"running"`, `"succeeded"`, or `"failed"`. When the agent proposed several calls at once, the continuation stays `"waiting"` until you decide all of them. Also raises `validation_failed` or `not_found`.
-
-### `join_tool_approval_continuation()` [#join-tool-approval-continuation]
-
-Streams the agent's work after your decision, in the same AI SDK SSE format as `chat()`.
-
-```python
-with client.sessions.join_tool_approval_continuation(
-    agent_id=agent_id,
-    session_id=session_id,
-    continuation_id=decision.continuation_id,
-) as stream:
-    for chunk in stream:
-        print(chunk.decode(), end="")
-```
-
-**Signature:** `join_tool_approval_continuation(*, agent_id: str, session_id: str, continuation_id: str) -> ByteStream`
-
-The stream replays saved output, then follows live output to the end. It removes private backend function events without executing handlers. Closing the stream only stops your reader, and you can join again with the same ID.
-
-A queued continuation that needs backend functions waits for an executor. Call [`resume_chat()`](/sdk/python/client#resume-chat) with your handlers to start it. With the async client, call `stream = await client.sessions.join_tool_approval_continuation(...)`, then use `async with stream` and `async for`.
-
-Raises [`session_busy`](/api-reference/protocols/errors#session_busy) while the continuation is still `"waiting"` for other decisions, or `not_found`. Reading the stream can raise `StreamError`.
 
 ### `delete()` [#delete]
 
@@ -185,11 +138,11 @@ client.sessions.delete(agent_id=agent_id, session_id=session_id, delete_artifact
 
 **Signature:** `delete(*, agent_id: str, session_id: str, delete_artifacts: bool) -> None`
 
-`delete_artifacts` is required: `True` also deletes artifacts published in the session, and `False` keeps them. Raises `session_busy` while a continuation is waiting, queued, or running; pending approvals alone do not block deletion. Also raises `validation_failed` or `not_found`.
+`delete_artifacts` is required: `True` also deletes artifacts published in the session, and `False` keeps them. Raises `session_busy` while a turn is running or a recorded approval continuation is still open. Also raises `validation_failed` or `not_found`.
 
 ### `submit_input()` [#submit-input]
 
-Sends a user message to an existing session without waiting for the running turn. Blazing Agents saves it before the call returns. See [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
+Steers one user message into the running turn. The agent reads it at its next step and answers in the same turn. See [steer a running turn](/platform/sessions-and-turns#steer-a-running-turn).
 
 ```python
 import uuid
@@ -204,72 +157,42 @@ result = client.sessions.submit_input(
         "role": "user",
         "parts": [{"type": "text", "text": "Please also compare costs."}],
     },
-    when_busy="queue",
 )
 print(result.data.state, result.activity.state)
 ```
 
-**Signature:** `submit_input(*, agent_id: str, session_id: str, request_id: str, message: Mapping[str, object], when_busy=...) -> SessionInputResponse`
+**Signature:** `submit_input(*, agent_id: str, session_id: str, request_id: str, message: Mapping[str, object]) -> SessionInputResponse`
 
-| Parameter | Type | Default | Description |
-| --- | --- | --- | --- |
-| `request_id` | `str` | required | Your ID for this input, 1 to 128 characters, other than `.` or `..` |
-| `message` | `Mapping[str, object]` | required | A user message with text and image parts |
-| `when_busy` | `"queue"` or `"steer"` | `"queue"` | Wait for the next turn, or join the running one |
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `request_id` | `str` | Your ID for this steer, 1 to 128 characters, other than `.` or `..` |
+| `message` | `Mapping[str, object]` | A user message with text and image parts |
 
-A queued input, or any input sent to an idle session, waits until you call [`client.run_inputs()`](/sdk/python/client#run-inputs). Resending the same `request_id` with the same message and `when_busy` returns the same input, so retry with the original values after a timeout. Raises `validation_failed`, `not_found`, or [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `request_id` or message ID was already used for different content.
+Resending the same `request_id` with the same message returns the same receipt, so retry with the original values after a timeout. A call that cannot steer, because no turn is running or can take one, raises [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and saves nothing; keep the message in your app's own queue and send it later as an ordinary `chat()` message. Raises `validation_failed`, `not_found`, or [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `request_id` or message ID was already used for different content.
 
 ### `inputs()` [#inputs]
 
-Lists the session's inputs in the order they arrived, with the session's current activity.
+Lists the session's steer receipts in the order they arrived, with the session's current activity.
 
 ```python
 page = client.sessions.inputs(agent_id=agent_id, session_id=session_id)
-waiting = [item for item in page.data if item.state in ("accepted", "delivered")]
-print(page.activity.state, len(waiting))
+pending = [item for item in page.data if item.state in ("accepted", "delivered")]
+print(page.activity.state, len(pending))
 ```
 
 **Signature:** `inputs(*, agent_id: str, session_id: str, include_completed=..., cursor=..., limit=...) -> SessionInputsPage`
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `include_completed` | `bool` | `False` | Also return `committed` and `cancelled` inputs |
+| `include_completed` | `bool` | `False` | Also return `committed` and `not_placed` receipts |
 | `cursor` | `str` | none | `next_cursor` from the previous page |
 | `limit` | `int` | `100` | 1 to 200 per page |
 
-Without `include_completed`, you get `accepted`, `delivered`, `consumed`, and `uncertain` inputs. To watch for changes, call it again without a cursor; the cursor only pages through a long list. Raises `validation_failed`, `invalid_cursor`, or `not_found`.
-
-### `promote_input()` [#promote-input]
-
-Turns a queued input into a steering message, keeping its place in the order.
-
-```python
-result = client.sessions.promote_input(
-    agent_id=agent_id, session_id=session_id, request_id=request_id
-)
-```
-
-**Signature:** `promote_input(*, agent_id: str, session_id: str, request_id: str) -> SessionInputResponse`
-
-Promoting an input that already steers returns it unchanged. If no turn can take it now, it waits for the next one. Promoting does not skip a pending tool approval. A `request_id` of `.` or `..` raises `ValueError` before any request is sent. Raises `not_found`, or [`input_not_pending`](/api-reference/protocols/errors#input_not_pending) once a turn has picked the input up.
-
-### `delete_input()` [#delete-input]
-
-Withdraws an input that is still waiting.
-
-```python
-result = client.sessions.delete_input(
-    agent_id=agent_id, session_id=session_id, request_id=request_id
-)
-```
-
-**Signature:** `delete_input(*, agent_id: str, session_id: str, request_id: str) -> SessionInputResponse`
-
-The input comes back `cancelled` with `reason == "deleted"`. Deleting it again returns the same result. It stays in `inputs(include_completed=True)`, and its `request_id` cannot be reused for a different message. A `request_id` of `.` or `..` raises `ValueError` before any request is sent. Raises `not_found`, or `input_not_pending` when a turn picked it up first.
+Without `include_completed`, you get the pending `accepted` and `delivered` receipts plus any `uncertain` ones, so your app can show them to the user. To watch for changes, call it again without a cursor; the cursor only pages through a long list. `activity` reports `idle`, `running`, `stopping`, or `approval`, with the running `turn_id`. Raises `validation_failed`, `invalid_cursor`, or `not_found`.
 
 ### `stop()` [#stop]
 
-Stops one turn and returns once it has fully stopped and its usage is recorded.
+Records a stop for one turn and returns right away. The turn's own stream keeps running until it settles.
 
 ```python
 activity = client.sessions.inputs(agent_id=agent_id, session_id=session_id).activity
@@ -282,19 +205,7 @@ if activity.turn_id is not None and activity.state == "running":
 
 **Signature:** `stop(*, agent_id: str, session_id: str, turn_id: str) -> SessionStopResponse`
 
-Take `turn_id` from the session's activity. Stopping a turn that already ended succeeds, and never stops a later turn. Waiting inputs stay queued until you call [`client.run_inputs()`](/sdk/python/client#run-inputs). Raises `validation_failed`, `not_found` for a turn that is not this session's, or `session_busy` while a tool approval waits.
-
-### `resume_inputs()` [#resume-inputs]
-
-Lets the waiting queue run again after a failed turn paused it.
-
-```python
-result = client.sessions.resume_inputs(agent_id=agent_id, session_id=session_id)
-```
-
-**Signature:** `resume_inputs(*, agent_id: str, session_id: str) -> SessionActivityResponse`
-
-It starts no turn, so call [`client.run_inputs()`](/sdk/python/client#run-inputs) next. `uncertain` inputs never run again. It does not clear a `function_executor_required` pause; pass your functions to `client.run_inputs()` for that. Raises `not_found`, or `session_busy` while a tool approval waits.
+Take `turn_id` from the session's activity. Retrying with the same `turn_id` never stops a later turn. Raises `validation_failed`, or `not_found` for a turn that is not this session's.
 
 ## Response models [#response-models]
 
@@ -317,7 +228,7 @@ A `SessionMessage` has `id`, `role` (`"system"`, `"user"`, or `"assistant"`), `p
 
 | `ToolApproval` field | Type | Description |
 | --- | --- | --- |
-| `approval_id` | `str` | ID to pass to `decide_tool_approval()` |
+| `approval_id` | `str` | ID to pass in a decision to `continue_chat()` |
 | `tool_call_id` | `str` | The model's tool call ID |
 | `tool_name` | `str` | Tool name |
 | `tool` | `ToolReference \| None` | Built-in tool, or MCP tool with its `connection_id` |
@@ -329,27 +240,24 @@ A `SessionMessage` has `id`, `role` (`"system"`, `"user"`, or `"assistant"`), `p
 
 ### `SessionInput` [#sessioninput]
 
-`SessionInputResponse` has `data: SessionInput` and `activity: SessionActivity`. `SessionInputsPage` has `data: list[SessionInput]`, `next_cursor`, and `activity`. `SessionStopResponse` has `stopped_turn_id` and `activity`. `SessionActivityResponse` has `activity` only.
+`SessionInputResponse` has `data: SessionInput` and `activity: SessionActivity`. `SessionInputsPage` has `data: list[SessionInput]`, `next_cursor`, and `activity`. `SessionStopResponse` has `stopped_turn_id` and `activity`.
 
 | `SessionInput` field | Type | Description |
 | --- | --- | --- |
-| `request_id` | `str` | Your ID for the input |
-| `sequence` | `int` | Place in the order; never changes |
+| `request_id` | `str` | Your ID for the steer |
+| `sequence` | `int` | Place in the arrival order; never changes |
 | `message` | `SessionInputMessage` | The message you sent, with `id`, `role` (always `"user"`), `parts`, and `metadata` |
-| `mode` | `str` | `"queue"` or `"steer"` |
-| `state` | `str` | `"accepted"`, `"delivered"`, `"consumed"`, `"committed"`, `"cancelled"`, or `"uncertain"` |
-| `turn_id` | `str \| None` | The turn that took the input |
-| `consumed_at` | `datetime \| None` | When the agent read it, even if the turn later stopped or failed |
-| `reason` | `str \| None` | `"stopped"`, `"failed"`, `"owner_lost"`, or `"deleted"` |
+| `state` | `str` | `"accepted"`, `"delivered"`, `"committed"`, `"not_placed"`, or `"uncertain"` |
+| `turn_id` | `str` | The turn the steer was bound to |
+| `reason` | `str \| None` | `"stopped"`, `"failed"`, `"owner_lost"`, or `"turn_finished"` |
 | `created_at`, `updated_at` | `datetime` | Timestamps |
 
 | `SessionActivity` field | Type | Description |
 | --- | --- | --- |
-| `state` | `str` | `"idle"`, `"running"`, `"stopping"`, `"approval"`, or `"paused"` |
-| `turn_id` | `str \| None` | The running or paused turn |
-| `reason` | `str \| None` | `"failed"`, `"owner_lost"`, or `"function_executor_required"` |
+| `state` | `str` | `"idle"`, `"running"`, `"stopping"`, or `"approval"` |
+| `turn_id` | `str \| None` | The running turn, when there is one |
 
-See [what each state means](/platform/sessions-and-turns#show-progress-and-recover-after-a-reload).
+`committed` proves the message is in the history; `not_placed` is safe to send as an ordinary chat message; `uncertain` means the agent may have read it, so never resend it automatically. See [what each state means](/platform/sessions-and-turns#steer-receipts).
 
 ## Next [#next]
 

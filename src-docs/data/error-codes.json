@@ -342,10 +342,10 @@
       "group": "sessions-and-turns",
       "statuses": [409],
       "title": "The session is busy with another operation.",
-      "whatHappened": "A turn is running, a tool approval is waiting for a decision, an approved tool call is still running, or another turn holds the session. New chat turns, regeneration, and deletion wait until it settles. Joining a continuation also returns this code while its approvals still need decisions. Stopping a turn or resuming the session's inputs returns it while an approval waits. Running the session's inputs returns it when nothing is waiting, a turn is running, an approval waits, or the queue is paused. A queue paused for backend functions runs only when you pass them.",
+      "whatHappened": "A turn is running, a tool approval is waiting for a decision, or an approval continuation is already running, so the session cannot start new work. New chat turns, regeneration, and deletion wait until the session settles. Retrying an approval continuation that is already running also returns this code.",
       "howToFix": [
-        "Decide any pending tool approvals.",
-        "To send while a turn runs, submit the message as a session input. See [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).",
+        "Decide any pending tool approvals. See [tool approvals](/agents/tools/tool-approvals).",
+        "To send while a turn runs, steer the message into it. See [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).",
         "Otherwise wait for the running work to finish, then send again. See [busy and concurrent sessions](/platform/sessions-and-turns#busy-and-concurrent-sessions)."
       ],
       "retryable": true
@@ -379,22 +379,22 @@
       "group": "sessions-and-turns",
       "statuses": [409],
       "title": "This request ID or message ID was already used for a different input.",
-      "whatHappened": "A session input with this `requestId` already exists with a different message or mode, or this `message.id` was already sent under another `requestId`. The original input is unchanged, even after it was promoted or finished.",
+      "whatHappened": "A steer receipt with this `requestId` already exists with a different message, or this `message.id` was already sent under another `requestId`. The original receipt is unchanged.",
       "howToFix": [
-        "To retry a send whose outcome you do not know, resend the original message and mode with the original `requestId`.",
-        "For a new message, use a new `requestId` and a new `message.id`. See [queue, steer, and withdraw](/platform/sessions-and-turns#queue-steer-and-withdraw)."
+        "To retry a send whose outcome you do not know, resend the original message with the original `requestId`.",
+        "For a new message, use a new `requestId` and a new `message.id`. See [steer a running turn](/platform/sessions-and-turns#steer-a-running-turn)."
       ],
       "retryable": false
     },
     {
-      "code": "input_not_pending",
+      "code": "steer_not_available",
       "group": "sessions-and-turns",
       "statuses": [409],
-      "title": "The session input is no longer waiting.",
-      "whatHappened": "A turn already picked up this input, or it already finished, so you can no longer promote it to steer or delete it. Work that already started from it may have had effects.",
+      "title": "No running turn can take this steer.",
+      "whatHappened": "The session has no turn that can read the message now: the turn finished, is stopping, or is waiting for a tool approval decision. The message was not saved anywhere.",
       "howToFix": [
-        "List the session's inputs to read its current state. See [show progress and recover after a reload](/platform/sessions-and-turns#show-progress-and-recover-after-a-reload).",
-        "To stop work already in progress, stop the running turn."
+        "Keep the message in your app and send it as an ordinary chat message once the turn ends. See [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).",
+        "Check the session's activity to see whether a turn is still running."
       ],
       "retryable": false
     },
@@ -411,13 +411,14 @@
       "retryable": false
     },
     {
-      "code": "tool_approval_continuation_not_found",
+      "code": "tool_approval_continuation_settled",
       "group": "sessions-and-turns",
-      "statuses": [404],
-      "title": "The tool approval continuation does not exist.",
-      "whatHappened": "The `continuationId` is wrong, or it belongs to a different agent or session.",
+      "statuses": [409],
+      "title": "This approval round already finished.",
+      "whatHappened": "The continuation for these approvals already succeeded or failed. The decisions are not recorded again, and the work does not run again.",
       "howToFix": [
-        "Use the `continuationId` returned when you decided the approval, with the same agent and session IDs."
+        "Read the session's approvals and messages for the saved outcome.",
+        "Send new decisions only when a new approval round is waiting."
       ],
       "retryable": false
     },
@@ -425,10 +426,10 @@
       "code": "tool_approval_decision_conflict",
       "group": "sessions-and-turns",
       "statuses": [409],
-      "title": "The approval operation conflicts with the saved state.",
-      "whatHappened": "You tried to reverse a saved approval decision or resume a continuation that already succeeded or failed. Sending the same approval decision again is safe.",
+      "title": "The approval decision conflicts with the saved state.",
+      "whatHappened": "You tried to change a decision that was already recorded for this approval. Repeating the same decision is safe.",
       "howToFix": [
-        "Read the session's approvals and messages to see the saved decision or continuation result. Treat a saved decision as final. See [tool approvals](/agents/tools/tool-approvals#retries-and-busy-sessions)."
+        "Read the session's approvals and messages to see the saved decision. Treat a saved decision as final. See [tool approvals](/agents/tools/tool-approvals#retries-and-busy-sessions)."
       ],
       "retryable": false
     },

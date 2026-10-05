@@ -891,15 +891,33 @@
             }
           },
           {
-            "language": "typescript",
+            "language": "python",
             "metadata": {
-              "tab": "TypeScript"
+              "tab": "Python"
             }
           },
           {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
             }
           },
           {
@@ -954,6 +972,30 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
           {
             "language": "typescript",
             "metadata": {
@@ -1355,9 +1397,10 @@
         "assignedIds": [
           "agent",
           "with-options",
+          "for-user",
           "chat",
           "define-function",
-          "resume-chat",
+          "continue-chat",
           "completion",
           "object"
         ],
@@ -1369,6 +1412,14 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
           {
             "language": "typescript",
             "metadata": {}
@@ -1635,8 +1686,9 @@
           "messages",
           "delete",
           "tool-approvals",
-          "decide-tool-approval",
-          "join-tool-approval-continuation"
+          "submit-input",
+          "inputs",
+          "stop"
         ],
         "kind": "methods"
       },
@@ -1646,6 +1698,14 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
           {
             "language": "typescript",
             "metadata": {}
@@ -2213,7 +2273,7 @@
           "aclose",
           "chat",
           "define-function",
-          "resume-chat",
+          "continue-chat",
           "completion",
           "completion-stream",
           "object",
@@ -2227,6 +2287,10 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
           {
             "language": "python",
             "metadata": {}
@@ -2479,9 +2543,10 @@
           "get",
           "messages",
           "tool-approvals",
-          "decide-tool-approval",
-          "join-tool-approval-continuation",
-          "delete"
+          "delete",
+          "submit-input",
+          "inputs",
+          "stop"
         ],
         "kind": "methods"
       },
@@ -2491,6 +2556,10 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
           {
             "language": "python",
             "metadata": {}
@@ -3079,6 +3148,10 @@
           {
             "language": "bash",
             "metadata": {}
+          },
+          {
+            "language": "bash",
+            "metadata": {}
           }
         ]
       },
@@ -3385,11 +3458,12 @@
           "delete-session",
           "list-session-messages",
           "list-tool-approvals",
-          "decide-tool-approval",
-          "join-tool-approval-continuation",
-          "resume-tool-approval-continuation",
+          "continue-tool-approvals",
           "claim-chat-function-call",
-          "resolve-chat-function-call"
+          "resolve-chat-function-call",
+          "list-session-inputs",
+          "submit-session-input",
+          "stop-session-turn"
         ],
         "kind": "operations"
       },
@@ -3661,6 +3735,10 @@
             "metadata": {}
           },
           {
+            "language": "text",
+            "metadata": {}
+          },
+          {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript"
@@ -3692,6 +3770,8 @@
           "SessionListItem",
           "SessionResponse",
           "SessionMessage",
+          "SessionInput",
+          "SessionActivity",
           "UsageSummary",
           "BlazingAgentsChatMessageMetadata",
           "ToolApprovalState",
@@ -3718,6 +3798,8 @@
           "sessionlistitem",
           "sessionresponse",
           "sessionmessage",
+          "sessioninput",
+          "sessionactivity",
           "usagesummary",
           "blazingagentschatmessagemetadata",
           "toolapprovalstate",
@@ -3745,6 +3827,8 @@
           "sessionListItemSchema",
           "sessionResponseSchema",
           "sessionMessageSchema",
+          "sessionInputSchema",
+          "sessionActivitySchema",
           "usageSummarySchema",
           "blazingAgentsChatMessageMetadataSchema",
           "toolApprovalStateSchema",

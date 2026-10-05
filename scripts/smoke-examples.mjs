@@ -17,7 +17,7 @@ import { join } from "node:path";
 
 const root = new URL("..", import.meta.url).pathname;
 const SYSTEM_PYTHON = process.env.SMOKE_PYTHON ?? "python3";
-const PYTHON_SDK = process.env.SMOKE_PYTHON_SDK ?? "blazing-agents==0.13.0";
+const PYTHON_SDK = process.env.SMOKE_PYTHON_SDK ?? "blazing-agents==0.14.0";
 const PYTHON_SERVER_DEPS = ["fastapi==0.141.1", "uvicorn==0.53.0"];
 const PLACEHOLDER_OPENROUTER_KEY = "sk-or-smoke-placeholder";
 const TIMEOUT_MS = 180_000;
