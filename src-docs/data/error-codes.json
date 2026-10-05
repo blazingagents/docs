@@ -399,6 +399,18 @@
       "retryable": false
     },
     {
+      "code": "message_id_conflict",
+      "group": "sessions-and-turns",
+      "statuses": [409],
+      "title": "A submitted message ID is already in this session's history.",
+      "whatHappened": "An ordinary chat request reused an accepted message ID, even if its content changed. The entire batch was rejected before any model or tool work, including messages with new IDs. Regeneration is exempt. The same ID can be used in another session.",
+      "howToFix": [
+        "Read the session's messages to recover a saved answer after an unknown response. Do not automatically resend the batch.",
+        "Use a fresh ID for a new user submission, or explicitly regenerate an existing answer. See [sessions and turns](/platform/sessions-and-turns)."
+      ],
+      "retryable": false
+    },
+    {
       "code": "message_not_found",
       "group": "sessions-and-turns",
       "statuses": [404],

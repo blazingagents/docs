@@ -189,7 +189,11 @@ def flush_waiting() -> None:
             sys.stdout.buffer.write(chunk)
 ```
 
-Call the flush once the turn's stream ends and the session is `idle` again. Removing the messages from the queue *before* you send matters: a chat call does not currently reject a user message ID that is already in the history, so a message resent after an unknown outcome can run twice. If a send's outcome is unknown, such as after a dropped connection, read the history for the message IDs and let the user decide, rather than retrying automatically.
+Call the flush once the turn's stream ends and the session is `idle` again. Remove the messages from the queue *before* you send so a later flush cannot send the same items again.
+
+If any submitted message ID is already in this session's accepted history, ordinary chat returns HTTP `409` with [`message_id_conflict`](/api-reference/protocols/errors#message_id_conflict). The whole batch is rejected before any model or tool work, even when it mixes known and new IDs or changes the content of a known message. The same ID is allowed in another session. Explicit regeneration can still reference an existing message.
+
+If a send's outcome is unknown, such as after a dropped connection, read the history for the message IDs and let the user decide. Do not retry automatically. This check does not promise exactly-once tool effects for turns whose outcome is uncertain.
 
 ### Steer a running turn [#steer-a-running-turn]
 
