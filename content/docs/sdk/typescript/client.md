@@ -5,7 +5,7 @@ description: Configure the TypeScript client and run turns with chat, completion
 
 # Client
 
-`BlazingAgents` is the one object your backend creates. Give it your API key once, then use its resource properties such as `client.agents` and its generation methods `chat()`, `completion()`, and `object()`. The [TypeScript SDK overview](/sdk/typescript#client-objects) lists every resource property.
+`BlazingAgents` is the one object your backend creates. Give it your API key once, then use its resource properties such as `client.agents` and its generation methods `chat()`, `continueChat()`, `completion()`, and `object()`. The [TypeScript SDK overview](/sdk/typescript#client-objects) lists every resource property.
 
 ## Create a client [#create-a-client]
 
@@ -167,15 +167,16 @@ The [error reference](/api-reference/protocols/errors#find-a-code) lists every A
 
 ## Generation methods [#generation-methods]
 
-Three methods run an agent. `chat()` keeps a session, a conversation Blazing Agents stores for you. `completion()` and `object()` keep nothing between calls. Every call counts as one turn in your usage.
+Four methods run an agent. `chat()` and `continueChat()` keep a session, a conversation Blazing Agents stores for you. `completion()` and `object()` keep nothing between calls. Every call counts as one turn in your usage.
 
 | Method | Session | Output | Returns |
 | --- | --- | --- | --- |
 | [`chat()`](#chat) | Starts or continues one | AI SDK UI message stream | `ChatResult` |
+| [`continueChat()`](#continue-chat) | Resumes one after tool approvals | AI SDK UI message stream | `ChatResult` |
 | [`completion()`](#completion) | None | Text stream and final text | `CompletionResult` |
 | [`object()`](#object) | None | Partial objects and final JSON value | `ObjectResult` |
 
-Every input needs `agentId` and exactly one source: `message` for `chat()` or `prompt` for the others, or a saved prompt's `promptId` with optional `variables`. Add `userId` and `metadata` to label the turn for one of your users; leave them out for tenant-level usage. `abortSignal` and `clientRequestId` work as described above.
+Every input needs `agentId` and exactly one source: `message` or `messages` for `chat()`, `decisions` for `continueChat()`, or `prompt` for the others, or a saved prompt's `promptId` with optional `variables`. Add `userId` and `metadata` to label the turn for one of your users; leave them out for tenant-level usage. `abortSignal` and `clientRequestId` work as described above.
 
 ### `chat()` [#chat]
 
@@ -214,7 +215,8 @@ const response = next.toResponse(); // return this from your route
 | Input field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| `message` | `UIMessage` | one source | The user's AI SDK UI message |
+| `message` | `UIMessage` | one source | One user AI SDK UI message |
+| `messages` | `UIMessage[]` | one source | Several user messages for one turn, each saved separately in order |
 | `promptId` | `string` | one source | Saved prompt ID (`prompt_…`) |
 | `variables` | `Record<string, string>` | no | Saved prompt variables; only with `promptId` |
 | `sessionId` | `string` | no | Session to continue (`ss_…`); omit to start one |
@@ -239,15 +241,25 @@ The exported `defineFunction({ description, inputSchema, execute })` helper decl
 
 Function names start with a letter and contain up to 64 letters, digits, underscores, or hyphens. Built-in names and the `mcp__` prefix are reserved. Functions follow `approvalInChat.default` and are available only in interactive chat.
 
-### `resumeChat()` [#resume-chat]
+### `continueChat()` [#continue-chat]
 
-**Signature:** `resumeChat({ agentId, sessionId, functions, continuationId?, abortSignal?, clientRequestId? }): Promise<ChatResult>`
+**Signature:** `continueChat({ agentId, sessionId, decisions, functions?, abortSignal?, clientRequestId? }): Promise<ChatResult>`
 
-After you submit all pending approval decisions, reattach the backend functions to start or join the session's queued or running continuation. The SDK uses the same callback handling as `chat()`. Calling `resumeChat()` with no ready continuation raises an error.
+Records one complete tool approval round and streams the rest of the turn. Pass one `{ approvalId, approved, reason? }` decision for every call pending in the round, and attach `functions` when the chat uses [backend functions](/agents/tools/backend-functions). Nothing runs until you make this call, and a dropped continuation stream cannot be rejoined.
 
-Pass `continuationId` from the approval decision to resume that continuation. If you omit it, the SDK looks up the session's active continuation.
+```typescript
+const continued = await client.continueChat({
+  agentId,
+  sessionId,
+  decisions: [
+    { approvalId: "apr_1", approved: true },
+    { approvalId: "apr_2", approved: false, reason: "Too risky to run." },
+  ],
+});
+return continued.toResponse();
+```
 
-See [resume after approval](/agents/tools/backend-functions#resume-after-approval). Observer methods such as `sessions.joinToolApprovalContinuation()` do not attach handlers.
+Repeating the same decisions is safe. A missing, duplicate, or mixed round raises `validation_failed`; a changed decision raises `tool_approval_decision_conflict`; a retry while the continuation runs raises `session_busy`; and a finished round raises `tool_approval_continuation_settled`. See [tool approvals](/agents/tools/tool-approvals).
 
 ### `completion()` [#completion]
 
@@ -335,13 +347,14 @@ Input types are unions, so TypeScript rejects a call that passes both `prompt` a
 
 | Exported type | Shape |
 | --- | --- |
-| `ChatInput` | `ChatMessageInput \| ChatPromptInput` |
+| `ChatInput` | `ChatMessageInput \| ChatMessagesInput \| ChatPromptInput` |
 | `CompletionInput` | `CompletionPromptInput \| CompletionPromptIdInput` |
 | `ObjectInput` | `ObjectPromptInput \| ObjectPromptIdInput`, each with `schema` |
 | `AttributionInput` | Optional `userId` and `metadata` |
 | `UserClient` | Client returned by `forUser()` with user-owned operations |
 | `ChatTrigger` | `"submit-message" \| "regenerate-message"` |
-| `TerminalStreamResult` | `requestId`, `toStream()`, and `toResponse()`; returned by [`sessions.joinToolApprovalContinuation()`](/sdk/typescript/sessions#join-tool-approval-continuation) |
+| `TerminalStreamResult` | `requestId`, `toStream()`, and `toResponse()`; the stream-result shape `ChatResult` also provides |
+| `ContinueChatInput` | `agentId`, `sessionId`, `decisions`, and optional `functions` for [`continueChat()`](#continue-chat) |
 | `BlazingAgentsUIMessage` / `BlazingAgentsUIMessageChunk` | AI SDK message types with Blazing Agents metadata |
 | `UIMessage` | Re-export of the AI SDK `UIMessage` type |
 

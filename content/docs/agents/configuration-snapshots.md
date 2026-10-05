@@ -61,7 +61,7 @@ A task edit changes future runs. A run keeps its saved configuration even if it 
 
 `agentConfig` includes the agent's name, provider and model IDs, thinking level, instructions, tool groups, MCP connection IDs, approval policies, compaction settings, memory injection setting, and metadata. It does not include the agent's identity, status, avatar, workspace attachment, or credentials.
 
-The provider key, MCP credentials and connection details, attached workspace, skills, and memories use their current state. A saved provider ID therefore cannot keep a deleted provider available. Local SDK callback functions are supplied with each request; the snapshot does not store executable handlers. A paused tool approval keeps the function definitions needed to continue that approval.
+The provider key, MCP credentials and connection details, attached workspace, skills, and memories use their current state. A saved provider ID therefore cannot keep a deleted provider available. Local SDK callback functions are supplied with each request; the snapshot does not store executable handlers or function definitions. The backend supplies them again on every call, including a tool approval continuation.
 
 ## Enable and disable [#enable-and-disable]
 

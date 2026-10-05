@@ -29,6 +29,8 @@ it. See [Attribution](#attribution).
 | [SessionListItem](#sessionlistitem)                                   | Compact Session summary               | none                                               | `createdAt`, `updatedAt`                                                                                               | Preview may be `null`                                              |
 | [SessionResponse](#sessionresponse) | Session summary and saved `agentConfig` | none | `createdAt`, `updatedAt` | `agentConfig` is required |
 | [SessionMessage](#sessionmessage)                                     | AI SDK role, parts, optional metadata                    | platform-owned transcript                          | none                                                                                                                   | metadata may be omitted                                                    |
+| [SessionInput](#sessioninput)                                         | steer receipt; `accepted` to `committed` or `not_placed` | none                                               | `createdAt`, `updatedAt`                                                                                               | `reason` may be `null`                                                     |
+| [SessionActivity](#sessionactivity)                                   | `idle`, `running`, `stopping`, or `approval`             | none                                               | none                                                                                                                   | `turnId` may be `null`                                                     |
 | [UsageSummary](#usagesummary)                                         | per-Turn metering; `succeeded`, `cancelled`, or `failed` | none                                               | `startedAt`, `completedAt`                                                                                             | `errorMessage` may be `null`; `sessionId: ""` means stateless              |
 | [BlazingAgentsChatMessageMetadata](#blazingagentschatmessagemetadata) | nested usage; `succeeded`, `cancelled`, or `failed`      | none                                               | `blazingAgents.usage.startedAt`, `blazingAgents.usage.completedAt`                                                     | nested Usage summary preserves its null and sentinel behavior              |
 | [ToolApprovalState](#toolapprovalstate)                               | decision and continuation states                         | decision endpoint only                             | none                                                                                                                   | reason may be `null`; continuation may be `null`                           |
@@ -61,8 +63,11 @@ it. See [Attribution](#attribution).
 | `subscriptionStatusSchema` | `active`, `inactive` |
 | `taskRunStatusSchema` | `queued`, `running`, `blocked`, `succeeded`, `failed`, `canceled` |
 | `taskScheduleKindSchema` | `once`, `interval`, `cron` |
-| `toolApprovalContinuationStateSchema` | `waiting`, `queued`, `running`, `succeeded`, `failed` |
+| `toolApprovalContinuationStateSchema` | `waiting`, `running`, `succeeded`, `failed` |
 | `toolApprovalStateSchema.decision` | `pending`, `approved`, `denied` |
+| `sessionInputStateSchema` | `accepted`, `delivered`, `committed`, `not_placed`, `uncertain` |
+| `sessionInputSchema.reason` | `stopped`, `failed`, `owner_lost`, `turn_finished`, or `null` |
+| `sessionActivitySchema.state` | `idle`, `running`, `stopping`, `approval` |
 
 ### ApprovalPolicy [#approval-policy]
 
@@ -167,6 +172,30 @@ See [SDK Session messages](/sdk/typescript/sessions#messages),
 [REST Session messages](/api-reference/rest-api/sessions#list-session-messages), and
 [Sessions and Turns](/platform/sessions-and-turns).
 
+### SessionInput [#sessioninput]
+
+`sessionInputSchema` / `SessionInput` is the receipt for a steering message
+submitted to a running Turn. It carries your `requestId`, a `sequence` that
+fixes its arrival order, the `message` (always role `user`), a `state` from
+`sessionInputStateSchema`, the owning `turnId`, timestamps, and a nullable
+`reason` (`stopped`, `failed`, `owner_lost`, or `turn_finished`). `committed`
+proves the message is in durable history, `not_placed` is safe to send as an
+ordinary chat message, and `uncertain` must never be replayed automatically.
+
+See [SDK Sessions](/sdk/typescript/sessions#submit-input),
+[REST steer a running turn](/api-reference/rest-api/sessions#submit-session-input), and
+[Send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
+
+### SessionActivity [#sessionactivity]
+
+`sessionActivitySchema` / `SessionActivity` reports what the Session is doing
+now: `state` is `idle`, `running`, `stopping`, or `approval`, and `turnId`
+holds the running Turn or is `null`. Steer receipts and the stop response
+carry it so a client can poll one shape for progress.
+
+See [SDK Sessions](/sdk/typescript/sessions#inputs) and
+[Sessions and Turns](/platform/sessions-and-turns#show-progress-and-recover-after-a-reload).
+
 ### UsageSummary [#usagesummary]
 
 `usageSummarySchema` / `UsageSummary` is the per-Turn usage stamped into an
@@ -218,8 +247,8 @@ metadata when consuming older records.
 <span id="tool-approvals-response"></span><span id="tool-approval-decision-response"></span>
 
 `toolApprovalStateSchema` exposes the exact Tool call and decision:
-`pending`, `approved`, or `denied`. A continuation is `waiting`, `queued`,
-`running`, `succeeded`, or `failed`. A decision applies to one approval and
+`pending`, `approved`, or `denied`. A continuation is `waiting`, `running`,
+`succeeded`, or `failed`. A decision applies to one approval and
 authorizes only that exact Tool call.
 
 See [SDK Tool approvals](/sdk/typescript/sessions#tool-approvals),

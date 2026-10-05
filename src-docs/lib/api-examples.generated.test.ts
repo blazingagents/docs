@@ -169,11 +169,11 @@ describe("generated REST API examples", () => {
     expect(operation("delete-agent").examples[0]?.code).toContain(
       "?includeArtifacts=false"
     );
-    expect(operation("decide-tool-approval").examples[0]?.code).toContain(
-      "/tool-approvals/$APPROVAL_ID"
+    expect(operation("set-merchant-binding").examples[0]?.code).toContain(
+      "/bindings/$USER_ID"
     );
-    expect(operation("decide-tool-approval").examples[1]?.code).toContain(
-      'os.environ["APPROVAL_ID"]'
+    expect(operation("set-merchant-binding").examples[1]?.code).toContain(
+      'os.environ["USER_ID"]'
     );
     expect(operation("create-agent").responseMetadata.schema).toEqual({
       name: "Agent",

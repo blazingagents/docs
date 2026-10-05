@@ -59,7 +59,7 @@ If the agent's [approval policy](/agents/tools/tool-approvals) asks a person to 
 
 Stateless runs never pause: a tool call that needs a person is blocked, and the agent carries on without it.
 
-To finish a paused session turn, have your app [list](/sdk/typescript/sessions#tool-approvals), [decide](/sdk/typescript/sessions#decide-tool-approval), and [join](/sdk/typescript/sessions#join-tool-approval-continuation) the approval with the SDK. `ba assist` works only with its own sessions, so it cannot decide approvals for your other agents.
+To finish a paused session turn, have your app [list the pending approvals](/sdk/typescript/sessions#tool-approvals) and send the round's decisions with [`continueChat()`](/sdk/typescript/client#continue-chat). `ba assist` works only with its own sessions, so it cannot decide approvals for your other agents.
 
 ## Exit statuses and signals [#exit-statuses-and-signals]
 

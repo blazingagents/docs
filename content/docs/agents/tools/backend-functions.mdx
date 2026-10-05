@@ -91,7 +91,7 @@ with BlazingAgents() as client:
 
 The SDK validates the call's arguments, runs your handler, and sends its JSON result to the agent. Keep reading or relaying the stream until the answer finishes. In a TypeScript HTTP route, return `result.toResponse()` to stream the answer to your browser.
 
-Supply `functions` again on each new chat request. The functions belong to that request and are not saved in the agent's configuration. Tasks, including scheduled tasks, and stateless generation cannot use backend functions. Use [MCP tools](/agents/tools/mcp-tools) for those workloads.
+Supply `functions` again on each new chat request. The functions belong to that request and are not saved in the agent's configuration or anywhere else. Tasks, including scheduled tasks, and stateless generation cannot use backend functions. Use [MCP tools](/agents/tools/mcp-tools) for those workloads.
 
 ## Use application identity [#use-application-identity]
 
@@ -101,47 +101,27 @@ With TypeScript, use `client.forUser(userId)` to scope the chat session to the a
 
 ## Resume after approval [#resume-after-approval]
 
-Backend functions follow the agent's `approvalInChat.default` policy. Per-tool overrides apply to built-in and MCP tools. See [tool approvals](/agents/tools/tool-approvals) to configure the policy and submit a reviewer's decision.
+Backend functions follow the agent's `approvalInChat.default` policy. Per-tool overrides apply to built-in and MCP tools. See [tool approvals](/agents/tools/tool-approvals) to configure the policy and collect a reviewer's decisions.
 
-If a chat has backend functions, any manual approval pauses the chat until your backend attaches the handlers again. After all pending calls have a decision, call `resumeChat()` or `resume_chat()` with the session and your functions:
+When any call waits for a person, nothing runs until your backend sends the whole round's decisions. Pass the same `functions` on that call so the resumed turn can use them, whatever tool caused the pause:
 
 ```typescript tab="TypeScript"
-const resumed = await client.resumeChat({ agentId, sessionId, functions });
-return resumed.toResponse();
+const continued = await client.continueChat({ agentId, sessionId, decisions, functions });
+return continued.toResponse();
 ```
 
 ```python tab="Python"
-with client.resume_chat(
+with client.continue_chat(
 	agent_id=agent_id,
 	session_id=session_id,
+	decisions=decisions,
 	functions=functions,
 ) as stream:
 	for chunk in stream:
 		sys.stdout.buffer.write(chunk)
 ```
 
-The resumed chat uses the saved descriptions and schemas. Keep the handlers compatible with those schemas. A missing handler or invalid input becomes a tool error. Reading a continuation's stream alone does not attach handlers or start a chat that is waiting for them.
-
-## Run queued messages [#run-queued-messages]
-
-Messages queued as [session inputs](/platform/sessions-and-turns#send-while-the-agent-is-working) run only when a client calls `runInputs()` or `run_inputs()`. After a chat that used backend functions, the queue pauses with the reason `function_executor_required`, and only a call with your functions runs it. Run it from your backend with the same functions:
-
-```typescript tab="TypeScript"
-const queued = await client.sessions.runInputs({ agentId, sessionId, functions });
-return queued.toResponse();
-```
-
-```python tab="Python"
-with client.run_inputs(
-	agent_id=agent_id,
-	session_id=session_id,
-	functions=functions,
-) as stream:
-	for chunk in stream:
-		sys.stdout.buffer.write(chunk)
-```
-
-This runs every waiting message in one turn and streams it to this call. It sends no new message. The queue pauses again after that turn, so pass your functions on each later run.
+The function descriptions and schemas go out again with this request, so keep the handlers compatible with what the model saw. A missing handler or invalid input becomes a tool error.
 
 ## Handle cancellation and retries [#handle-cancellation-and-retries]
 

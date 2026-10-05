@@ -4837,37 +4837,37 @@ export const restApiOperations = [
         "description": "Create a session and run the first turn.",
         "examples": [
           {
-            "code": "curl --no-buffer --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"message\":{\"id\":\"msg_client_1\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"How do I reset my password?\"}]},\"userId\":\"user_42\",\"metadata\":{\"plan\":\"pro\"}}'",
+            "code": "curl --no-buffer --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"messages\":[{\"id\":\"msg_client_1\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"How do I reset my password?\"}]}],\"userId\":\"user_42\",\"metadata\":{\"plan\":\"pro\"}}'",
             "label": "cURL",
             "language": "bash"
           },
           {
-            "code": "import os\nimport sys\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"message\\\":{\\\"id\\\":\\\"msg_client_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"How do I reset my password?\\\"}]},\\\"userId\\\":\\\"user_42\\\",\\\"metadata\\\":{\\\"plan\\\":\\\"pro\\\"}}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body, stream=True)\nfor chunk in response.iter_content(chunk_size=None):\n    sys.stdout.buffer.write(chunk)\n    sys.stdout.buffer.flush()",
+            "code": "import os\nimport sys\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"messages\\\":[{\\\"id\\\":\\\"msg_client_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"How do I reset my password?\\\"}]}],\\\"userId\\\":\\\"user_42\\\",\\\"metadata\\\":{\\\"plan\\\":\\\"pro\\\"}}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body, stream=True)\nfor chunk in response.iter_content(chunk_size=None):\n    sys.stdout.buffer.write(chunk)\n    sys.stdout.buffer.flush()",
             "label": "Python",
             "language": "python"
           },
           {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"message\\\":{\\\"id\\\":\\\"msg_client_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"How do I reset my password?\\\"}]},\\\"userId\\\":\\\"user_42\\\",\\\"metadata\\\":{\\\"plan\\\":\\\"pro\\\"}}\" });\nfor await (const chunk of response.body) {\n  process.stdout.write(chunk);\n}",
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"messages\\\":[{\\\"id\\\":\\\"msg_client_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"How do I reset my password?\\\"}]}],\\\"userId\\\":\\\"user_42\\\",\\\"metadata\\\":{\\\"plan\\\":\\\"pro\\\"}}\" });\nfor await (const chunk of response.body) {\n  process.stdout.write(chunk);\n}",
             "label": "JavaScript",
             "language": "javascript"
           },
           {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, false);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"message\\\":{\\\"id\\\":\\\"msg_client_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"How do I reset my password?\\\"}]},\\\"userId\\\":\\\"user_42\\\",\\\"metadata\\\":{\\\"plan\\\":\\\"pro\\\"}}\");\n$response = curl_exec($curl);\ncurl_close($curl);",
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, false);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"messages\\\":[{\\\"id\\\":\\\"msg_client_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"How do I reset my password?\\\"}]}],\\\"userId\\\":\\\"user_42\\\",\\\"metadata\\\":{\\\"plan\\\":\\\"pro\\\"}}\");\n$response = curl_exec($curl);\ncurl_close($curl);",
             "label": "PHP",
             "language": "php"
           },
           {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"message\\\":{\\\"id\\\":\\\"msg_client_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"How do I reset my password?\\\"}]},\\\"userId\\\":\\\"user_42\\\",\\\"metadata\\\":{\\\"plan\\\":\\\"pro\\\"}}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"messages\\\":[{\\\"id\\\":\\\"msg_client_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"How do I reset my password?\\\"}]}],\\\"userId\\\":\\\"user_42\\\",\\\"metadata\\\":{\\\"plan\\\":\\\"pro\\\"}}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
             "label": "Go",
             "language": "go"
           },
           {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"message\\\":{\\\"id\\\":\\\"msg_client_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"How do I reset my password?\\\"}]},\\\"userId\\\":\\\"user_42\\\",\\\"metadata\\\":{\\\"plan\\\":\\\"pro\\\"}}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());\n    response.body().transferTo(System.out);\n  }\n}",
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"messages\\\":[{\\\"id\\\":\\\"msg_client_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"How do I reset my password?\\\"}]}],\\\"userId\\\":\\\"user_42\\\",\\\"metadata\\\":{\\\"plan\\\":\\\"pro\\\"}}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());\n    response.body().transferTo(System.out);\n  }\n}",
             "label": "Java",
             "language": "java"
           },
           {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"message\\\":{\\\"id\\\":\\\"msg_client_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"How do I reset my password?\\\"}]},\\\"userId\\\":\\\"user_42\\\",\\\"metadata\\\":{\\\"plan\\\":\\\"pro\\\"}}\"\nNet::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") do |http|\n  http.request(request) do |response|\n    response.read_body { |chunk| $stdout.write(chunk) }\n  end\nend",
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"messages\\\":[{\\\"id\\\":\\\"msg_client_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"How do I reset my password?\\\"}]}],\\\"userId\\\":\\\"user_42\\\",\\\"metadata\\\":{\\\"plan\\\":\\\"pro\\\"}}\"\nNet::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") do |http|\n  http.request(request) do |response|\n    response.read_body { |chunk| $stdout.write(chunk) }\n  end\nend",
             "label": "Ruby",
             "language": "ruby"
           }
@@ -5139,37 +5139,37 @@ export const restApiOperations = [
         "description": "Resume a session with the next turn.",
         "examples": [
           {
-            "code": "curl --no-buffer --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"message\":{\"id\":\"msg_client_2\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"What if I no longer have my email?\"}]}}'",
+            "code": "curl --no-buffer --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"messages\":[{\"id\":\"msg_client_2\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"What if I no longer have my email?\"}]}]}'",
             "label": "cURL",
             "language": "bash"
           },
           {
-            "code": "import os\nimport sys\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"message\\\":{\\\"id\\\":\\\"msg_client_2\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"What if I no longer have my email?\\\"}]}}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body, stream=True)\nfor chunk in response.iter_content(chunk_size=None):\n    sys.stdout.buffer.write(chunk)\n    sys.stdout.buffer.flush()",
+            "code": "import os\nimport sys\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"messages\\\":[{\\\"id\\\":\\\"msg_client_2\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"What if I no longer have my email?\\\"}]}]}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body, stream=True)\nfor chunk in response.iter_content(chunk_size=None):\n    sys.stdout.buffer.write(chunk)\n    sys.stdout.buffer.flush()",
             "label": "Python",
             "language": "python"
           },
           {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"message\\\":{\\\"id\\\":\\\"msg_client_2\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"What if I no longer have my email?\\\"}]}}\" });\nfor await (const chunk of response.body) {\n  process.stdout.write(chunk);\n}",
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"messages\\\":[{\\\"id\\\":\\\"msg_client_2\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"What if I no longer have my email?\\\"}]}]}\" });\nfor await (const chunk of response.body) {\n  process.stdout.write(chunk);\n}",
             "label": "JavaScript",
             "language": "javascript"
           },
           {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, false);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"message\\\":{\\\"id\\\":\\\"msg_client_2\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"What if I no longer have my email?\\\"}]}}\");\n$response = curl_exec($curl);\ncurl_close($curl);",
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, false);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"messages\\\":[{\\\"id\\\":\\\"msg_client_2\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"What if I no longer have my email?\\\"}]}]}\");\n$response = curl_exec($curl);\ncurl_close($curl);",
             "label": "PHP",
             "language": "php"
           },
           {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"message\\\":{\\\"id\\\":\\\"msg_client_2\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"What if I no longer have my email?\\\"}]}}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"messages\\\":[{\\\"id\\\":\\\"msg_client_2\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"What if I no longer have my email?\\\"}]}]}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
             "label": "Go",
             "language": "go"
           },
           {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"message\\\":{\\\"id\\\":\\\"msg_client_2\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"What if I no longer have my email?\\\"}]}}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());\n    response.body().transferTo(System.out);\n  }\n}",
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"messages\\\":[{\\\"id\\\":\\\"msg_client_2\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"What if I no longer have my email?\\\"}]}]}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());\n    response.body().transferTo(System.out);\n  }\n}",
             "label": "Java",
             "language": "java"
           },
           {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"message\\\":{\\\"id\\\":\\\"msg_client_2\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"What if I no longer have my email?\\\"}]}}\"\nNet::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") do |http|\n  http.request(request) do |response|\n    response.read_body { |chunk| $stdout.write(chunk) }\n  end\nend",
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"messages\\\":[{\\\"id\\\":\\\"msg_client_2\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"What if I no longer have my email?\\\"}]}]}\"\nNet::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") do |http|\n  http.request(request) do |response|\n    response.read_body { |chunk| $stdout.write(chunk) }\n  end\nend",
             "label": "Ruby",
             "language": "ruby"
           }
@@ -5545,155 +5545,49 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/list-tool-approvals"
       },
       {
-        "description": "Decide a tool approval.",
+        "description": "Decide an approval round and continue the turn.",
         "examples": [
           {
-            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/$APPROVAL_ID\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"approved\":true,\"reason\":\"Reviewed the file; it is safe to delete.\"}'",
+            "code": "curl --no-buffer --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/continue\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"decisions\":[{\"approvalId\":\"apr_3Fp9Lx2WqD6sNc8J\",\"approved\":true}]}'",
             "label": "cURL",
             "language": "bash"
           },
           {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/\" + os.environ[\"APPROVAL_ID\"]\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"approved\\\":true,\\\"reason\\\":\\\"Reviewed the file; it is safe to delete.\\\"}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body)\nprint(response.text)",
+            "code": "import os\nimport sys\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/continue\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"decisions\\\":[{\\\"approvalId\\\":\\\"apr_3Fp9Lx2WqD6sNc8J\\\",\\\"approved\\\":true}]}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body, stream=True)\nfor chunk in response.iter_content(chunk_size=None):\n    sys.stdout.buffer.write(chunk)\n    sys.stdout.buffer.flush()",
             "label": "Python",
             "language": "python"
           },
           {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/\" + process.env.APPROVAL_ID;\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"approved\\\":true,\\\"reason\\\":\\\"Reviewed the file; it is safe to delete.\\\"}\" });\nconsole.log(await response.text());",
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/continue\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"decisions\\\":[{\\\"approvalId\\\":\\\"apr_3Fp9Lx2WqD6sNc8J\\\",\\\"approved\\\":true}]}\" });\nfor await (const chunk of response.body) {\n  process.stdout.write(chunk);\n}",
             "label": "JavaScript",
             "language": "javascript"
           },
           {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/\" . getenv(\"APPROVAL_ID\");\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"approved\\\":true,\\\"reason\\\":\\\"Reviewed the file; it is safe to delete.\\\"}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/continue\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, false);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"decisions\\\":[{\\\"approvalId\\\":\\\"apr_3Fp9Lx2WqD6sNc8J\\\",\\\"approved\\\":true}]}\");\n$response = curl_exec($curl);\ncurl_close($curl);",
             "label": "PHP",
             "language": "php"
           },
           {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/\" + os.Getenv(\"APPROVAL_ID\")\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"approved\\\":true,\\\"reason\\\":\\\"Reviewed the file; it is safe to delete.\\\"}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/continue\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"decisions\\\":[{\\\"approvalId\\\":\\\"apr_3Fp9Lx2WqD6sNc8J\\\",\\\"approved\\\":true}]}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
             "label": "Go",
             "language": "go"
           },
           {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/\" + System.getenv(\"APPROVAL_ID\");\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"approved\\\":true,\\\"reason\\\":\\\"Reviewed the file; it is safe to delete.\\\"}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/continue\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"decisions\\\":[{\\\"approvalId\\\":\\\"apr_3Fp9Lx2WqD6sNc8J\\\",\\\"approved\\\":true}]}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());\n    response.body().transferTo(System.out);\n  }\n}",
             "label": "Java",
             "language": "java"
           },
           {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/\" + ENV.fetch(\"APPROVAL_ID\"))\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"approved\\\":true,\\\"reason\\\":\\\"Reviewed the file; it is safe to delete.\\\"}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approvals/continue\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"decisions\\\":[{\\\"approvalId\\\":\\\"apr_3Fp9Lx2WqD6sNc8J\\\",\\\"approved\\\":true}]}\"\nNet::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") do |http|\n  http.request(request) do |response|\n    response.read_body { |chunk| $stdout.write(chunk) }\n  end\nend",
             "label": "Ruby",
             "language": "ruby"
           }
         ],
         "method": "POST",
-        "operation": "decide-tool-approval",
-        "path": "/v1/agents/:agentId/sessions/:sessionId/tool-approvals/:approvalId",
+        "operation": "continue-tool-approvals",
+        "path": "/v1/agents/:agentId/sessions/:sessionId/tool-approvals/continue",
         "responseMetadata": {
-          "description": "The continuation that resumes the turn, and its state.",
-          "schema": {
-            "name": "ToolApprovalDecision"
-          }
-        },
-        "responses": [
-          {
-            "code": "{\n  \"continuationId\": \"tac_5Wq8Hn2KxR7mTb4C\",\n  \"state\": \"queued\"\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "202"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "400"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "401"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "402"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "403"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "404"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"tool_approval_decision_conflict\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "409"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "500"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "503"
-          }
-        ],
-        "url": "/api-reference/rest-api/sessions/decide-tool-approval"
-      },
-      {
-        "description": "Join a tool-approval continuation.",
-        "examples": [
-          {
-            "code": "curl --no-buffer \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
-            "label": "cURL",
-            "language": "bash"
-          },
-          {
-            "code": "import os\nimport sys\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers, stream=True)\nfor chunk in response.iter_content(chunk_size=None):\n    sys.stdout.buffer.write(chunk)\n    sys.stdout.buffer.flush()",
-            "label": "Python",
-            "language": "python"
-          },
-          {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nfor await (const chunk of response.body) {\n  process.stdout.write(chunk);\n}",
-            "label": "JavaScript",
-            "language": "javascript"
-          },
-          {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, false);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);",
-            "label": "PHP",
-            "language": "php"
-          },
-          {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
-            "label": "Go",
-            "language": "go"
-          },
-          {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());\n    response.body().transferTo(System.out);\n  }\n}",
-            "label": "Java",
-            "language": "java"
-          },
-          {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nNet::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") do |http|\n  http.request(request) do |response|\n    response.read_body { |chunk| $stdout.write(chunk) }\n  end\nend",
-            "label": "Ruby",
-            "language": "ruby"
-          }
-        ],
-        "method": "GET",
-        "operation": "join-tool-approval-continuation",
-        "path": "/v1/agents/:agentId/sessions/:sessionId/tool-approval-continuations/:continuationId",
-        "responseMetadata": {
-          "description": "Server-sent events, each carrying one AI SDK UI message chunk."
+          "description": "The continuation as an ordinary AI SDK UI message stream."
         },
         "responses": [
           {
@@ -5738,121 +5632,25 @@ export const restApiOperations = [
             "status": "409"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"quota_exceeded\",\n    \"message\": \"Too many requests.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
-            "status": "500"
+            "status": "429"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"The service is temporarily unavailable.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "503"
-          }
-        ],
-        "url": "/api-reference/rest-api/sessions/join-tool-approval-continuation"
-      },
-      {
-        "description": "Resume a tool-approval continuation.",
-        "examples": [
-          {
-            "code": "curl --no-buffer --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C/resume\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{}'",
-            "label": "cURL",
-            "language": "bash"
-          },
-          {
-            "code": "import os\nimport sys\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C/resume\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body, stream=True)\nfor chunk in response.iter_content(chunk_size=None):\n    sys.stdout.buffer.write(chunk)\n    sys.stdout.buffer.flush()",
-            "label": "Python",
-            "language": "python"
-          },
-          {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C/resume\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{}\" });\nfor await (const chunk of response.body) {\n  process.stdout.write(chunk);\n}",
-            "label": "JavaScript",
-            "language": "javascript"
-          },
-          {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C/resume\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, false);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{}\");\n$response = curl_exec($curl);\ncurl_close($curl);",
-            "label": "PHP",
-            "language": "php"
-          },
-          {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C/resume\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
-            "label": "Go",
-            "language": "go"
-          },
-          {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C/resume\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());\n    response.body().transferTo(System.out);\n  }\n}",
-            "label": "Java",
-            "language": "java"
-          },
-          {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/tool-approval-continuations/tac_5Wq8Hn2KxR7mTb4C/resume\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{}\"\nNet::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") do |http|\n  http.request(request) do |response|\n    response.read_body { |chunk| $stdout.write(chunk) }\n  end\nend",
-            "label": "Ruby",
-            "language": "ruby"
-          }
-        ],
-        "method": "POST",
-        "operation": "resume-tool-approval-continuation",
-        "path": "/v1/agents/:agentId/sessions/:sessionId/tool-approval-continuations/:continuationId/resume",
-        "responseMetadata": {
-          "description": "Server-sent events, each carrying one AI SDK UI message chunk."
-        },
-        "responses": [
-          {
-            "contentType": "text/event-stream",
-            "note": "Streaming response body",
-            "status": "200"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "400"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "401"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "402"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "403"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "404"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"session_busy\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "409"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "500"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "503"
           }
         ],
-        "url": "/api-reference/rest-api/sessions/resume-tool-approval-continuation"
+        "url": "/api-reference/rest-api/sessions/continue-tool-approvals"
       },
       {
         "description": "Claim a function call.",
@@ -6061,7 +5859,7 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/resolve-chat-function-call"
       },
       {
-        "description": "List session inputs.",
+        "description": "List steer receipts.",
         "examples": [
           {
             "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
@@ -6107,7 +5905,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"data\": [\n    {\n      \"requestId\": \"request_1\",\n      \"sequence\": 1,\n      \"message\": {\n        \"id\": \"message_1\",\n        \"role\": \"user\",\n        \"parts\": [\n          {\n            \"type\": \"text\",\n            \"text\": \"Compare costs too\"\n          }\n        ]\n      },\n      \"mode\": \"queue\",\n      \"state\": \"accepted\",\n      \"turnId\": null,\n      \"createdAt\": \"2026-10-04T12:00:00Z\",\n      \"updatedAt\": \"2026-10-04T12:00:00Z\",\n      \"consumedAt\": null,\n      \"reason\": null\n    }\n  ],\n  \"nextCursor\": null,\n  \"activity\": {\n    \"state\": \"idle\",\n    \"turnId\": null,\n    \"reason\": null\n  }\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"requestId\": \"request_1\",\n      \"sequence\": 1,\n      \"message\": {\n        \"id\": \"message_1\",\n        \"role\": \"user\",\n        \"parts\": [\n          {\n            \"type\": \"text\",\n            \"text\": \"Compare costs too\"\n          }\n        ]\n      },\n      \"state\": \"accepted\",\n      \"turnId\": \"turn_4kP9sT2vXq7LmN3a\",\n      \"createdAt\": \"2026-10-04T12:00:00Z\",\n      \"updatedAt\": \"2026-10-04T12:00:00Z\",\n      \"reason\": null\n    }\n  ],\n  \"nextCursor\": null,\n  \"activity\": {\n    \"state\": \"running\",\n    \"turnId\": \"turn_4kP9sT2vXq7LmN3a\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -6158,40 +5956,40 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/list-session-inputs"
       },
       {
-        "description": "Submit a session input.",
+        "description": "Steer a running turn.",
         "examples": [
           {
-            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"requestId\":\"request_1\",\"message\":{\"id\":\"message_1\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"Compare costs too\"}]},\"whenBusy\":\"queue\"}'",
+            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"requestId\":\"request_1\",\"message\":{\"id\":\"message_1\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"Compare costs too\"}]}}'",
             "label": "cURL",
             "language": "bash"
           },
           {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"requestId\\\":\\\"request_1\\\",\\\"message\\\":{\\\"id\\\":\\\"message_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Compare costs too\\\"}]},\\\"whenBusy\\\":\\\"queue\\\"}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body)\nprint(response.text)",
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"requestId\\\":\\\"request_1\\\",\\\"message\\\":{\\\"id\\\":\\\"message_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Compare costs too\\\"}]}}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body)\nprint(response.text)",
             "label": "Python",
             "language": "python"
           },
           {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"requestId\\\":\\\"request_1\\\",\\\"message\\\":{\\\"id\\\":\\\"message_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Compare costs too\\\"}]},\\\"whenBusy\\\":\\\"queue\\\"}\" });\nconsole.log(await response.text());",
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"requestId\\\":\\\"request_1\\\",\\\"message\\\":{\\\"id\\\":\\\"message_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Compare costs too\\\"}]}}\" });\nconsole.log(await response.text());",
             "label": "JavaScript",
             "language": "javascript"
           },
           {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"requestId\\\":\\\"request_1\\\",\\\"message\\\":{\\\"id\\\":\\\"message_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Compare costs too\\\"}]},\\\"whenBusy\\\":\\\"queue\\\"}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"requestId\\\":\\\"request_1\\\",\\\"message\\\":{\\\"id\\\":\\\"message_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Compare costs too\\\"}]}}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
             "label": "PHP",
             "language": "php"
           },
           {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"requestId\\\":\\\"request_1\\\",\\\"message\\\":{\\\"id\\\":\\\"message_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Compare costs too\\\"}]},\\\"whenBusy\\\":\\\"queue\\\"}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"requestId\\\":\\\"request_1\\\",\\\"message\\\":{\\\"id\\\":\\\"message_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Compare costs too\\\"}]}}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
             "label": "Go",
             "language": "go"
           },
           {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"requestId\\\":\\\"request_1\\\",\\\"message\\\":{\\\"id\\\":\\\"message_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Compare costs too\\\"}]},\\\"whenBusy\\\":\\\"queue\\\"}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"requestId\\\":\\\"request_1\\\",\\\"message\\\":{\\\"id\\\":\\\"message_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Compare costs too\\\"}]}}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
             "label": "Java",
             "language": "java"
           },
           {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"requestId\\\":\\\"request_1\\\",\\\"message\\\":{\\\"id\\\":\\\"message_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Compare costs too\\\"}]},\\\"whenBusy\\\":\\\"queue\\\"}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"requestId\\\":\\\"request_1\\\",\\\"message\\\":{\\\"id\\\":\\\"message_1\\\",\\\"role\\\":\\\"user\\\",\\\"parts\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Compare costs too\\\"}]}}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
             "label": "Ruby",
             "language": "ruby"
           }
@@ -6200,11 +5998,11 @@ export const restApiOperations = [
         "operation": "submit-session-input",
         "path": "/v1/agents/:agentId/sessions/:sessionId/inputs",
         "responseMetadata": {
-          "description": "The saved input and the session's activity."
+          "description": "The steer receipt and the session's activity."
         },
         "responses": [
           {
-            "code": "{\n  \"data\": {\n    \"requestId\": \"request_1\",\n    \"sequence\": 1,\n    \"message\": {\n      \"id\": \"message_1\",\n      \"role\": \"user\",\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"Compare costs too\"\n        }\n      ]\n    },\n    \"mode\": \"queue\",\n    \"state\": \"accepted\",\n    \"turnId\": null,\n    \"createdAt\": \"2026-10-04T12:00:00Z\",\n    \"updatedAt\": \"2026-10-04T12:00:00Z\",\n    \"consumedAt\": null,\n    \"reason\": null\n  },\n  \"activity\": {\n    \"state\": \"idle\",\n    \"turnId\": null,\n    \"reason\": null\n  }\n}",
+            "code": "{\n  \"data\": {\n    \"requestId\": \"request_1\",\n    \"sequence\": 1,\n    \"message\": {\n      \"id\": \"message_1\",\n      \"role\": \"user\",\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"Compare costs too\"\n        }\n      ]\n    },\n    \"state\": \"accepted\",\n    \"turnId\": \"turn_4kP9sT2vXq7LmN3a\",\n    \"createdAt\": \"2026-10-04T12:00:00Z\",\n    \"updatedAt\": \"2026-10-04T12:00:00Z\",\n    \"reason\": null\n  },\n  \"activity\": {\n    \"state\": \"running\",\n    \"turnId\": \"turn_4kP9sT2vXq7LmN3a\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "202"
@@ -6261,315 +6059,6 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/submit-session-input"
       },
       {
-        "description": "Promote a pending input.",
-        "examples": [
-          {
-            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/$REQUEST_ID/promote\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
-            "label": "cURL",
-            "language": "bash"
-          },
-          {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/\" + os.environ[\"REQUEST_ID\"] + \"/promote\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers)\nprint(response.text)",
-            "label": "Python",
-            "language": "python"
-          },
-          {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/\" + process.env.REQUEST_ID + \"/promote\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
-            "label": "JavaScript",
-            "language": "javascript"
-          },
-          {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/\" . getenv(\"REQUEST_ID\") . \"/promote\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
-            "label": "PHP",
-            "language": "php"
-          },
-          {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/\" + os.Getenv(\"REQUEST_ID\") + \"/promote\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
-            "label": "Go",
-            "language": "go"
-          },
-          {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/\" + System.getenv(\"REQUEST_ID\") + \"/promote\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"POST\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
-            "label": "Java",
-            "language": "java"
-          },
-          {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/\" + ENV.fetch(\"REQUEST_ID\") + \"/promote\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
-            "label": "Ruby",
-            "language": "ruby"
-          }
-        ],
-        "method": "POST",
-        "operation": "promote-session-input",
-        "path": "/v1/agents/:agentId/sessions/:sessionId/inputs/:requestId/promote",
-        "responseMetadata": {
-          "description": "The existing input receipt."
-        },
-        "responses": [
-          {
-            "code": "{\n  \"data\": {\n    \"requestId\": \"request_1\",\n    \"sequence\": 1,\n    \"message\": {\n      \"id\": \"message_1\",\n      \"role\": \"user\",\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"Compare costs too\"\n        }\n      ]\n    },\n    \"mode\": \"queue\",\n    \"state\": \"accepted\",\n    \"turnId\": null,\n    \"createdAt\": \"2026-10-04T12:00:00Z\",\n    \"updatedAt\": \"2026-10-04T12:00:00Z\",\n    \"consumedAt\": null,\n    \"reason\": null\n  },\n  \"activity\": {\n    \"state\": \"idle\",\n    \"turnId\": null,\n    \"reason\": null\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "200"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "400"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "401"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "402"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "403"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "404"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"input_idempotency_conflict\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "409"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "500"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "503"
-          }
-        ],
-        "url": "/api-reference/rest-api/sessions/promote-session-input"
-      },
-      {
-        "description": "Delete a pending input.",
-        "examples": [
-          {
-            "code": "curl --request DELETE \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/$REQUEST_ID\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
-            "label": "cURL",
-            "language": "bash"
-          },
-          {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/\" + os.environ[\"REQUEST_ID\"]\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"DELETE\", url=url, headers=headers)\nprint(response.text)",
-            "label": "Python",
-            "language": "python"
-          },
-          {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/\" + process.env.REQUEST_ID;\n\nconst response = await fetch(url, { method: \"DELETE\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
-            "label": "JavaScript",
-            "language": "javascript"
-          },
-          {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/\" . getenv(\"REQUEST_ID\");\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"DELETE\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
-            "label": "PHP",
-            "language": "php"
-          },
-          {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/\" + os.Getenv(\"REQUEST_ID\")\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"DELETE\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
-            "label": "Go",
-            "language": "go"
-          },
-          {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/\" + System.getenv(\"REQUEST_ID\");\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"DELETE\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
-            "label": "Java",
-            "language": "java"
-          },
-          {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/\" + ENV.fetch(\"REQUEST_ID\"))\nrequest = Net::HTTPGenericRequest.new(\"DELETE\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
-            "label": "Ruby",
-            "language": "ruby"
-          }
-        ],
-        "method": "DELETE",
-        "operation": "delete-session-input",
-        "path": "/v1/agents/:agentId/sessions/:sessionId/inputs/:requestId",
-        "responseMetadata": {
-          "description": "The cancelled receipt."
-        },
-        "responses": [
-          {
-            "code": "{\n  \"data\": {\n    \"requestId\": \"request_1\",\n    \"sequence\": 1,\n    \"message\": {\n      \"id\": \"message_1\",\n      \"role\": \"user\",\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"Compare costs too\"\n        }\n      ]\n    },\n    \"mode\": \"queue\",\n    \"state\": \"cancelled\",\n    \"turnId\": null,\n    \"createdAt\": \"2026-10-04T12:00:00Z\",\n    \"updatedAt\": \"2026-10-04T12:00:00Z\",\n    \"consumedAt\": null,\n    \"reason\": \"deleted\"\n  },\n  \"activity\": {\n    \"state\": \"idle\",\n    \"turnId\": null,\n    \"reason\": null\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "200"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "400"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "401"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "402"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "403"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "404"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"input_idempotency_conflict\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "409"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "500"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "503"
-          }
-        ],
-        "url": "/api-reference/rest-api/sessions/delete-session-input"
-      },
-      {
-        "description": "Resume pending session inputs.",
-        "examples": [
-          {
-            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/resume\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
-            "label": "cURL",
-            "language": "bash"
-          },
-          {
-            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/resume\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers)\nprint(response.text)",
-            "label": "Python",
-            "language": "python"
-          },
-          {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/resume\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
-            "label": "JavaScript",
-            "language": "javascript"
-          },
-          {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/resume\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
-            "label": "PHP",
-            "language": "php"
-          },
-          {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/resume\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
-            "label": "Go",
-            "language": "go"
-          },
-          {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/resume\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"POST\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
-            "label": "Java",
-            "language": "java"
-          },
-          {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/resume\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
-            "label": "Ruby",
-            "language": "ruby"
-          }
-        ],
-        "method": "POST",
-        "operation": "resume-session-inputs",
-        "path": "/v1/agents/:agentId/sessions/:sessionId/inputs/resume",
-        "responseMetadata": {
-          "description": "The session’s activity."
-        },
-        "responses": [
-          {
-            "code": "{\n  \"activity\": {\n    \"state\": \"idle\",\n    \"turnId\": null,\n    \"reason\": null\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "200"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "400"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "401"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "402"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "403"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "404"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"input_idempotency_conflict\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "409"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "500"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "503"
-          }
-        ],
-        "url": "/api-reference/rest-api/sessions/resume-session-inputs"
-      },
-      {
         "description": "Stop a session turn.",
         "examples": [
           {
@@ -6616,7 +6105,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"stoppedTurnId\": \"turn_4kP9sT2vXq7LmN3a\",\n  \"activity\": {\n    \"state\": \"idle\",\n    \"turnId\": null,\n    \"reason\": null\n  }\n}",
+            "code": "{\n  \"stoppedTurnId\": \"turn_4kP9sT2vXq7LmN3a\",\n  \"activity\": {\n    \"state\": \"stopping\",\n    \"turnId\": \"turn_4kP9sT2vXq7LmN3a\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -6671,108 +6160,6 @@ export const restApiOperations = [
           }
         ],
         "url": "/api-reference/rest-api/sessions/stop-session-turn"
-      },
-      {
-        "description": "Run pending session inputs.",
-        "examples": [
-          {
-            "code": "curl --no-buffer --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/run\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{}'",
-            "label": "cURL",
-            "language": "bash"
-          },
-          {
-            "code": "import os\nimport sys\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/run\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body, stream=True)\nfor chunk in response.iter_content(chunk_size=None):\n    sys.stdout.buffer.write(chunk)\n    sys.stdout.buffer.flush()",
-            "label": "Python",
-            "language": "python"
-          },
-          {
-            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/run\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{}\" });\nfor await (const chunk of response.body) {\n  process.stdout.write(chunk);\n}",
-            "label": "JavaScript",
-            "language": "javascript"
-          },
-          {
-            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/run\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, false);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{}\");\n$response = curl_exec($curl);\ncurl_close($curl);",
-            "label": "PHP",
-            "language": "php"
-          },
-          {
-            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/run\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
-            "label": "Go",
-            "language": "go"
-          },
-          {
-            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/run\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());\n    response.body().transferTo(System.out);\n  }\n}",
-            "label": "Java",
-            "language": "java"
-          },
-          {
-            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/inputs/run\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{}\"\nNet::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") do |http|\n  http.request(request) do |response|\n    response.read_body { |chunk| $stdout.write(chunk) }\n  end\nend",
-            "label": "Ruby",
-            "language": "ruby"
-          }
-        ],
-        "method": "POST",
-        "operation": "run-session-inputs",
-        "path": "/v1/agents/:agentId/sessions/:sessionId/inputs/run",
-        "responseMetadata": {
-          "description": "The queued Turn as AI SDK UI message chunks."
-        },
-        "responses": [
-          {
-            "contentType": "text/event-stream",
-            "note": "Streaming response body",
-            "status": "200"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "400"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "401"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "402"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "403"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "404"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"input_idempotency_conflict\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "409"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "500"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "503"
-          }
-        ],
-        "url": "/api-reference/rest-api/sessions/run-session-inputs"
       }
     ],
     "pageId": "api-reference/rest-api/sessions.md",
