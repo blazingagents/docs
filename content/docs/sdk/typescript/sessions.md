@@ -34,9 +34,8 @@ Every method takes one input object and accepts an optional `abortSignal`. The s
 | [`promoteInput()`](#promote-input) | Steer a queued input into the running turn | `SessionInputResponse` |
 | [`deleteInput()`](#delete-input) | Withdraw a waiting input | `SessionInputResponse` |
 | [`stop()`](#stop) | Stop a turn and wait until it has stopped | `StopSessionResponse` |
-| [`resumeInputs()`](#resume-inputs) | Run the queue again after a pause | `ResumeSessionInputsResponse` |
-| [`joinInputTurn()`](#join-input-turn) | Stream a turn that runs queued inputs | `TerminalStreamResult` |
-| [`runInputs()`](#run-inputs) | Run the queue with your backend functions attached | `TerminalStreamResult` |
+| [`resumeInputs()`](#resume-inputs) | Let a paused queue run again | `ResumeSessionInputsResponse` |
+| [`runInputs()`](#run-inputs) | Run waiting inputs as one turn and stream it | `TerminalStreamResult` |
 
 ## Methods [#methods]
 
@@ -226,7 +225,7 @@ const { data: input, activity } = await client.sessions.submitInput({
 | `message` | `UIMessage` | yes | none | A user message with text and image parts |
 | `whenBusy` | `"queue" \| "steer"` | no | `"queue"` | Wait for the next turn, or join the running one |
 
-When the session is idle, the input starts a turn right away. Resending the same `requestId` with the same message and `whenBusy` returns the same input, so retry with the original values after a timeout. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `validation_failed`, `not_found`, [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `requestId` or `message.id` was already used for different content.
+A queued input, or any input sent to an idle session, waits until you call [`runInputs()`](#run-inputs). Resending the same `requestId` with the same message and `whenBusy` returns the same input, so retry with the original values after a timeout. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `validation_failed`, `not_found`, [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `requestId` or `message.id` was already used for different content.
 
 ### `inputs()` [#inputs]
 
@@ -287,11 +286,11 @@ if (activity.turnId && activity.state === "running") {
 }
 ```
 
-Take `turnId` from the session's activity. Stopping a turn that already ended succeeds, and never stops a later turn. The returned `activity` can show the next queued turn already running. Waiting inputs stay queued. Returns [`StopSessionResponse`](#stopsessionresponse). Errors: `validation_failed`, `not_found` for a turn that is not this session's, and `session_busy` while a tool approval waits.
+Take `turnId` from the session's activity. Stopping a turn that already ended succeeds, and never stops a later turn. Waiting inputs stay queued until you call [`runInputs()`](#run-inputs). Returns [`StopSessionResponse`](#stopsessionresponse). Errors: `validation_failed`, `not_found` for a turn that is not this session's, and `session_busy` while a tool approval waits.
 
 ### `resumeInputs()` [#resume-inputs]
 
-Runs the waiting queue again after a failed turn paused it.
+Lets the waiting queue run again after a failed turn paused it.
 
 **Signature:** `resumeInputs(input: { agentId: string; sessionId: string } & ResourceRequestOptions): Promise<ResumeSessionInputsResponse>`
 
@@ -299,43 +298,24 @@ Runs the waiting queue again after a failed turn paused it.
 const { activity } = await client.sessions.resumeInputs({ agentId, sessionId });
 ```
 
-Calling it twice starts only one turn, and `uncertain` inputs never run again. With nothing waiting, the session goes `idle`. It does not clear a `function_executor_required` pause; use [`runInputs()`](#run-inputs) for that. Returns [`ResumeSessionInputsResponse`](#resumesessioninputsresponse). Errors: `not_found`, `session_busy` while a tool approval waits.
-
-### `joinInputTurn()` [#join-input-turn]
-
-Streams a turn that Blazing Agents started from queued inputs, from its first chunk.
-
-**Signature:** `joinInputTurn(input: { agentId: string; sessionId: string; turnId: string; functions?: ChatFunctions } & ResourceRequestOptions): Promise<TerminalStreamResult>`
-
-```typescript
-const { activity } = await client.sessions.inputs({ agentId, sessionId });
-if (activity.turnId && activity.state === "running") {
-  const turn = await client.sessions.joinInputTurn({ agentId, sessionId, turnId: activity.turnId });
-  const response = turn.toResponse(); // return this from your route
-}
-```
-
-The stream uses the same format as `chat()`. Each join replays the turn from the beginning and then follows it live, so show the assistant message by its ID instead of appending it again. Joining never starts or restarts work, and closing the stream does not stop the turn; call [`stop()`](#stop) for that. Read the body once per join.
-
-Without `functions`, you only watch the turn. If the turn uses your [backend functions](/agents/tools/backend-functions), pass the same `functions` to run their calls from your backend. Returns [`TerminalStreamResult`](#terminalstreamresult). Errors: `not_found` for a turn that did not start from queued inputs or is not this session's, and `stream_error` for a broken stream.
+It starts no turn, so call [`runInputs()`](#run-inputs) next. `uncertain` inputs never run again. It does not clear a `function_executor_required` pause; pass your functions to `runInputs()` for that. Returns [`ResumeSessionInputsResponse`](#resumesessioninputsresponse). Errors: `not_found`, `session_busy` while a tool approval waits.
 
 ### `runInputs()` [#run-inputs]
 
-Runs the waiting queue in one turn with your backend functions attached, and streams it.
+Runs every waiting input, in order, as one turn and streams it to you.
 
 **Signature:** `runInputs(input: { agentId: string; sessionId: string; functions?: ChatFunctions } & ResourceRequestOptions): Promise<TerminalStreamResult>`
 
 ```typescript
-const { activity } = await client.sessions.inputs({ agentId, sessionId });
-if (activity.reason === "function_executor_required") {
-  const turn = await client.sessions.runInputs({ agentId, sessionId, functions });
-  const response = turn.toResponse(); // return this from your route
-}
+const turn = await client.sessions.runInputs({ agentId, sessionId });
+const response = turn.toResponse(); // return this from your route
 ```
 
-After a turn that used your backend functions, queued inputs never run on their own; the session pauses with the reason `function_executor_required`. Call `runInputs()` with the same functions to run every waiting input, in order, as one turn. It sends no new message, and it never runs a batch that is already running. To stream a batch that already started, call [`joinInputTurn()`](#join-input-turn) with your functions. The pause comes back after that turn, so call it again for later queued work.
+Queued inputs never start a turn on their own. Call `runInputs()` after a turn ends, when activity is `idle` and inputs are waiting. It sends no new message. The stream uses the same format as `chat()`. Only this call receives it, and it cannot be rejoined, so after a dropped connection read the answer from [`messages()`](#messages). Read the body once.
 
-Returns [`TerminalStreamResult`](#terminalstreamresult). Errors: `not_found`, and `session_busy` when nothing is waiting, a turn is running, or a tool approval waits.
+After a turn that used your [backend functions](/agents/tools/backend-functions), the session pauses with the reason `function_executor_required`. Pass the same `functions` to run the queue. The pause comes back after that turn, so pass them on every later run.
+
+Returns [`TerminalStreamResult`](#terminalstreamresult). Errors: `not_found`, and `session_busy` when nothing is waiting, a turn is running, a tool approval waits, or the queue is paused.
 
 ## Response types [#response-types]
 

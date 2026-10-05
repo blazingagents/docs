@@ -33,8 +33,7 @@ for session in page.data:
 | [`promote_input()`](#promote-input) | Steer a queued input into the running turn | `SessionInputResponse` |
 | [`delete_input()`](#delete-input) | Withdraw a waiting input | `SessionInputResponse` |
 | [`stop()`](#stop) | Stop a turn and wait until it has stopped | `SessionStopResponse` |
-| [`resume_inputs()`](#resume-inputs) | Run the queue again after a pause | `SessionActivityResponse` |
-| [`join_input_turn()`](#join-input-turn) | Watch a turn that runs queued inputs | `ByteStream` |
+| [`resume_inputs()`](#resume-inputs) | Let a paused queue run again | `SessionActivityResponse` |
 
 ## Methods [#methods]
 
@@ -218,7 +217,7 @@ print(result.data.state, result.activity.state)
 | `message` | `Mapping[str, object]` | required | A user message with text and image parts |
 | `when_busy` | `"queue"` or `"steer"` | `"queue"` | Wait for the next turn, or join the running one |
 
-When the session is idle, the input starts a turn right away. Resending the same `request_id` with the same message and `when_busy` returns the same input, so retry with the original values after a timeout. Raises `validation_failed`, `not_found`, or [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `request_id` or message ID was already used for different content.
+A queued input, or any input sent to an idle session, waits until you call [`client.run_inputs()`](/sdk/python/client#run-inputs). Resending the same `request_id` with the same message and `when_busy` returns the same input, so retry with the original values after a timeout. Raises `validation_failed`, `not_found`, or [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `request_id` or message ID was already used for different content.
 
 ### `inputs()` [#inputs]
 
@@ -283,11 +282,11 @@ if activity.turn_id is not None and activity.state == "running":
 
 **Signature:** `stop(*, agent_id: str, session_id: str, turn_id: str) -> SessionStopResponse`
 
-Take `turn_id` from the session's activity. Stopping a turn that already ended succeeds, and never stops a later turn. The returned `activity` can show the next queued turn already running. Waiting inputs stay queued. Raises `validation_failed`, `not_found` for a turn that is not this session's, or `session_busy` while a tool approval waits.
+Take `turn_id` from the session's activity. Stopping a turn that already ended succeeds, and never stops a later turn. Waiting inputs stay queued until you call [`client.run_inputs()`](/sdk/python/client#run-inputs). Raises `validation_failed`, `not_found` for a turn that is not this session's, or `session_busy` while a tool approval waits.
 
 ### `resume_inputs()` [#resume-inputs]
 
-Runs the waiting queue again after a failed turn paused it.
+Lets the waiting queue run again after a failed turn paused it.
 
 ```python
 result = client.sessions.resume_inputs(agent_id=agent_id, session_id=session_id)
@@ -295,25 +294,7 @@ result = client.sessions.resume_inputs(agent_id=agent_id, session_id=session_id)
 
 **Signature:** `resume_inputs(*, agent_id: str, session_id: str) -> SessionActivityResponse`
 
-Calling it twice starts only one turn, and `uncertain` inputs never run again. With nothing waiting, the session goes `"idle"`. It does not clear a `function_executor_required` pause; call [`client.run_inputs()`](/sdk/python/client#run-inputs) for that. Raises `not_found`, or `session_busy` while a tool approval waits.
-
-### `join_input_turn()` [#join-input-turn]
-
-Streams a turn that Blazing Agents started from queued inputs, from its first chunk, in the same AI SDK SSE format as `chat()`.
-
-```python
-activity = client.sessions.inputs(agent_id=agent_id, session_id=session_id).activity
-if activity.turn_id is not None and activity.state == "running":
-    with client.sessions.join_input_turn(
-        agent_id=agent_id, session_id=session_id, turn_id=activity.turn_id
-    ) as stream:
-        for chunk in stream:
-            print(chunk.decode(), end="")
-```
-
-**Signature:** `join_input_turn(*, agent_id: str, session_id: str, turn_id: str) -> ByteStream`
-
-Each join replays the turn from the beginning and then follows it live, so show the assistant message by its ID instead of appending it again. Joining never starts or restarts work, and closing the stream does not stop the turn. This method only watches. It removes private backend function events without running handlers. To run them, call [`client.join_input_turn()`](/sdk/python/client#join-input-turn) with your functions. Raises `not_found` for a turn that did not start from queued inputs or is not this session's. Reading the stream can raise `StreamError`.
+It starts no turn, so call [`client.run_inputs()`](/sdk/python/client#run-inputs) next. `uncertain` inputs never run again. It does not clear a `function_executor_required` pause; pass your functions to `client.run_inputs()` for that. Raises `not_found`, or `session_busy` while a tool approval waits.
 
 ## Response models [#response-models]
 
