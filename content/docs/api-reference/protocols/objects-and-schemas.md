@@ -118,7 +118,7 @@ See [SDK Workspaces](/sdk/typescript/workspaces),
 
 ### AgentConfig [#agentconfig]
 
-`agentConfigSchema` / `AgentConfig` contains the saved name, provider and model IDs, thinking level, instructions, tool groups, MCP connection IDs, approval policies, compaction settings, memory injection setting, and metadata. It excludes identity, timestamps, status, avatar, workspace attachment, credentials, and executable callback handlers. A session saves it at its first turn; a task run saves it when queued.
+`agentConfigSchema` / `AgentConfig` contains the saved name, provider and model IDs, thinking level, instructions, tool groups, MCP connection IDs, approval policies, compaction settings, memory injection setting, and metadata. It excludes identity, timestamps, status, avatar, workspace attachment, credentials, and executable callback handlers. A chat-created session saves it at its first turn; a fork inherits the source snapshot at creation; a task run saves it when queued.
 
 See [Configuration snapshots and lifecycle](/agents/configuration-snapshots).
 
@@ -141,7 +141,7 @@ See [SDK Sessions](/sdk/typescript/sessions),
 
 ### SessionResponse [#sessionresponse]
 
-`sessionResponseSchema` / `SessionResponse` extends the compact session summary with required `agentConfig`. Read it with `GET /v1/agents/{agentId}/sessions/{sessionId}`. Message pages contain no configuration.
+`sessionResponseSchema` / `SessionResponse` extends the compact session summary with required `agentConfig` and nullable `forkedFrom`. Ordinary sessions return `null`; children return `{ sessionId, messageId }` identifying the source and selected accepted assistant reply. This provenance is informational. Fork responses use the same shape; lists omit provenance. Read it with `GET /v1/agents/{agentId}/sessions/{sessionId}`. Message pages contain no configuration.
 
 ### LatestSessionListItem [#latestsessionlistitem]
 
@@ -165,7 +165,7 @@ See [SDK Sessions](/sdk/typescript/sessions#list-latest),
 
 `sessionMessageSchema` / `SessionMessage` is the public AI SDK `UIMessage`
 shape: a non-empty `id`, role `system`, `user`, or `assistant`, a non-empty
-parts array, and optional metadata. Parts are extensible AI SDK objects. The
+parts array, required top-level `branchable` boolean, and optional metadata. `branchable` is server-owned eligibility for Session forking. Persisted user, system, and unaccepted assistant messages have `branchable: false`. Live stream chunks need not carry this field. A missing or not-yet-persisted reply is ineligible. Task transcripts use the same message shape; there is no Task-run fork operation. Parts are extensible AI SDK objects. The
 platform owns the stored transcript.
 
 See [SDK Session messages](/sdk/typescript/sessions#messages),

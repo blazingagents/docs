@@ -5085,7 +5085,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"ss_6Rt2Mw8KqZ4Nc1Hp\",\n  \"messageCount\": 4,\n  \"lastMessagePreview\": \"Open Settings, choose Security, and select Reset password.\",\n  \"userId\": \"user_42\",\n  \"metadata\": {\n    \"plan\": \"pro\"\n  },\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:05:00.000Z\",\n  \"agentConfig\": {\n    \"approvalInChat\": {\n      \"default\": \"full\",\n      \"overrides\": []\n    },\n    \"approvalInTasks\": {\n      \"default\": \"full\",\n      \"overrides\": []\n    },\n    \"name\": \"Support Agent\",\n    \"model\": \"openai/gpt-6-luna\",\n    \"thinkingLevel\": null,\n    \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n    \"autoCompaction\": true,\n    \"compactionReserveTokens\": 16384,\n    \"memoryInjectionEnabled\": false,\n    \"tools\": [\n      \"workspace\",\n      \"write_todos\"\n    ],\n    \"instructions\": \"Answer billing questions clearly and briefly.\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"mcpConnectionIds\": []\n  }\n}",
+            "code": "{\n  \"id\": \"ss_6Rt2Mw8KqZ4Nc1Hp\",\n  \"messageCount\": 4,\n  \"lastMessagePreview\": \"Open Settings, choose Security, and select Reset password.\",\n  \"userId\": \"user_42\",\n  \"metadata\": {\n    \"plan\": \"pro\"\n  },\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:05:00.000Z\",\n  \"agentConfig\": {\n    \"approvalInChat\": {\n      \"default\": \"full\",\n      \"overrides\": []\n    },\n    \"approvalInTasks\": {\n      \"default\": \"full\",\n      \"overrides\": []\n    },\n    \"name\": \"Support Agent\",\n    \"model\": \"openai/gpt-6-luna\",\n    \"thinkingLevel\": null,\n    \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n    \"autoCompaction\": true,\n    \"compactionReserveTokens\": 16384,\n    \"memoryInjectionEnabled\": false,\n    \"tools\": [\n      \"workspace\",\n      \"write_todos\"\n    ],\n    \"instructions\": \"Answer billing questions clearly and briefly.\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"mcpConnectionIds\": []\n  },\n  \"forkedFrom\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -5345,6 +5345,124 @@ export const restApiOperations = [
         "url": "/api-reference/rest-api/sessions/delete-session"
       },
       {
+        "description": "Fork a session at an accepted assistant message.",
+        "examples": [
+          {
+            "code": "curl --request POST \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/fork\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"messageId\":\"msg_9Kd3Vx7PqT2bLn5W\"}'",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/fork\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"messageId\\\":\\\"msg_9Kd3Vx7PqT2bLn5W\\\"}\"\n\nresponse = requests.request(method=\"POST\", url=url, headers=headers, data=body)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/fork\";\n\nconst response = await fetch(url, { method: \"POST\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"messageId\\\":\\\"msg_9Kd3Vx7PqT2bLn5W\\\"}\" });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/fork\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"messageId\\\":\\\"msg_9Kd3Vx7PqT2bLn5W\\\"}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/fork\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"messageId\\\":\\\"msg_9Kd3Vx7PqT2bLn5W\\\"}\")\n\trequest, err := http.NewRequest(\"POST\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/fork\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"messageId\\\":\\\"msg_9Kd3Vx7PqT2bLn5W\\\"}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/fork\")\nrequest = Net::HTTPGenericRequest.new(\"POST\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"messageId\\\":\\\"msg_9Kd3Vx7PqT2bLn5W\\\"}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "POST",
+        "operation": "fork-session",
+        "path": "/v1/agents/:agentId/sessions/:sessionId/fork",
+        "responseMetadata": {
+          "description": "The previously created Session.",
+          "schema": {
+            "name": "Session"
+          }
+        },
+        "responses": [
+          {
+            "code": "{\n  \"id\": \"ss_6Rt2Mw8KqZ4Nc1Hp\",\n  \"messageCount\": 4,\n  \"lastMessagePreview\": \"Open Settings, choose Security, and select Reset password.\",\n  \"userId\": \"user_42\",\n  \"metadata\": {\n    \"plan\": \"pro\"\n  },\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:05:00.000Z\",\n  \"agentConfig\": {\n    \"approvalInChat\": {\n      \"default\": \"full\",\n      \"overrides\": []\n    },\n    \"approvalInTasks\": {\n      \"default\": \"full\",\n      \"overrides\": []\n    },\n    \"name\": \"Support Agent\",\n    \"model\": \"openai/gpt-6-luna\",\n    \"thinkingLevel\": null,\n    \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n    \"autoCompaction\": true,\n    \"compactionReserveTokens\": 16384,\n    \"memoryInjectionEnabled\": false,\n    \"tools\": [\n      \"workspace\",\n      \"write_todos\"\n    ],\n    \"instructions\": \"Answer billing questions clearly and briefly.\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"mcpConnectionIds\": []\n  },\n  \"forkedFrom\": {\n    \"sessionId\": \"ss_7Rt2Mw8KqZ4Nc1Hp\",\n    \"messageId\": \"msg_9Kd3Vx7PqT2bLn5W\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"id\": \"ss_6Rt2Mw8KqZ4Nc1Hp\",\n  \"messageCount\": 4,\n  \"lastMessagePreview\": \"Open Settings, choose Security, and select Reset password.\",\n  \"userId\": \"user_42\",\n  \"metadata\": {\n    \"plan\": \"pro\"\n  },\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:05:00.000Z\",\n  \"agentConfig\": {\n    \"approvalInChat\": {\n      \"default\": \"full\",\n      \"overrides\": []\n    },\n    \"approvalInTasks\": {\n      \"default\": \"full\",\n      \"overrides\": []\n    },\n    \"name\": \"Support Agent\",\n    \"model\": \"openai/gpt-6-luna\",\n    \"thinkingLevel\": null,\n    \"providerId\": \"prv_7Tn4Kd9QwE2sLx5R\",\n    \"autoCompaction\": true,\n    \"compactionReserveTokens\": 16384,\n    \"memoryInjectionEnabled\": false,\n    \"tools\": [\n      \"workspace\",\n      \"write_todos\"\n    ],\n    \"instructions\": \"Answer billing questions clearly and briefly.\",\n    \"metadata\": {\n      \"team\": \"support\"\n    },\n    \"mcpConnectionIds\": []\n  },\n  \"forkedFrom\": {\n    \"sessionId\": \"ss_7Rt2Mw8KqZ4Nc1Hp\",\n    \"messageId\": \"msg_9Kd3Vx7PqT2bLn5W\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "201"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "404"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"idempotency_conflict\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "409"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"session_fork_deleted\",\n    \"message\": \"The resource was deleted.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "410"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/sessions/fork-session"
+      },
+      {
         "description": "List session messages.",
         "examples": [
           {
@@ -5394,7 +5512,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"data\": [\n    {\n      \"id\": \"msg_client_1\",\n      \"role\": \"user\",\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"How do I reset my password?\"\n        }\n      ]\n    },\n    {\n      \"id\": \"msg_9Kd3Vx7PqT2bLn5W\",\n      \"role\": \"assistant\",\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"Open Settings, choose Security, and select Reset password.\"\n        }\n      ]\n    }\n  ],\n  \"nextCursor\": null,\n  \"latestCursor\": \"eyJzZXEiOjJ9\"\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"msg_client_1\",\n      \"role\": \"user\",\n      \"branchable\": false,\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"How do I reset my password?\"\n        }\n      ]\n    },\n    {\n      \"id\": \"msg_9Kd3Vx7PqT2bLn5W\",\n      \"role\": \"assistant\",\n      \"branchable\": true,\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"Open Settings, choose Security, and select Reset password.\"\n        }\n      ]\n    }\n  ],\n  \"nextCursor\": null,\n  \"latestCursor\": \"eyJzZXEiOjJ9\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -10142,7 +10260,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"data\": [\n    {\n      \"id\": \"msg_7Rk2Wq9TdN4vLb3X\",\n      \"role\": \"assistant\",\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"Yesterday had 14 open cases. Two are overdue: a refund request and a login issue.\"\n        }\n      ]\n    }\n  ],\n  \"nextCursor\": null,\n  \"latestCursor\": \"eyJzZXEiOjEyfQ\",\n  \"status\": \"succeeded\",\n  \"error\": null,\n  \"finishedAt\": \"2026-07-10T10:03:00.000Z\"\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"msg_7Rk2Wq9TdN4vLb3X\",\n      \"role\": \"assistant\",\n      \"branchable\": false,\n      \"parts\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"Yesterday had 14 open cases. Two are overdue: a refund request and a login issue.\"\n        }\n      ]\n    }\n  ],\n  \"nextCursor\": null,\n  \"latestCursor\": \"eyJzZXEiOjEyfQ\",\n  \"status\": \"succeeded\",\n  \"error\": null,\n  \"finishedAt\": \"2026-07-10T10:03:00.000Z\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"

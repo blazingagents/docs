@@ -7,7 +7,7 @@ description: Hold conversations with an agent, read their history, and decide to
 
 ## Overview [#overview]
 
-A session is a conversation Blazing Agents keeps for you, so each new turn sees everything said before. Use these endpoints to start a conversation, continue it, read its history, delete it, and handle tool approvals. A session is saved as soon as its first turn is accepted, before the model runs. Continuing a session never creates one that is missing.
+A session is a conversation Blazing Agents keeps for you, so each new turn continues its saved context. Use these endpoints to start a conversation, continue it, read its history, delete it, and handle tool approvals. A session is saved as soon as its first turn is accepted, before the model runs. Continuing a session never creates one that is missing.
 
 ## Policy-driven approvals [#policy-driven-approvals]
 
@@ -21,6 +21,14 @@ that request. See
 Approval records also carry `tool`, `assistantMessageId`, `createdAt`, and
 `decidedAt`. Some of these fields are optional, so do not require them; see
 [tool approval metadata](/api-reference/protocols/objects-and-schemas#tool-approval-metadata).
+
+## Fork a session [#fork-a-session]
+
+`POST /v1/agents/{agentId}/sessions/{sessionId}/fork` takes exactly `{ "messageId": "..." }` and a required nonblank `Idempotency-Key` header of at most 200 characters. Select an accepted assistant message with top-level `branchable: true` from the transcript. The new idle session includes that reply and earlier history. An earlier eligible reply can be selected while the source runs; streaming replies and pending approvals are ineligible. Live stream chunks need not carry `branchable`; use persisted transcript messages, and treat missing replies as ineligible.
+
+Save the key and reuse it with the same source and message after a lost response. Creation returns `201`; identical replay returns `200` with the same child, even after source deletion. A changed message under that key returns `idempotency_conflict` (`409`), an unavailable selection returns `session_fork_unavailable` (`409`), and a replay of a deleted child returns `session_fork_deleted` (`410`). A missing or inaccessible source or agent returns `not_found` (`404`).
+
+Forking runs no model or tool and adds no usage. Continue with the returned child's session ID; later turns incur normal usage. The child inherits saved agent configuration, metadata, and user label. Workspace files and memories remain shared and live. Details returned by get and fork include required nullable `forkedFrom`, with `{ sessionId, messageId }` for children and `null` for ordinary sessions. Session lists omit it.
 
 ## Session inputs [#session-inputs]
 
@@ -270,7 +278,8 @@ Response schema: `Session`.
       "team": "support"
     },
     "mcpConnectionIds": []
-  }
+  },
+  "forkedFrom": null
 }
 ```
 
@@ -384,6 +393,144 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/se
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
+### POST /v1/agents/:agentId/sessions/:sessionId/fork [#fork-session]
+
+Fork a session at an accepted assistant message.
+
+Copies the conversation through the selected branchable assistant message, inclusive, into an idle Session. Inherits saved agent configuration, metadata and userId. Runs no model or Tool. Workspace files and Memories remain shared and live. Reuse the same Idempotency-Key after uncertain acknowledgement. A different message with that key conflicts; a deleted child returns 410. An earlier accepted message remains eligible while the source is running.
+
+#### Request
+
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+
+| Field | Type | Location | Required | Description |
+| --- | --- | --- | --- | --- |
+| `agentId` | string | path | required | ID of the agent. |
+| `sessionId` | string | path | required | ID of the session. |
+| `idempotency-key` | string | header | required | Unique key for this fork action. Reuse it when retrying the same request. 1–200 characters. |
+| `messageId` | string | body | required | ID of the accepted assistant message to include as the final inherited message. |
+
+#### Response
+
+Returns `200 OK` as `application/json`. The previously created Session.
+
+Response schema: `Session`.
+
+```json
+{
+  "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
+  "messageCount": 4,
+  "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
+  "userId": "user_42",
+  "metadata": {
+    "plan": "pro"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:05:00.000Z",
+  "agentConfig": {
+    "approvalInChat": {
+      "default": "full",
+      "overrides": []
+    },
+    "approvalInTasks": {
+      "default": "full",
+      "overrides": []
+    },
+    "name": "Support Agent",
+    "model": "openai/gpt-6-luna",
+    "thinkingLevel": null,
+    "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+    "autoCompaction": true,
+    "compactionReserveTokens": 16384,
+    "memoryInjectionEnabled": false,
+    "tools": [
+      "workspace",
+      "write_todos"
+    ],
+    "instructions": "Answer billing questions clearly and briefly.",
+    "metadata": {
+      "team": "support"
+    },
+    "mcpConnectionIds": []
+  },
+  "forkedFrom": {
+    "sessionId": "ss_7Rt2Mw8KqZ4Nc1Hp",
+    "messageId": "msg_9Kd3Vx7PqT2bLn5W"
+  }
+}
+```
+
+Returns `201 Created` as `application/json`. The new idle Session.
+
+Response schema: `Session`.
+
+```json
+{
+  "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
+  "messageCount": 4,
+  "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
+  "userId": "user_42",
+  "metadata": {
+    "plan": "pro"
+  },
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:05:00.000Z",
+  "agentConfig": {
+    "approvalInChat": {
+      "default": "full",
+      "overrides": []
+    },
+    "approvalInTasks": {
+      "default": "full",
+      "overrides": []
+    },
+    "name": "Support Agent",
+    "model": "openai/gpt-6-luna",
+    "thinkingLevel": null,
+    "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+    "autoCompaction": true,
+    "compactionReserveTokens": 16384,
+    "memoryInjectionEnabled": false,
+    "tools": [
+      "workspace",
+      "write_todos"
+    ],
+    "instructions": "Answer billing questions clearly and briefly.",
+    "metadata": {
+      "team": "support"
+    },
+    "mcpConnectionIds": []
+  },
+  "forkedFrom": {
+    "sessionId": "ss_7Rt2Mw8KqZ4Nc1Hp",
+    "messageId": "msg_9Kd3Vx7PqT2bLn5W"
+  }
+}
+```
+
+#### Errors
+
+| Status | Codes | Description |
+| --- | --- | --- |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
+| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
+| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `409` | [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict), [`session_fork_unavailable`](/api-reference/protocols/errors#session_fork_unavailable) | The request conflicts with the resource's current state |
+| `410` | [`session_fork_deleted`](/api-reference/protocols/errors#session_fork_deleted) | The resource was deleted |
+
+See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
+
+#### cURL
+
+```bash
+curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567890ABCDEF/fork" \
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"messageId":"msg_9Kd3Vx7PqT2bLn5W"}'
+```
+
 ### GET /v1/agents/:agentId/sessions/:sessionId/messages [#list-session-messages]
 
 List session messages.
@@ -414,6 +561,7 @@ Response schema: `SessionMessageList`.
     {
       "id": "msg_client_1",
       "role": "user",
+      "branchable": false,
       "parts": [
         {
           "type": "text",
@@ -424,6 +572,7 @@ Response schema: `SessionMessageList`.
     {
       "id": "msg_9Kd3Vx7PqT2bLn5W",
       "role": "assistant",
+      "branchable": true,
       "parts": [
         {
           "type": "text",
