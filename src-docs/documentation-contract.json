@@ -1031,6 +1031,18 @@
             "metadata": {
               "tab": "Python"
             }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -1688,7 +1700,8 @@
           "tool-approvals",
           "submit-input",
           "inputs",
-          "stop"
+          "stop",
+          "fork"
         ],
         "kind": "methods"
       },
@@ -1698,6 +1711,10 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
           {
             "language": "typescript",
             "metadata": {}
@@ -2546,7 +2563,8 @@
           "delete",
           "submit-input",
           "inputs",
-          "stop"
+          "stop",
+          "fork"
         ],
         "kind": "methods"
       },
@@ -2556,6 +2574,10 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
           {
             "language": "python",
             "metadata": {}
@@ -3456,6 +3478,7 @@
           "get-session",
           "resume-session-turn",
           "delete-session",
+          "fork-session",
           "list-session-messages",
           "list-tool-approvals",
           "continue-tool-approvals",

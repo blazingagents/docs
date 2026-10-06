@@ -145,9 +145,10 @@
       "group": "requests-and-validation",
       "statuses": [409],
       "title": "This idempotency key belongs to a different request.",
-      "whatHappened": "A task create request reused a key with different task fields, or the original task was deleted. No new task or run was created.",
+      "whatHappened": "A task create request reused a key with different task fields, or the original task was deleted. No new task or run was created. A session fork reused a key with a different selected message.",
       "howToFix": [
-        "Retry with the original request fields, or use a new key for a different task."
+        "Retry with the original request fields, or use a new key for a different task.",
+        "For a fork retry, keep the original source, message ID, and key. Use a new key only for a separate fork request."
       ],
       "retryable": false
     },
@@ -942,6 +943,28 @@
         "Retry after a short wait with backoff."
       ],
       "retryable": true
+    },
+    {
+      "code": "session_fork_unavailable",
+      "group": "sessions-and-turns",
+      "statuses": [409],
+      "title": "The selected reply cannot be forked.",
+      "whatHappened": "The selected message was removed or is not an accepted assistant reply eligible for forking.",
+      "howToFix": [
+        "Reload the transcript and select a message with `branchable: true`."
+      ],
+      "retryable": false
+    },
+    {
+      "code": "session_fork_deleted",
+      "group": "sessions-and-turns",
+      "statuses": [410],
+      "title": "The child from this fork request was deleted.",
+      "whatHappened": "You retried a successful fork whose child session has since been deleted. The retry does not recreate it.",
+      "howToFix": [
+        "Stop retrying this request. Use a new key only if you intend to create another fork from an eligible source."
+      ],
+      "retryable": false
     }
   ]
 }

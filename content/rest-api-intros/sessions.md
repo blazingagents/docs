@@ -5,7 +5,7 @@ description: Hold conversations with an agent, read their history, and decide to
 
 ## Overview [#overview]
 
-A session is a conversation Blazing Agents keeps for you, so each new turn sees everything said before. Use these endpoints to start a conversation, continue it, read its history, delete it, and handle tool approvals. A session is saved as soon as its first turn is accepted, before the model runs. Continuing a session never creates one that is missing.
+A session is a conversation Blazing Agents keeps for you, so each new turn continues its saved context. Use these endpoints to start a conversation, continue it, read its history, delete it, and handle tool approvals. A session is saved as soon as its first turn is accepted, before the model runs. Continuing a session never creates one that is missing.
 
 ## Policy-driven approvals [#policy-driven-approvals]
 
@@ -19,6 +19,14 @@ that request. See
 Approval records also carry `tool`, `assistantMessageId`, `createdAt`, and
 `decidedAt`. Some of these fields are optional, so do not require them; see
 [tool approval metadata](/api-reference/protocols/objects-and-schemas#tool-approval-metadata).
+
+## Fork a session [#fork-a-session]
+
+`POST /v1/agents/{agentId}/sessions/{sessionId}/fork` takes exactly `{ "messageId": "..." }` and a required nonblank `Idempotency-Key` header of at most 200 characters. Select an accepted assistant message with top-level `branchable: true` from the transcript. The new idle session includes that reply and earlier history. An earlier eligible reply can be selected while the source runs; streaming replies and pending approvals are ineligible. Live stream chunks need not carry `branchable`; use persisted transcript messages, and treat missing replies as ineligible.
+
+Save the key and reuse it with the same source and message after a lost response. Creation returns `201`; identical replay returns `200` with the same child, even after source deletion. A changed message under that key returns `idempotency_conflict` (`409`), an unavailable selection returns `session_fork_unavailable` (`409`), and a replay of a deleted child returns `session_fork_deleted` (`410`). A missing or inaccessible source or agent returns `not_found` (`404`).
+
+Forking runs no model or tool and adds no usage. Continue with the returned child's session ID; later turns incur normal usage. The child inherits saved agent configuration, metadata, and user label. Workspace files and memories remain shared and live. Details returned by get and fork include required nullable `forkedFrom`, with `{ sessionId, messageId }` for children and `null` for ordinary sessions. Session lists omit it.
 
 ## Session inputs [#session-inputs]
 

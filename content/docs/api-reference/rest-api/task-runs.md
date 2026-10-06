@@ -283,6 +283,7 @@ Response schema: `TaskRunMessageList`.
     {
       "id": "msg_7Rk2Wq9TdN4vLb3X",
       "role": "assistant",
+      "branchable": false,
       "parts": [
         {
           "type": "text",

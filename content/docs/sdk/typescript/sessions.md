@@ -24,6 +24,7 @@ Every method takes one input object and accepts an optional `abortSignal`. The s
 | [`list()`](#list) | List one agent's sessions | `SessionsListResponse` |
 | [`listLatest()`](#list-latest) | List recent sessions across agents | `LatestSessionsListResponse` |
 | [`get()`](#get) | Read one session and its saved `agentConfig` | `SessionResponse` |
+| [`fork()`](#fork) | Copy a conversation through an accepted assistant reply | `SessionResponse` |
 | [`messages()`](#messages) | Load or poll a session's messages | `SessionMessagesResponse` |
 | [`delete()`](#delete) | Delete a session for good | `void` |
 | [`toolApprovals()`](#tool-approvals) | List the session's tool approvals | `ToolApprovalsResponse` |
@@ -79,7 +80,7 @@ Use `byAgent: true` to build an inbox with one row per agent, instead of calling
 
 ### `get()` [#get]
 
-Reads one session with the configuration saved at its first turn. Session lists remain compact, and message pages contain only transcript messages.
+Reads one session with its saved configuration. Session lists remain compact, and message pages contain only transcript messages.
 
 **Signature:** `get(input: { agentId: string; sessionId: string } & ResourceRequestOptions): Promise<SessionResponse>`
 
@@ -210,6 +211,29 @@ if (activity.turnId && activity.state === "running") {
 
 Take `turnId` from the session's activity. Retrying with the same `turnId` never stops a later turn. Returns [`StopSessionResponse`](#stopsessionresponse). Errors: `validation_failed`, and `not_found` for a turn that is not this session's.
 
+### `fork()` [#fork]
+
+Creates an idle child session through a selected accepted assistant message, including that reply.
+
+**Signature:** `fork(input: { agentId: string; sessionId: string; messageId: string; idempotencyKey: string } & ResourceRequestOptions): Promise<SessionResponse>`
+
+```typescript
+const page = await client.sessions.messages({ agentId, sessionId });
+const selected = page.data.find((message) => message.branchable);
+if (!selected) throw new Error("Choose an accepted assistant reply first.");
+const idempotencyKey = crypto.randomUUID();
+const child = await client.sessions.fork({
+  agentId, sessionId, messageId: selected.id, idempotencyKey,
+});
+console.log(child.id, child.forkedFrom);
+```
+
+Select a message whose top-level `branchable` is `true`. Streaming replies and pending approvals are ineligible. Eligibility comes from persisted transcript messages; live stream chunks need not carry `branchable`. A missing or not-yet-persisted reply is ineligible. An earlier accepted reply remains eligible while the source runs. The child inherits the source's saved configuration, user label, and metadata; workspace files and memories stay shared and live.
+
+Use a nonblank idempotency key of at most 200 characters. Save it before sending and reuse the exact source, message, and key after a lost response. Creation returns HTTP `201`; identical replay returns HTTP `200` and the same child, even if the source was deleted. Forking runs no model or tool and creates no usage. Continue through `chat()` with the child's ID; later turns have normal usage.
+
+Errors: `idempotency_conflict` (`409`) for the same key with another message, `session_fork_unavailable` (`409`) for a removed or ineligible reply, `session_fork_deleted` (`410`) for a replay whose child was deleted, and `not_found` (`404`) for a missing or inaccessible source or agent.
+
 ## Response types [#response-types]
 
 ### `SessionsListResponse` [#sessionslistresponse]
@@ -231,7 +255,7 @@ interface SessionListItem {
 }
 ```
 
-`SessionResponse` adds `agentConfig: AgentConfig` to a `SessionListItem`. It holds the saved settings for every turn in that session.
+`SessionResponse` adds `agentConfig: AgentConfig` and required `forkedFrom: { sessionId: string; messageId: string } | null` to a `SessionListItem`. Ordinary sessions have `forkedFrom: null`; a child names its source and selected reply. Lists omit provenance. It holds the saved settings for every turn in that session.
 
 ### `LatestSessionsListResponse` [#latestsessionslistresponse]
 
@@ -264,6 +288,7 @@ interface SessionMessage {
   id: string;
   role: "system" | "user" | "assistant";
   parts: Array<{ type: string; [key: string]: unknown }>;
+  branchable: boolean;
   metadata?: unknown;
 }
 ```

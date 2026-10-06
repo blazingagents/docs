@@ -9,7 +9,7 @@ Edit an agent whenever its next work needs different instructions, model, tools,
 
 ## Inspect saved settings [#inspect-saved-settings]
 
-Read a session to see the configuration its first turn saved:
+Read a session to see its saved configuration:
 
 ```typescript tab="TypeScript" tab-group="sdk-language"
 import { BlazingAgents } from "@blazingagents/sdk";
@@ -32,7 +32,7 @@ session = client.sessions.get(agent_id, session_id)
 print(session.agent_config.model, session.agent_config.instructions)
 ```
 
-A session saves its configuration when its first turn begins. Every later turn in that session uses those saved settings. Session lists show brief summaries; use `sessions.get()` for `agentConfig`. Transcript message pages contain messages, not the configuration.
+A session started through chat saves its configuration when its first turn begins. A fork saves the source session's configuration at creation, before any turn runs in the child. Every later turn in that session uses those saved settings. Session lists show brief summaries; use `sessions.get()` for `agentConfig`. Transcript message pages contain messages, not the configuration.
 
 A task run saves its configuration when it is queued. You can read it before the run creates a session:
 

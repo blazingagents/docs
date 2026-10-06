@@ -22,7 +22,7 @@ Each code links to its own entry. You can link straight to one, for example
 | [Auth and access](#auth-and-access) | [`unauthorized`](#unauthorized), [`forbidden`](#forbidden), [`api_key_limit_reached`](#api_key_limit_reached), [`tenant_deleting`](#tenant_deleting), [`tenant_deletion_in_progress`](#tenant_deletion_in_progress), [`tenant_deletion_not_ready`](#tenant_deletion_not_ready), [`tenant_not_deleting`](#tenant_not_deleting) |
 | [Requests and validation](#requests-and-validation) | [`invalid_request`](#invalid_request), [`idempotency_conflict`](#idempotency_conflict), [`validation_failed`](#validation_failed), [`not_found`](#not_found), [`invalid_cursor`](#invalid_cursor) |
 | [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
-| [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`input_idempotency_conflict`](#input_idempotency_conflict), [`steer_not_available`](#steer_not_available), [`message_id_conflict`](#message_id_conflict), [`message_not_found`](#message_not_found), [`tool_approval_continuation_settled`](#tool_approval_continuation_settled), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict) |
+| [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`input_idempotency_conflict`](#input_idempotency_conflict), [`steer_not_available`](#steer_not_available), [`message_id_conflict`](#message_id_conflict), [`message_not_found`](#message_not_found), [`tool_approval_continuation_settled`](#tool_approval_continuation_settled), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict), [`session_fork_unavailable`](#session_fork_unavailable), [`session_fork_deleted`](#session_fork_deleted) |
 | [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
 | [Tasks](#tasks) | [`task_active_run_exists`](#task_active_run_exists) |
 | [Quotas and billing](#quotas-and-billing) | [`quota_exceeded`](#quota_exceeded), [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`checkout_evidence_mismatch`](#checkout_evidence_mismatch), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_binding_required`](#merchant_binding_required), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable) |
@@ -307,13 +307,14 @@ To fix it:
 
 **This idempotency key belongs to a different request.**
 
-A task create request reused a key with different task fields, or the original task was deleted. No new task or run was created.
+A task create request reused a key with different task fields, or the original task was deleted. No new task or run was created. A session fork reused a key with a different selected message.
 
 HTTP `409`. Retrying the same request fails the same way until you fix the cause.
 
 To fix it:
 
 - Retry with the original request fields, or use a new key for a different task.
+- For a fork retry, keep the original source, message ID, and key. Use a new key only for a separate fork request.
 
 ### `validation_failed` [#validation_failed]
 
@@ -641,6 +642,30 @@ HTTP `409`. Retrying the same request fails the same way until you fix the cause
 To fix it:
 
 - Read the session's approvals and messages to see the saved decision. Treat a saved decision as final. See [tool approvals](/agents/tools/tool-approvals#retries-and-busy-sessions).
+
+### `session_fork_unavailable` [#session_fork_unavailable]
+
+**The selected reply cannot be forked.**
+
+The selected message was removed or is not an accepted assistant reply eligible for forking.
+
+HTTP `409`. Retrying the same request fails the same way until you fix the cause.
+
+To fix it:
+
+- Reload the transcript and select a message with `branchable: true`.
+
+### `session_fork_deleted` [#session_fork_deleted]
+
+**The child from this fork request was deleted.**
+
+You retried a successful fork whose child session has since been deleted. The retry does not recreate it.
+
+HTTP `410`. Retrying the same request fails the same way until you fix the cause.
+
+To fix it:
+
+- Stop retrying this request. Use a new key only if you intend to create another fork from an eligible source.
 
 ## Tools and MCP [#tools-and-mcp]
 

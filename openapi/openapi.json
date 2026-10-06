@@ -160,6 +160,8 @@
                   "workspace_in_use",
                   "workspace_busy",
                   "session_busy",
+                  "session_fork_unavailable",
+                  "session_fork_deleted",
                   "message_id_conflict",
                   "session_version_mismatch",
                   "tool_approval_continuation_settled",
@@ -3176,6 +3178,27 @@
               "metadata",
               "mcpConnectionIds"
             ]
+          },
+          "forkedFrom": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "sessionId": {
+                "type": "string",
+                "pattern": "^ss_[0-9A-Za-z]{16}$"
+              },
+              "messageId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "sessionId",
+              "messageId"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -3186,7 +3209,8 @@
           "metadata",
           "createdAt",
           "updatedAt",
-          "agentConfig"
+          "agentConfig",
+          "forkedFrom"
         ],
         "additionalProperties": false
       },
@@ -3210,6 +3234,9 @@
                     "assistant"
                   ]
                 },
+                "branchable": {
+                  "type": "boolean"
+                },
                 "parts": {
                   "type": "array",
                   "items": {
@@ -3232,6 +3259,7 @@
               "required": [
                 "id",
                 "role",
+                "branchable",
                 "parts"
               ],
               "additionalProperties": {}
@@ -7556,6 +7584,9 @@
                     "assistant"
                   ]
                 },
+                "branchable": {
+                  "type": "boolean"
+                },
                 "parts": {
                   "type": "array",
                   "items": {
@@ -7578,6 +7609,7 @@
               "required": [
                 "id",
                 "role",
+                "branchable",
                 "parts"
               ],
               "additionalProperties": {}
@@ -18272,7 +18304,8 @@
                       "team": "support"
                     },
                     "mcpConnectionIds": []
-                  }
+                  },
+                  "forkedFrom": null
                 },
                 "schema": {
                   "$ref": "#/components/schemas/Session"
@@ -18734,6 +18767,273 @@
         }
       }
     },
+    "/v1/agents/{agentId}/sessions/{sessionId}/fork": {
+      "post": {
+        "operationId": "forkSession",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Fork a session at an accepted assistant message",
+        "description": "Copies the conversation through the selected branchable assistant message, inclusive, into an idle Session. Inherits saved agent configuration, metadata and userId. Runs no model or Tool. Workspace files and Memories remain shared and live. Reuse the same Idempotency-Key after uncertain acknowledgement. A different message with that key conflicts; a deleted child returns 410. An earlier accepted message remains eligible while the source is running.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ss_[0-9A-Za-z]{16}$",
+              "description": "ID of the session."
+            },
+            "required": true,
+            "description": "ID of the session.",
+            "name": "sessionId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Unique key for this fork action. Reuse it when retrying the same request."
+            },
+            "required": true,
+            "description": "Unique key for this fork action. Reuse it when retrying the same request.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "messageId": "msg_9Kd3Vx7PqT2bLn5W"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "messageId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the accepted assistant message to include as the final inherited message."
+                  }
+                },
+                "required": [
+                  "messageId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The previously created Session",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
+                  "messageCount": 4,
+                  "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
+                  "userId": "user_42",
+                  "metadata": {
+                    "plan": "pro"
+                  },
+                  "createdAt": "2026-07-10T10:00:00.000Z",
+                  "updatedAt": "2026-07-10T10:05:00.000Z",
+                  "agentConfig": {
+                    "approvalInChat": {
+                      "default": "full",
+                      "overrides": []
+                    },
+                    "approvalInTasks": {
+                      "default": "full",
+                      "overrides": []
+                    },
+                    "name": "Support Agent",
+                    "model": "openai/gpt-6-luna",
+                    "thinkingLevel": null,
+                    "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                    "autoCompaction": true,
+                    "compactionReserveTokens": 16384,
+                    "memoryInjectionEnabled": false,
+                    "tools": [
+                      "workspace",
+                      "write_todos"
+                    ],
+                    "instructions": "Answer billing questions clearly and briefly.",
+                    "metadata": {
+                      "team": "support"
+                    },
+                    "mcpConnectionIds": []
+                  },
+                  "forkedFrom": {
+                    "sessionId": "ss_7Rt2Mw8KqZ4Nc1Hp",
+                    "messageId": "msg_9Kd3Vx7PqT2bLn5W"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "The new idle Session",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
+                  "messageCount": 4,
+                  "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
+                  "userId": "user_42",
+                  "metadata": {
+                    "plan": "pro"
+                  },
+                  "createdAt": "2026-07-10T10:00:00.000Z",
+                  "updatedAt": "2026-07-10T10:05:00.000Z",
+                  "agentConfig": {
+                    "approvalInChat": {
+                      "default": "full",
+                      "overrides": []
+                    },
+                    "approvalInTasks": {
+                      "default": "full",
+                      "overrides": []
+                    },
+                    "name": "Support Agent",
+                    "model": "openai/gpt-6-luna",
+                    "thinkingLevel": null,
+                    "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+                    "autoCompaction": true,
+                    "compactionReserveTokens": 16384,
+                    "memoryInjectionEnabled": false,
+                    "tools": [
+                      "workspace",
+                      "write_todos"
+                    ],
+                    "instructions": "Answer billing questions clearly and briefly.",
+                    "metadata": {
+                      "team": "support"
+                    },
+                    "mcpConnectionIds": []
+                  },
+                  "forkedFrom": {
+                    "sessionId": "ss_7Rt2Mw8KqZ4Nc1Hp",
+                    "messageId": "msg_9Kd3Vx7PqT2bLn5W"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "idempotency_conflict",
+              "session_fork_unavailable"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "The resource was deleted",
+            "x-error-codes": [
+              "session_fork_deleted"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/agents/{agentId}/sessions/{sessionId}/messages": {
       "get": {
         "operationId": "listSessionMessages",
@@ -18811,6 +19111,7 @@
                     {
                       "id": "msg_client_1",
                       "role": "user",
+                      "branchable": false,
                       "parts": [
                         {
                           "type": "text",
@@ -18821,6 +19122,7 @@
                     {
                       "id": "msg_9Kd3Vx7PqT2bLn5W",
                       "role": "assistant",
+                      "branchable": true,
                       "parts": [
                         {
                           "type": "text",
@@ -26352,6 +26654,7 @@
                     {
                       "id": "msg_7Rk2Wq9TdN4vLb3X",
                       "role": "assistant",
+                      "branchable": false,
                       "parts": [
                         {
                           "type": "text",
