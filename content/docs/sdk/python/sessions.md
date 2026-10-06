@@ -23,6 +23,7 @@ for session in page.data:
 | [`iter()`](#iter) | Iterate every session of an agent | `Iterator[Session]` |
 | [`list_latest()`](#list-latest) | Get recent sessions across agents | `LatestSessionsPage` |
 | [`get()`](#get) | Read saved session configuration | `SessionResponse` |
+| [`fork()`](#fork) | Copy a conversation through an accepted assistant reply | `SessionResponse` |
 | [`messages()`](#messages) | Read or poll the transcript | `SessionMessagesPage` |
 | [`tool_approvals()`](#tool-approvals) | List proposed tool calls | `ToolApprovals` |
 | [`delete()`](#delete) | Permanently delete a session | `None` |
@@ -79,7 +80,7 @@ Returns `LatestSessionsPage`. Each item has the [`Session`](#session) fields plu
 
 ### `get()` [#get]
 
-Reads the session and the agent configuration saved at its first turn.
+Reads the session and its saved agent configuration.
 
 ```python
 session = client.sessions.get(agent_id=agent_id, session_id=session_id)
@@ -88,7 +89,7 @@ print(session.agent_config.model)
 
 **Signature:** `get(agent_id: str, session_id: str) -> SessionResponse`
 
-`SessionResponse` adds required `agent_config` to the session summary. Lists remain compact, and message pages contain only transcript messages. Raises `validation_failed` or `not_found`.
+`SessionResponse` adds required `agent_config` and nullable `forked_from` to the session summary. Ordinary sessions return `None`; children return provenance with `session_id` and `message_id`. Lists omit provenance. Lists remain compact, and message pages contain only transcript messages. Raises `validation_failed` or `not_found`.
 
 ### `messages()` [#messages]
 
@@ -207,6 +208,35 @@ if activity.turn_id is not None and activity.state == "running":
 
 Take `turn_id` from the session's activity. Retrying with the same `turn_id` never stops a later turn. Raises `validation_failed`, or `not_found` for a turn that is not this session's.
 
+### `fork()` [#fork]
+
+Creates an idle child session through a selected accepted assistant message, including that reply.
+
+**Signature:** `fork(agent_id: str, session_id: str, *, message_id: str, idempotency_key: str) -> SessionResponse`
+
+```python
+import uuid
+
+page = client.sessions.messages(agent_id=agent_id, session_id=session_id)
+selected = next((message for message in page.data if message.branchable), None)
+if selected is None:
+    raise ValueError("Choose an accepted assistant reply first.")
+idempotency_key = str(uuid.uuid4())
+child = client.sessions.fork(
+    agent_id, session_id,
+    message_id=selected.id, idempotency_key=idempotency_key,
+)
+print(child.id, child.forked_from)
+```
+
+The async client has the same parameters; await `client.sessions.fork(...)`. `extra_headers` and `timeout` work as on other resource methods. The explicit `idempotency_key` takes precedence over an `Idempotency-Key` in `extra_headers`.
+
+Select a message whose top-level `branchable` is `true`. Streaming replies and pending approvals are ineligible. Eligibility comes from persisted transcript messages; live stream chunks need not carry `branchable`. A missing or not-yet-persisted reply is ineligible. An earlier accepted reply remains eligible while the source runs. The child inherits the source's saved configuration, user label, and metadata; workspace files and memories stay shared and live.
+
+Use a nonblank idempotency key of at most 200 characters. Save it before sending and reuse the exact source, message, and key after a lost response. Creation returns HTTP `201`; identical replay returns HTTP `200` and the same child, even if the source was deleted. Forking runs no model or tool and creates no usage. Continue through `chat()` with the child's ID; later turns have normal usage.
+
+Errors: `idempotency_conflict` (`409`) for the same key with another message, `session_fork_unavailable` (`409`) for a removed or ineligible reply, `session_fork_deleted` (`410`) for a replay whose child was deleted, and `not_found` (`404`) for a missing or inaccessible source or agent.
+
 ## Response models [#response-models]
 
 ### `Session` [#session]
@@ -220,7 +250,7 @@ Take `turn_id` from the session's activity. Retrying with the same `turn_id` nev
 | `metadata` | `dict[str, object]` | Your own data |
 | `created_at`, `updated_at` | `datetime` | Timestamps |
 
-A `SessionMessage` has `id`, `role` (`"system"`, `"user"`, or `"assistant"`), `parts`, and `metadata`. Each part has a `type` and keeps the rest of its fields as extra model data.
+A `SessionMessage` has `id`, `role` (`"system"`, `"user"`, or `"assistant"`), `parts`, top-level `branchable: bool`, and `metadata`. Each part has a `type` and keeps the rest of its fields as extra model data.
 
 ### `ToolApprovals` [#toolapprovals]
 

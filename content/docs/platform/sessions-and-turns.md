@@ -5,7 +5,7 @@ description: Keep a conversation going across requests, read its history, and ha
 
 # Sessions and turns
 
-A session is a conversation that Blazing Agents stores for you. Pass its ID on the next call and the agent sees everything said so far, so your backend never has to save or replay message history. Each call that runs the agent is a turn. Every turn is metered, whether or not it belongs to a session.
+A session is a conversation that Blazing Agents stores for you. Pass its ID on the next call and the agent continues with its saved conversation context, so your backend never has to save or replay message history. Each call that runs the agent is a turn. Every turn is metered, whether or not it belongs to a session.
 
 ## Continue a conversation [#continue-a-conversation]
 
@@ -77,6 +77,40 @@ A session belongs to one agent. Resuming it through another agent, or resuming a
 
 A successful turn saves the user message, the assistant reply, and its tool activity together. A failed or cancelled turn is still metered, but it adds nothing to the history. If the very first turn fails, you keep an empty session that you can still use.
 
+## Fork a conversation [#fork-a-conversation]
+
+Fork a session to explore another answer from a selected accepted assistant reply. Read `sessions.messages()` and select a message whose top-level `branchable` is `true`. The child includes that reply and the earlier conversation. Eligibility comes from persisted transcript messages; live stream chunks need not carry `branchable`. A missing or not-yet-persisted reply, a streaming reply, or a reply waiting for tool approval is not eligible; an earlier accepted reply remains eligible while the source runs.
+
+Continuing the example above, save one key for the user's fork request:
+
+```typescript tab="TypeScript"
+const selected = history.data.find((message) => message.branchable);
+if (!selected) throw new Error("Choose an accepted assistant reply first.");
+const idempotencyKey = crypto.randomUUID();
+const child = await client.sessions.fork({
+  agentId, sessionId, messageId: selected.id, idempotencyKey,
+});
+console.log(child.id);
+```
+
+```python tab="Python"
+selected = next((message for message in history.data if message.branchable), None)
+if selected is None:
+    raise ValueError("Choose an accepted assistant reply first.")
+idempotency_key = str(uuid.uuid4())
+child = client.sessions.fork(
+    agent_id=agent_id, session_id=session_id,
+    message_id=selected.id, idempotency_key=idempotency_key,
+)
+print(child.id)
+```
+
+If the response is lost, retry the same source, message ID, and key. A successful replay returns the same child, even after the source is deleted. Changing the selected message under the same key returns `idempotency_conflict`; retrying a deleted child returns `session_fork_deleted`. Reload history if the selected reply was removed or became ineligible (`session_fork_unavailable`).
+
+The child starts idle. Creating it runs no model or tool and adds no billable usage. Continue with `client.chat()` and the child's ID; later turns incur normal token usage. The source and child can continue independently, and eligible inherited replies can be forked again.
+
+The child inherits the saved agent configuration, `userId`, and metadata. Workspace files and memories remain shared and live, so a fork does not undo their changes. It copies no active turns, approvals, tasks, queued inputs, or usage records. `sessions.get()` and `fork()` return informational `forkedFrom: { sessionId, messageId }`; ordinary sessions return `null`.
+
 ## Stop and resend [#stop-and-resend]
 
 Treat a turn as done only when its stream finishes normally. A `200` status or a closed connection alone does not prove success. Keep the user's draft until then, so they can edit and send it again after an error or a stop.
@@ -100,7 +134,7 @@ Files the agent deliberately published during a conversation are [artifacts](/ag
 
 ## Saved configuration and user labels [#saved-configuration-and-user-labels]
 
-The first turn saves the agent's current configuration. Later turns in the same session use those saved settings, even after you edit the agent. Call `sessions.get()` to read `agentConfig`; message pages contain only the transcript. See [configuration snapshots](/agents/configuration-snapshots).
+A session started through chat saves the agent's current configuration on its first turn. A fork inherits the source session's saved configuration when you create it. Later turns in the same session use those saved settings, even after you edit the agent. Call `sessions.get()` to read `agentConfig`; message pages contain only the transcript. See [configuration snapshots](/agents/configuration-snapshots).
 
 Pass `userId` and `metadata` on the first turn to label the session with your end user. The `userId` is fixed once the session starts, and it labels usage for reporting. It does not control access, so your backend still decides who may open which session. See [tenancy and attribution](/platform/tenancy-and-attribution).
 
