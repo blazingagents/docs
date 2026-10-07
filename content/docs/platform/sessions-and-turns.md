@@ -79,7 +79,7 @@ A successful turn saves the user message, the assistant reply, and its tool acti
 
 ## Fork a conversation [#fork-a-conversation]
 
-Fork a session to explore another answer from a selected accepted assistant reply. Read `sessions.messages()` and select a message whose top-level `branchable` is `true`. The child includes that reply and the earlier conversation. Eligibility comes from persisted transcript messages; live stream chunks need not carry `branchable`. A missing or not-yet-persisted reply, a streaming reply, or a reply waiting for tool approval is not eligible; an earlier accepted reply remains eligible while the source runs.
+Fork a session to explore another answer from a selected accepted assistant reply. Read `sessions.messages()` and select a message whose top-level `branchable` is `true`. The child includes that reply and the earlier conversation. Stream chunks don't include `branchable`, so don't pick the reply from the live stream. A reply that is not in the history yet, a streaming reply, or a reply waiting for tool approval is not eligible; an earlier accepted reply remains eligible while the source runs.
 
 Continuing the example above, save one key for the user's fork request:
 
@@ -109,7 +109,7 @@ If the response is lost, retry the same source, message ID, and key. A successfu
 
 The child starts idle. Creating it runs no model or tool and adds no billable usage. Continue with `client.chat()` and the child's ID; later turns incur normal token usage. The source and child can continue independently, and eligible inherited replies can be forked again.
 
-The child inherits the saved agent configuration, `userId`, and metadata. Workspace files and memories remain shared and live, so a fork does not undo their changes. It copies no active turns, approvals, tasks, queued inputs, or usage records. `sessions.get()` and `fork()` return informational `forkedFrom: { sessionId, messageId }`; ordinary sessions return `null`.
+The child inherits the saved agent configuration, `userId`, and metadata. Workspace files and memories remain shared and live, so a fork does not undo their changes. It copies no active turns, approvals, tasks, queued inputs, or usage records. `sessions.get()` and `fork()` return `forkedFrom`, which names the source session and reply as `{ sessionId, messageId }`; ordinary sessions return `null`.
 
 ## Stop and resend [#stop-and-resend]
 
@@ -120,7 +120,7 @@ Treat a turn as done only when its stream finishes normally. A `200` status or a
 - Keep using the session ID you received, even if that session is still empty.
 - Sending again can repeat a tool's side effects, such as a sent email.
 
-The [chatbot guide](/getting-started/chatbot) shows send, stop, edit, and regenerate end to end.
+The [chatbot guide](/getting-started/chatbot) builds the send flow and lists how to add stop, edit, and regenerate.
 
 ## Read the history [#read-the-history]
 
@@ -280,10 +280,6 @@ A retry with the same `turnId` never stops a later turn, and a turn you cannot s
 
 A dropped stream cannot be rejoined, whether it came from `client.chat()` or `continueChat()`. Its answer is in the history once the turn succeeds, so fetch new messages with the `after` cursor when activity shows the turn has ended. See [read the history](#read-the-history). Then send any messages still in your app's queue as ordinary chat.
 
-## Concurrent turns [#concurrent-turns]
-
-If two turns run on the same session at once, the first to finish is saved and the other fails instead of merging the histories. Send one turn at a time per session when order matters, and use your own queue for messages that arrive while one runs.
-
 ## Chat endpoint pattern [#chat-endpoint-pattern]
 
 In a real app, your backend maps each of your own chats to one session. The handler authorizes the request, loads the saved session ID, and relays the stream. Here `app` holds your own sign-in and storage code:
@@ -375,6 +371,6 @@ The new answer replaces the old one only if the turn succeeds. If it fails or yo
 
 ## Next [#next]
 
-- [Build a chatbot](/getting-started/chatbot) with send, stop, edit, and regenerate.
+- [Build a chatbot](/getting-started/chatbot) that sends messages, then add stop, edit, and regenerate.
 - [Stream answers to your frontend](/agents/output/generation-and-streaming).
 - [`client.chat()` reference](/sdk/typescript/client#chat) and [Python](/sdk/python/client#chat).

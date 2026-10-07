@@ -81,7 +81,7 @@ const skill = await client.agent({ agentId }).skills.upload({
 | `source.file` | `Blob \| Uint8Array` | yes | Archive bytes, at most 10 MiB |
 | `source.type` | `"zip" \| "tar" \| "tar.gz"` | yes | Archive format |
 
-Returns [`SkillDetail`](#skilldetail). Errors: [`skill_invalid_archive`](/api-reference/protocols/errors#skill_invalid_archive), `skill_invalid_markdown`, `skill_name_conflict`, `skill_limit_reached`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large).
+Returns [`SkillDetail`](#skilldetail). Errors: `validation_failed`, [`skill_invalid_archive`](/api-reference/protocols/errors#skill_invalid_archive), `skill_invalid_markdown`, `skill_name_conflict`, `skill_limit_reached`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large), and `not_found` when the agent does not exist.
 
 ### `list()` [#list]
 
