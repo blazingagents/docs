@@ -368,7 +368,7 @@
       "group": "sessions-and-turns",
       "statuses": [409],
       "title": "The session changed while this turn was being saved.",
-      "whatHappened": "Two turns ran on the same session at once. The first to finish was saved, and this one was not, so the histories are never merged.",
+      "whatHappened": "Another change to the session was saved first, so this turn was not saved. This is rare, because a second chat call normally gets `session_busy` first.",
       "howToFix": [
         "Read the session's messages to see what was saved.",
         "Send one turn at a time per session, and resend this one if you still need it."

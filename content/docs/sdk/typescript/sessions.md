@@ -172,7 +172,7 @@ const { data: input, activity } = await client.sessions.submitInput({
 | `requestId` | `string` | yes | Your ID for this steer, 1 to 128 characters, other than `.` or `..` |
 | `message` | `UIMessage` | yes | A user message with text and image parts |
 
-Resending the same `requestId` with the same message returns the same receipt, so retry with the original values after a timeout. A call that cannot steer, because no turn is running or can take one, fails with [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and saves nothing; keep the message in your app's own queue and send it later as an ordinary `chat()` message. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `validation_failed`, `not_found`, [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `requestId` or `message.id` was already used for different content.
+Resending the same `requestId` with the same message returns the same receipt, so retry with the original values after a timeout. A call that cannot steer, because no turn is running or can take one, fails with [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and saves nothing; keep the message in your app's own queue and send it later as an ordinary `chat()` message. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `validation_failed`, `not_found`, [`session_busy`](/api-reference/protocols/errors#session_busy), [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `requestId` or `message.id` was already used for different content.
 
 ### `inputs()` [#inputs]
 
@@ -228,7 +228,7 @@ const child = await client.sessions.fork({
 console.log(child.id, child.forkedFrom);
 ```
 
-Select a message whose top-level `branchable` is `true`. Streaming replies and pending approvals are ineligible. Eligibility comes from persisted transcript messages; live stream chunks need not carry `branchable`. A missing or not-yet-persisted reply is ineligible. An earlier accepted reply remains eligible while the source runs. The child inherits the source's saved configuration, user label, and metadata; workspace files and memories stay shared and live.
+Select a message whose top-level `branchable` is `true`. Streaming replies and pending approvals are ineligible. Pick the reply from `sessions.messages()`, not from the live stream. Stream chunks don't include `branchable`. A reply that is not in the history yet is not eligible. An earlier accepted reply remains eligible while the source runs. The child inherits the source's saved configuration, user label, and metadata; workspace files and memories stay shared and live.
 
 Use a nonblank idempotency key of at most 200 characters. Save it before sending and reuse the exact source, message, and key after a lost response. Creation returns HTTP `201`; identical replay returns HTTP `200` and the same child, even if the source was deleted. Forking runs no model or tool and creates no usage. Continue through `chat()` with the child's ID; later turns have normal usage.
 
