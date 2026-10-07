@@ -557,7 +557,7 @@ To fix it:
 
 **The session changed while this turn was being saved.**
 
-Two turns ran on the same session at once. The first to finish was saved, and this one was not, so the histories are never merged.
+Another change to the session was saved first, so this turn was not saved. This is rare, because a second chat call normally gets `session_busy` first.
 
 HTTP `409`. Retrying the same request can succeed.
 

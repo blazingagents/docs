@@ -30,11 +30,10 @@ the SDK parses the partial and final JSON for you.
 
 Starting a new session returns its `ss_...` ID in the `Location` header, so
 `result.sessionId` is available before you read the body. When you continue a
-session, it returns the ID you sent. Once the turn is accepted, the session and
-your message are saved before the model runs. If the turn fails later, the
-session keeps your message without an assistant reply. If you cancel, the saved
-session stays as it is. A request rejected before the turn starts creates no
-session.
+session, it returns the ID you sent. A session is created once its first turn
+is accepted, before the model runs. If that turn fails or you cancel it,
+nothing is added to the history, so the session can be empty. You can still
+use it. A request rejected before the turn starts creates no session.
 
 You can claim the body of a chat or approval continuation result once,
 through `toResponse()` or `toStream()`; a second claim throws `stream_error`.
@@ -56,10 +55,9 @@ Failures depend on when they happen:
   invalid `Location` becomes `stream_error`, with the request ID when
   available. Await `text` or `object` when you need the final outcome.
 
-To cancel a chat turn, abort its `AbortSignal` or cancel the stream you are
-reading or relaying. Completion and object calls also accept `abortSignal`;
-use it rather than canceling one reader. Canceling a continuation stream only
-stops your reader; the resumed turn keeps running.
+To cancel a chat turn or an approval continuation, abort its `AbortSignal` or
+cancel the stream you are reading or relaying. Completion and object calls also
+accept `abortSignal`.
 
 A failed or canceled chat turn leaves the transcript as it was, including the
 previous answer when you regenerate. Both still count toward usage, and tool

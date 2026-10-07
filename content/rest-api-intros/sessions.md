@@ -22,7 +22,7 @@ Approval records also carry `tool`, `assistantMessageId`, `createdAt`, and
 
 ## Fork a session [#fork-a-session]
 
-`POST /v1/agents/{agentId}/sessions/{sessionId}/fork` takes exactly `{ "messageId": "..." }` and a required nonblank `Idempotency-Key` header of at most 200 characters. Select an accepted assistant message with top-level `branchable: true` from the transcript. The new idle session includes that reply and earlier history. An earlier eligible reply can be selected while the source runs; streaming replies and pending approvals are ineligible. Live stream chunks need not carry `branchable`; use persisted transcript messages, and treat missing replies as ineligible.
+`POST /v1/agents/{agentId}/sessions/{sessionId}/fork` takes exactly `{ "messageId": "..." }` and a required nonblank `Idempotency-Key` header of at most 200 characters. Select an accepted assistant message with top-level `branchable: true` from the transcript. The new idle session includes that reply and earlier history. An earlier eligible reply can be selected while the source runs; streaming replies and pending approvals are ineligible. Pick the reply from the session's messages, not from the live stream. Stream chunks don't include `branchable`, and a reply that is not in the history yet is not eligible.
 
 Save the key and reuse it with the same source and message after a lost response. Creation returns `201`; identical replay returns `200` with the same child, even after source deletion. A changed message under that key returns `idempotency_conflict` (`409`), an unavailable selection returns `session_fork_unavailable` (`409`), and a replay of a deleted child returns `session_fork_deleted` (`410`). A missing or inaccessible source or agent returns `not_found` (`404`).
 

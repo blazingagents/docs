@@ -12573,7 +12573,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "api-reference/protocols/service-limits.md",
                 "type": "page",
                 "name": "Service limits",
-                "description": "Design around current resource, payload, query, execution, and Tenant Quota bounds.",
+                "description": "Design around current resource, payload, query, execution, and tenant quota bounds.",
                 "url": "/api-reference/protocols/service-limits",
                 "$ref": "api-reference/protocols/service-limits.md"
               }

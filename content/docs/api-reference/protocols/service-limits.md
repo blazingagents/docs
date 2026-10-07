@@ -1,6 +1,6 @@
 ---
 title: Service limits
-description: Design around current resource, payload, query, execution, and Tenant Quota bounds.
+description: Design around current resource, payload, query, execution, and tenant quota bounds.
 ---
 
 # Service limits
@@ -9,7 +9,7 @@ These are the limits Blazing Agents enforces today. Use them to validate input
 before you send it and to plan capacity. They are not billing entitlements or
 recommended batch sizes.
 
-Last verified: 2026-09-29.
+Last verified: 2026-10-07.
 
 ## Contract [#contract]
 
@@ -65,6 +65,9 @@ described in [Usage and quotas](/platform/usage-and-quotas).
 | <span id="memory-tool-search">Memory Tool search</span>                             | default 10; max 20                                                                                             | Tool call                 | Tool validation error                                           | fixed                   |
 | <span id="session-or-task-run-message-page">Session or Task-run message page</span> | default 50; max 200                                                                                            | list request              | `validation_failed`                                             | fixed                   |
 | <span id="tool-approval-decision-reason">Tool approval decision reason</span>       | 1,000 characters                                                                                               | approval decision         | `validation_failed`                                             | fixed                   |
+| <span id="steer-request-id">Steer `requestId`</span>                                  | 1 to 128 characters; not `.` or `..`                                                                             | steer request               | `validation_failed`                                               | fixed                     |
+| <span id="session-input-page">Session input page</span>                               | default 100; max 200                                                                                             | list request                | `validation_failed`                                               | fixed                     |
+| <span id="fork-idempotency-key">Fork `Idempotency-Key`</span>                         | 1 to 200 characters                                                                                              | fork request                | `validation_failed`                                               | fixed                     |
 | <span id="other-cursored-resource-pages">Other cursored resource pages</span>       | Sessions, Tasks, and Task runs default 50/max 200; Artifacts fixed 50                                          | list request              | `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor)                         | fixed                   |
 | <span id="usage-query-window">Usage query window</span>                             | default last 30 UTC days; bounds differ by at most 31 days                                                     | query                     | `validation_failed`                                             | fixed                   |
 | <span id="usage-session-top-n">Usage Session top-N</span>                           | default 50; max 200                                                                                            | `groupBy=session`         | `validation_failed`                                             | fixed                   |

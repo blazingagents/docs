@@ -127,9 +127,9 @@ See [Configuration snapshots and lifecycle](/agents/configuration-snapshots).
 <span id="sessions-list-response"></span>
 
 `sessionListItemSchema` / `SessionListItem` contains `id`, message count, nullable last-message preview, Attribution, and
-timestamps. A session is saved as soon as its first turn is accepted, before
-the model runs. If that turn fails, the session keeps your message; if you
-cancel it, the session can be empty. Sessions have no update operation, and
+timestamps. A session is created once its first turn is accepted, before the
+model runs. If that turn fails or you cancel it, nothing is added to the
+history, so the session can be empty. You can still use it. Sessions have no update operation, and
 deleting one makes it inaccessible. A task run starts a fresh session and
 saves the user message before generation, then saves the final assistant
 message, including any failure, when the run ends. A failed task run can
@@ -141,7 +141,7 @@ See [SDK Sessions](/sdk/typescript/sessions),
 
 ### SessionResponse [#sessionresponse]
 
-`sessionResponseSchema` / `SessionResponse` extends the compact session summary with required `agentConfig` and nullable `forkedFrom`. Ordinary sessions return `null`; children return `{ sessionId, messageId }` identifying the source and selected accepted assistant reply. This provenance is informational. Fork responses use the same shape; lists omit provenance. Read it with `GET /v1/agents/{agentId}/sessions/{sessionId}`. Message pages contain no configuration.
+`sessionResponseSchema` / `SessionResponse` extends the compact session summary with required `agentConfig` and nullable `forkedFrom`. Ordinary sessions return `null`; children return `{ sessionId, messageId }` naming the source session and the selected reply. Fork responses use the same shape; lists omit provenance. Read it with `GET /v1/agents/{agentId}/sessions/{sessionId}`. Message pages contain no configuration.
 
 ### LatestSessionListItem [#latestsessionlistitem]
 
@@ -165,7 +165,7 @@ See [SDK Sessions](/sdk/typescript/sessions#list-latest),
 
 `sessionMessageSchema` / `SessionMessage` is the public AI SDK `UIMessage`
 shape: a non-empty `id`, role `system`, `user`, or `assistant`, a non-empty
-parts array, required top-level `branchable` boolean, and optional metadata. `branchable` is server-owned eligibility for Session forking. Persisted user, system, and unaccepted assistant messages have `branchable: false`. Live stream chunks need not carry this field. A missing or not-yet-persisted reply is ineligible. Task transcripts use the same message shape; there is no Task-run fork operation. Parts are extensible AI SDK objects. The
+parts array, required top-level `branchable` boolean, and optional metadata. `branchable` marks the replies you can fork a session from. User, system, and unaccepted assistant messages have `branchable: false`. Pick the reply from `sessions.messages()`, not from the live stream. Stream chunks don't include `branchable`. A reply that is not in the history yet is not eligible. Task transcripts use the same message shape; there is no Task-run fork operation. Parts are extensible AI SDK objects. The
 platform owns the stored transcript.
 
 See [SDK Session messages](/sdk/typescript/sessions#messages),

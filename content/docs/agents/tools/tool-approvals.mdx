@@ -166,7 +166,7 @@ This is the smallest client that works. Add the pieces your UI needs next, by ha
 - Retrying while a continuation for the round is already running returns `session_busy`.
 - While approvals are pending or a continuation is running, new chat turns and regeneration return [`session_busy`](/api-reference/protocols/errors#session_busy).
 - A turn that waits for a decision takes no steering, so [steer a running turn](/platform/sessions-and-turns#steer-a-running-turn) fails with `steer_not_available` while the pause lasts; keep those messages in your queue. Once a continuation is running, it accepts steering again.
-- Disconnecting from the stream does not stop the continuation. A dropped continuation stream cannot be rejoined, so read the outcome from the [history](/platform/sessions-and-turns#read-the-history).
+- Closing or cancelling the continuation stream cancels the resumed turn, the same as a chat turn. Forward your request's abort signal. A dropped stream cannot be rejoined, so read the outcome from the [history](/platform/sessions-and-turns#read-the-history).
 - The decisions and the continuation save their results into the assistant message that asked for approval. A history poll with `after` does not return that update, so reload the newest page without a cursor while a tool part is `approval-requested` or `approval-responded`.
 - A failed continuation reports its error in the stream or in the history. Retrying it does not run the tool a second time.
 
