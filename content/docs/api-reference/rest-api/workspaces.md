@@ -48,6 +48,7 @@ Response schema: `WorkspaceList`.
       "metadata": {
         "project": "docs"
       },
+      "tier": "core",
       "networkPolicy": {
         "mode": "allowlist",
         "allowedHosts": [
@@ -113,6 +114,7 @@ Response schema: `Workspace`.
   "metadata": {
     "project": "docs"
   },
+  "tier": "core",
   "networkPolicy": {
     "mode": "allowlist",
     "allowedHosts": [
@@ -175,6 +177,7 @@ Response schema: `Workspace`.
   "metadata": {
     "project": "docs"
   },
+  "tier": "core",
   "networkPolicy": {
     "mode": "allowlist",
     "allowedHosts": [
@@ -237,6 +240,7 @@ Response schema: `Workspace`.
   "metadata": {
     "project": "docs"
   },
+  "tier": "core",
   "networkPolicy": {
     "mode": "offline"
   },

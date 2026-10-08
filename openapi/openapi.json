@@ -11780,6 +11780,7 @@
                   "metadata": {
                     "project": "docs"
                   },
+                  "tier": "core",
                   "networkPolicy": {
                     "mode": "allowlist",
                     "allowedHosts": [
@@ -11934,6 +11935,7 @@
                       "metadata": {
                         "project": "docs"
                       },
+                      "tier": "core",
                       "networkPolicy": {
                         "mode": "allowlist",
                         "allowedHosts": [
@@ -12043,6 +12045,7 @@
                   "metadata": {
                     "project": "docs"
                   },
+                  "tier": "core",
                   "networkPolicy": {
                     "mode": "allowlist",
                     "allowedHosts": [
@@ -12250,6 +12253,7 @@
                   "metadata": {
                     "project": "docs"
                   },
+                  "tier": "core",
                   "networkPolicy": {
                     "mode": "offline"
                   },

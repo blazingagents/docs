@@ -1599,7 +1599,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"data\": [\n    {\n      \"id\": \"ws_3Vb8Ny6HpU1cGf4M\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"name\": \"Release files\",\n      \"userId\": \"user_42\",\n      \"metadata\": {\n        \"project\": \"docs\"\n      },\n      \"networkPolicy\": {\n        \"mode\": \"allowlist\",\n        \"allowedHosts\": [\n          \"registry.npmjs.org\"\n        ]\n      },\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n    }\n  ],\n  \"nextCursor\": null\n}",
+            "code": "{\n  \"data\": [\n    {\n      \"id\": \"ws_3Vb8Ny6HpU1cGf4M\",\n      \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n      \"name\": \"Release files\",\n      \"userId\": \"user_42\",\n      \"metadata\": {\n        \"project\": \"docs\"\n      },\n      \"tier\": \"core\",\n      \"networkPolicy\": {\n        \"mode\": \"allowlist\",\n        \"allowedHosts\": [\n          \"registry.npmjs.org\"\n        ]\n      },\n      \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n      \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n    }\n  ],\n  \"nextCursor\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -1693,7 +1693,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Release files\",\n  \"userId\": \"user_42\",\n  \"metadata\": {\n    \"project\": \"docs\"\n  },\n  \"networkPolicy\": {\n    \"mode\": \"allowlist\",\n    \"allowedHosts\": [\n      \"registry.npmjs.org\"\n    ]\n  },\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n}",
+            "code": "{\n  \"id\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Release files\",\n  \"userId\": \"user_42\",\n  \"metadata\": {\n    \"project\": \"docs\"\n  },\n  \"tier\": \"core\",\n  \"networkPolicy\": {\n    \"mode\": \"allowlist\",\n    \"allowedHosts\": [\n      \"registry.npmjs.org\"\n    ]\n  },\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "201"
@@ -1793,7 +1793,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Release files\",\n  \"userId\": \"user_42\",\n  \"metadata\": {\n    \"project\": \"docs\"\n  },\n  \"networkPolicy\": {\n    \"mode\": \"allowlist\",\n    \"allowedHosts\": [\n      \"registry.npmjs.org\"\n    ]\n  },\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n}",
+            "code": "{\n  \"id\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Release files\",\n  \"userId\": \"user_42\",\n  \"metadata\": {\n    \"project\": \"docs\"\n  },\n  \"tier\": \"core\",\n  \"networkPolicy\": {\n    \"mode\": \"allowlist\",\n    \"allowedHosts\": [\n      \"registry.npmjs.org\"\n    ]\n  },\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:00:00.000Z\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -1893,7 +1893,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"id\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Release files\",\n  \"userId\": \"user_42\",\n  \"metadata\": {\n    \"project\": \"docs\"\n  },\n  \"networkPolicy\": {\n    \"mode\": \"offline\"\n  },\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00.000Z\"\n}",
+            "code": "{\n  \"id\": \"ws_3Vb8Ny6HpU1cGf4M\",\n  \"tenantId\": \"ten_8Hq2Zr5WcY1bJt6D\",\n  \"name\": \"Release files\",\n  \"userId\": \"user_42\",\n  \"metadata\": {\n    \"project\": \"docs\"\n  },\n  \"tier\": \"core\",\n  \"networkPolicy\": {\n    \"mode\": \"offline\"\n  },\n  \"createdAt\": \"2026-07-10T10:00:00.000Z\",\n  \"updatedAt\": \"2026-07-10T10:15:00.000Z\"\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
