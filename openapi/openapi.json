@@ -1383,6 +1383,13 @@
             "type": "string",
             "pattern": "^ten_[0-9A-Za-z]{16}$"
           },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "core",
+              "plus"
+            ]
+          },
           "name": {
             "type": [
               "string",
@@ -1465,6 +1472,7 @@
         "required": [
           "id",
           "tenantId",
+          "tier",
           "name",
           "userId",
           "metadata",
@@ -1488,6 +1496,13 @@
                 "tenantId": {
                   "type": "string",
                   "pattern": "^ten_[0-9A-Za-z]{16}$"
+                },
+                "tier": {
+                  "type": "string",
+                  "enum": [
+                    "core",
+                    "plus"
+                  ]
                 },
                 "name": {
                   "type": [
@@ -1571,6 +1586,7 @@
               "required": [
                 "id",
                 "tenantId",
+                "tier",
                 "name",
                 "userId",
                 "metadata",
@@ -11657,6 +11673,15 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "tier": {
+                    "type": "string",
+                    "enum": [
+                      "core",
+                      "plus"
+                    ],
+                    "default": "core",
+                    "description": "Immutable Workspace tier. Core uses temporary files; Plus resumes native snapshots."
+                  },
                   "name": {
                     "type": "string",
                     "minLength": 1,
@@ -11755,6 +11780,7 @@
                   "metadata": {
                     "project": "docs"
                   },
+                  "tier": "core",
                   "networkPolicy": {
                     "mode": "allowlist",
                     "allowedHosts": [
@@ -11909,6 +11935,7 @@
                       "metadata": {
                         "project": "docs"
                       },
+                      "tier": "core",
                       "networkPolicy": {
                         "mode": "allowlist",
                         "allowedHosts": [
@@ -12018,6 +12045,7 @@
                   "metadata": {
                     "project": "docs"
                   },
+                  "tier": "core",
                   "networkPolicy": {
                     "mode": "allowlist",
                     "allowedHosts": [
@@ -12225,6 +12253,7 @@
                   "metadata": {
                     "project": "docs"
                   },
+                  "tier": "core",
                   "networkPolicy": {
                     "mode": "offline"
                   },
@@ -12337,7 +12366,7 @@
           "workspaces"
         ],
         "summary": "Delete a workspace",
-        "description": "Permanently deletes a workspace and all its files. Every agent needs a workspace, so move attached agents to another workspace first: while any agent uses it, the request returns `409 workspace_in_use` with their IDs in `details.agentIds`. Returns `202` while cleanup is still running and `204` when deletion finishes right away.",
+        "description": "Permanently deletes a workspace and all its files. Every agent needs a workspace, so move attached agents to another workspace first: while any agent uses it, the request returns `409 workspace_in_use` with their IDs in `details.agentIds`. Returns `202` after cleanup is accepted for processing.",
         "parameters": [
           {
             "schema": {
@@ -12353,10 +12382,7 @@
         ],
         "responses": {
           "202": {
-            "description": "Deletion started and is still running"
-          },
-          "204": {
-            "description": "The workspace was deleted"
+            "description": "Deletion accepted for processing"
           },
           "400": {
             "description": "The request is invalid",
@@ -12427,8 +12453,7 @@
           "409": {
             "description": "The request conflicts with the resource's current state",
             "x-error-codes": [
-              "workspace_in_use",
-              "workspace_busy"
+              "workspace_in_use"
             ],
             "content": {
               "application/json": {
@@ -13715,6 +13740,14 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "workspaceTier": {
+                    "type": "string",
+                    "enum": [
+                      "core",
+                      "plus"
+                    ],
+                    "description": "Tier for a new Workspace. Defaults to Core. Cannot be combined with workspaceId."
+                  },
                   "approvalInChat": {
                     "type": "object",
                     "properties": {

@@ -49,7 +49,7 @@ This table compares building on a plain model SDK with your own database and san
 | --- | --- | --- |
 | [Conversation history](/platform/sessions-and-turns) | Design a message schema, save each exchange, handle failed and cancelled turns | Pass a `sessionId` to `client.chat()`. History is saved on the server. |
 | [Streaming to your UI](/agents/output/generation-and-streaming) | Relay model events to the browser and keep the format in sync with your client | `result.toResponse()` returns an AI SDK UI message stream |
-| [Files and shell](/agents/workspaces) | Provision isolated compute, persist files, keep secrets out, control network access | Every agent gets a workspace. Enable the `workspace` tool group. |
+| [Files and shell](/agents/workspaces) | Provision isolated compute, choose file retention, keep secrets out, control network access | Every agent gets a workspace. Enable the `workspace` tool group. |
 | [Skills](/agents/skills) | Store instruction bundles and load them into context on demand | Upload a ZIP with a `SKILL.md`. The agent activates it when relevant. |
 | [Memory](/agents/memory) | Build storage, scoping per user, and recall into the prompt | Turn on the `memory` tools or automatic memory injection |
 | [MCP tools](/agents/tools/mcp-tools) | Run an MCP client, store credentials, implement OAuth and token refresh | Create a connection once and attach it to any agent |
