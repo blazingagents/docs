@@ -56,6 +56,8 @@ Each turn adds one usage record with input tokens, output tokens, one request, d
 
 Failed and cancelled turns are recorded too. A turn that fails before the model responds records zero tokens but still counts the request and duration. If it fails after some model steps finished, the tokens from those steps stay in usage.
 
+These reports show model usage, not the infrastructure charges on your Blazing Agents bill. Usage charges can arrive later as measured execution and network usage becomes available. Charges already sent for billing keep their original records. Later decreases create separate corrections; they do not rewrite earlier charges.
+
 ## Break down usage [#break-down-usage]
 
 - `client.usage.get()` covers your whole account, and `client.usage.getForAgent()` covers one agent. Group results by `day`, `agent`, `model`, `session`, or `user`, and filter by date range, agent, session, or `userId`.
