@@ -5,7 +5,7 @@ description: Create, list, inspect, update, and delete the private file systems 
 
 ## Overview [#overview]
 
-A workspace is a private file system your agents keep between sessions. Several
+A workspace is a private file system with an immutable `tier`. Core (`core`) is the default and loses files on stop. Plus (`plus`) provides native snapshot resume after controlled shutdown. Several
 agents can share one. These endpoints manage the workspace record: its name,
 metadata, and network policy. None of them start the workspace or add compute
 cost. The workspace starts only when an agent first reads, writes, or runs

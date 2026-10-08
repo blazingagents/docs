@@ -624,7 +624,7 @@
       },
       "file": "agents/workspaces.mdx",
       "filesTree": [],
-      "recipe": "Workspace sharing, network access, and background backup recovery",
+      "recipe": "Workspace tiers, sharing, network access, and native snapshot resume",
       "steps": []
     },
     {

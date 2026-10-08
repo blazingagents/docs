@@ -53,7 +53,7 @@ print(client.completion(agent_id=agent.id, prompt="How do I reset my password?")
 
 You see `Agent: ag_...` followed by the answer. Each run creates a new agent, even when its name matches an existing one. Save the ID to reuse the same agent.
 
-The new agent starts with status `active`, and it comes with its own [workspace](/agents/workspaces) for files. The workspace costs nothing until the agent first reads, writes, or runs something in it.
+The new agent starts with status `active`, and it comes with its own [workspace](/agents/workspaces) for files. The workspace defaults to Core and starts compute only when the agent first reads, writes, or runs something in it. Choose Plus with `workspaceTier: "plus"` or `workspace_tier="plus"` in Python for snapshot resume. Its tier cannot change later.
 
 ## What an agent controls [#what-an-agent-controls]
 

@@ -142,6 +142,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
+| `workspaceTier` | string | body |  | Tier for a new Workspace. Defaults to Core. Cannot be combined with workspaceId. One of `core`, `plus`. |
 | `approvalInChat` | object | body |  | Which tool calls need approval in sessions and stateless generation. Defaults to `{"default":"full","overrides":[]}`. |
 | `approvalInTasks` | object | body |  | Which tool calls need approval in task runs. Defaults to `{"default":"full","overrides":[]}`. |
 | `name` | string | body | required | Display name. 1–80 characters. |

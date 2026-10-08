@@ -7,7 +7,7 @@ description: Create, list, inspect, update, and delete the private file systems 
 
 ## Overview [#overview]
 
-A workspace is a private file system your agents keep between sessions. Several
+A workspace is a private file system with an immutable `tier`. Core (`core`) is the default and loses files on stop. Plus (`plus`) provides native snapshot resume after controlled shutdown. Several
 agents can share one. These endpoints manage the workspace record: its name,
 metadata, and network policy. None of them start the workspace or add compute
 cost. The workspace starts only when an agent first reads, writes, or runs
@@ -92,6 +92,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
+| `tier` | string | body |  | Immutable Workspace tier. Core uses temporary files; Plus resumes native snapshots. One of `core`, `plus`. Defaults to `core`. |
 | `name` | string | body |  | Display name, up to 80 characters. Leave it out for an unnamed workspace. 1–80 characters. |
 | `userId` | string | body |  | Your own ID for the end user who owns the workspace. `""` means a tenant-level workspace. It cannot be changed later. Defaults to `""`. |
 | `metadata` | object | body |  | Your own key-value data, returned as sent. Defaults to `{}`. |
@@ -271,7 +272,7 @@ curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" 
 
 Delete a workspace.
 
-Permanently deletes a workspace and all its files. Every agent needs a workspace, so move attached agents to another workspace first: while any agent uses it, the request returns `409 workspace_in_use` with their IDs in `details.agentIds`. Returns `202` while cleanup is still running and `204` when deletion finishes right away.
+Permanently deletes a workspace and all its files. Every agent needs a workspace, so move attached agents to another workspace first: while any agent uses it, the request returns `409 workspace_in_use` with their IDs in `details.agentIds`. Returns `202` after cleanup is accepted for processing.
 
 #### Request
 
@@ -283,9 +284,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 #### Response
 
-Returns `202 Accepted`. Deletion started and is still running.
-
-Returns `204 No Content`. The workspace was deleted.
+Returns `202 Accepted`. Deletion accepted for processing.
 
 #### Errors
 
@@ -296,7 +295,7 @@ Returns `204 No Content`. The workspace was deleted.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
 | `404` | [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
-| `409` | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use), [`workspace_busy`](/api-reference/protocols/errors#workspace_busy) | The request conflicts with the resource's current state |
+| `409` | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use) | The request conflicts with the resource's current state |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.

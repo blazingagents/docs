@@ -63,6 +63,8 @@ An agent with [skills](/agents/skills) also gets `activate_skill` and a `read` t
 
 Check that files survive between sessions: write a value in one session, then read it back in a new one. Check the saved tool result rather than the agent's reply, because the model can paraphrase.
 
+Use an agent attached to a Plus workspace for this check. Core files are lost when the workspace stops. Plus resumes files after a controlled shutdown, subject to snapshot retention and save success.
+
 First, ask the agent to write the file:
 
 ```typescript tab="TypeScript"

@@ -1998,16 +1998,12 @@ export const restApiOperations = [
         "operation": "delete-workspace",
         "path": "/v1/workspaces/:workspaceId",
         "responseMetadata": {
-          "description": "Deletion started and is still running."
+          "description": "Deletion accepted for processing."
         },
         "responses": [
           {
             "note": "No response body",
             "status": "202"
-          },
-          {
-            "note": "No response body",
-            "status": "204"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
@@ -12185,7 +12181,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/workspaces.md",
                 "type": "page",
                 "name": "Workspaces",
-                "description": "Create, list, update, and delete the persistent file systems your agents use.",
+                "description": "Create, list, update, and delete the private file systems your agents use.",
                 "url": "/sdk/python/workspaces",
                 "$ref": "sdk/python/workspaces.md"
               },

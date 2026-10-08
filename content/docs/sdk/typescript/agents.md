@@ -61,6 +61,7 @@ const agent = await client.agents.create({
 | `instructions` | `string` | no | `""` | System instructions, up to 3,000 characters |
 | `tools` | `AgentToolGroupId[]` | no | `[]` | Tool groups: `"workspace"`, `"write_todos"`, `"memory"` |
 | `mcpConnectionIds` | `string[]` | no | `[]` | Up to 10 MCP connections |
+| `workspaceTier` | `"core" \| "plus"` | no | `"core"` | Tier for a new workspace; cannot combine with `workspaceId` |
 | `workspaceId` | `string` | no | new workspace | Existing workspace to share |
 | `memoryInjectionEnabled` | `boolean` | no | `false` | Add relevant memories to each turn automatically |
 | `autoCompaction` | `boolean` | no | `true` | Summarize older context when the conversation nears the model's limit |
@@ -72,7 +73,7 @@ const agent = await client.agents.create({
 
 Set `providerId` and `model` together, or leave both out to create an agent you configure later. Turns on an agent without a model fail with [`provider_required`](/api-reference/protocols/errors#provider_required). Blazing Agents checks the model against your provider when you save.
 
-Without `workspaceId`, the agent gets a new workspace of its own named after it. Pass an ID to share an existing workspace. Changing the agent later does not rename its workspace.
+Without `workspaceId`, the agent gets a new workspace of its own named after it. `workspaceTier` chooses Core or Plus for that new workspace and defaults to `core`. It cannot combine with `workspaceId`. Pass an ID to share an existing workspace. Changing the agent later does not rename its workspace.
 
 An `ApprovalPolicy` has a `default` decision and optional `overrides` for single tools. Decisions are `"full"`, `"deny"`, `"manual"`, or `"auto"`. See [tool approvals](/agents/tools/tool-approvals#approval-policies).
 
