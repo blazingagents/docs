@@ -25,7 +25,7 @@ it. See [Attribution](#attribution).
 | --------------------------------------------------------------------- | -------------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | [Agent](#agent)                                                       | configuration; `active` or `disabled`                    | configuration through update; lifecycle separately | `createdAt`, `updatedAt`                                                                                               | Provider and avatar may be `null`; Workspace is always present; omitted updates are unchanged |
 | [AgentConfig](#agentconfig) | saved execution settings | none | none | Provider and model may be `null` |
-| [Workspace](#workspace)                                               | durable private Agent files                              | name and metadata                                  | `createdAt`, `updatedAt`                                                                                               | name may be `null`; `userId: ""` is tenant-level                           |
+| [Workspace](#workspace)                                               | private Agent files with Core or Plus                              | name and metadata                                  | `createdAt`, `updatedAt`                                                                                               | name may be `null`; `userId: ""` is tenant-level                           |
 | [SessionListItem](#sessionlistitem)                                   | Compact Session summary               | none                                               | `createdAt`, `updatedAt`                                                                                               | Preview may be `null`                                              |
 | [SessionResponse](#sessionresponse) | Session summary and saved `agentConfig` | none | `createdAt`, `updatedAt` | `agentConfig` is required |
 | [SessionMessage](#sessionmessage)                                     | AI SDK role, parts, optional metadata                    | platform-owned transcript                          | none                                                                                                                   | metadata may be omitted                                                    |
@@ -108,9 +108,7 @@ See [SDK Agents](/sdk/typescript/agents),
 
 <span id="workspaces-list-response"></span>
 
-`workspaceSchema` / `Workspace` identifies durable private files that may be
-attached to Agents. Public fields are `id`, `tenantId`, nullable `name`,
-immutable Attribution `userId`, mutable `metadata`, and timestamps.
+`workspaceSchema` / `Workspace` identifies private files that may be attached to agents. Public fields are `id`, `tenantId`, nullable `name`, immutable `tier` (`core` or `plus`), immutable Attribution `userId`, mutable `metadata`, `networkPolicy`, and timestamps. Core files are temporary. Plus provides native snapshot resume after controlled shutdown.
 
 See [SDK Workspaces](/sdk/typescript/workspaces),
 [REST Workspaces](/api-reference/rest-api/workspaces), and

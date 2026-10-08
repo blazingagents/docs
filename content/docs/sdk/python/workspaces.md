@@ -1,13 +1,13 @@
 ---
 title: Workspaces
-description: Create, list, update, and delete the persistent file systems your agents use.
+description: Create, list, update, and delete the private file systems your agents use.
 ---
 
 # Workspaces
 
-`client.workspaces` manages workspaces: private file systems that keep your agents' files between sessions. Several agents in your tenant can share one workspace, and its network policy controls what those agents can reach from it.
+`client.workspaces` manages workspaces: private file systems whose tier controls whether files resume after shutdown. Several agents in your tenant can share one workspace, and its network policy controls what those agents can reach from it.
 
-Every agent gets its own workspace when you create it, so you only need this resource to share a workspace, restrict its network, or clean up. Creating a workspace costs nothing until an agent first uses its files.
+Every agent gets its own workspace when you create it, so you only need this resource to share a workspace, restrict its network, or clean up. Creating a workspace starts no compute until an agent first uses its files.
 
 Examples assume `client = BlazingAgents()`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names and use `async for` with `iter()`.
 
@@ -34,7 +34,7 @@ agent = client.agents.update("ag_0123456789abcdef", workspace_id=workspace.id)
 
 ### `create()` [#create]
 
-Creates an empty workspace.
+Creates an empty workspace. Core is the default. Pass `tier="plus"` for snapshot resume. The tier cannot change through `update()`; create and attach another workspace to change it. Files are not copied.
 
 ```python
 workspace = client.workspaces.create(
@@ -44,10 +44,11 @@ workspace = client.workspaces.create(
 )
 ```
 
-**Signature:** `create(*, name=..., user_id=..., metadata=..., network_policy=...) -> Workspace`
+**Signature:** `create(*, tier=..., name=..., user_id=..., metadata=..., network_policy=...) -> Workspace`
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
+| `tier` | `Literal["core", "plus"]` | `"core"` | Immutable workspace tier |
 | `name` | `str` | `None` | Display name, 1 to 80 characters |
 | `user_id` | `str` | `""` | End user the workspace belongs to; `""` means tenant level. Fixed after creation |
 | `metadata` | `dict[str, object]` | `{}` | Your own data |
@@ -142,6 +143,7 @@ Move every agent to another workspace first. Returns `"completed"` when deletion
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `str` | Workspace ID (`ws_...`) |
+| `tier` | `Literal["core", "plus"]` | Immutable workspace tier |
 | `tenant_id` | `str` | Your tenant ID |
 | `name` | `str \| None` | Display name |
 | `user_id` | `str` | End user, or `""` for tenant level |

@@ -32,7 +32,7 @@ Every method takes one input object and accepts an optional `abortSignal`. Readi
 
 ### `create()` [#create]
 
-Creates an empty workspace.
+Creates an empty workspace. Core is the default. Pass `tier: "plus"` for snapshot resume. The tier cannot change through `update()`; create and attach another workspace to change it. Files are not copied.
 
 **Signature:** `create(input?: CreateWorkspaceBody & ResourceRequestOptions): Promise<Workspace>`
 
@@ -45,6 +45,7 @@ const workspace = await client.workspaces.create({
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
+| `tier` | `"core" \| "plus"` | no | `"core"` | Immutable workspace tier |
 | `name` | `string` | no | none | Display name, 1 to 80 characters |
 | `userId` | `string` | no | `""` | The end user this workspace belongs to; cannot change later |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your own labels |
@@ -136,6 +137,7 @@ Errors:
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `string` | Workspace ID (`ws_…`) |
+| `tier` | `"core" \| "plus"` | Immutable workspace tier |
 | `tenantId` | `string` | Your tenant ID |
 | `name` | `string \| null` | Display name, or `null` |
 | `userId` | `string` | The end user it belongs to, or `""` |

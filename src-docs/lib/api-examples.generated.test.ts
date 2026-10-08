@@ -137,7 +137,7 @@ describe("generated REST API examples", () => {
       operation("delete-workspace")
         .responses.filter(({ status }) => status.startsWith("2"))
         .map(({ status }) => status)
-    ).toEqual(["202", "204"]);
+    ).toEqual(["202"]);
   });
 
   test("generates query, multipart, file, download, and stream semantics", () => {

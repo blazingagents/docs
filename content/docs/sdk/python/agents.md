@@ -62,13 +62,14 @@ agent = client.agents.create(
 )
 ```
 
-**Signature:** `create(*, name, model=..., provider_id=..., thinking_level=..., workspace_id=..., tools=..., instructions=..., memory_injection_enabled=..., auto_compaction=..., compaction_reserve_tokens=..., approval_in_chat=..., approval_in_tasks=..., user_id=..., metadata=..., mcp_connection_ids=...) -> Agent`
+**Signature:** `create(*, name, model=..., provider_id=..., thinking_level=..., workspace_id=..., workspace_tier=..., tools=..., instructions=..., memory_injection_enabled=..., auto_compaction=..., compaction_reserve_tokens=..., approval_in_chat=..., approval_in_tasks=..., user_id=..., metadata=..., mcp_connection_ids=...) -> Agent`
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
 | `name` | `str` | required | Display name, 1 to 80 characters. Agents can share a name |
 | `provider_id`, `model` | `str` | none | Provider and its native model ID. Pass both or neither |
 | `thinking_level` | `str \| None` | `None` | Reasoning level; `None` uses the provider default. Needs a provider and model. See [`get_thinking_levels()`](/sdk/python/providers#get-thinking-levels) |
+| `workspace_tier` | `Literal["core", "plus"]` | `"core"` | Tier for a new workspace; cannot combine with `workspace_id` |
 | `workspace_id` | `str` | new workspace | Existing workspace to share. When omitted, a new workspace is created with the agent's name and `user_id` |
 | `tools` | `list[AgentTool]` | `[]` | Built-in tool groups: `"workspace"`, `"write_todos"`, `"memory"` |
 | `instructions` | `str` | `""` | System instructions, up to 3,000 characters |
@@ -81,7 +82,7 @@ agent = client.agents.create(
 | `metadata` | `dict[str, object]` | `{}` | Your own data |
 | `mcp_connection_ids` | `list[str]` | `[]` | Up to 10 unique MCP connection IDs |
 
-Without `provider_id` and `model`, the agent is saved unconfigured. Passing only one of them raises `ValueError` before any request. A workspace created for the agent stays independent afterwards: renaming the agent does not rename it.
+Without `provider_id` and `model`, the agent is saved unconfigured. Passing only one of them raises `ValueError` before any request. `workspace_tier` chooses Core or Plus for a new workspace and defaults to `core`. It cannot combine with `workspace_id`. A workspace created for the agent stays independent afterwards: renaming the agent does not rename it.
 
 An approval policy is a dictionary with a required `default` decision and an optional list of per-tool `overrides`. Decisions are `"full"`, `"deny"`, `"manual"`, or `"auto"`. See [tool approvals](/agents/tools/tool-approvals) for what each decision does.
 
