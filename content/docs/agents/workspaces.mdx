@@ -81,7 +81,7 @@ A workspace's tier cannot change. To change tiers, create another workspace and 
 
 Core creates no snapshots and loses its files when it stops. Plus saves the whole root filesystem before a controlled shutdown that preserves files, normally when idle. Running processes and memory do not resume. There are no periodic or per-turn saves, so an unexpected stop can lose changes since the last saved snapshot.
 
-Plus resumes the saved filesystem with its original image. A failed save clears the resume reference, and the next start uses a clean filesystem. If the snapshot expires, the next start is also clean.
+Plus resumes the saved filesystem with its original image. A failed save clears the resume reference, and the next start uses a clean filesystem. If you do not resume a saved workspace for 29 days, its next start is also clean.
 
 A workspace keeps one current resume reference. Older physical snapshots can remain until they expire. Snapshots expire 30 days after creation or their latest restoration. Deleting a workspace removes access to its files but does not immediately delete its physical snapshots.
 
