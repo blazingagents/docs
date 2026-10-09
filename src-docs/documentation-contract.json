@@ -1147,6 +1147,18 @@
             "metadata": {
               "tab": "Python"
             }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
           }
         ]
       },
@@ -3755,6 +3767,10 @@
         "items": [
           {
             "language": "text",
+            "metadata": {}
+          },
+          {
+            "language": "json",
             "metadata": {}
           },
           {

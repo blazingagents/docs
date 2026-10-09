@@ -1,6 +1,6 @@
 ---
 title: Usage and quotas
-description: See what every turn consumed, break it down by agent, model, session, or user, and set monthly safety ceilings.
+description: Track model usage and set token quotas or dollar spending limits for your account and agents.
 ---
 
 # Usage and quotas
@@ -49,6 +49,74 @@ print(settings.quota)
 ```
 
 You see one line per agent that ran in July, then the saved quota: a token ceiling of `1000000`, no request ceiling, and a window that resets on the 1st of each month.
+
+## Set a model spending limit [#model-spending-limits]
+
+Set a dollar allowance for one agent, your whole account, or both. An agent's limit covers all its sessions and tasks. The account limit covers all agents, including those without their own limit. The same model cost counts toward both limits when both are enabled.
+
+Use an unscoped tenant credential to read or change these settings. An end user's agent access does not grant permission to change the allowance.
+
+This example sets a $25 monthly account allowance. Use a UTC start date to anchor the resets.
+
+```typescript tab="TypeScript"
+import { BlazingAgents } from "@blazingagents/sdk";
+
+const client = new BlazingAgents({
+  apiKey: process.env.BLAZING_AGENTS_API_KEY!,
+});
+
+const budget = await client.tenant.updateSpendingLimit({
+  spendingLimit: {
+    amountUsd: 25,
+    resetStartDate: "2026-10-01",
+    resetInterval: "monthly",
+  },
+});
+console.log(budget.period?.spentUsd, budget.nextResetAt);
+```
+
+```python tab="Python"
+from blazing_agents import BlazingAgents
+
+client = BlazingAgents()
+
+budget = client.tenant.update_spending_limit(
+    spending_limit={
+        "amount_usd": 25,
+        "reset_start_date": "2026-10-01",
+        "reset_interval": "monthly",
+    }
+)
+print(budget.period.spent_usd if budget.period else None, budget.next_reset_at)
+```
+
+For one agent, use `client.agents.updateSpendingLimit({ agentId, spendingLimit })` in TypeScript or `client.agents.update_spending_limit(agent_id=agent_id, spending_limit=...)` in Python. Read account settings with `client.tenant.getSpendingLimit()` or `client.tenant.get_spending_limit()`. For an agent, use `client.agents.getSpendingLimit({ agentId })` or `client.agents.get_spending_limit(agent_id=agent_id)`. Pass `spendingLimit: null` or `spending_limit=None` to disable that limit. Disabling one scope does not disable the other.
+
+### Choose when the allowance resets [#spending-limit-resets]
+
+Resets happen at midnight UTC. Choose `daily`, `weekly`, `biweekly`, or `monthly`. Weekly means every seven days from the start date. Biweekly means every fourteen days, not twice per month.
+
+Monthly resets keep the original day. A January 31 start resets on February 28 or 29, then March 31. If the start date is in the future, the limit applies immediately for a short first period ending on that date. A past start date anchors the current period without adding historical costs.
+
+Changing the schedule preserves the current period's end. The replacement schedule applies afterwards. Check `nextResetAt` and `scheduleChangeAt` in the response. Unused allowance does not carry forward. Changing the dollar amount keeps recorded spending and existing reservations. A lower limit does not cancel requests already admitted.
+
+Disabling and re-enabling a limit within the same period preserves its counters. Usage admitted while that limit was disabled is excluded. Enabling a limit applies to newly started turns; it does not interrupt a turn that started with both limits off.
+
+### Understand the reported dollars [#spending-limit-costs]
+
+The limit covers model tokens, including supported cache usage, priced at supported catalogue rates. It excludes Blazing Agents platform, workspace, storage, and network charges. The estimate can differ from your provider's invoice or negotiated prices.
+
+The feature needs supported model pricing and provider usage data. A provider response does not always contain a dollar amount. A request whose cost cannot be priced is refused when a limit applies. If a dispatched request's usage is unknown, its reserved allowance remains unavailable. A process crash can also leave reserved funds unresolved.
+
+`spentUsd` shows costs already saved. `reservedUsd` shows money set aside for unfinished or unresolved work. `availableUsd` shows what remains available to other work. A running turn may have incurred costs that are still represented by its reservation.
+
+Concurrent turns share the available allowance. Each model request uses a cost estimate before it starts, so actual spending can exceed the limit when the estimate is too low. Treat the allowance as a spending control, not an exact invoice ceiling.
+
+### Handle a spending stop [#spending-limit-stops]
+
+A request blocked before streaming returns HTTP `429` with `model_spending_limit_exceeded`. The details identify the agent or account scope and whether funds are exhausted, reserved, or cannot be priced. Chat and approval-continuation streams report a stop through a `data-model-spending-limit` event. Completion and object streams instead fail with `stream_error` after streaming starts. See [streaming errors](/api-reference/protocols/streaming#spending-stop-events). Completed chat messages and tool results remain available after a handled budget stop.
+
+Do not retry a budget stop automatically. Read the current limit and its reset time. Wait for reserved funds to be settled, wait for the reset, or explicitly increase the allowance. Changing a limit does not undo completed tools or restart a stopped turn.
 
 ## What is recorded [#what-is-recorded]
 

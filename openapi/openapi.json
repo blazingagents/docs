@@ -123,6 +123,7 @@
                   "unauthorized",
                   "not_found",
                   "quota_exceeded",
+                  "model_spending_limit_exceeded",
                   "subscription_required",
                   "usage_credit_required",
                   "rate_limited",
@@ -1225,6 +1226,103 @@
           "deletion",
           "monetizationEnabled"
         ]
+      },
+      "ModelSpendingLimitStatus": {
+        "type": "object",
+        "properties": {
+          "spendingLimit": {
+            "$ref": "#/components/schemas/ModelSpendingLimit"
+          },
+          "period": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "startsAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "endsAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "spentUsd": {
+                "type": "number",
+                "minimum": 0
+              },
+              "reservedUsd": {
+                "type": "number",
+                "minimum": 0
+              },
+              "availableUsd": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "startsAt",
+              "endsAt",
+              "spentUsd",
+              "reservedUsd",
+              "availableUsd"
+            ],
+            "additionalProperties": false
+          },
+          "nextResetAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "scheduleChangeAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "spendingLimit",
+          "period",
+          "nextResetAt",
+          "scheduleChangeAt"
+        ],
+        "additionalProperties": false
+      },
+      "ModelSpendingLimit": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "amountUsd": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000
+          },
+          "resetStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "resetInterval": {
+            "type": "string",
+            "enum": [
+              "daily",
+              "weekly",
+              "biweekly",
+              "monthly"
+            ]
+          }
+        },
+        "required": [
+          "amountUsd",
+          "resetStartDate",
+          "resetInterval"
+        ],
+        "additionalProperties": false
       },
       "Provider": {
         "type": "object",
@@ -10751,6 +10849,512 @@
             "description": "An upstream service failed",
             "x-error-codes": [
               "chat_webhook_registration_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tenant/spending-limit": {
+      "get": {
+        "operationId": "getTenantSpendingLimit",
+        "tags": [
+          "tenant"
+        ],
+        "summary": "Get the tenant model spending limit",
+        "description": "Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits take effect after the active period ends. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.",
+        "responses": {
+          "200": {
+            "description": "Model spending configuration and current UTC period",
+            "content": {
+              "application/json": {
+                "example": {
+                  "spendingLimit": null,
+                  "period": null,
+                  "nextResetAt": null,
+                  "scheduleChangeAt": null
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ModelSpendingLimitStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateTenantSpendingLimit",
+        "tags": [
+          "tenant"
+        ],
+        "summary": "Set the tenant model spending limit",
+        "description": "Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits take effect after the active period ends. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "spendingLimit": null
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "spendingLimit": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "amountUsd": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 1000000000
+                      },
+                      "resetStartDate": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "resetInterval": {
+                        "type": "string",
+                        "enum": [
+                          "daily",
+                          "weekly",
+                          "biweekly",
+                          "monthly"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "amountUsd",
+                      "resetStartDate",
+                      "resetInterval"
+                    ],
+                    "additionalProperties": false,
+                    "description": "Model-only USD allowance and UTC reset schedule. Set null to disable the limit."
+                  }
+                },
+                "required": [
+                  "spendingLimit"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Model spending configuration and current UTC period",
+            "content": {
+              "application/json": {
+                "example": {
+                  "spendingLimit": null,
+                  "period": null,
+                  "nextResetAt": null,
+                  "scheduleChangeAt": null
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ModelSpendingLimitStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agents/{agentId}/spending-limit": {
+      "get": {
+        "operationId": "getAgentSpendingLimit",
+        "tags": [
+          "agents"
+        ],
+        "summary": "Get an agent model spending limit",
+        "description": "Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits take effect after the active period ends. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Model spending configuration and current UTC period",
+            "content": {
+              "application/json": {
+                "example": {
+                  "spendingLimit": null,
+                  "period": null,
+                  "nextResetAt": null,
+                  "scheduleChangeAt": null
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ModelSpendingLimitStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateAgentSpendingLimit",
+        "tags": [
+          "agents"
+        ],
+        "summary": "Set an agent model spending limit",
+        "description": "Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits take effect after the active period ends. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^ag_[0-9A-Za-z]{16}$",
+              "description": "ID of the agent."
+            },
+            "required": true,
+            "description": "ID of the agent.",
+            "name": "agentId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "spendingLimit": {
+                  "amountUsd": 10,
+                  "resetStartDate": "2026-10-01",
+                  "resetInterval": "monthly"
+                }
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "spendingLimit": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "amountUsd": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 1000000000
+                      },
+                      "resetStartDate": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "resetInterval": {
+                        "type": "string",
+                        "enum": [
+                          "daily",
+                          "weekly",
+                          "biweekly",
+                          "monthly"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "amountUsd",
+                      "resetStartDate",
+                      "resetInterval"
+                    ],
+                    "additionalProperties": false,
+                    "description": "Model-only USD allowance and UTC reset schedule. Set null to disable the limit."
+                  }
+                },
+                "required": [
+                  "spendingLimit"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Model spending configuration and current UTC period",
+            "content": {
+              "application/json": {
+                "example": {
+                  "spendingLimit": null,
+                  "period": null,
+                  "nextResetAt": null,
+                  "scheduleChangeAt": null
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ModelSpendingLimitStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid",
+            "x-error-codes": [
+              "invalid_request",
+              "validation_failed"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The credential is missing or invalid",
+            "x-error-codes": [
+              "unauthorized"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "An active subscription or usage credit is required",
+            "x-error-codes": [
+              "subscription_required"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The end user cannot run this request",
+            "x-error-codes": [
+              "forbidden"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource was not found",
+            "x-error-codes": [
+              "not_found"
             ],
             "content": {
               "application/json": {
