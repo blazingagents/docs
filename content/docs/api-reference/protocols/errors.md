@@ -25,7 +25,7 @@ Each code links to its own entry. You can link straight to one, for example
 | [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`input_idempotency_conflict`](#input_idempotency_conflict), [`steer_not_available`](#steer_not_available), [`message_id_conflict`](#message_id_conflict), [`message_not_found`](#message_not_found), [`tool_approval_continuation_settled`](#tool_approval_continuation_settled), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict), [`session_fork_unavailable`](#session_fork_unavailable), [`session_fork_deleted`](#session_fork_deleted) |
 | [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
 | [Tasks](#tasks) | [`task_active_run_exists`](#task_active_run_exists) |
-| [Quotas and billing](#quotas-and-billing) | [`quota_exceeded`](#quota_exceeded), [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`checkout_evidence_mismatch`](#checkout_evidence_mismatch), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_binding_required`](#merchant_binding_required), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable) |
+| [Quotas and billing](#quotas-and-billing) | [`quota_exceeded`](#quota_exceeded), [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`checkout_evidence_mismatch`](#checkout_evidence_mismatch), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_binding_required`](#merchant_binding_required), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable), [`model_spending_limit_exceeded`](#model_spending_limit_exceeded) |
 | [Workspaces and artifacts](#workspaces-and-artifacts) | [`workspace_not_found`](#workspace_not_found), [`workspace_in_use`](#workspace_in_use), [`workspace_busy`](#workspace_busy), [`artifact_session_cap_reached`](#artifact_session_cap_reached) |
 | [Service](#service) | [`internal`](#internal), [`service_unavailable`](#service_unavailable) |
 
@@ -104,8 +104,11 @@ starts with the bracketed code, and `error.code` holds the bare code.
 Once a stream starts, its status and headers are already sent, so a later
 failure cannot change them. A chat stream reports the failure as an AI SDK
 error chunk. Completion and object results raise `stream_error` when you await
-the final value. These failures carry no specific code, and relay responses
-built by the SDK keep the original request ID.
+the final value. Ordinary stream errors carry no specific code. A handled
+model spending stop in a chat stream first sends a structured `data-model-spending-limit` event
+with `code: "model_spending_limit_exceeded"`, scope, balances, and reset time.
+See [spending-stop events](/api-reference/protocols/streaming#spending-stop-events).
+Relay responses built by the SDK keep the original request ID.
 
 Each entry on this page says whether retrying the same request can succeed.
 That does not make a retry safe: a request that timed out may still have taken
@@ -1146,6 +1149,20 @@ HTTP `503`. Retrying the same request can succeed.
 To fix it:
 
 - Retry after a short wait, and check your provider's status page if it keeps failing.
+
+### `model_spending_limit_exceeded` [#model_spending_limit_exceeded]
+
+**The agent or account cannot reserve more model spending.**
+
+An agent or account spending limit has no available allowance, its allowance is reserved by unfinished work, or the model cost cannot be determined. The response details identify the affected scope and reason.
+
+HTTP `429`. Retrying the same request fails the same way until you fix the cause.
+
+To fix it:
+
+- Check known spending, reserved spending, and the next reset in the agent or account settings.
+- Wait for unfinished work to settle or for the next reset. A tenant administrator can change the limit.
+- For unpriced models or unknown usage, check the model pricing and usage data. See [model spending limits](/platform/usage-and-quotas#model-spending-limits).
 
 ## Workspaces and artifacts [#workspaces-and-artifacts]
 

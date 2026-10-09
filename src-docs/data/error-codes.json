@@ -965,6 +965,19 @@
         "Stop retrying this request. Use a new key only if you intend to create another fork from an eligible source."
       ],
       "retryable": false
+    },
+    {
+      "code": "model_spending_limit_exceeded",
+      "group": "quotas-and-billing",
+      "statuses": [429],
+      "title": "The agent or account cannot reserve more model spending.",
+      "whatHappened": "An agent or account spending limit has no available allowance, its allowance is reserved by unfinished work, or the model cost cannot be determined. The response details identify the affected scope and reason.",
+      "howToFix": [
+        "Check known spending, reserved spending, and the next reset in the agent or account settings.",
+        "Wait for unfinished work to settle or for the next reset. A tenant administrator can change the limit.",
+        "For unpriced models or unknown usage, check the model pricing and usage data. See [model spending limits](/platform/usage-and-quotas#model-spending-limits)."
+      ],
+      "retryable": false
     }
   ]
 }
