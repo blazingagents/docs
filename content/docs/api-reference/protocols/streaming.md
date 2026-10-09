@@ -31,9 +31,10 @@ the SDK parses the partial and final JSON for you.
 Starting a new session returns its `ss_...` ID in the `Location` header, so
 `result.sessionId` is available before you read the body. When you continue a
 session, it returns the ID you sent. A session is created once its first turn
-is accepted, before the model runs. If that turn fails or you cancel it,
-nothing is added to the history, so the session can be empty. You can still
-use it. A request rejected before the turn starts creates no session.
+is accepted, before the model runs. An ordinary failure or cancellation adds
+nothing to the history, so the session can be empty and remains usable. A handled
+spending stop preserves completed output as described below. A request rejected
+before the turn starts creates no session.
 
 You can claim the body of a chat or approval continuation result once,
 through `toResponse()` or `toStream()`; a second claim throws `stream_error`.
@@ -59,8 +60,10 @@ To cancel a chat turn or an approval continuation, abort its `AbortSignal` or
 cancel the stream you are reading or relaying. Completion and object calls also
 accept `abortSignal`.
 
-A failed or canceled chat turn leaves the transcript as it was, including the
-previous answer when you regenerate. Both still count toward usage, and tool
+An ordinary failed or canceled chat turn leaves the transcript as it was,
+including the previous answer when you regenerate. A handled model spending
+stop instead preserves completed messages and tool results accepted before the
+stop. Both still count toward usage, and tool
 side effects already performed are not undone. Tasks behave differently: each
 run starts a fresh session and saves the user message before generation, then
 saves the final assistant message, including any failure, when the run ends.
@@ -92,6 +95,42 @@ The event is provisional, not proof the message is saved. Render it and
 deduplicate by `message.id`, then confirm from the history after the turn
 ends; the receipt in `GET /inputs` turns `committed` once the message is
 durable.
+
+## Spending-stop events [#spending-stop-events]
+
+A handled model spending stop in a chat or approval-continuation stream sends
+a transient event before the error chunk:
+
+```json
+{
+  "type": "data-model-spending-limit",
+  "transient": true,
+  "data": {
+    "code": "model_spending_limit_exceeded",
+    "scope": "agent",
+    "reason": "reserved",
+    "spentUsd": 4,
+    "reservedUsd": 1,
+    "availableUsd": 0,
+    "nextResetAt": "2026-11-01T00:00:00Z"
+  }
+}
+```
+
+Read this event through the AI SDK's `onData` callback or from the raw stream.
+The scope is `agent`, `tenant`, or `both`. The reason is `exhausted`, `reserved`,
+`unpriced`, or `unknown_usage`. `nextResetAt` can be `null` when unavailable.
+The event does not change the HTTP status. The following error ends the turn.
+
+Completion and object streams use plain text and do not carry this event.
+A spending stop after their headers are sent fails the stream; awaiting the
+final value raises `stream_error`. A rejection before streaming uses the
+normal HTTP error envelope with spending details.
+
+Keep completed output visible and do not automatically retry the request.
+Read the [current allowance and reset](/platform/usage-and-quotas#model-spending-limits)
+before deciding what to do next. The same cost may count against both scopes;
+the two limits are not separate charges.
 
 ## Examples [#examples]
 

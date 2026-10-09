@@ -406,6 +406,206 @@ export const restApiOperations = [
   {
     "operations": [
       {
+        "description": "Get an agent model spending limit.",
+        "examples": [
+          {
+            "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/spending-limit\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/spending-limit\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/spending-limit\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/spending-limit\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/spending-limit\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/spending-limit\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/spending-limit\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "GET",
+        "operation": "get-agent-spending-limit",
+        "path": "/v1/agents/:agentId/spending-limit",
+        "responseMetadata": {
+          "description": "Model spending configuration and current UTC period.",
+          "schema": {
+            "name": "ModelSpendingLimitStatus"
+          }
+        },
+        "responses": [
+          {
+            "code": "{\n  \"spendingLimit\": null,\n  \"period\": null,\n  \"nextResetAt\": null,\n  \"scheduleChangeAt\": null\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "404"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/agents/get-agent-spending-limit"
+      },
+      {
+        "description": "Set an agent model spending limit.",
+        "examples": [
+          {
+            "code": "curl --request PUT \"$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/spending-limit\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"spendingLimit\":{\"amountUsd\":10,\"resetStartDate\":\"2026-10-01\",\"resetInterval\":\"monthly\"}}'",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/agents/ag_1234567890ABCDEF/spending-limit\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"spendingLimit\\\":{\\\"amountUsd\\\":10,\\\"resetStartDate\\\":\\\"2026-10-01\\\",\\\"resetInterval\\\":\\\"monthly\\\"}}\"\n\nresponse = requests.request(method=\"PUT\", url=url, headers=headers, data=body)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/agents/ag_1234567890ABCDEF/spending-limit\";\n\nconst response = await fetch(url, { method: \"PUT\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"spendingLimit\\\":{\\\"amountUsd\\\":10,\\\"resetStartDate\\\":\\\"2026-10-01\\\",\\\"resetInterval\\\":\\\"monthly\\\"}}\" });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/agents/ag_1234567890ABCDEF/spending-limit\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"PUT\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"spendingLimit\\\":{\\\"amountUsd\\\":10,\\\"resetStartDate\\\":\\\"2026-10-01\\\",\\\"resetInterval\\\":\\\"monthly\\\"}}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/spending-limit\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"spendingLimit\\\":{\\\"amountUsd\\\":10,\\\"resetStartDate\\\":\\\"2026-10-01\\\",\\\"resetInterval\\\":\\\"monthly\\\"}}\")\n\trequest, err := http.NewRequest(\"PUT\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/spending-limit\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"PUT\", HttpRequest.BodyPublishers.ofString(\"{\\\"spendingLimit\\\":{\\\"amountUsd\\\":10,\\\"resetStartDate\\\":\\\"2026-10-01\\\",\\\"resetInterval\\\":\\\"monthly\\\"}}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/agents/ag_1234567890ABCDEF/spending-limit\")\nrequest = Net::HTTPGenericRequest.new(\"PUT\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"spendingLimit\\\":{\\\"amountUsd\\\":10,\\\"resetStartDate\\\":\\\"2026-10-01\\\",\\\"resetInterval\\\":\\\"monthly\\\"}}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "PUT",
+        "operation": "update-agent-spending-limit",
+        "path": "/v1/agents/:agentId/spending-limit",
+        "responseMetadata": {
+          "description": "Model spending configuration and current UTC period.",
+          "schema": {
+            "name": "ModelSpendingLimitStatus"
+          }
+        },
+        "responses": [
+          {
+            "code": "{\n  \"spendingLimit\": null,\n  \"period\": null,\n  \"nextResetAt\": null,\n  \"scheduleChangeAt\": null\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "404"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/agents/update-agent-spending-limit"
+      },
+      {
         "description": "List agents.",
         "examples": [
           {
@@ -3184,6 +3384,206 @@ export const restApiOperations = [
           }
         ],
         "url": "/api-reference/rest-api/tenant/update-tenant-settings"
+      },
+      {
+        "description": "Get the tenant model spending limit.",
+        "examples": [
+          {
+            "code": "curl \"$BLAZING_AGENTS_BASE_URL/v1/tenant/spending-limit\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\"",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/tenant/spending-limit\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"]}\n\nresponse = requests.request(method=\"GET\", url=url, headers=headers)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/tenant/spending-limit\";\n\nconst response = await fetch(url, { method: \"GET\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY } });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/tenant/spending-limit\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"GET\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\")]);\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/tenant/spending-limit\"\n\tvar body io.Reader = http.NoBody\n\trequest, err := http.NewRequest(\"GET\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/tenant/spending-limit\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.method(\"GET\", HttpRequest.BodyPublishers.noBody());\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/tenant/spending-limit\")\nrequest = Net::HTTPGenericRequest.new(\"GET\", false, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "GET",
+        "operation": "get-tenant-spending-limit",
+        "path": "/v1/tenant/spending-limit",
+        "responseMetadata": {
+          "description": "Model spending configuration and current UTC period.",
+          "schema": {
+            "name": "ModelSpendingLimitStatus"
+          }
+        },
+        "responses": [
+          {
+            "code": "{\n  \"spendingLimit\": null,\n  \"period\": null,\n  \"nextResetAt\": null,\n  \"scheduleChangeAt\": null\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "404"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/tenant/get-tenant-spending-limit"
+      },
+      {
+        "description": "Set the tenant model spending limit.",
+        "examples": [
+          {
+            "code": "curl --request PUT \"$BLAZING_AGENTS_BASE_URL/v1/tenant/spending-limit\" \\\n  --header \"Authorization: Bearer $BLAZING_AGENTS_API_KEY\" \\\n  --header \"Content-Type: application/json\" \\\n  --data '{\"spendingLimit\":null}'",
+            "label": "cURL",
+            "language": "bash"
+          },
+          {
+            "code": "import os\nimport requests\n\nurl = os.environ[\"BLAZING_AGENTS_BASE_URL\"] + \"/v1/tenant/spending-limit\"\nheaders = {\"Authorization\": \"Bearer \" + os.environ[\"BLAZING_AGENTS_API_KEY\"], \"Content-Type\": \"application/json\"}\nbody = \"{\\\"spendingLimit\\\":null}\"\n\nresponse = requests.request(method=\"PUT\", url=url, headers=headers, data=body)\nprint(response.text)",
+            "label": "Python",
+            "language": "python"
+          },
+          {
+            "code": "const url = process.env.BLAZING_AGENTS_BASE_URL + \"/v1/tenant/spending-limit\";\n\nconst response = await fetch(url, { method: \"PUT\", headers: { \"Authorization\": \"Bearer \" + process.env.BLAZING_AGENTS_API_KEY, \"Content-Type\": \"application/json\" }, body: \"{\\\"spendingLimit\\\":null}\" });\nconsole.log(await response.text());",
+            "label": "JavaScript",
+            "language": "javascript"
+          },
+          {
+            "code": "<?php\n$url = getenv(\"BLAZING_AGENTS_BASE_URL\") . \"/v1/tenant/spending-limit\";\n$curl = curl_init($url);\ncurl_setopt($curl, CURLOPT_CUSTOMREQUEST, \"PUT\");\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, [\"Authorization: Bearer \" . getenv(\"BLAZING_AGENTS_API_KEY\"), \"Content-Type: application/json\"]);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, \"{\\\"spendingLimit\\\":null}\");\n$response = curl_exec($curl);\ncurl_close($curl);\necho $response;",
+            "label": "PHP",
+            "language": "php"
+          },
+          {
+            "code": "package main\n\nimport (\n\t\"io\"\n\t\"net/http\"\n\t\"os\"\n\t\"strings\"\n)\n\nfunc main() {\n\turl := os.Getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/tenant/spending-limit\"\n\tvar body io.Reader = http.NoBody\n\tbody = strings.NewReader(\"{\\\"spendingLimit\\\":null}\")\n\trequest, err := http.NewRequest(\"PUT\", url, body)\n\tif err != nil { panic(err) }\n\trequest.Header.Set(\"Authorization\", \"Bearer \" + os.Getenv(\"BLAZING_AGENTS_API_KEY\"))\n\trequest.Header.Set(\"Content-Type\", \"application/json\")\n\tresponse, err := http.DefaultClient.Do(request)\n\tif err != nil { panic(err) }\n\tdefer response.Body.Close()\n\t_, _ = io.Copy(os.Stdout, response.Body)\n}",
+            "label": "Go",
+            "language": "go"
+          },
+          {
+            "code": "import java.io.*;\nimport java.net.URI;\nimport java.net.http.*;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.*;\n\npublic class Example {\n  public static void main(String[] args) throws Exception {\n    var url = System.getenv(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/tenant/spending-limit\";\n    var builder = HttpRequest.newBuilder(URI.create(url));\n    builder.header(\"Authorization\", \"Bearer \" + System.getenv(\"BLAZING_AGENTS_API_KEY\"));\n    builder.header(\"Content-Type\", \"application/json\");\n    builder.method(\"PUT\", HttpRequest.BodyPublishers.ofString(\"{\\\"spendingLimit\\\":null}\"));\n    var response = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());\n    System.out.print(new String(response.body(), StandardCharsets.UTF_8));\n  }\n}",
+            "label": "Java",
+            "language": "java"
+          },
+          {
+            "code": "require \"net/http\"\nrequire \"uri\"\n\nuri = URI(ENV.fetch(\"BLAZING_AGENTS_BASE_URL\") + \"/v1/tenant/spending-limit\")\nrequest = Net::HTTPGenericRequest.new(\"PUT\", true, true, uri.request_uri)\nrequest[\"Authorization\"] = \"Bearer \" + ENV.fetch(\"BLAZING_AGENTS_API_KEY\")\nrequest[\"Content-Type\"] = \"application/json\"\nrequest.body = \"{\\\"spendingLimit\\\":null}\"\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == \"https\") { |http| http.request(request) }\nputs response.body",
+            "label": "Ruby",
+            "language": "ruby"
+          }
+        ],
+        "method": "PUT",
+        "operation": "update-tenant-spending-limit",
+        "path": "/v1/tenant/spending-limit",
+        "responseMetadata": {
+          "description": "Model spending configuration and current UTC period.",
+          "schema": {
+            "name": "ModelSpendingLimitStatus"
+          }
+        },
+        "responses": [
+          {
+            "code": "{\n  \"spendingLimit\": null,\n  \"period\": null,\n  \"nextResetAt\": null,\n  \"scheduleChangeAt\": null\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "200"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"invalid_request\",\n    \"message\": \"The request is invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "400"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"unauthorized\",\n    \"message\": \"The credential is missing or invalid.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "401"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "402"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The end user cannot run this request.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "403"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "404"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "500"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          }
+        ],
+        "url": "/api-reference/rest-api/tenant/update-tenant-spending-limit"
       }
     ],
     "pageId": "api-reference/rest-api/tenant.md",
@@ -11928,7 +12328,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "platform/usage-and-quotas.md",
             "type": "page",
             "name": "Usage and quotas",
-            "description": "See what every turn consumed, break it down by agent, model, session, or user, and set monthly safety ceilings.",
+            "description": "Track model usage and set token quotas or dollar spending limits for your account and agents.",
             "url": "/platform/usage-and-quotas",
             "$ref": "platform/usage-and-quotas.md"
           },
