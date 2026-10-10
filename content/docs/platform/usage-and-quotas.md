@@ -96,9 +96,11 @@ For one agent, use `client.agents.updateSpendingLimit({ agentId, spendingLimit }
 
 Resets happen at midnight UTC. Choose `daily`, `weekly`, `biweekly`, or `monthly`. Weekly means every seven days from the start date. Biweekly means every fourteen days, not twice per month.
 
-Monthly resets keep the original day. A January 31 start resets on February 28 or 29, then March 31. If the start date is in the future, the limit applies immediately for a short first period ending on that date. A past start date anchors the current period without adding historical costs.
+Monthly resets keep the original day. A January 31 start resets on February 28 or 29, then March 31. If the start date is in the future, the limit applies immediately for a first period ending on that date. A past start date anchors the current period without adding historical costs.
 
-Changing the schedule preserves the current period's end. The replacement schedule applies afterwards. Check `nextResetAt` and `scheduleChangeAt` in the response. Unused allowance does not carry forward. Changing the dollar amount keeps recorded spending and existing reservations. A lower limit does not cancel requests already admitted.
+Saving a new schedule immediately recalculates `nextResetAt` from the new schedule and the current server time. The current period keeps its start, recorded spending, and existing reservations. `scheduleChangeAt` is always `null`. Unused allowance does not carry forward.
+
+Changing only the dollar amount keeps the current reset time, recorded spending, and existing reservations. A lower limit does not cancel requests already admitted. Their costs remain in the period that funded them.
 
 Disabling and re-enabling a limit within the same period preserves its counters. Usage admitted while that limit was disabled is excluded. Enabling a limit applies to newly started turns; it does not interrupt a turn that started with both limits off.
 
