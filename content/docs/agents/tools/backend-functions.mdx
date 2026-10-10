@@ -133,7 +133,7 @@ Use the idempotency key when you call a service that supports duplicate preventi
 
 Cancellation is cooperative. Pass the TypeScript signal to operations that accept it, and check Python's cancellation event in synchronous handlers. Python async handlers are cancelled when their deadline expires or their stream closes. Cancellation cannot undo a side effect that already happened.
 
-Before your handler runs, the SDK asks Blazing Agents for the call, and afterward it sends back the result. It retries either request after a temporary network failure without running your handler again. If the deadline has passed or another reader already took the call, the SDK skips your handler and the stream carries on. Other request failures and malformed function events raise an error while you read the stream. If the connection fails after a side effect, its outcome may be unknown. Check your application's records before repeating it.
+Before your handler runs, the SDK asks Blazing Agents for the call, and afterward it sends back the result. It retries either request after a temporary network failure without running your handler again. If the deadline has passed or another process already took the call, the SDK skips your handler and the stream carries on. Other request failures and malformed function events raise an error while you read the stream. If the connection fails after a side effect, its outcome may be unknown. Check your application's records before repeating it.
 
 Return plain JSON values. Convert dates or model instances explicitly before you return them. Handler exceptions, invalid arguments, and invalid results become sanitized tool errors. Exception details are not sent to the agent.
 
