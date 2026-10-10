@@ -54,7 +54,7 @@ You see one line per agent that ran in July, then the saved quota: a token ceili
 
 Set a dollar allowance for one agent, your whole account, or both. An agent's limit covers all its sessions and tasks. The account limit covers all agents, including those without their own limit. The same model cost counts toward both limits when both are enabled.
 
-Use an unscoped tenant credential to read or change these settings. An end user's agent access does not grant permission to change the allowance.
+Read and change these limits with your tenant API key. A [user-scoped client](/sdk/typescript/client#for-user) gets [`forbidden`](/api-reference/protocols/errors#forbidden).
 
 This example sets a $25 monthly account allowance. Use a UTC start date to anchor the resets.
 
@@ -98,25 +98,34 @@ Resets happen at midnight UTC. Choose `daily`, `weekly`, `biweekly`, or `monthly
 
 Monthly resets keep the original day. A January 31 start resets on February 28 or 29, then March 31. If the start date is in the future, the limit applies immediately for a first period ending on that date. A past start date anchors the current period without adding historical costs.
 
-Saving a new schedule immediately recalculates `nextResetAt` from the new schedule and the current server time. The current period keeps its start, recorded spending, and existing reservations. Unused allowance does not carry forward.
+Changing the schedule moves `nextResetAt` at once, counted from the new schedule and the current time. The current period keeps its start and the spending counted so far. Unused allowance does not carry forward.
 
-Changing only the dollar amount keeps the current reset time, recorded spending, and existing reservations. A lower limit does not cancel requests already admitted. Their costs remain in the period that funded them.
+Changing only the dollar amount keeps the reset time and the spending counted so far. Lowering the amount does not stop a model request that has already started, and its cost counts in the period where it started.
 
-Disabling and re-enabling a limit within the same period preserves its counters. Usage admitted while that limit was disabled is excluded. Enabling a limit applies to newly started turns; it does not interrupt a turn that started with both limits off.
+If you turn a limit off and on again within one period, its spending count picks up where it was. Model requests made while it was off do not count toward it. Turning a limit on affects turns that start afterward. A turn that started with no limit in force runs to the end.
 
 ### Understand the reported dollars [#spending-limit-costs]
 
-The limit covers model tokens, including supported cache usage, priced at supported catalogue rates. It excludes Blazing Agents platform, workspace, storage, and network charges. The estimate can differ from your provider's invoice or negotiated prices.
+The limit counts model tokens, including cache tokens, priced from the model price list built into Blazing Agents. It excludes Blazing Agents platform, workspace, storage, and network charges. The estimate can differ from your provider's invoice or negotiated prices.
 
-The feature needs supported model pricing and provider usage data. A provider response does not always contain a dollar amount. A request whose cost cannot be priced is refused when a limit applies. If a request's usage is never reported, for example after a crash, its reserved allowance stays unavailable until the next reset, which starts with nothing reserved.
+Models from a `custom` provider, and models missing from that price list, cannot be priced. While a limit applies, turns that use them are refused. If a request's usage is never reported, for example after a crash, its reserved allowance stays unavailable until the next reset, which starts with nothing reserved.
 
-`spentUsd` shows costs already saved. `reservedUsd` shows money set aside for unfinished or unresolved work. `availableUsd` shows what remains available to other work. A running turn may have incurred costs that are still represented by its reservation.
+`spentUsd` is the cost of finished model requests in the current period. `reservedUsd` is the estimated cost held for requests that are still running or whose usage was never reported. `availableUsd` is what new requests can still use. A running turn's costs can stay in `reservedUsd` until the turn ends.
 
 Concurrent turns share the available allowance. Each model request uses a cost estimate before it starts, so actual spending can exceed the limit when the estimate is too low. Treat the allowance as a spending control, not an exact invoice ceiling.
 
 ### Handle a spending stop [#spending-limit-stops]
 
-A request blocked before streaming returns HTTP `429` with `model_spending_limit_exceeded`. The details identify the agent or account scope and whether funds are exhausted, reserved, or cannot be priced. Chat and approval-continuation streams report a stop through a `data-model-spending-limit` event. Completion and object streams instead fail with `stream_error` after streaming starts. See [streaming errors](/api-reference/protocols/streaming#spending-stop-events). Completed chat messages and tool results remain available after a handled budget stop.
+A request blocked before streaming returns HTTP `429` with [`model_spending_limit_exceeded`](/api-reference/protocols/errors#model_spending_limit_exceeded). The error details, and the stream event below, carry `scope`, which names the limit that stopped the request (`agent`, `tenant` for your account, or `both`), and a `reason`:
+
+| `reason` | What happened | What to do |
+| --- | --- | --- |
+| `exhausted` | Spending reached the limit for this period. | Wait for `nextResetAt`, or raise the amount. |
+| `reserved` | Running work holds the rest of the allowance. | Try again after that work finishes, or raise the amount. |
+| `unpriced` | The model has no price in the built-in price list. | Switch the agent to a priced model, or turn off the limit that applies. |
+| `unknown_usage` | A model request finished without reporting its usage. The turn stops, and the request's estimated cost stays held until the next reset. | Check `availableUsd`. New turns run while allowance remains. |
+
+Chat and approval-continuation streams report a stop that happens mid-turn through a `data-model-spending-limit` event. Completion and object streams instead fail with `stream_error`. See [streaming errors](/api-reference/protocols/streaming#spending-stop-events). Chat messages and tool results that finished before the stop stay in the session. A task run stopped by a spending limit ends as `failed`.
 
 Do not retry a budget stop automatically. Read the current limit and its reset time. Wait for running work to finish, wait for the reset, or increase the allowance. Changing a limit does not undo completed tools or restart a stopped turn.
 
@@ -126,7 +135,7 @@ Each turn adds one usage record with input tokens, output tokens, one request, d
 
 Failed and cancelled turns are recorded too. A turn that fails before the model responds records zero tokens but still counts the request and duration. If it fails after some model steps finished, the tokens from those steps stay in usage.
 
-These reports show model usage, not the infrastructure charges on your Blazing Agents bill. Usage charges can arrive later as measured execution and network usage becomes available. Charges already sent for billing keep their original records. Later decreases create separate corrections; they do not rewrite earlier charges.
+These reports show model usage, not the compute and network charges on your Blazing Agents bill. Those charges can reach your bill some time after the work runs, once they are measured. If a later measurement is lower, Blazing Agents adds a separate correction in your favor and leaves the original charge as it was. A higher later measurement is never charged to you.
 
 ## Break down usage [#break-down-usage]
 
