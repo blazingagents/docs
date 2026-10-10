@@ -21,10 +21,10 @@ Here is what a team usually ends up building:
 - **MCP tools** from remote servers, including OAuth sign-in and token refresh.
 - **Tool approvals** so a person, or a reviewing model, can allow or block a risky call before it runs.
 - **Background tasks and schedules** that run the agent with no user present, once, on an interval, or on a cron.
-- **Usage metering** per turn, per agent, and per end user, with monthly quotas as a safety ceiling.
+- **Usage metering** per turn, per agent, and per end user, with token quotas and dollar spending limits as safety ceilings.
 - **Billing your own users** for the model tokens they consume.
 - **Slack and Telegram** bots that talk to the same agent.
-- **Saved agent configuration** so you can inspect the settings a session or task run uses.
+- **Saved agent configuration** so an agent edit does not change a conversation or job already in progress.
 
 Blazing Agents ships each of these today.
 
@@ -58,7 +58,7 @@ This table compares building on a plain model SDK with your own database and san
 | [Usage and quotas](/platform/usage-and-quotas) | Record tokens per call and aggregate by user, agent, and model | Query `client.usage` grouped by day, agent, model, session, or user |
 | [Bill your users](/platform/monetization) | Meter tokens per user and deliver events to your billing provider reliably | Connect Polar or Dodo, bind each `userId` to a customer |
 | [Slack and Telegram](/platform/chat-integrations) | Handle webhooks, threads, history, and approval buttons for each platform | Create a chat connection with your bot credentials |
-| [Configuration snapshots](/agents/configuration-snapshots) | Inspect settings saved for a session or task run | Existing work keeps its saved configuration after agent edits |
+| [Configuration snapshots](/agents/configuration-snapshots) | Copy the agent's settings into each conversation and job so later edits do not change work in progress | Each session and task run keeps the settings it started with. Read them with `sessions.get()` or `tasks.getRun()`. |
 
 ## How it fits in your stack [#how-it-fits-in-your-stack]
 

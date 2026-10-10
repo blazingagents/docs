@@ -53,7 +53,7 @@ print(client.completion(agent_id=agent.id, prompt="How do I reset my password?")
 
 You see `Agent: ag_...` followed by the answer. Each run creates a new agent, even when its name matches an existing one. Save the ID to reuse the same agent.
 
-The new agent starts with status `active`, and it comes with its own [workspace](/agents/workspaces) for files. The workspace defaults to Core and starts compute only when the agent first reads, writes, or runs something in it. Choose Plus with `workspaceTier: "plus"` or `workspace_tier="plus"` in Python for snapshot resume. Its tier cannot change later.
+The new agent starts with status `active`, and it comes with its own [workspace](/agents/workspaces) for files. The workspace defaults to Core and starts compute only when the agent first reads, writes, or runs something in it. Choose Plus with `workspaceTier: "plus"` or `workspace_tier="plus"` in Python to keep its files when the workspace stops. Its tier cannot change later.
 
 ## What an agent controls [#what-an-agent-controls]
 
@@ -68,7 +68,7 @@ The new agent starts with status `active`, and it comes with its own [workspace]
 
 The agent stores references, not copies. It points to its provider, MCP connections, and workspace, and every turn uses their current state.
 
-A tenant-wide API key can access every agent in the tenant. For an agent owned by one end user, derive a client with `client.forUser(verifiedUserId)` in your backend. BA then enforces ownership. Passing `userId` alone only labels the agent. See [tenancy and attribution](/platform/tenancy-and-attribution).
+A tenant-wide API key can access every agent in the tenant. For an agent owned by one end user, derive a client with `client.forUser(verifiedUserId)` in your backend. Blazing Agents then checks that the agent belongs to that user. Passing `userId` alone only labels the agent. See [tenancy and attribution](/platform/tenancy-and-attribution).
 
 For every field, its default, and its limits, see `create()` in the [TypeScript](/sdk/typescript/agents#create) or [Python](/sdk/python/agents#create) SDK.
 
@@ -117,7 +117,7 @@ This removes the agent's sessions, tasks, memories, skills, linked prompts, and 
 
 Every tenant has exactly one admin agent. It is the agent behind [`ba assist`](/cli/assist), the built-in assistant that manages your tenant, and Blazing Agents creates it for you. It appears in `agents.list()` next to your own agents, and the dashboard marks it **Powers BA Assist for this tenant**.
 
-You choose its provider and model, plus an optional thinking level. New sessions and task runs save its current configuration. Blazing Agents manages everything else: you cannot rename it, change its instructions, tools, or avatar, disable it, delete it, or give it a task. Those requests fail with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
+You choose its provider and model, plus an optional thinking level. New sessions save its current configuration. Blazing Agents manages everything else: you cannot rename it, change its instructions, tools, or avatar, disable it, delete it, or give it a task. Those requests fail with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
 
 Its workspace is reserved for it. That workspace does not appear in your workspace list and cannot be attached to another agent. Its sessions and usage belong to your tenant, the same as any other agent's.
 

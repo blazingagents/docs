@@ -37,7 +37,7 @@ If you only need the finished text, skip the loop: `await result.text` in TypeSc
 
 | | `client.chat()` | `client.completion()` |
 | --- | --- | --- |
-| Input | One user message in AI SDK `UIMessage` shape, or a saved [prompt](/agents/prompts) | Plain text, or a saved prompt |
+| Input | One or more user messages in AI SDK `UIMessage` shape, or a saved [prompt](/agents/prompts) | Plain text, or a saved prompt |
 | History | Starts a session, or continues one when you pass its ID | None |
 | Output | An AI SDK UI message stream, plus the session ID | Plain text deltas |
 | Good for | Chat interfaces and multi-step conversations | Summaries, rewrites, and other standalone text |

@@ -9,7 +9,7 @@ Attach your backend functions to a chat request so the agent can use your applic
 
 ## Attach a function [#attach-a-function]
 
-Use a published agent with a configured provider and model. For this example, set `approvalInChat.default` to `"full"` so the function can run without a manual decision. Set `BLAZING_AGENTS_API_KEY` and `BLAZING_AGENTS_AGENT_ID` in your backend environment.
+Use an agent with a provider and model. Keep its `approvalInChat.default` at `"full"`, the default, so the function runs without a manual decision. Set `BLAZING_AGENTS_API_KEY` and `BLAZING_AGENTS_AGENT_ID` in your backend environment.
 
 This example gives the agent a shipping quote function. Replace the sample rates with your application's pricing service.
 
@@ -127,13 +127,13 @@ The function descriptions and schemas go out again with this request, so keep th
 
 Each handler receives a context. TypeScript provides `idempotencyKey` and `signal`. Python provides `idempotency_key`, `deadline_at`, and a `cancelled` event.
 
-Each function call has a 60-second deadline, including the time spent claiming the call. Keep handlers within that limit.
+Each function call must return within 60 seconds of the agent making it. After that, the agent gets a tool error that says the outcome is unknown or the call did not run, even if your handler finishes later.
 
 Use the idempotency key when you call a service that supports duplicate prevention. It identifies one function execution. If a user sends the same request again, the new call has a new key, so business operations such as payments still need your own stable transaction ID.
 
 Cancellation is cooperative. Pass the TypeScript signal to operations that accept it, and check Python's cancellation event in synchronous handlers. Python async handlers are cancelled when their deadline expires or their stream closes. Cancellation cannot undo a side effect that already happened.
 
-The SDK retries transient failures when it claims a call or submits a result. It does not rerun your handler for those retries. Permanent request failures and malformed callback events raise an error while you read the stream. A conflicting claim or an expired retry window does not raise a stream error. If the connection fails after a side effect, its outcome may be unknown. Check your application's records before repeating it.
+Before your handler runs, the SDK asks Blazing Agents for the call, and afterward it sends back the result. It retries either request after a temporary network failure without running your handler again. If the deadline has passed or another reader already took the call, the SDK skips your handler and the stream carries on. Other request failures and malformed function events raise an error while you read the stream. If the connection fails after a side effect, its outcome may be unknown. Check your application's records before repeating it.
 
 Return plain JSON values. Convert dates or model instances explicitly before you return them. Handler exceptions, invalid arguments, and invalid results become sanitized tool errors. Exception details are not sent to the agent.
 
