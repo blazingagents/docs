@@ -159,7 +159,7 @@ with client.chat(
         print(chunk.decode(), end="")
 ```
 
-Omit `session_id` to start a new session. Its `ss_...` ID is available as `stream.session_id` before you read the body. Pass it on a later call to continue the conversation. The first turn saves the current agent configuration for every later turn. Read it with `sessions.get()`. `trigger="regenerate-message"` works only in an existing session and can target a `message_id`.
+Omit `session_id` to start a new session. Its `ss_...` ID is available as `stream.session_id` before you read the body, and `stream.turn_id` holds the running turn's ID for [`sessions.stop()`](/sdk/python/sessions#stop). Pass the session ID on a later call to continue the conversation. The first turn saves the current agent configuration for every later turn. Read it with `sessions.get()`. `trigger="regenerate-message"` works only in an existing session and can target a `message_id`.
 
 Pass `messages` (a list of user messages) instead of `message` to send several waiting messages in one turn; each stays a separate user message in the history, in order.
 

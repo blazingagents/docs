@@ -253,7 +253,7 @@ A finished receipt also carries a `reason`: `stopped` (you stopped the turn), `f
 
 ### Stop a turn [#stop-a-turn]
 
-Stopping needs the ID of the turn you mean. The response that started the turn names it in its `X-BA-Turn-Id` header, and any other client, such as a second tab, reads it from the session's activity, as below. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to end. Keep reading your existing stream until it ends, then check the history.
+Stopping needs the ID of the turn you mean. The response that started the turn names it in its `X-BA-Turn-Id` header. The SDKs expose that header as `await result.turnId` in TypeScript and `stream.turn_id` in Python, and both chat transports pass it to `onTurnId`. Any other client, such as a second tab, reads the ID from the session's activity, as below. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to end. Keep reading your existing stream until it ends, then check the history.
 
 ```typescript tab="TypeScript"
 const { activity } = await client.sessions.inputs({ agentId, sessionId });

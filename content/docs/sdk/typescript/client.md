@@ -231,7 +231,7 @@ Pass `functions` to attach a map of backend handlers created with `defineFunctio
 
 The first turn saves the agent's current configuration. Later turns use that saved configuration. Read it with `sessions.get()`. To regenerate an answer, send `trigger: "regenerate-message"` with a `message` or `promptId` as usual. The transcript is cut from `messageId`, or from the latest assistant message when you omit it, and replaced only if the new turn succeeds.
 
-Returns [`ChatResult`](#types). `sessionId` resolves as soon as the server accepts the turn, before the answer streams, so save it right away. A successful turn saves its messages together. A failed or cancelled turn adds nothing to the history. Read the body once, through either `toResponse()` (a `Response` you can return from a route) or `toStream()` (the same bytes as a `ReadableStream`).
+Returns [`ChatResult`](#types). `sessionId` resolves as soon as the server accepts the turn, before the answer streams, so save it right away. `turnId` resolves at the same time with the ID that [`sessions.stop()`](/sdk/typescript/sessions#stop) takes. A successful turn saves its messages together. A failed or cancelled turn adds nothing to the history. Read the body once, through either `toResponse()` (a `Response` you can return from a route) or `toStream()` (the same bytes as a `ReadableStream`).
 
 Ordinary chat throws `BlazingAgentsError` with `status: 409` and `code: "message_id_conflict"` if any message ID is already saved in the session's history. The entire batch is rejected before model or tool work, including when a reused ID has changed content. Regeneration is exempt. After an unknown response, read the history instead of automatically retrying. See [sessions and turns](/platform/sessions-and-turns#send-while-the-agent-is-working).
 
@@ -324,6 +324,7 @@ Returns [`ObjectResult`](#types). `partialObjectStream` yields partial values wh
 interface ChatResult {
   requestId?: string;
   sessionId: Promise<string>;
+  turnId: Promise<string>;
   toResponse: () => Response;
   toStream: () => ReadableStream<Uint8Array>;
 }
