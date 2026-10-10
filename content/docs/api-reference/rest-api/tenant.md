@@ -119,7 +119,7 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/tenant" \
 
 Get the tenant model spending limit.
 
-Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved until the next reset, which starts a period with no reservations. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits recalculate the current period end immediately without clearing recorded spending or reservations. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.
+An estimated USD allowance for model tokens, priced from the built-in model price list. It excludes platform compute, storage, workspace and network charges, and a request that costs more than estimated can exceed it. While a limit applies, models without a price are refused. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Money held for work whose usage is never reported is released at the next reset. Requires a tenant API key; a user-scoped request gets forbidden.
 
 #### Request
 
@@ -164,7 +164,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tenant/spending-limit" \
 
 Set the tenant model spending limit.
 
-Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved until the next reset, which starts a period with no reservations. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits recalculate the current period end immediately without clearing recorded spending or reservations. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.
+An estimated USD allowance for model tokens, priced from the built-in model price list. It excludes platform compute, storage, workspace and network charges, and a request that costs more than estimated can exceed it. While a limit applies, models without a price are refused. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Money held for work whose usage is never reported is released at the next reset. Requires a tenant API key; a user-scoped request gets forbidden.
 
 #### Request
 

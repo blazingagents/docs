@@ -63,7 +63,7 @@ print(authorization.authorization_url)
 
 This call needs a signed-in dashboard administrator's session token in place of the API key; a tenant API key raises [`unauthorized`](/api-reference/protocols/errors#unauthorized). Most teams finish this step in the [dashboard](https://www.blazingagents.com/app) instead. Open the returned `authorization_url` in the administrator's signed-in browser. It is a short-lived dashboard link, not the upstream provider's sign-in page.
 
-Raises [`validation_failed`](/api-reference/protocols/errors#validation_failed) for a malformed ID. A missing connection, or one with the wrong auth type or state, currently raises [`internal`](/api-reference/protocols/errors#internal).
+Raises [`validation_failed`](/api-reference/protocols/errors#validation_failed) for a malformed ID. A missing connection, or one that does not need authorization, raises [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `create()` [#create]
 
