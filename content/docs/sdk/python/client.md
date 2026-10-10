@@ -163,7 +163,7 @@ Omit `session_id` to start a new session. Its `ss_...` ID is available as `strea
 
 Pass `messages` (a list of user messages) instead of `message` to send several waiting messages in one turn; each stays a separate user message in the history, in order.
 
-Ordinary chat raises `APIStatusError` with `status_code=409` and `code="message_id_conflict"` if any message ID is already in the session's accepted history. The entire batch is rejected before model or tool work, including when a reused ID has changed content. Regeneration is exempt. After an unknown response, read the history instead of automatically retrying. See [sessions and turns](/platform/sessions-and-turns#send-while-the-agent-is-working).
+Ordinary chat raises `APIStatusError` with `status_code=409` and `code="message_id_conflict"` if any message ID is already saved in the session's history. The entire batch is rejected before model or tool work, including when a reused ID has changed content. Regeneration is exempt. After an unknown response, read the history instead of automatically retrying. See [sessions and turns](/platform/sessions-and-turns#send-while-the-agent-is-working).
 
 With the async client, call `stream = await client.chat(...)`, then use `async with stream` and `async for chunk in stream`.
 

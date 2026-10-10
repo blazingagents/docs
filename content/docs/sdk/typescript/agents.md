@@ -34,6 +34,8 @@ Every method takes one input object and accepts an optional `abortSignal`. New s
 | [`removeAvatar()`](#remove-avatar) | Remove the avatar | `Agent` |
 | [`listMcpAttachments()`](#list-mcp-attachments) | Read what each MCP connection receives | `McpAttachmentsResponse` |
 | [`updateMcpAttachment()`](#update-mcp-attachment) | Choose what an MCP connection receives | `McpAttachmentResponse` |
+| [`getSpendingLimit()`](#get-spending-limit) | Read the agent's model spending limit | `SpendingLimitResponse` |
+| [`updateSpendingLimit()`](#update-spending-limit) | Set or turn off the agent's model spending limit | `SpendingLimitResponse` |
 
 ## Methods [#methods]
 
@@ -257,6 +259,34 @@ const attachment = await client.agents.updateMcpAttachment({
 | `forwardedMetadataKeys` | `string[]` | no | Turn metadata keys to send; up to 32 unique keys of at most 64 characters |
 
 Pass at least one of the two settings. Returns [`McpAttachmentResponse`](#mcpattachmentresponse). Errors: `validation_failed`, `not_found`. See [MCP tools](/agents/tools/mcp-tools).
+
+### `getSpendingLimit()` [#get-spending-limit]
+
+Reads one agent's model spending limit and the current period.
+
+**Signature:** `getSpendingLimit(input: { agentId: string } & ResourceRequestOptions): Promise<SpendingLimitResponse>`
+
+```typescript
+const { period } = await client.agents.getSpendingLimit({ agentId: "ag_0123456789abcdef" });
+console.log(period?.spentUsd);
+```
+
+Returns [`SpendingLimitResponse`](/sdk/typescript/tenant#spendinglimitresponse).
+
+### `updateSpendingLimit()` [#update-spending-limit]
+
+Sets one agent's dollar allowance for model tokens across all its sessions and tasks, or turns it off with `spendingLimit: null`. The account limit, if you set one, still applies too.
+
+**Signature:** `updateSpendingLimit(input: { agentId: string; spendingLimit: SpendingLimit | null } & ResourceRequestOptions): Promise<SpendingLimitResponse>`
+
+```typescript
+await client.agents.updateSpendingLimit({
+  agentId: "ag_0123456789abcdef",
+  spendingLimit: { amountUsd: 5, resetStartDate: "2026-10-01", resetInterval: "weekly" },
+});
+```
+
+`SpendingLimit` has the same fields as on the [tenant](/sdk/typescript/tenant#update-spending-limit). See [model spending limits](/platform/usage-and-quotas#model-spending-limits). Returns [`SpendingLimitResponse`](/sdk/typescript/tenant#spendinglimitresponse). Errors: `validation_failed`, `not_found`, and `forbidden` from a user-scoped client.
 
 ## Response types [#response-types]
 

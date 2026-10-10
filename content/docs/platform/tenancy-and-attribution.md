@@ -99,7 +99,7 @@ If you forget to pass `userId`, the activity is recorded with the empty label. D
 
 A `userId` in a request body or list filter labels or selects data. It does not change the API key's authority. Derive the user ID from a session your backend verified, then call [`forUser()`](/sdk/typescript/client#for-user). The scoped client sends `X-BA-User-Id`, and the API checks that resources belong to that user. A scoped request cannot administer tenant-wide settings.
 
-Blazing Agents does not authenticate your product's users. Your backend still decides whether the signed-in person may use a feature or reach an application record. A Python client without `X-BA-User-Id` keeps tenant-wide authority, so check ownership in your backend before it reads or changes a resource.
+Blazing Agents does not authenticate your product's users. Your backend still decides whether the signed-in person may use a feature or reach an application record. The Python SDK has no `forUser()`. To get the same check in Python, create the client for that request with `default_headers={"X-BA-User-Id": user_id}`. A Python client without that header keeps tenant-wide access, so check ownership in your backend before it reads or changes a resource.
 
 Your backend must sign in the user, check that they own the chat or resource, and only then call Blazing Agents with IDs from its own storage.
 

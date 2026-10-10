@@ -32,8 +32,8 @@ Starting a new session returns its `ss_...` ID in the `Location` header, so
 `result.sessionId` is available before you read the body. When you continue a
 session, it returns the ID you sent. A session is created once its first turn
 is accepted, before the model runs. An ordinary failure or cancellation adds
-nothing to the history, so the session can be empty and remains usable. A handled
-spending stop preserves completed output as described below. A request rejected
+nothing to the history, so the session can be empty and remains usable. A
+spending stop keeps the output that finished before it, as described below. A request rejected
 before the turn starts creates no session.
 
 You can claim the body of a chat or approval continuation result once,
@@ -61,9 +61,9 @@ cancel the stream you are reading or relaying. Completion and object calls also
 accept `abortSignal`.
 
 An ordinary failed or canceled chat turn leaves the transcript as it was,
-including the previous answer when you regenerate. A handled model spending
-stop instead preserves completed messages and tool results accepted before the
-stop. Both still count toward usage, and tool
+including the previous answer when you regenerate. A model spending stop
+instead keeps the messages and tool results that finished before the stop.
+Both still count toward usage, and tool
 side effects already performed are not undone. Tasks behave differently: each
 run starts a fresh session and saves the user message before generation, then
 saves the final assistant message, including any failure, when the run ends.
@@ -80,7 +80,7 @@ the turn ends.
 [Steering a running turn](/platform/sessions-and-turns#steer-a-running-turn)
 returns `202` with a JSON receipt, not a stream. Stopping a turn returns
 `200` as soon as the stop is recorded; the turn's own stream still runs until
-it settles, so keep reading the stream you already have.
+the turn ends, so keep reading the stream you already have.
 
 ## Steer events [#steer-events]
 
@@ -91,15 +91,15 @@ transient event for it:
 data: {"type":"data-ba-steer-consumed","transient":true,"data":{"requestId":"req_1","turnId":"turn_...","sequence":3,"message":{"id":"m2","role":"user","parts":[{"type":"text","text":"Compare costs too"}]}}}
 ```
 
-The event is provisional, not proof the message is saved. Render it and
-deduplicate by `message.id`, then confirm from the history after the turn
-ends; the receipt in `GET /inputs` turns `committed` once the message is
-durable.
+The event means the running turn picked up the message, not that the message
+is saved. Render it and deduplicate by `message.id`, then confirm from the history after
+the turn ends. The receipt in `GET /inputs` turns `committed` once the message
+is saved in the history.
 
 ## Spending-stop events [#spending-stop-events]
 
-A handled model spending stop in a chat or approval-continuation stream sends
-a transient event before the error chunk:
+A model spending stop in a chat or approval-continuation stream sends a
+transient event before the error chunk:
 
 ```json
 {
@@ -119,8 +119,9 @@ a transient event before the error chunk:
 
 Read this event through the AI SDK's `onData` callback or from the raw stream.
 The scope is `agent`, `tenant`, or `both`. The reason is `exhausted`, `reserved`,
-`unpriced`, or `unknown_usage`. `nextResetAt` can be `null` when unavailable.
-The event does not change the HTTP status. The following error ends the turn.
+`unpriced`, or `unknown_usage`; [handle a spending stop](/platform/usage-and-quotas#spending-limit-stops)
+says what each one means and what to do. The event does not change the HTTP
+status. The following error ends the turn.
 
 Completion and object streams use plain text and do not carry this event.
 A spending stop after their headers are sent fails the stream; awaiting the

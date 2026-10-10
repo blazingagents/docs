@@ -87,12 +87,14 @@ The `connect()` SDK method starts the same flow, but it needs a signed-in dashbo
 
 Each connection has a `status`: `connected`, `needs_auth`, or `error`. Treat `needs_auth` as a sign to reconnect.
 
-`test()` returns the server's identity, response time, and tool names, or a safe error with one of these codes:
+`test()` returns the server's identity, response time, and tool names, or an error with one of these codes:
 
-- `MCP_CONNECTION_AUTHENTICATION_FAILED`
-- `MCP_CONNECTION_INVALID`
-- `MCP_CONNECTION_UNREACHABLE`
-- `MCP_CONNECTION_DISCOVERY_FAILED`
+| Code | What it means |
+| --- | --- |
+| `MCP_CONNECTION_AUTHENTICATION_FAILED` | The server refused the token, client credentials, or OAuth sign-in. Get valid credentials, then `reconnect()`. |
+| `MCP_CONNECTION_INVALID` | The URL is not the full `https://` address of the server's MCP endpoint. |
+| `MCP_CONNECTION_UNREACHABLE` | The server is down, the address is wrong, or the server does not accept connections from the internet. |
+| `MCP_CONNECTION_DISCOVERY_FAILED` | The server answered, but listing its tools, or finding its OAuth sign-in, failed. |
 
 Run it again after you change credentials or the server changes, because tools are discovered live on every turn.
 

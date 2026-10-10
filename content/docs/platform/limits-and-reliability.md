@@ -49,6 +49,7 @@ The error code tells you what to fix. It does not tell you the retry is safe, so
 - **[`unauthorized`](/api-reference/protocols/errors#unauthorized):** replace the API key.
 - **[`not_found`](/api-reference/protocols/errors#not_found):** check the ID and whether the resource was deleted.
 - **[`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded):** wait for the quota window to reset, or raise the quota.
+- **[`model_spending_limit_exceeded`](/api-reference/protocols/errors#model_spending_limit_exceeded):** do not retry automatically. Its `reason` tells you whether to wait for the reset, wait for running work, raise the limit, or switch models. See [handle a spending stop](/platform/usage-and-quotas#spending-limit-stops).
 - **[`rate_limited`](/api-reference/protocols/errors#rate_limited):** too many turns are running. Retry with backoff.
 - **Provider or [`internal`](/api-reference/protocols/errors#internal) errors:** retry only if the cause looks temporary and the call is safe to repeat.
 
@@ -91,7 +92,7 @@ Lists return a `nextCursor`. Pass it back to the same call with the same filters
 | Task run `failed` or `canceled` | The run and its transcript. | Submit a new run once repeating its effects is safe. |
 | `quota_exceeded` or run `blocked` | Your usage against your quota. | Wait for the reset day or raise the quota. |
 
-When you replace a provider, saved sessions and queued or running task runs may still use the old one. Move current agents to the new provider first. See [provider deletion](/agents/providers-and-models) before removing the old provider.
+When you replace a provider, saved sessions and queued or running task runs may still use the old one. Move current agents to the new provider first. See [rotate or remove a key](/agents/providers-and-models#rotate-or-remove-a-key) before removing the old provider.
 
 ## Log errors safely [#log-errors-safely]
 

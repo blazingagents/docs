@@ -24,7 +24,7 @@ Every method takes one input object and accepts an optional `abortSignal`. The s
 | [`list()`](#list) | List one agent's sessions | `SessionsListResponse` |
 | [`listLatest()`](#list-latest) | List recent sessions across agents | `LatestSessionsListResponse` |
 | [`get()`](#get) | Read one session and its saved `agentConfig` | `SessionResponse` |
-| [`fork()`](#fork) | Copy a conversation through an accepted assistant reply | `SessionResponse` |
+| [`fork()`](#fork) | Copy a conversation up to a saved assistant reply | `SessionResponse` |
 | [`messages()`](#messages) | Load or poll a session's messages | `SessionMessagesResponse` |
 | [`delete()`](#delete) | Delete a session for good | `void` |
 | [`toolApprovals()`](#tool-approvals) | List the session's tool approvals | `ToolApprovalsResponse` |
@@ -197,7 +197,7 @@ Without `includeCompleted`, you get the pending `accepted` and `delivered` recei
 
 ### `stop()` [#stop]
 
-Records a stop for one turn and returns right away. The turn's own stream keeps running until it settles.
+Records a stop for one turn and returns right away. The turn's own stream keeps running until the turn ends.
 
 **Signature:** `stop(input: { agentId: string; sessionId: string; turnId: string } & ResourceRequestOptions): Promise<StopSessionResponse>`
 
@@ -213,14 +213,14 @@ Take `turnId` from the session's activity. Retrying with the same `turnId` never
 
 ### `fork()` [#fork]
 
-Creates an idle child session through a selected accepted assistant message, including that reply.
+Creates an idle child session that copies the conversation up to and including a saved assistant reply.
 
 **Signature:** `fork(input: { agentId: string; sessionId: string; messageId: string; idempotencyKey: string } & ResourceRequestOptions): Promise<SessionResponse>`
 
 ```typescript
 const page = await client.sessions.messages({ agentId, sessionId });
 const selected = page.data.find((message) => message.branchable);
-if (!selected) throw new Error("Choose an accepted assistant reply first.");
+if (!selected) throw new Error("Choose a saved assistant reply first.");
 const idempotencyKey = crypto.randomUUID();
 const child = await client.sessions.fork({
   agentId, sessionId, messageId: selected.id, idempotencyKey,
@@ -228,7 +228,7 @@ const child = await client.sessions.fork({
 console.log(child.id, child.forkedFrom);
 ```
 
-Select a message whose top-level `branchable` is `true`. Streaming replies and pending approvals are ineligible. Pick the reply from `sessions.messages()`, not from the live stream. Stream chunks don't include `branchable`. A reply that is not in the history yet is not eligible. An earlier accepted reply remains eligible while the source runs. The child inherits the source's saved configuration, user label, and metadata; workspace files and memories stay shared and live.
+Select a message whose top-level `branchable` is `true`. Streaming replies and pending approvals are ineligible. Pick the reply from `sessions.messages()`, not from the live stream. Stream chunks don't include `branchable`. A reply that is not in the history yet is not eligible. Earlier saved replies can still be forked while the source session runs a turn. The child inherits the source's saved configuration, user label, and metadata; workspace files and memories stay shared and live.
 
 Use a nonblank idempotency key of at most 200 characters. Save it before sending and reuse the exact source, message, and key after a lost response. Creation returns HTTP `201`; identical replay returns HTTP `200` and the same child, even if the source was deleted. Forking runs no model or tool and creates no usage. Continue through `chat()` with the child's ID; later turns have normal usage.
 
@@ -346,7 +346,7 @@ interface SessionActivity {
 }
 ```
 
-`sequence` fixes the steer's arrival order and never changes. `turnId` names the turn the steer was bound to. `committed` proves the message is in the history; `not_placed` is safe to send as an ordinary chat message; `uncertain` means the agent may have read it, so never resend it automatically. `owner_lost` means Blazing Agents lost the turn before it finished. See [what each state means](/platform/sessions-and-turns#steer-receipts).
+`sequence` fixes the steer's arrival order and never changes. `turnId` names the turn the steer was bound to. `committed` means the message is saved in the history; `not_placed` is safe to send as an ordinary chat message; `uncertain` means the agent may have read it, so never resend it automatically. `owner_lost` means Blazing Agents lost the turn before it finished. See [what each state means](/platform/sessions-and-turns#steer-receipts).
 
 ### `SessionInputsResponse` [#sessioninputsresponse]
 
@@ -367,7 +367,7 @@ interface StopSessionResponse {
 }
 ```
 
-The package exports these types and `ChatSteerConsumedEvent`, the provisional `data-ba-steer-consumed` chunk shape. Their Zod schemas are in `@blazingagents/sdk/contracts`.
+The package exports these types and `ChatSteerConsumedEvent`, the shape of the `data-ba-steer-consumed` chunk that shows the turn picked up a steer. Their Zod schemas are in `@blazingagents/sdk/contracts`.
 
 ## Errors [#errors]
 

@@ -79,13 +79,13 @@ A successful turn saves the user message, the assistant reply, and its tool acti
 
 ## Fork a conversation [#fork-a-conversation]
 
-Fork a session to explore another answer from a selected accepted assistant reply. Read `sessions.messages()` and select a message whose top-level `branchable` is `true`. The child includes that reply and the earlier conversation. Stream chunks don't include `branchable`, so don't pick the reply from the live stream. A reply that is not in the history yet, a streaming reply, or a reply waiting for tool approval is not eligible; an earlier accepted reply remains eligible while the source runs.
+Fork a session to explore another answer from a saved assistant reply. Read `sessions.messages()` and select a message whose top-level `branchable` is `true`. The child includes that reply and the earlier conversation. Stream chunks don't include `branchable`, so don't pick the reply from the live stream. A reply that is not in the history yet, a streaming reply, or a reply waiting for tool approval cannot be forked. Earlier saved replies can still be forked while the source session runs a turn.
 
 Continuing the example above, save one key for the user's fork request:
 
 ```typescript tab="TypeScript"
 const selected = history.data.find((message) => message.branchable);
-if (!selected) throw new Error("Choose an accepted assistant reply first.");
+if (!selected) throw new Error("Choose a saved assistant reply first.");
 const idempotencyKey = crypto.randomUUID();
 const child = await client.sessions.fork({
   agentId, sessionId, messageId: selected.id, idempotencyKey,
@@ -96,7 +96,7 @@ console.log(child.id);
 ```python tab="Python"
 selected = next((message for message in history.data if message.branchable), None)
 if selected is None:
-    raise ValueError("Choose an accepted assistant reply first.")
+    raise ValueError("Choose a saved assistant reply first.")
 idempotency_key = str(uuid.uuid4())
 child = client.sessions.fork(
     agent_id=agent_id, session_id=session_id,
@@ -115,7 +115,7 @@ The child inherits the saved agent configuration, `userId`, and metadata. Worksp
 
 Treat a turn as done only when its stream finishes normally. A `200` status or a closed connection alone does not prove success. Keep the user's draft until then, so they can edit and send it again after an error or a stop.
 
-- Stopping records the cancellation and returns right away, while your stream keeps running until the turn settles. The exchange may already be saved, so reload the history rather than guessing. See [stop a turn](#stop-a-turn).
+- Stopping records the cancellation and returns right away, while your stream keeps running until the turn ends. The exchange may already be saved, so reload the history rather than guessing. See [stop a turn](#stop-a-turn).
 - A resend is an ordinary new message with a fresh message ID. You do not need to poll for the outcome of the earlier attempt.
 - Keep using the session ID you received, even if that session is still empty.
 - Sending again can repeat a tool's side effects, such as a sent email.
@@ -146,7 +146,7 @@ To let users keep typing while the agent works, steer their message into the run
 
 ## Send while the agent is working [#send-while-the-agent-is-working]
 
-Blazing Agents stores no waiting messages, so your app owns the queue. While a turn runs, each new message has two homes: it can steer the running turn, or it can wait in your app. Once the turn settles, send the waiting messages as ordinary chat turns, one message per call or several in one call through `messages`. Each stays a separate user message in the history, in order.
+Blazing Agents stores no waiting messages, so your app owns the queue. While a turn runs, each new message has two homes: it can steer the running turn, or it can wait in your app. Once the turn ends, send the waiting messages as ordinary chat turns, one message per call or several in one call through `messages`. Each stays a separate user message in the history, in order.
 
 Continuing the first example, this keeps a `waiting` list per session. While the turn runs, sending calls `submitInput()` (`submit_input()` in Python) to steer; when no turn can take a steer, the message joins `waiting` instead. After the turn's stream ends, `flushWaiting()` (`flush_waiting()` in Python) takes the waiting messages out of the queue and sends them in one turn:
 
@@ -225,9 +225,9 @@ def flush_waiting() -> None:
 
 Call the flush once the turn's stream ends and the session is `idle` again. Remove the messages from the queue *before* you send so a later flush cannot send the same items again.
 
-If any submitted message ID is already in this session's accepted history, ordinary chat returns HTTP `409` with [`message_id_conflict`](/api-reference/protocols/errors#message_id_conflict). The whole batch is rejected before any model or tool work, even when it mixes known and new IDs or changes the content of a known message. The same ID is allowed in another session. Explicit regeneration can still reference an existing message.
+If any submitted message ID is already saved in this session's history, ordinary chat returns HTTP `409` with [`message_id_conflict`](/api-reference/protocols/errors#message_id_conflict). The whole batch is rejected before any model or tool work, even when it mixes known and new IDs or changes the content of a known message. The same ID is allowed in another session. Explicit regeneration can still reference an existing message.
 
-If a send's outcome is unknown, such as after a dropped connection, read the history for the message IDs and let the user decide. Do not retry automatically. This check does not promise exactly-once tool effects for turns whose outcome is uncertain.
+If a send's outcome is unknown, such as after a dropped connection, read the history for the message IDs and let the user decide. Do not retry automatically. This check stops a duplicate message, but it cannot undo tool calls that an earlier, interrupted attempt already made.
 
 ### Steer a running turn [#steer-a-running-turn]
 
@@ -235,7 +235,7 @@ If a send's outcome is unknown, such as after a dropped connection, read the his
 
 You choose a `requestId` for each steer, such as a UUID made when the user sends. It can be 1 to 128 characters, other than `.` or `..`. Resending the same `requestId` with the same message returns the same receipt, so you can retry a lost response safely. Reusing a `requestId` with a different message, or sending the same `message.id` under a new `requestId`, returns [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict). After a timeout, retry with the original `requestId`; never make a new one for a message whose outcome you do not know.
 
-A steer the agent accepts also shows up on the running turn's stream as a `data-ba-steer-consumed` chunk carrying the receipt's `requestId`, `turnId`, `sequence`, and `message`. It is provisional: render it and deduplicate by message ID, then confirm from the history after the turn ends. See [streaming protocol](/api-reference/protocols/streaming#steer-events).
+A steer the agent accepts also shows up on the running turn's stream as a `data-ba-steer-consumed` chunk carrying the receipt's `requestId`, `turnId`, `sequence`, and `message`. It means the turn picked up the message, not that the message is saved: render it and deduplicate by message ID, then confirm from the history after the turn ends. See [streaming protocol](/api-reference/protocols/streaming#steer-events).
 
 ### Track a steered message [#steer-receipts]
 
@@ -244,16 +244,16 @@ A steer the agent accepts also shows up on the running turn's stream as a `data-
 | State | What it means for your UI |
 | --- | --- |
 | `accepted` | Saved for the running turn, not yet delivered. Keep waiting for an outcome |
-| `delivered` | Handed to the turn; whether the agent picked it up is not yet proven. Keep waiting |
+| `delivered` | Handed to the turn, but the agent may not have read it yet. Keep waiting |
 | `committed` | Saved in the history. Done |
-| `not_placed` | Proven never to reach the agent. Safe to send as an ordinary message |
+| `not_placed` | Never reached the agent. Safe to send as an ordinary message |
 | `uncertain` | May have reached the agent before work was interrupted. Never resend automatically; show it and let the user decide |
 
-A finished receipt also carries a `reason`: `stopped`, `failed`, `owner_lost`, `turn_finished`, or `null`. Poll `inputs()` while the session is not idle or receipts are pending, and pass `includeCompleted: true` (`include_completed=True` in Python) to read terminal receipts again later.
+A finished receipt also carries a `reason`: `stopped` (you stopped the turn), `failed` (the turn failed), `owner_lost` (Blazing Agents lost the turn before it finished), `turn_finished` (the turn finished normally), or `null`. Poll `inputs()` while the session is not idle or receipts are pending, and pass `includeCompleted: true` (`include_completed=True` in Python) to read terminal receipts again later.
 
 ### Stop a turn [#stop-a-turn]
 
-Stopping needs the ID of the turn you mean, which you read from the session's activity. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to settle. Keep reading your existing stream until it ends, then check the history.
+Stopping needs the ID of the turn you mean, which you read from the session's activity. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to end. Keep reading your existing stream until it ends, then check the history.
 
 ```typescript tab="TypeScript"
 const { activity } = await client.sessions.inputs({ agentId, sessionId });

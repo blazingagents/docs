@@ -12530,7 +12530,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/typescript/tenant.md",
                 "type": "page",
                 "name": "Tenant",
-                "description": "Read and change your tenant's name, monthly quota, and billing switch with the TypeScript SDK.",
+                "description": "Read and change your tenant's name, monthly quota, model spending limit, and billing switch with the TypeScript SDK.",
                 "url": "/sdk/typescript/tenant",
                 "$ref": "sdk/typescript/tenant.md"
               },
@@ -12661,7 +12661,7 @@ export const documentationTree: SerializedPageTree = {
                 "$id": "sdk/python/tenant.md",
                 "type": "page",
                 "name": "Tenant",
-                "description": "Read and change your tenant's name and monthly usage quota with the Python SDK.",
+                "description": "Read and change your tenant's name, monthly usage quota, and model spending limit with the Python SDK.",
                 "url": "/sdk/python/tenant",
                 "$ref": "sdk/python/tenant.md"
               },
