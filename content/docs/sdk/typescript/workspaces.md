@@ -32,7 +32,7 @@ Every method takes one input object and accepts an optional `abortSignal`. Readi
 
 ### `create()` [#create]
 
-Creates an empty workspace. Core is the default. Pass `tier: "plus"` for snapshot resume. The tier cannot change through `update()`; create and attach another workspace to change it. Files are not copied.
+Creates an empty workspace. Core is the default. Pass `tier: "plus"` to keep files when the workspace stops; see [what survives a stop](/agents/workspaces#snapshot-resume). The tier cannot change through `update()`; create and attach another workspace to change it. Files are not copied.
 
 **Signature:** `create(input?: CreateWorkspaceBody & ResourceRequestOptions): Promise<Workspace>`
 
