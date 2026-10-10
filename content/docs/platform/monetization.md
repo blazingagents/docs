@@ -17,7 +17,7 @@ Monetization is off until you turn it on. While it is off, nothing is sent to yo
 
 ## Set up monetization [#set-up-monetization]
 
-You can do every step in the dashboard under **Monetization**, or from your backend with the TypeScript SDK as shown here. The Python SDK does not manage monetization yet.
+You can do every step in the dashboard under **Monetization**, or from your backend with the TypeScript SDK as shown here. The Python SDK has no monetization methods, so from Python use the dashboard or the [REST API](/api-reference/rest-api/merchant).
 
 <Steps>
 <Step>

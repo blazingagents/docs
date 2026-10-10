@@ -70,7 +70,7 @@ The answer mentions keeping updates concise, even though the question never said
 
 Each note belongs to one agent. A note saved with `userId: ""` is general and every turn of that agent sees it. A note saved with a user ID is visible only to turns that pass the same `userId`. A turn with no `userId` sees only general notes.
 
-A `userId` sorts notes. It is not a security boundary: your API key can read and change every note in your account, so your backend decides which user is which. See [tenancy and attribution](/platform/tenancy-and-attribution).
+A `userId` sorts notes. It is not a security boundary: a tenant-wide API key can read and change every note in your account, so your backend decides which user is which. See [tenancy and attribution](/platform/tenancy-and-attribution).
 
 ## Choose how the agent recalls notes [#choose-how-the-agent-recalls-notes]
 

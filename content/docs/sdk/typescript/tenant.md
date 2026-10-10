@@ -1,6 +1,6 @@
 ---
 title: Tenant
-description: Read and change your tenant's name, monthly quota, and billing switch with the TypeScript SDK.
+description: Read and change your tenant's name, monthly quota, model spending limit, and billing switch with the TypeScript SDK.
 ---
 
 # Tenant
@@ -22,6 +22,8 @@ Every method takes one input object and accepts an optional `abortSignal`.
 | --- | --- | --- |
 | [`get()`](#get) | Read your tenant's settings | `TenantSettingsResponse` |
 | [`patch()`](#patch) | Change the name, quota, or billing switch | `TenantSettingsResponse` |
+| [`getSpendingLimit()`](#get-spending-limit) | Read the account's model spending limit | `SpendingLimitResponse` |
+| [`updateSpendingLimit()`](#update-spending-limit) | Set or turn off the account's model spending limit | `SpendingLimitResponse` |
 
 ## Methods [#methods]
 
@@ -68,6 +70,39 @@ Turning `monetizationEnabled` off drops usage events your merchant has not yet a
 
 Returns [`TenantSettingsResponse`](#tenantsettingsresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed).
 
+### `getSpendingLimit()` [#get-spending-limit]
+
+Reads the account's model spending limit and the current period.
+
+**Signature:** `getSpendingLimit(input?: ResourceRequestOptions): Promise<SpendingLimitResponse>`
+
+```typescript
+const { spendingLimit, period, nextResetAt } = await client.tenant.getSpendingLimit();
+console.log(spendingLimit?.amountUsd, period?.availableUsd, nextResetAt);
+```
+
+Returns [`SpendingLimitResponse`](#spendinglimitresponse).
+
+### `updateSpendingLimit()` [#update-spending-limit]
+
+Sets the account's dollar allowance for model tokens, or turns it off with `spendingLimit: null`. The limit covers every agent.
+
+**Signature:** `updateSpendingLimit(input: { spendingLimit: SpendingLimit | null } & ResourceRequestOptions): Promise<SpendingLimitResponse>`
+
+```typescript
+await client.tenant.updateSpendingLimit({
+  spendingLimit: { amountUsd: 25, resetStartDate: "2026-10-01", resetInterval: "monthly" },
+});
+```
+
+| `SpendingLimit` field | Type | Description |
+| --- | --- | --- |
+| `amountUsd` | `number` | Dollars per period, above zero |
+| `resetStartDate` | `string` | UTC date (`YYYY-MM-DD`) that anchors the resets |
+| `resetInterval` | `"daily" \| "weekly" \| "biweekly" \| "monthly"` | How often the allowance resets |
+
+See [model spending limits](/platform/usage-and-quotas#model-spending-limits) for how resets, schedule changes, and stops work. A [user-scoped client](/sdk/typescript/client#for-user) gets [`forbidden`](/api-reference/protocols/errors#forbidden). Returns [`SpendingLimitResponse`](#spendinglimitresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed).
+
 ## Response types [#response-types]
 
 ### `TenantSettingsResponse` [#tenantsettingsresponse]
@@ -88,6 +123,24 @@ interface Quota {
 ```
 
 `quota` is `null` when you have not set one, so usage is unlimited. `deletion` is set when someone has asked to delete the tenant from the dashboard; `deletesAt` is when that happens, and it can be cancelled until then.
+
+### `SpendingLimitResponse` [#spendinglimitresponse]
+
+```typescript
+interface SpendingLimitResponse {
+  spendingLimit: SpendingLimit | null;
+  period: {
+    startsAt: string;
+    endsAt: string;
+    spentUsd: number;
+    reservedUsd: number;
+    availableUsd: number;
+  } | null;
+  nextResetAt: string | null;
+}
+```
+
+`spendingLimit`, `period`, and `nextResetAt` are `null` while no limit is set. See [what the dollar fields mean](/platform/usage-and-quotas#spending-limit-costs).
 
 ## Next [#next]
 

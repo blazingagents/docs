@@ -34,6 +34,9 @@ access.
 | `#prompt`         | <span id="prompt">Prompt</span>                 | `prompt_` + 16 Base62 characters                           |
 | `#skill`          | <span id="skill">Agent-owned Skill</span>       | `skill_` + 16 Base62 characters                            |
 | `#cc`             | <span id="cc">Chat connection</span>            | `cc_` + 16 Base62 characters                               |
+| `#cd`             | <span id="cd">Chat delivery</span>              | `cd_` + 16 Base62 characters                               |
+| `#mch`            | <span id="mch">Merchant connection</span>       | `mch_` + 16 Base62 characters                              |
+| `#mev`            | <span id="mev">Merchant usage event</span>      | `mev_` + 16 Base62 characters                              |
 
 An API key is a credential, not an ID. It is `ba_` plus 40 Base62 characters
 and is shown only once, when you create it. Its `ak_...` record ID lets you list

@@ -533,7 +533,7 @@ Running turns, regenerating answers, and tool approvals.
 
 **The session is busy with another operation.**
 
-A turn is running, a tool approval is waiting for a decision, or an approval continuation is already running, so the session cannot start new work. New chat turns, regeneration, and deletion wait until the session settles. Retrying an approval continuation that is already running also returns this code.
+A turn is running, a tool approval is waiting for a decision, or an approval continuation is already running, so the session cannot start new work. New chat turns, regeneration, and deletion are refused until that work ends. Retrying an approval continuation that is already running also returns this code.
 
 HTTP `409`. Retrying the same request can succeed.
 
@@ -553,7 +553,7 @@ HTTP `409`. Retrying the same request fails the same way until you fix the cause
 
 To fix it:
 
-- Use the SDK to claim calls and submit results. It handles retries with the same call identifier and claim nonce.
+- Use the SDK to claim calls and submit results. It retries with the same call ID and `claimRequestId`.
 - Do not run a handler after a rejected claim. If an operation may have completed, check your application records before repeating it. See [backend functions](/agents/tools/backend-functions).
 
 ### `session_version_mismatch` [#session_version_mismatch]
@@ -599,7 +599,7 @@ To fix it:
 
 **A submitted message ID is already in this session's history.**
 
-An ordinary chat request reused an accepted message ID, even if its content changed. The entire batch was rejected before any model or tool work, including messages with new IDs. Regeneration is exempt. The same ID can be used in another session.
+An ordinary chat request reused the ID of a message already saved in this session, even if its content changed. The entire batch was rejected before any model or tool work, including messages with new IDs. Regeneration is exempt. The same ID can be used in another session.
 
 HTTP `409`. Retrying the same request fails the same way until you fix the cause.
 
@@ -650,7 +650,7 @@ To fix it:
 
 **The selected reply cannot be forked.**
 
-The selected message was removed or is not an accepted assistant reply eligible for forking.
+The selected message was removed, is not an assistant reply, or cannot be forked yet because it is still streaming or waiting for a tool approval.
 
 HTTP `409`. Retrying the same request fails the same way until you fix the cause.
 
@@ -1152,17 +1152,17 @@ To fix it:
 
 ### `model_spending_limit_exceeded` [#model_spending_limit_exceeded]
 
-**The agent or account cannot reserve more model spending.**
+**A model spending limit stopped the request.**
 
-An agent or account spending limit has no available allowance, its allowance is reserved by unfinished work, or the model cost cannot be determined. The response details identify the affected scope and reason.
+The agent's or the account's dollar limit for model tokens has no allowance left for this request. `details.scope` names the limit (`agent`, `tenant`, or `both`). `details.reason` says why: the period's spending reached the limit (`exhausted`), running work holds the rest (`reserved`), the model has no known price (`unpriced`), or an earlier request never reported its usage (`unknown_usage`).
 
 HTTP `429`. Retrying the same request fails the same way until you fix the cause.
 
 To fix it:
 
-- Check known spending, reserved spending, and the next reset in the agent or account settings.
-- Wait for unfinished work to settle or for the next reset. A tenant administrator can change the limit.
-- For unpriced models or unknown usage, check the model pricing and usage data. See [model spending limits](/platform/usage-and-quotas#model-spending-limits).
+- Do not retry automatically. Read the limit to see `spentUsd`, `reservedUsd`, and `nextResetAt`.
+- For `exhausted`, wait for the next reset or raise the amount. For `reserved`, try again after running work finishes. After `unknown_usage`, new turns run while `availableUsd` is above zero.
+- For `unpriced`, switch the agent to a model with a known price, or turn off the limit. See [handle a spending stop](/platform/usage-and-quotas#spending-limit-stops).
 
 ## Workspaces and artifacts [#workspaces-and-artifacts]
 

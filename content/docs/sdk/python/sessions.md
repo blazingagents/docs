@@ -23,7 +23,7 @@ for session in page.data:
 | [`iter()`](#iter) | Iterate every session of an agent | `Iterator[Session]` |
 | [`list_latest()`](#list-latest) | Get recent sessions across agents | `LatestSessionsPage` |
 | [`get()`](#get) | Read saved session configuration | `SessionResponse` |
-| [`fork()`](#fork) | Copy a conversation through an accepted assistant reply | `SessionResponse` |
+| [`fork()`](#fork) | Copy a conversation up to a saved assistant reply | `SessionResponse` |
 | [`messages()`](#messages) | Read or poll the transcript | `SessionMessagesPage` |
 | [`tool_approvals()`](#tool-approvals) | List proposed tool calls | `ToolApprovals` |
 | [`delete()`](#delete) | Permanently delete a session | `None` |
@@ -193,7 +193,7 @@ Without `include_completed`, you get the pending `accepted` and `delivered` rece
 
 ### `stop()` [#stop]
 
-Records a stop for one turn and returns right away. The turn's own stream keeps running until it settles.
+Records a stop for one turn and returns right away. The turn's own stream keeps running until the turn ends.
 
 ```python
 activity = client.sessions.inputs(agent_id=agent_id, session_id=session_id).activity
@@ -210,7 +210,7 @@ Take `turn_id` from the session's activity. Retrying with the same `turn_id` nev
 
 ### `fork()` [#fork]
 
-Creates an idle child session through a selected accepted assistant message, including that reply.
+Creates an idle child session that copies the conversation up to and including a saved assistant reply.
 
 **Signature:** `fork(agent_id: str, session_id: str, *, message_id: str, idempotency_key: str) -> SessionResponse`
 
@@ -220,7 +220,7 @@ import uuid
 page = client.sessions.messages(agent_id=agent_id, session_id=session_id)
 selected = next((message for message in page.data if message.branchable), None)
 if selected is None:
-    raise ValueError("Choose an accepted assistant reply first.")
+    raise ValueError("Choose a saved assistant reply first.")
 idempotency_key = str(uuid.uuid4())
 child = client.sessions.fork(
     agent_id, session_id,
@@ -287,7 +287,7 @@ A `SessionMessage` has `id`, `role` (`"system"`, `"user"`, or `"assistant"`), `p
 | `state` | `str` | `"idle"`, `"running"`, `"stopping"`, or `"approval"` |
 | `turn_id` | `str \| None` | The running turn, when there is one |
 
-`committed` proves the message is in the history; `not_placed` is safe to send as an ordinary chat message; `uncertain` means the agent may have read it, so never resend it automatically. See [what each state means](/platform/sessions-and-turns#steer-receipts).
+`committed` means the message is saved in the history; `not_placed` is safe to send as an ordinary chat message; `uncertain` means the agent may have read it, so never resend it automatically. See [what each state means](/platform/sessions-and-turns#steer-receipts).
 
 ## Next [#next]
 

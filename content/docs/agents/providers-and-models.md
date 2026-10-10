@@ -67,7 +67,7 @@ client.agents.update(
 
 Your key is write-only. Responses never return it, only its last four characters as `keyFragment`. Listing models sends no request to the model and costs no tokens.
 
-Blazing Agents also checks the model ID against the provider whenever you create an agent with a model, or change its model. An unknown ID fails with [`model_not_found`](/api-reference/protocols/errors#model_not_found). If the provider cannot be reached to check, the call fails with [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable).
+Blazing Agents also checks the model ID against the provider whenever you create an agent with a model, or change its model. An unknown ID fails with [`model_not_found`](/api-reference/protocols/errors#model_not_found). If the provider cannot be reached to check, or it rejects your key, the call fails with [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable).
 
 ## Supported providers [#supported-providers]
 

@@ -36,7 +36,7 @@ it. See [Attribution](#attribution).
 | [ToolApprovalState](#toolapprovalstate)                               | decision and continuation states                         | decision endpoint only                             | none                                                                                                                   | reason may be `null`; continuation may be `null`                           |
 | [ProviderResponse](#providerresponse)                                 | Provider type and redacted credential fragment           | name and allowed base URL                          | `createdAt`, `updatedAt`                                                                                               | base URL may be `null` only where Provider rules allow it                  |
 | [McpConnectionResponse](#mcpconnectionresponse)                       | auth and connection state                                | name; reconnect replaces auth material             | `tokenExpiresAt`, `createdAt`, `updatedAt`                                                                             | OAuth fields and last error may be `null`                                  |
-| [McpAttachmentResponse](#mcpattachmentresponse)                       | one Agent–Connection attachment                          | forwarding settings                                | `createdAt`, `updatedAt`                                                                                               | fields are present, not nullable                                           |
+| [McpAttachmentResponse](#mcpattachmentresponse)                       | one attachment of a connection to an agent                          | forwarding settings                                | `createdAt`, `updatedAt`                                                                                               | fields are present, not nullable                                           |
 | [Memory](#memory)                                                     | Agent-owned text and access timestamp                    | text                                               | `createdAt`, `updatedAt`, `lastAccessedAt`                                                                             | public reads do not alter access time                                      |
 | [ArtifactListItem](#artifactlistitem)                                 | append-only published file                               | publish or hard-delete                              | `createdAt`, `updatedAt`                                                                                               | fields are present, not nullable                                           |
 | [Task](#task)                                                         | schedule and run pointers                                | documented update fields                           | `deletedAt`, `createdAt`, `updatedAt`                                                                                  | Schedule and lifecycle pointers may be `null`                |
@@ -84,11 +84,11 @@ type ApprovalPolicy = {
 };
 ```
 
-These illustrative wire types do not imply SDK export availability. Inputs may
-omit `overrides` (normalized to `[]`); responses include it. Both policies default
-to full with no overrides. Policy objects, rules, and references reject unknown
-fields; duplicate Tool references within one policy are invalid. Update omission
-preserves the field; supplying a policy replaces it. See [approval policies](/agents/tools/tool-approvals#approval-policies).
+These types show the JSON shape. The TypeScript SDK exports `ApprovalPolicy`
+and `ToolReference`, and calls the mode type `ApprovalDecision`. A request can leave out `overrides`, which then means no overrides, and
+responses always include it. Both policies default to `full` with no overrides.
+Unknown fields are rejected, and naming the same tool twice in one policy is
+invalid. Leaving a policy out of an update keeps it; sending one replaces it. See [approval policies](/agents/tools/tool-approvals#approval-policies).
 
 ### Agent [#agent]
 
@@ -102,13 +102,13 @@ read-only. Names can repeat. `agentsResponseSchema` returns
 
 See [SDK Agents](/sdk/typescript/agents),
 [REST Agents](/api-reference/rest-api/agents), and the
-[Agents Capability](/agents/agents).
+[Agents](/agents/agents) guide.
 
 ### Workspace [#workspace]
 
 <span id="workspaces-list-response"></span>
 
-`workspaceSchema` / `Workspace` identifies private files that may be attached to agents. Public fields are `id`, `tenantId`, nullable `name`, immutable `tier` (`core` or `plus`), immutable Attribution `userId`, mutable `metadata`, `networkPolicy`, and timestamps. Core files are temporary. Plus provides native snapshot resume after controlled shutdown.
+`workspaceSchema` / `Workspace` identifies private files that may be attached to agents. Public fields are `id`, `tenantId`, nullable `name`, immutable `tier` (`core` or `plus`), immutable Attribution `userId`, mutable `metadata`, `networkPolicy`, and timestamps. Core loses its files when the workspace stops. Plus keeps them when it stops while idle; see [what survives a stop](/agents/workspaces#snapshot-resume).
 
 See [SDK Workspaces](/sdk/typescript/workspaces),
 [REST Workspaces](/api-reference/rest-api/workspaces), and
@@ -163,7 +163,7 @@ See [SDK Sessions](/sdk/typescript/sessions#list-latest),
 
 `sessionMessageSchema` / `SessionMessage` is the public AI SDK `UIMessage`
 shape: a non-empty `id`, role `system`, `user`, or `assistant`, a non-empty
-parts array, required top-level `branchable` boolean, and optional metadata. `branchable` marks the replies you can fork a session from. User, system, and unaccepted assistant messages have `branchable: false`. Pick the reply from `sessions.messages()`, not from the live stream. Stream chunks don't include `branchable`. A reply that is not in the history yet is not eligible. Task transcripts use the same message shape; there is no Task-run fork operation. Parts are extensible AI SDK objects. The
+parts array, required top-level `branchable` boolean, and optional metadata. `branchable` marks the replies you can fork a session from. User and system messages, and assistant replies that are not saved yet, have `branchable: false`. Pick the reply from `sessions.messages()`, not from the live stream. Stream chunks don't include `branchable`. A reply that is not in the history yet is not eligible. Task transcripts use the same message shape; there is no Task-run fork operation. Parts are extensible AI SDK objects. The
 platform owns the stored transcript.
 
 See [SDK Session messages](/sdk/typescript/sessions#messages),
@@ -177,8 +177,8 @@ submitted to a running Turn. It carries your `requestId`, a `sequence` that
 fixes its arrival order, the `message` (always role `user`), a `state` from
 `sessionInputStateSchema`, the owning `turnId`, timestamps, and a nullable
 `reason` (`stopped`, `failed`, `owner_lost`, or `turn_finished`). `committed`
-proves the message is in durable history, `not_placed` is safe to send as an
-ordinary chat message, and `uncertain` must never be replayed automatically.
+means the message is saved in the history, `not_placed` is safe to send as an
+ordinary chat message, and `uncertain` must never be resent automatically.
 
 See [SDK Sessions](/sdk/typescript/sessions#submit-input),
 [REST steer a running turn](/api-reference/rest-api/sessions#submit-session-input), and
@@ -205,21 +205,18 @@ step usage, and Attribution.
 
 See [SDK Session messages](/sdk/typescript/sessions#messages),
 [REST Session messages](/api-reference/rest-api/sessions#list-session-messages),
-[Usage and quotas](/platform/usage-and-quotas), and
-[Monitor usage and quotas](/platform/usage-and-quotas).
+and [Usage and quotas](/platform/usage-and-quotas).
 
 ### BlazingAgentsChatMessageMetadata [#blazingagentschatmessagemetadata]
 
 `blazingAgentsChatMessageMetadataSchema` /
-`BlazingAgentsChatMessageMetadata` is the strict assistant-message metadata
-wrapper `{ blazingAgents: { usage: UsageSummary } }`. Its temporal and status
-fields are those of the nested Usage summary; callers do not mutate this
-platform-owned metadata.
+`BlazingAgentsChatMessageMetadata` is the metadata Blazing Agents adds to each
+assistant message: `{ blazingAgents: { usage: UsageSummary } }`. Its status and
+times are those of the nested usage summary. It is read-only.
 
 See [SDK chat generation](/sdk/typescript/client#chat),
 [REST Session messages](/api-reference/rest-api/sessions#list-session-messages),
-[Generation and streaming](/agents/output/generation-and-streaming), and
-[Stream responses into a frontend](/agents/output/generation-and-streaming).
+and [Generation and streaming](/agents/output/generation-and-streaming).
 
 ### Tool approval metadata [#tool-approval-metadata]
 
@@ -236,9 +233,10 @@ Each record in a list response has these fields:
 | `createdAt` | ISO datetime string | Optional; not nullable |
 | `decidedAt` | ISO datetime string \| null | Optional |
 
-`tool` preserves original MCP identity; `toolName` is the runtime name.
-`assistantMessageId` links to Session history and usage. Do not require optional
-metadata when consuming older records.
+`tool` identifies the built-in tool, or the MCP connection and the tool's
+original name; `toolName` is the name the agent called. `assistantMessageId` is the assistant
+message that asked for approval. Fields marked optional can be missing, so do
+not require them.
 
 ### ToolApprovalState [#toolapprovalstate]
 
@@ -305,11 +303,11 @@ and [MCP connections](/agents/tools/mcp-tools).
 
 <span id="memory-response"></span><span id="memories-list-response"></span>
 
-`memorySchema` / `Memory` is an Agent-owned text note. Only `text` is mutable;
-identity and `userId` are immutable. Public get, list, and search operations do
-not touch `lastAccessedAt`. Updates and Agent Tool retrieval/search advance it;
-the timestamp determines least-recently-used eviction across the Agent's
-Memory pool.
+`memorySchema` / `Memory` is a text note that belongs to one agent. Only
+`text` can change; the ID and `userId` cannot. Reading notes through the API
+does not change `lastAccessedAt`. An update, or the agent finding the note with
+its memory tools, moves it forward. When the agent is full, saving a new note
+removes the one with the oldest `lastAccessedAt`.
 
 See [SDK Memories](/sdk/typescript/memories),
 [REST Memories](/api-reference/rest-api/memories), and
@@ -357,8 +355,7 @@ finishedAt }`, where `finishedAt` is nullable.
 
 See [SDK Task listing](/sdk/typescript/tasks#list),
 [REST Task listing](/api-reference/rest-api/tasks#list-tasks),
-[Tasks and schedules](/automation/tasks), and
-[Run a background Task](/automation/tasks).
+and [Tasks and schedules](/automation/tasks).
 
 ### TaskRun [#taskrun]
 
@@ -434,9 +431,9 @@ See [SDK Tenant settings](/sdk/typescript/tenant),
 
 ### Quota [#quota]
 
-`quotaSchema` / `Quota` contains positive nullable monthly token/request
-ceilings and a reset day from 1 through 28. A null ceiling is unlimited on that
-axis. A null/absent Quota means the Tenant has no self-set Quota.
+`quotaSchema` / `Quota` holds a monthly token ceiling, a monthly request
+ceiling, and a reset day from 1 to 28. Each ceiling is a positive integer, or
+`null` for no limit. A tenant with `quota: null` has no quota.
 
 See [SDK Tenant settings](/sdk/typescript/tenant#patch),
 [REST Tenant settings](/api-reference/rest-api/tenant#update-tenant-settings), and
@@ -445,9 +442,11 @@ See [SDK Tenant settings](/sdk/typescript/tenant#patch),
 ### Attribution [#attribution]
 
 `attributionCreateInputSchema`, `userIdSchema`, `metadataSchema`, and SDK `AttributionInput` define
-Attribution. `userId: ""` is tenant-level; a non-empty string is a tenant-user
-partition. It is a filtering and grouping dimension, not access control: a
-Tenant credential can access every attributed resource in that Tenant.
+attribution. `userId: ""` means the resource belongs to no end user; any other
+value names one of your end users. A `userId` in a body filters and groups
+data. It does not limit access: a tenant-wide API key reaches every resource in
+your tenant, and only a [user-scoped request](/platform/tenancy-and-attribution#user-labels-and-user-scope)
+is checked against the user.
 
 See the [TypeScript SDK](/sdk/typescript),
 [REST API](/api-reference/rest-api), and

@@ -44,6 +44,8 @@ print(agent.id, agent.name)
 | [`remove_avatar()`](#remove-avatar) | Remove the avatar | `Agent` |
 | [`list_mcp_attachments()`](#list-mcp-attachments) | List MCP forwarding settings | `McpAttachments` |
 | [`update_mcp_attachment()`](#update-mcp-attachment) | Change MCP forwarding settings | `McpAttachment` |
+| [`get_spending_limit()`](#get-spending-limit) | Get the agent's model spending limit | `SpendingLimitResponse` |
+| [`update_spending_limit()`](#update-spending-limit) | Set or turn off the agent's model spending limit | `SpendingLimitResponse` |
 
 ## Methods [#methods]
 
@@ -242,6 +244,37 @@ attachment = client.agents.update_mcp_attachment(
 | `forwarded_metadata_keys` | `Sequence[str]` | Up to 32 unique turn metadata keys to send |
 
 Pass at least one; omitting both raises `ValueError`. Returns [`McpAttachment`](#mcpattachment). Raises `validation_failed` or `not_found`.
+
+### `get_spending_limit()` [#get-spending-limit]
+
+Gets one agent's model spending limit and the current period.
+
+```python
+budget = client.agents.get_spending_limit("ag_0123456789abcdef")
+```
+
+**Signature:** `get_spending_limit(agent_id: str) -> SpendingLimitResponse`
+
+Returns the same [`SpendingLimitResponse`](/sdk/python/tenant#get-spending-limit) as the tenant method.
+
+### `update_spending_limit()` [#update-spending-limit]
+
+Sets one agent's dollar allowance for model tokens across all its sessions and tasks, or turns it off with `spending_limit=None`. The account limit, if you set one, still applies too.
+
+```python
+client.agents.update_spending_limit(
+    "ag_0123456789abcdef",
+    spending_limit={
+        "amount_usd": 5,
+        "reset_start_date": "2026-10-01",
+        "reset_interval": "weekly",
+    },
+)
+```
+
+**Signature:** `update_spending_limit(agent_id: str, *, spending_limit: SpendingLimitInput | None) -> SpendingLimitResponse`
+
+See [model spending limits](/platform/usage-and-quotas#model-spending-limits).
 
 ## Response models [#response-models]
 
