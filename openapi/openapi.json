@@ -102,7 +102,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT",
-        "description": "Supabase-issued dashboard session; only the Blazing Agents dashboard holds one"
+        "description": "Dashboard sign-in session; only the Blazing Agents dashboard holds one"
       }
     },
     "schemas": {
@@ -7959,7 +7959,7 @@
           }
         ],
         "summary": "Establish the caller's tenant",
-        "description": "Verifies a Supabase dashboard JWT directly (it runs before any Tenant exists, ahead of the Tenant-auth and subscription middleware) and provisions the Tenant, admin Agent and admin Workspace on first call; later calls return the existing Tenant. Only a dashboard JWT may call this.",
+        "description": "Creates the caller's tenant, admin agent and admin workspace on the first call after dashboard sign-in; later calls return the existing tenant. Only a dashboard session may call this.",
         "responses": {
           "200": {
             "description": "The established tenant",
@@ -10860,7 +10860,7 @@
           "tenant"
         ],
         "summary": "Get the tenant model spending limit",
-        "description": "Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved until the next reset, which starts a period with no reservations. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits recalculate the current period end immediately without clearing recorded spending or reservations. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.",
+        "description": "An estimated USD allowance for model tokens, priced from the built-in model price list. It excludes platform compute, storage, workspace and network charges, and a request that costs more than estimated can exceed it. While a limit applies, models without a price are refused. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Money held for work whose usage is never reported is released at the next reset. Requires a tenant API key; a user-scoped request gets forbidden.",
         "responses": {
           "200": {
             "description": "Model spending configuration and current UTC period",
@@ -10951,7 +10951,7 @@
           "tenant"
         ],
         "summary": "Set the tenant model spending limit",
-        "description": "Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved until the next reset, which starts a period with no reservations. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits recalculate the current period end immediately without clearing recorded spending or reservations. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.",
+        "description": "An estimated USD allowance for model tokens, priced from the built-in model price list. It excludes platform compute, storage, workspace and network charges, and a request that costs more than estimated can exceed it. While a limit applies, models without a price are refused. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Money held for work whose usage is never reported is released at the next reset. Requires a tenant API key; a user-scoped request gets forbidden.",
         "requestBody": {
           "required": true,
           "content": {
@@ -11096,7 +11096,7 @@
           "agents"
         ],
         "summary": "Get an agent model spending limit",
-        "description": "Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved until the next reset, which starts a period with no reservations. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits recalculate the current period end immediately without clearing recorded spending or reservations. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.",
+        "description": "An estimated USD allowance for model tokens, priced from the built-in model price list. It excludes platform compute, storage, workspace and network charges, and a request that costs more than estimated can exceed it. While a limit applies, models without a price are refused. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Money held for work whose usage is never reported is released at the next reset. Requires a tenant API key; a user-scoped request gets forbidden.",
         "parameters": [
           {
             "schema": {
@@ -11200,7 +11200,7 @@
           "agents"
         ],
         "summary": "Set an agent model spending limit",
-        "description": "Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved until the next reset, which starts a period with no reservations. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits recalculate the current period end immediately without clearing recorded spending or reservations. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.",
+        "description": "An estimated USD allowance for model tokens, priced from the built-in model price list. It excludes platform compute, storage, workspace and network charges, and a request that costs more than estimated can exceed it. While a limit applies, models without a price are refused. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Money held for work whose usage is never reported is released at the next reset. Requires a tenant API key; a user-scoped request gets forbidden.",
         "parameters": [
           {
             "schema": {
@@ -12272,7 +12272,7 @@
                       "plus"
                     ],
                     "default": "core",
-                    "description": "Immutable Workspace tier. Core uses temporary files; Plus resumes native snapshots."
+                    "description": "Workspace tier, fixed at creation. Core loses its files when the workspace stops; Plus keeps them when it stops while idle."
                   },
                   "name": {
                     "type": "string",
@@ -13469,7 +13469,7 @@
           }
         ],
         "summary": "Start OAuth connect for a connection",
-        "description": "Starts the OAuth authorization-code connect flow for the Connection and returns the upstream authorization URL. Only a dashboard JWT may call this.",
+        "description": "Starts OAuth sign-in for a connection that needs authorization and returns a dashboard URL that continues it. Returns not_found when the connection is missing or does not need authorization. Only a dashboard session may call this.",
         "parameters": [
           {
             "schema": {
@@ -13485,7 +13485,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The upstream authorization URL",
+            "description": "Dashboard URL that continues OAuth sign-in",
             "content": {
               "application/json": {
                 "schema": {
@@ -20885,7 +20885,7 @@
           "sessions"
         ],
         "summary": "List steer receipts",
-        "description": "Lists durable steer outcomes in arrival order. Committed proves inclusion in history; not_placed is safe to send as ordinary chat; uncertain must never be replayed automatically. Live placement arrives through the running turn stream as data-ba-steer-consumed.",
+        "description": "Lists steer receipts in arrival order. committed means the message is saved in history; not_placed means the agent never read it, so send it as ordinary chat; uncertain means it may have reached the agent, so never resend it automatically. The running turn stream reports a steer the agent read as data-ba-steer-consumed.",
         "parameters": [
           {
             "schema": {
@@ -21204,7 +21204,7 @@
           "sessions"
         ],
         "summary": "Stop a session turn",
-        "description": "Records cancellation for the named turn and returns immediately. The existing turn stream reports settlement. Retrying with the same turnId never stops a later turn.",
+        "description": "Records cancellation for the named turn and returns immediately. The existing turn stream reports when the turn ends. Retrying with the same turnId never stops a later turn.",
         "parameters": [
           {
             "schema": {
