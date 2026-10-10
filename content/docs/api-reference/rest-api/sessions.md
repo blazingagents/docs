@@ -821,7 +821,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sess
 
 List steer receipts.
 
-Lists durable steer outcomes in arrival order. Committed proves inclusion in history; not_placed is safe to send as ordinary chat; uncertain must never be replayed automatically. Live placement arrives through the running turn stream as data-ba-steer-consumed.
+Lists steer receipts in arrival order. committed means the message is saved in history; not_placed means the agent never read it, so send it as ordinary chat; uncertain means it may have reached the agent, so never resend it automatically. The running turn stream reports a steer the agent read as data-ba-steer-consumed.
 
 #### Request
 
@@ -964,7 +964,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sess
 
 Stop a session turn.
 
-Records cancellation for the named turn and returns immediately. The existing turn stream reports settlement. Retrying with the same turnId never stops a later turn.
+Records cancellation for the named turn and returns immediately. The existing turn stream reports when the turn ends. Retrying with the same turnId never stops a later turn.
 
 #### Request
 
