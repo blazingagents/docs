@@ -1,6 +1,6 @@
 ---
 title: Tenant
-description: Read and change your tenant's name and monthly usage quota with the Python SDK.
+description: Read and change your tenant's name, monthly usage quota, and model spending limit with the Python SDK.
 ---
 
 # Tenant
@@ -28,6 +28,8 @@ print(settings.name, settings.quota)
 | --- | --- | --- |
 | [`get()`](#get) | Get the tenant's settings | `TenantSettings` |
 | [`update()`](#update) | Change the name or quota | `TenantSettings` |
+| [`get_spending_limit()`](#get-spending-limit) | Get the account's model spending limit | `SpendingLimitResponse` |
+| [`update_spending_limit()`](#update-spending-limit) | Set or turn off the account's model spending limit | `SpendingLimitResponse` |
 
 ## Methods [#methods]
 
@@ -70,6 +72,38 @@ Omitted parameters keep their current value. Calling `update()` with neither rai
 | `reset_day` | `int` | Day of the month the count resets, 1 to 28 |
 
 Returns [`TenantSettings`](#response-model). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) for a bad name, a limit that is not positive, or an invalid reset day.
+
+### `get_spending_limit()` [#get-spending-limit]
+
+Gets the account's model spending limit and the current period.
+
+```python
+budget = client.tenant.get_spending_limit()
+if budget.period is not None:
+    print(budget.period.available_usd, budget.next_reset_at)
+```
+
+**Signature:** `get_spending_limit() -> SpendingLimitResponse`
+
+Returns a `SpendingLimitResponse` with `spending_limit`, `period` (`starts_at`, `ends_at`, `spent_usd`, `reserved_usd`, `available_usd`), and `next_reset_at`. All three are `None` while no limit is set.
+
+### `update_spending_limit()` [#update-spending-limit]
+
+Sets the account's dollar allowance for model tokens, or turns it off with `spending_limit=None`. The limit covers every agent.
+
+```python
+client.tenant.update_spending_limit(
+    spending_limit={
+        "amount_usd": 25,
+        "reset_start_date": "2026-10-01",
+        "reset_interval": "monthly",
+    }
+)
+```
+
+**Signature:** `update_spending_limit(*, spending_limit: SpendingLimitInput | None) -> SpendingLimitResponse`
+
+`reset_interval` is `"daily"`, `"weekly"`, `"biweekly"`, or `"monthly"`, and `reset_start_date` is a UTC date. See [model spending limits](/platform/usage-and-quotas#model-spending-limits) for how resets and stops work. Raises [`validation_failed`](/api-reference/protocols/errors#validation_failed) for an invalid limit.
 
 ## How quotas apply [#how-quotas-apply]
 

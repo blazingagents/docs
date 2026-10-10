@@ -1504,7 +1504,9 @@
           "upload-avatar",
           "remove-avatar",
           "list-mcp-attachments",
-          "update-mcp-attachment"
+          "update-mcp-attachment",
+          "get-spending-limit",
+          "update-spending-limit"
         ],
         "kind": "methods"
       },
@@ -1514,6 +1516,14 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
           {
             "language": "typescript",
             "metadata": {}
@@ -2228,7 +2238,9 @@
       "anchors": {
         "assignedIds": [
           "get",
-          "patch"
+          "patch",
+          "get-spending-limit",
+          "update-spending-limit"
         ],
         "kind": "methods"
       },
@@ -2238,6 +2250,18 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
           {
             "language": "typescript",
             "metadata": {}
@@ -2372,7 +2396,9 @@
           "upload-avatar",
           "remove-avatar",
           "list-mcp-attachments",
-          "update-mcp-attachment"
+          "update-mcp-attachment",
+          "get-spending-limit",
+          "update-spending-limit"
         ],
         "kind": "methods"
       },
@@ -2382,6 +2408,14 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
           {
             "language": "python",
             "metadata": {}
@@ -3036,7 +3070,9 @@
       "anchors": {
         "assignedIds": [
           "get",
-          "update"
+          "update",
+          "get-spending-limit",
+          "update-spending-limit"
         ],
         "kind": "methods"
       },
@@ -3046,6 +3082,14 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
           {
             "language": "python",
             "metadata": {}
