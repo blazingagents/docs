@@ -253,7 +253,7 @@ A finished receipt also carries a `reason`: `stopped` (you stopped the turn), `f
 
 ### Stop a turn [#stop-a-turn]
 
-Stopping needs the ID of the turn you mean, which you read from the session's activity. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to end. Keep reading your existing stream until it ends, then check the history.
+Stopping needs the ID of the turn you mean. The response that started the turn names it in its `X-BA-Turn-Id` header, and any other client, such as a second tab, reads it from the session's activity, as below. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to end. Keep reading your existing stream until it ends, then check the history.
 
 ```typescript tab="TypeScript"
 const { activity } = await client.sessions.inputs({ agentId, sessionId });
@@ -342,7 +342,7 @@ Keep these rules in your handler:
 
 ## Send images and regenerate answers [#send-images-and-regenerate-answers]
 
-To send an image, add a `file` part with an `image/...` media type and a URL, such as a data URL, to the user message.
+To send an image, add a `file` part with an `image/...` media type and the image as a base64 `data:` URL to the user message. A remote URL returns [`validation_failed`](/api-reference/protocols/errors#validation_failed). See [send an image](/agents/output/generation-and-streaming#send-an-image).
 
 To replace the latest answer, resume the session with `trigger: "regenerate-message"` and send the user message again. Continuing the first example:
 

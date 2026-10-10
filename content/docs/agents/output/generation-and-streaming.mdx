@@ -99,9 +99,12 @@ A chat stream has one reader. In TypeScript, call either `toResponse()` or `toSt
 
 ## Send an image [#send-an-image]
 
-A user message can mix text parts with image `file` parts. Each image needs a URL and an `image/*` media type:
+A user message can mix text parts with image `file` parts. Each image needs an `image/*` media type and the image itself as a base64 `data:` URL. A remote URL, such as `https://...`, returns [`validation_failed`](/api-reference/protocols/errors#validation_failed):
 
 ```typescript tab="TypeScript"
+import { readFile } from "node:fs/promises";
+
+const imageUrl = `data:image/png;base64,${(await readFile("diagram.png")).toString("base64")}`;
 const result = await client.chat({
   agentId,
   message: {
@@ -116,7 +119,11 @@ const result = await client.chat({
 ```
 
 ```python tab="Python"
+import base64
 import uuid
+
+with open("diagram.png", "rb") as file:
+    image_url = "data:image/png;base64," + base64.b64encode(file.read()).decode()
 
 message = {
     "id": str(uuid.uuid4()),

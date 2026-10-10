@@ -38,9 +38,11 @@ keep the message in your app and send it as an ordinary chat message after the
 turn ends.
 
 `GET /inputs` lists the receipts and the session's `activity`, so poll it from
-the first page to follow progress. `POST /stop` takes the `turnId` from
-`activity`, records the stop, and returns immediately; keep reading your
-existing stream until it ends. See
+the first page to follow progress. `POST /stop` takes a `turnId`, records the
+stop, and returns immediately; keep reading your existing stream until it ends.
+Every response that starts a turn names it in the `X-BA-Turn-Id` header, so the
+client that sent the message can stop it without polling. Other clients read
+`turnId` from `activity`. See
 [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
 
 ## Next [#next]
