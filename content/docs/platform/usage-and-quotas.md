@@ -5,7 +5,7 @@ description: Track model usage and set token quotas or dollar spending limits fo
 
 # Usage and quotas
 
-See how many tokens and requests your agents use, broken down the way you need, and set a monthly ceiling so a runaway loop cannot burn through your model budget. Blazing Agents records usage for every turn automatically. A quota is an optional safety limit you set, separate from your plan and billing.
+See how many tokens and requests your agents use, broken down the way you need, and set a token quota or a dollar spending limit so a runaway loop cannot burn through your model budget. Blazing Agents records usage for every turn automatically. A quota is an optional safety limit you set, separate from your plan and billing.
 
 ## Query usage and set a quota [#query-usage-and-set-a-quota]
 
@@ -98,7 +98,7 @@ Resets happen at midnight UTC. Choose `daily`, `weekly`, `biweekly`, or `monthly
 
 Monthly resets keep the original day. A January 31 start resets on February 28 or 29, then March 31. If the start date is in the future, the limit applies immediately for a first period ending on that date. A past start date anchors the current period without adding historical costs.
 
-Saving a new schedule immediately recalculates `nextResetAt` from the new schedule and the current server time. The current period keeps its start, recorded spending, and existing reservations. `scheduleChangeAt` is always `null`. Unused allowance does not carry forward.
+Saving a new schedule immediately recalculates `nextResetAt` from the new schedule and the current server time. The current period keeps its start, recorded spending, and existing reservations. Unused allowance does not carry forward.
 
 Changing only the dollar amount keeps the current reset time, recorded spending, and existing reservations. A lower limit does not cancel requests already admitted. Their costs remain in the period that funded them.
 
@@ -108,7 +108,7 @@ Disabling and re-enabling a limit within the same period preserves its counters.
 
 The limit covers model tokens, including supported cache usage, priced at supported catalogue rates. It excludes Blazing Agents platform, workspace, storage, and network charges. The estimate can differ from your provider's invoice or negotiated prices.
 
-The feature needs supported model pricing and provider usage data. A provider response does not always contain a dollar amount. A request whose cost cannot be priced is refused when a limit applies. If a dispatched request's usage is unknown, its reserved allowance remains unavailable. A process crash can also leave reserved funds unresolved.
+The feature needs supported model pricing and provider usage data. A provider response does not always contain a dollar amount. A request whose cost cannot be priced is refused when a limit applies. If a request's usage is never reported, for example after a crash, its reserved allowance stays unavailable until the next reset, which starts with nothing reserved.
 
 `spentUsd` shows costs already saved. `reservedUsd` shows money set aside for unfinished or unresolved work. `availableUsd` shows what remains available to other work. A running turn may have incurred costs that are still represented by its reservation.
 
@@ -118,7 +118,7 @@ Concurrent turns share the available allowance. Each model request uses a cost e
 
 A request blocked before streaming returns HTTP `429` with `model_spending_limit_exceeded`. The details identify the agent or account scope and whether funds are exhausted, reserved, or cannot be priced. Chat and approval-continuation streams report a stop through a `data-model-spending-limit` event. Completion and object streams instead fail with `stream_error` after streaming starts. See [streaming errors](/api-reference/protocols/streaming#spending-stop-events). Completed chat messages and tool results remain available after a handled budget stop.
 
-Do not retry a budget stop automatically. Read the current limit and its reset time. Wait for reserved funds to be settled, wait for the reset, or explicitly increase the allowance. Changing a limit does not undo completed tools or restart a stopped turn.
+Do not retry a budget stop automatically. Read the current limit and its reset time. Wait for running work to finish, wait for the reset, or increase the allowance. Changing a limit does not undo completed tools or restart a stopped turn.
 
 ## What is recorded [#what-is-recorded]
 

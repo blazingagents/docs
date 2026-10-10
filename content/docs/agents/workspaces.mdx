@@ -1,11 +1,11 @@
 ---
 title: Workspaces
-description: Give your agent a private file system and shell to reuse across sessions.
+description: Give your agent a private file system and shell, and choose whether its files outlast a session.
 ---
 
 # Workspaces
 
-Give your agent a private file system and shell. Every agent gets a workspace. Core is the default and keeps temporary files until the workspace stops. Choose Plus when you need native snapshot resume after a controlled shutdown.
+Give your agent a private file system and shell. Every agent gets a workspace. On the default Core tier, files last while the workspace runs and are lost when it stops after about 10 idle minutes. Choose Plus when the next session or task run must find the files again.
 
 ## Share a workspace between agents [#share-a-workspace-between-agents]
 
@@ -44,9 +44,9 @@ Both agents now read and write the same files. The agents also need the `workspa
 
 ## How a workspace behaves [#how-a-workspace-behaves]
 
-- **Files belong to the workspace.** Sessions, task runs, and stateless generation use the same files when they share a workspace. [Verify it yourself](/agents/tools/built-in-tools#verify-durable-file-operations).
+- **Files belong to the workspace.** Sessions, task runs, and stateless generation that share a workspace see the same files. On Plus they also survive the workspace stopping; see [what survives a stop](#snapshot-resume). [Verify it yourself](/agents/tools/built-in-tools#verify-durable-file-operations).
 - **The agent works under `/workspace`.** Relative paths resolve there, and `bash` starts there.
-- **Compute starts on use.** Creating a workspace or agent starts no compute. The first file or shell operation does.
+- **Compute starts on use.** Creating a workspace or agent starts no compute. The first file or shell operation does, and the workspace stops after about 10 minutes without one.
 - **Your model keys never enter it.** The agent reasons outside the workspace. Only file and shell calls run inside, and they receive no provider credentials or application environment variables.
 - **It stands on its own.** Renaming an agent does not rename its workspace, and deleting an agent keeps the workspace and its files. Moving an agent to another workspace does not copy files across.
 
@@ -64,26 +64,31 @@ Each workspace has a network policy that applies to every command run inside it:
 
 Pick the narrowest mode the work needs. You can change it later with `client.workspaces.update()`; the next operation uses the new policy.
 
-Switching between unrestricted access and a restricted mode restarts the workspace. Core loses its temporary files during that restart. Plus saves a snapshot before the restart.
+Switching between unrestricted access and a restricted mode restarts the workspace. Core loses its files during that restart. Plus keeps them.
 
 ## Choose a tier [#choose-a-tier]
 
-| Tier | Description |
-| --- | --- |
-| Core | 1 GiB memory · Temporary workspace files |
-| Plus | 4 GiB memory · Native snapshot resume |
+| Tier | Memory | Files |
+| --- | --- | --- |
+| Core | 1 GiB | Lost when the workspace stops |
+| Plus | 4 GiB | Kept when the workspace stops while idle |
 
 Create a workspace with `tier: "plus"`, or create an agent with `workspaceTier: "plus"` (`workspace_tier="plus"` in Python). Omit the tier to use Core. Do not combine `workspaceId` with `workspaceTier`, even when you request Core. An existing workspace keeps its own tier.
 
 A workspace's tier cannot change. To change tiers, create another workspace and attach your agent to it. Files are not copied automatically.
 
-## Snapshot resume [#snapshot-resume]
+## What survives a stop [#snapshot-resume]
 
-Core creates no snapshots and loses its files when it stops. Plus saves the whole root filesystem before a controlled shutdown that preserves files, normally when idle. Running processes and memory do not resume. There are no periodic or per-turn saves, so an unexpected stop can lose changes since the last saved snapshot.
+| What happens | Core | Plus |
+| --- | --- | --- |
+| The workspace stops after about 10 idle minutes | Files are lost | Files come back on the next start |
+| You switch between unrestricted and restricted networking | Files are lost | Files come back |
+| The workspace stops unexpectedly | Files are lost | Changes since the last idle stop are lost |
+| Nobody uses the workspace for 29 days | Not applicable | The next start is empty |
 
-Plus resumes the saved filesystem with its original image. A failed save clears the resume reference, and the next start uses a clean filesystem. If you do not resume a saved workspace for 29 days, its next start is also clean.
+Running processes and memory never come back, on either tier, so restart any server or background job the agent needs. Plus saves when the workspace stops, not after every turn. If a save fails, the next start is empty. Treat Plus as a way to keep work in progress, and have the agent publish anything your users must keep as an [artifact](/agents/artifacts).
 
-A workspace keeps one current resume reference. Older physical snapshots can remain until they expire. Snapshots expire 30 days after creation or their latest restoration. Deleting a workspace removes access to its files but does not immediately delete its physical snapshots.
+Deleting a workspace removes access to its files at once. Saved copies of a Plus workspace are erased within 30 days.
 
 ## Shared files and failed turns [#shared-files-and-failed-turns]
 
