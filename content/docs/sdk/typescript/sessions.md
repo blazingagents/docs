@@ -209,7 +209,7 @@ if (activity.turnId && activity.state === "running") {
 }
 ```
 
-Take `turnId` from the session's activity. Retrying with the same `turnId` never stops a later turn. Returns [`StopSessionResponse`](#stopsessionresponse). Errors: `validation_failed`, and `not_found` for a turn that is not this session's.
+The client that started the turn can take `turnId` from `await result.turnId` on its [`ChatResult`](/sdk/typescript/client#types). Any other client takes it from the session's activity, as above. Retrying with the same `turnId` never stops a later turn. Returns [`StopSessionResponse`](#stopsessionresponse). Errors: `validation_failed`, and `not_found` for a turn that is not this session's.
 
 ### `fork()` [#fork]
 

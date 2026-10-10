@@ -206,7 +206,7 @@ if activity.turn_id is not None and activity.state == "running":
 
 **Signature:** `stop(*, agent_id: str, session_id: str, turn_id: str) -> SessionStopResponse`
 
-Take `turn_id` from the session's activity. Retrying with the same `turn_id` never stops a later turn. Raises `validation_failed`, or `not_found` for a turn that is not this session's.
+The client that started the turn can take `turn_id` from `stream.turn_id` on its `ChatStream`. Any other client takes it from the session's activity, as above. Retrying with the same `turn_id` never stops a later turn. Raises `validation_failed`, or `not_found` for a turn that is not this session's.
 
 ### `fork()` [#fork]
 
