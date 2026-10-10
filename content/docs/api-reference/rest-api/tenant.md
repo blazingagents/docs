@@ -119,7 +119,7 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/tenant" \
 
 Get the tenant model spending limit.
 
-Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits recalculate the current period end immediately without clearing recorded spending or reservations. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.
+Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved until the next reset, which starts a period with no reservations. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits recalculate the current period end immediately without clearing recorded spending or reservations. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.
 
 #### Request
 
@@ -137,8 +137,7 @@ Response schema: `ModelSpendingLimitStatus`.
 {
   "spendingLimit": null,
   "period": null,
-  "nextResetAt": null,
-  "scheduleChangeAt": null
+  "nextResetAt": null
 }
 ```
 
@@ -165,7 +164,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tenant/spending-limit" \
 
 Set the tenant model spending limit.
 
-Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits recalculate the current period end immediately without clearing recorded spending or reservations. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.
+Tenant administrators manage estimated USD limits for model tokens only. Platform compute, storage, workspace and network costs are excluded. Admission uses catalogue prices and estimated usage, so actual spending may exceed the configured amount. Unpriced models fail closed while a limit is active. Unknown dispatched costs retain reservations; a process crash can leave its whole allowance unresolved until the next reset, which starts a period with no reservations. UTC resets are anchored to resetStartDate. A future date enforces immediately until that anchor. Schedule edits recalculate the current period end immediately without clearing recorded spending or reservations. Existing spending and allocations survive amount changes and disablement; work admitted while disabled is excluded.
 
 #### Request
 
@@ -185,8 +184,7 @@ Response schema: `ModelSpendingLimitStatus`.
 {
   "spendingLimit": null,
   "period": null,
-  "nextResetAt": null,
-  "scheduleChangeAt": null
+  "nextResetAt": null
 }
 ```
 

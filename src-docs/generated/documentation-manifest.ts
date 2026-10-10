@@ -455,7 +455,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"spendingLimit\": null,\n  \"period\": null,\n  \"nextResetAt\": null,\n  \"scheduleChangeAt\": null\n}",
+            "code": "{\n  \"spendingLimit\": null,\n  \"period\": null,\n  \"nextResetAt\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -555,7 +555,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"spendingLimit\": null,\n  \"period\": null,\n  \"nextResetAt\": null,\n  \"scheduleChangeAt\": null\n}",
+            "code": "{\n  \"spendingLimit\": null,\n  \"period\": null,\n  \"nextResetAt\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -3435,7 +3435,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"spendingLimit\": null,\n  \"period\": null,\n  \"nextResetAt\": null,\n  \"scheduleChangeAt\": null\n}",
+            "code": "{\n  \"spendingLimit\": null,\n  \"period\": null,\n  \"nextResetAt\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -3535,7 +3535,7 @@ export const restApiOperations = [
         },
         "responses": [
           {
-            "code": "{\n  \"spendingLimit\": null,\n  \"period\": null,\n  \"nextResetAt\": null,\n  \"scheduleChangeAt\": null\n}",
+            "code": "{\n  \"spendingLimit\": null,\n  \"period\": null,\n  \"nextResetAt\": null\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "200"
@@ -12183,7 +12183,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "agents/workspaces.mdx",
             "type": "page",
             "name": "Workspaces",
-            "description": "Give your agent a private file system and shell to reuse across sessions.",
+            "description": "Give your agent a private file system and shell, and choose whether its files outlast a session.",
             "url": "/agents/workspaces",
             "$ref": "agents/workspaces.mdx"
           },
