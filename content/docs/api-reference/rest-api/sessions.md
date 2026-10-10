@@ -40,9 +40,11 @@ keep the message in your app and send it as an ordinary chat message after the
 turn ends.
 
 `GET /inputs` lists the receipts and the session's `activity`, so poll it from
-the first page to follow progress. `POST /stop` takes the `turnId` from
-`activity`, records the stop, and returns immediately; keep reading your
-existing stream until it ends. See
+the first page to follow progress. `POST /stop` takes a `turnId`, records the
+stop, and returns immediately; keep reading your existing stream until it ends.
+Every response that starts a turn names it in the `X-BA-Turn-Id` header, so the
+client that sent the message can stop it without polling. Other clients read
+`turnId` from `activity`. See
 [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
 
 ## Endpoints [#endpoints]
@@ -120,7 +122,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
-| `messages` | any[] | body |  | Ordered messages for one Turn, each an AI SDK `UIMessage` with `role: "user"`, an `id`, and non-empty `parts`. Parts can be text or images. Send either `messages` or `promptId`. |
+| `messages` | any[] | body |  | Ordered messages for one Turn, each an AI SDK `UIMessage` with `role: "user"`, an `id`, and non-empty `parts`. Parts can be text, or `file` parts with an `image/*` media type and a base64 `data:` URL. Send either `messages` or `promptId`. |
 | `promptId` | string | body |  | ID of a saved prompt to send instead of `messages`. |
 | `variables` | object | body |  | Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables. |
 | `trigger` | string | body |  | `submit-message` (the default) sends a new message. `regenerate-message` generates the answer again and is allowed only when continuing a session. One of `submit-message`, `regenerate-message`. Defaults to `submit-message`. |
@@ -131,7 +133,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 #### Response
 
-Returns `201 Created` as `text/event-stream`. Server-sent events, each carrying one AI SDK UI message chunk. Sets `Location`: URL of the new session.
+Returns `201 Created` as `text/event-stream`. Server-sent events, each carrying one AI SDK UI message chunk. Sets `X-BA-Turn-Id`: ID of the turn this response runs; pass it to Stop to cancel the turn. Sets `Location`: URL of the new session.
 
 #### Errors
 
@@ -316,7 +318,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `sessionId` | string | path | required | ID of the session. |
-| `messages` | any[] | body |  | Ordered messages for one Turn, each an AI SDK `UIMessage` with `role: "user"`, an `id`, and non-empty `parts`. Parts can be text or images. Send either `messages` or `promptId`. |
+| `messages` | any[] | body |  | Ordered messages for one Turn, each an AI SDK `UIMessage` with `role: "user"`, an `id`, and non-empty `parts`. Parts can be text, or `file` parts with an `image/*` media type and a base64 `data:` URL. Send either `messages` or `promptId`. |
 | `promptId` | string | body |  | ID of a saved prompt to send instead of `messages`. |
 | `variables` | object | body |  | Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables. |
 | `trigger` | string | body |  | `submit-message` (the default) sends a new message. `regenerate-message` generates the answer again and is allowed only when continuing a session. One of `submit-message`, `regenerate-message`. Defaults to `submit-message`. |
@@ -327,7 +329,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 #### Response
 
-Returns `200 OK` as `text/event-stream`. Server-sent events, each carrying one AI SDK UI message chunk.
+Returns `200 OK` as `text/event-stream`. Server-sent events, each carrying one AI SDK UI message chunk. Sets `X-BA-Turn-Id`: ID of the turn this response runs; pass it to Stop to cancel the turn.
 
 #### Errors
 
@@ -692,7 +694,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 #### Response
 
-Returns `200 OK` as `text/event-stream`. The continuation as an ordinary AI SDK UI message stream.
+Returns `200 OK` as `text/event-stream`. The continuation as an ordinary AI SDK UI message stream. Sets `X-BA-Turn-Id`: ID of the turn this response runs; pass it to Stop to cancel the turn.
 
 #### Errors
 
@@ -974,7 +976,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `sessionId` | string | path | required | ID of the session. |
-| `turnId` | string | body | required | The current activity's turnId, captured before requesting Stop. |
+| `turnId` | string | body | required | The running turn's ID, from the `X-BA-Turn-Id` header of the response that started it or from the session's activity. |
 
 #### Response
 

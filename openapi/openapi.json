@@ -18502,7 +18502,7 @@
                     "type": "array",
                     "items": {},
                     "minItems": 1,
-                    "description": "Ordered messages for one Turn, each an AI SDK `UIMessage` with `role: \"user\"`, an `id`, and non-empty `parts`. Parts can be text or images. Send either `messages` or `promptId`."
+                    "description": "Ordered messages for one Turn, each an AI SDK `UIMessage` with `role: \"user\"`, an `id`, and non-empty `parts`. Parts can be text, or `file` parts with an `image/*` media type and a base64 `data:` URL. Send either `messages` or `promptId`."
                   },
                   "promptId": {
                     "type": "string",
@@ -18571,6 +18571,16 @@
           "201": {
             "description": "Server-sent events, each carrying one AI SDK UI message chunk",
             "headers": {
+              "X-BA-Turn-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^turn_[0-9A-Za-z]{16}$",
+                  "description": "ID of the turn this response runs; pass it to Stop to cancel the turn",
+                  "example": "turn_8Hq2Lx5Vb7Nc3Rt1"
+                },
+                "required": true,
+                "description": "ID of the turn this response runs; pass it to Stop to cancel the turn"
+              },
               "Location": {
                 "schema": {
                   "type": "string",
@@ -19193,7 +19203,7 @@
                     "type": "array",
                     "items": {},
                     "minItems": 1,
-                    "description": "Ordered messages for one Turn, each an AI SDK `UIMessage` with `role: \"user\"`, an `id`, and non-empty `parts`. Parts can be text or images. Send either `messages` or `promptId`."
+                    "description": "Ordered messages for one Turn, each an AI SDK `UIMessage` with `role: \"user\"`, an `id`, and non-empty `parts`. Parts can be text, or `file` parts with an `image/*` media type and a base64 `data:` URL. Send either `messages` or `promptId`."
                   },
                   "promptId": {
                     "type": "string",
@@ -19261,6 +19271,18 @@
         "responses": {
           "200": {
             "description": "Server-sent events, each carrying one AI SDK UI message chunk",
+            "headers": {
+              "X-BA-Turn-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^turn_[0-9A-Za-z]{16}$",
+                  "description": "ID of the turn this response runs; pass it to Stop to cancel the turn",
+                  "example": "turn_8Hq2Lx5Vb7Nc3Rt1"
+                },
+                "required": true,
+                "description": "ID of the turn this response runs; pass it to Stop to cancel the turn"
+              }
+            },
             "content": {
               "text/event-stream": {
                 "schema": {
@@ -20025,6 +20047,18 @@
         "responses": {
           "200": {
             "description": "The continuation as an ordinary AI SDK UI message stream",
+            "headers": {
+              "X-BA-Turn-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^turn_[0-9A-Za-z]{16}$",
+                  "description": "ID of the turn this response runs; pass it to Stop to cancel the turn",
+                  "example": "turn_8Hq2Lx5Vb7Nc3Rt1"
+                },
+                "required": true,
+                "description": "ID of the turn this response runs; pass it to Stop to cancel the turn"
+              }
+            },
             "content": {
               "text/event-stream": {
                 "schema": {
@@ -21242,7 +21276,7 @@
                   "turnId": {
                     "type": "string",
                     "pattern": "^turn_[0-9A-Za-z]{16}$",
-                    "description": "The current activity's turnId, captured before requesting Stop."
+                    "description": "The running turn's ID, from the `X-BA-Turn-Id` header of the response that started it or from the session's activity."
                   }
                 },
                 "required": [
