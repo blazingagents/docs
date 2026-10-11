@@ -73,6 +73,18 @@
       "retryable": false
     },
     {
+      "code": "insufficient_scope",
+      "group": "auth-and-access",
+      "statuses": [403],
+      "title": "This API key is read-only.",
+      "whatHappened": "A read-only API key called an operation that changes data, starts a turn or task, or spends credit. The request was refused before it ran, so nothing changed and nothing was charged. The response carries `WWW-Authenticate: Bearer error=\"insufficient_scope\"`.",
+      "howToFix": [
+        "Make this call with a full API key (`ba_full_...`).",
+        "To give a workload write access, create a full key on the [API keys page](https://www.blazingagents.com/app/keys). A key's access level cannot be changed."
+      ],
+      "retryable": false
+    },
+    {
       "code": "api_key_limit_reached",
       "group": "auth-and-access",
       "statuses": [400],

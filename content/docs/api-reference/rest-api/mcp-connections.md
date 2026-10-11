@@ -57,7 +57,7 @@ Response schema: `McpConnectionList`.
 | `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The API key is read-only, or the end user cannot run this request |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -112,7 +112,7 @@ Response schema: `McpConnection`.
 | `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`mcp_connection_invalid`](/api-reference/protocols/errors#mcp_connection_invalid), [`mcp_connection_authentication_failed`](/api-reference/protocols/errors#mcp_connection_authentication_failed), [`mcp_connection_unreachable`](/api-reference/protocols/errors#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed), [`mcp_connection_limit_reached`](/api-reference/protocols/errors#mcp_connection_limit_reached) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The API key is read-only, or the end user cannot run this request |
 | `409` | [`mcp_connection_name_conflict`](/api-reference/protocols/errors#mcp_connection_name_conflict) | The request conflicts with the resource's current state |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
@@ -169,7 +169,7 @@ Response schema: `McpConnectionTest`.
 | `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The API key is read-only, or the end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
@@ -229,7 +229,7 @@ Response schema: `McpConnectionReconnectResult`.
 | `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`mcp_connection_invalid`](/api-reference/protocols/errors#mcp_connection_invalid), [`mcp_connection_authentication_failed`](/api-reference/protocols/errors#mcp_connection_authentication_failed), [`mcp_connection_unreachable`](/api-reference/protocols/errors#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The API key is read-only, or the end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`mcp_connection_stale_credential_version`](/api-reference/protocols/errors#mcp_connection_stale_credential_version) | The request conflicts with the resource's current state |
 
@@ -288,7 +288,7 @@ Response schema: `McpConnection`.
 | `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The API key is read-only, or the end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
@@ -345,7 +345,7 @@ Response schema: `McpConnection`.
 | `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The API key is read-only, or the end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`mcp_connection_name_conflict`](/api-reference/protocols/errors#mcp_connection_name_conflict) | The request conflicts with the resource's current state |
 
@@ -385,7 +385,7 @@ Returns `204 No Content`. The MCP connection was deleted.
 | `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The end user cannot run this request |
+| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The API key is read-only, or the end user cannot run this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`mcp_connection_in_use`](/api-reference/protocols/errors#mcp_connection_in_use) | The request conflicts with the resource's current state |
 
