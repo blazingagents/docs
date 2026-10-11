@@ -96,7 +96,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "ba_ token",
-        "description": "Tenant API key minted by POST /v1/apikeys; sent as `Authorization: Bearer ba_read_…` or `ba_full_…`. A read-only key may call only operations declared `x-access: read`; a full key covers the tenant integration surface."
+        "description": "Tenant API key minted by POST /v1/apikeys; sent as `Authorization: Bearer ba_read_…` or `ba_full_…`. A read-only key may call operations declared `x-access: read` or `run`; a full key also covers `write`."
       },
       "DashboardJwt": {
         "type": "http",
@@ -8630,10 +8630,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -8646,7 +8645,7 @@
         }
       },
       "patch": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "updateTenantSettings",
         "tags": [
           "tenant"
@@ -8779,7 +8778,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -8847,7 +8846,7 @@
     },
     "/v1/chat-connections": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "createChatConnection",
         "tags": [
           "chat-connections"
@@ -9111,7 +9110,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -9245,10 +9244,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -9386,10 +9384,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -9556,10 +9553,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -9574,7 +9570,7 @@
     },
     "/v1/chat-connections/{id}/deliveries/{deliveryId}/repair": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "repairChatDelivery",
         "tags": [
           "chat-connections"
@@ -9709,7 +9705,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -9855,10 +9851,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -9884,7 +9879,7 @@
         }
       },
       "patch": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "renameChatConnection",
         "tags": [
           "chat-connections"
@@ -10047,7 +10042,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -10102,7 +10097,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "deleteChatConnection",
         "tags": [
           "chat-connections"
@@ -10167,7 +10162,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -10198,7 +10193,7 @@
     },
     "/v1/chat-connections/{id}/credentials": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "rotateChatCredentials",
         "tags": [
           "chat-connections"
@@ -10380,7 +10375,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -10437,7 +10432,7 @@
     },
     "/v1/chat-connections/{id}/health": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "checkChatHealth",
         "tags": [
           "chat-connections"
@@ -10552,7 +10547,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -10583,7 +10578,7 @@
     },
     "/v1/chat-connections/{id}/disable": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "disableChatConnection",
         "tags": [
           "chat-connections"
@@ -10698,7 +10693,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -10729,7 +10724,7 @@
     },
     "/v1/chat-connections/{id}/enable": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "enableChatConnection",
         "tags": [
           "chat-connections"
@@ -10844,7 +10839,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -10965,10 +10960,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -10994,7 +10988,7 @@
         }
       },
       "put": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "updateTenantSpendingLimit",
         "tags": [
           "tenant"
@@ -11110,7 +11104,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -11218,10 +11212,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -11247,7 +11240,7 @@
         }
       },
       "put": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "updateAgentSpendingLimit",
         "tags": [
           "agents"
@@ -11380,7 +11373,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -11411,7 +11404,7 @@
     },
     "/v1/providers": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "createProvider",
         "tags": [
           "providers"
@@ -11547,7 +11540,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -11645,10 +11638,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -11742,10 +11734,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -11892,10 +11883,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -12004,10 +11994,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -12033,7 +12022,7 @@
         }
       },
       "patch": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "updateProvider",
         "tags": [
           "providers"
@@ -12139,7 +12128,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -12181,7 +12170,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "deleteProvider",
         "tags": [
           "providers"
@@ -12262,7 +12251,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -12307,7 +12296,7 @@
     },
     "/v1/workspaces": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "createWorkspace",
         "tags": [
           "workspaces"
@@ -12498,7 +12487,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -12659,10 +12648,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -12767,10 +12755,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -12796,7 +12783,7 @@
         }
       },
       "put": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "updateWorkspace",
         "tags": [
           "workspaces"
@@ -12974,7 +12961,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -13029,7 +13016,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "deleteWorkspace",
         "tags": [
           "workspaces"
@@ -13094,7 +13081,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -13151,7 +13138,7 @@
     },
     "/v1/mcp-connections": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "createMcpConnection",
         "tags": [
           "mcp-connections"
@@ -13418,7 +13405,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -13523,10 +13510,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -13611,7 +13597,7 @@
     },
     "/v1/mcp-connections/{id}/test": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "testMcpConnection",
         "tags": [
           "mcp-connections"
@@ -13696,7 +13682,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -13727,7 +13713,7 @@
     },
     "/v1/mcp-connections/{id}/reconnect": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "reconnectMcpConnection",
         "tags": [
           "mcp-connections"
@@ -13980,7 +13966,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -14110,10 +14096,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -14139,7 +14124,7 @@
         }
       },
       "patch": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "updateMcpConnection",
         "tags": [
           "mcp-connections"
@@ -14247,7 +14232,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -14289,7 +14274,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "deleteMcpConnection",
         "tags": [
           "mcp-connections"
@@ -14354,7 +14339,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -14398,7 +14383,7 @@
     },
     "/v1/agents": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "createAgent",
         "tags": [
           "agents"
@@ -14847,7 +14832,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -15049,10 +15034,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -15152,10 +15136,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -15183,7 +15166,7 @@
     },
     "/v1/agents/{agentId}/mcp-attachments/{mcpConnectionId}": {
       "patch": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "updateAgentMcpAttachment",
         "tags": [
           "agents"
@@ -15308,7 +15291,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -15445,10 +15428,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -15474,7 +15456,7 @@
         }
       },
       "put": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "updateAgent",
         "tags": [
           "agents"
@@ -15894,7 +15876,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -15951,7 +15933,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "deleteAgent",
         "tags": [
           "agents"
@@ -16031,7 +16013,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -16075,7 +16057,7 @@
     },
     "/v1/agents/{agentId}/disable": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "disableAgent",
         "tags": [
           "agents"
@@ -16181,7 +16163,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -16225,7 +16207,7 @@
     },
     "/v1/agents/{agentId}/enable": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "enableAgent",
         "tags": [
           "agents"
@@ -16331,7 +16313,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -16375,7 +16357,7 @@
     },
     "/v1/agents/{agentId}/avatar": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "uploadAgentAvatar",
         "tags": [
           "agents"
@@ -16507,7 +16489,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -16562,7 +16544,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "deleteAgentAvatar",
         "tags": [
           "agents"
@@ -16668,7 +16650,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -16712,7 +16694,7 @@
     },
     "/v1/agents/{agentId}/skills": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "createSkill",
         "tags": [
           "skills"
@@ -16836,7 +16818,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -17018,10 +17000,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -17049,7 +17030,7 @@
     },
     "/v1/agents/{agentId}/skills/upload": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "uploadSkill",
         "tags": [
           "skills"
@@ -17178,7 +17159,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -17353,10 +17334,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -17396,7 +17376,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "deleteSkill",
         "tags": [
           "skills"
@@ -17472,7 +17452,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -17613,10 +17593,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -17656,7 +17635,7 @@
         }
       },
       "put": {
-        "x-access": "full",
+        "x-access": "write",
         "tags": [
           "skills"
         ],
@@ -17786,7 +17765,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -17855,7 +17834,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "tags": [
           "skills"
         ],
@@ -17968,7 +17947,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -18013,7 +17992,7 @@
     },
     "/v1/agents/{agentId}/skills/{skillId}/copies": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "copySkill",
         "tags": [
           "skills"
@@ -18164,7 +18143,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -18209,7 +18188,7 @@
     },
     "/v1/agents/{agentId}/generation": {
       "post": {
-        "x-access": "full",
+        "x-access": "run",
         "operationId": "generate",
         "tags": [
           "agents"
@@ -18377,10 +18356,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
-              "insufficient_scope",
               "merchant_customer_unmapped"
             ],
             "content": {
@@ -18574,10 +18552,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -18590,7 +18567,7 @@
         }
       },
       "post": {
-        "x-access": "full",
+        "x-access": "run",
         "operationId": "createSessionTurn",
         "tags": [
           "sessions"
@@ -18783,10 +18760,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
-              "insufficient_scope",
               "merchant_customer_unmapped"
             ],
             "content": {
@@ -18991,10 +18967,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -19130,10 +19105,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -19159,7 +19133,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "deleteSession",
         "tags": [
           "sessions"
@@ -19250,7 +19224,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -19292,7 +19266,7 @@
         }
       },
       "post": {
-        "x-access": "full",
+        "x-access": "run",
         "operationId": "resumeSessionTurn",
         "tags": [
           "sessions"
@@ -19483,10 +19457,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
-              "insufficient_scope",
               "merchant_customer_unmapped"
             ],
             "content": {
@@ -19562,7 +19535,7 @@
     },
     "/v1/agents/{agentId}/sessions/{sessionId}/fork": {
       "post": {
-        "x-access": "full",
+        "x-access": "run",
         "operationId": "forkSession",
         "tags": [
           "sessions"
@@ -19773,10 +19746,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -19978,10 +19950,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -20117,10 +20088,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -20148,7 +20118,7 @@
     },
     "/v1/agents/{agentId}/sessions/{sessionId}/tool-approvals/continue": {
       "post": {
-        "x-access": "full",
+        "x-access": "run",
         "operationId": "continueToolApprovals",
         "tags": [
           "sessions"
@@ -20265,10 +20235,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
-              "insufficient_scope",
               "merchant_customer_unmapped"
             ],
             "content": {
@@ -20344,7 +20313,7 @@
     },
     "/v1/agents/{agentId}/sessions/{sessionId}/function-calls/{functionCallId}/claim": {
       "post": {
-        "x-access": "full",
+        "x-access": "run",
         "operationId": "claimChatFunctionCall",
         "tags": [
           "sessions"
@@ -20477,10 +20446,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -20521,7 +20489,7 @@
     },
     "/v1/agents/{agentId}/sessions/{sessionId}/function-calls/{functionCallId}/result": {
       "post": {
-        "x-access": "full",
+        "x-access": "run",
         "operationId": "resolveChatFunctionCall",
         "tags": [
           "sessions"
@@ -20710,10 +20678,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -20754,7 +20721,7 @@
     },
     "/v1/agents/{agentId}/sessions/{sessionId}/inputs": {
       "post": {
-        "x-access": "full",
+        "x-access": "run",
         "operationId": "submitSessionInput",
         "tags": [
           "sessions"
@@ -21030,7 +20997,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -21364,10 +21331,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -21395,7 +21361,7 @@
     },
     "/v1/agents/{agentId}/sessions/{sessionId}/stop": {
       "post": {
-        "x-access": "full",
+        "x-access": "run",
         "operationId": "stopSessionTurn",
         "tags": [
           "sessions"
@@ -21544,10 +21510,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -21705,10 +21670,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -21799,10 +21763,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -21915,10 +21878,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -21944,7 +21906,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "deleteArtifact",
         "tags": [
           "artifacts"
@@ -22009,7 +21971,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -22040,7 +22002,7 @@
     },
     "/v1/agents/{agentId}/memories": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "createMemory",
         "tags": [
           "memories"
@@ -22164,7 +22126,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -22326,10 +22288,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -22452,10 +22413,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -22481,7 +22441,7 @@
         }
       },
       "patch": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "updateMemory",
         "tags": [
           "memories"
@@ -22600,7 +22560,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -22629,7 +22589,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "deleteMemory",
         "tags": [
           "memories"
@@ -22705,7 +22665,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -22736,7 +22696,7 @@
     },
     "/v1/prompts": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "createPrompt",
         "tags": [
           "prompts"
@@ -22868,7 +22828,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -23025,10 +22985,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -23132,10 +23091,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -23161,7 +23119,7 @@
         }
       },
       "patch": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "updatePrompt",
         "tags": [
           "prompts"
@@ -23292,7 +23250,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -23321,7 +23279,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "deletePrompt",
         "tags": [
           "prompts"
@@ -23386,7 +23344,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -23493,10 +23451,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -23509,7 +23466,7 @@
         }
       },
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "createMerchantConnection",
         "tags": [
           "merchant"
@@ -23601,7 +23558,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -23643,7 +23600,7 @@
         }
       },
       "patch": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "updateMerchantConnection",
         "tags": [
           "merchant"
@@ -23741,7 +23698,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -23809,7 +23766,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "retireMerchantConnection",
         "tags": [
           "merchant"
@@ -23860,7 +23817,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -23998,10 +23955,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -24029,7 +23985,7 @@
     },
     "/v1/merchant-connection/bindings/{userId}": {
       "put": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "setMerchantBinding",
         "tags": [
           "merchant"
@@ -24122,7 +24078,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -24177,7 +24133,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "deleteMerchantBinding",
         "tags": [
           "merchant"
@@ -24242,7 +24198,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -24460,10 +24416,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -24582,10 +24537,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -24722,10 +24676,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -24753,7 +24706,7 @@
     },
     "/v1/merchant-usage-events/{eventId}/retry": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "retryMerchantUsageEvent",
         "tags": [
           "merchant"
@@ -24875,7 +24828,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -24919,7 +24872,7 @@
     },
     "/v1/merchant-usage-events/{eventId}/release": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "releaseMerchantUsageEvent",
         "tags": [
           "merchant"
@@ -25041,7 +24994,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -25087,7 +25040,7 @@
     },
     "/v1/merchant-usage-events/{eventId}/discard": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "discardMerchantUsageEvent",
         "tags": [
           "merchant"
@@ -25209,7 +25162,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -25432,10 +25385,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -25635,10 +25587,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -25820,10 +25771,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -25925,10 +25875,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -25956,7 +25905,7 @@
     },
     "/v1/tasks": {
       "post": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "createTask",
         "tags": [
           "tasks"
@@ -26259,7 +26208,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -26473,10 +26422,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -26588,10 +26536,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -26617,7 +26564,7 @@
         }
       },
       "patch": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "updateTask",
         "tags": [
           "tasks"
@@ -26863,7 +26810,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -26892,7 +26839,7 @@
         }
       },
       "delete": {
-        "x-access": "full",
+        "x-access": "write",
         "operationId": "deleteTask",
         "tags": [
           "tasks"
@@ -26957,7 +26904,7 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
               "forbidden",
               "insufficient_scope"
@@ -27001,7 +26948,7 @@
     },
     "/v1/tasks/{taskId}/runs": {
       "post": {
-        "x-access": "full",
+        "x-access": "run",
         "operationId": "createTaskRun",
         "tags": [
           "task-runs"
@@ -27097,10 +27044,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -27289,10 +27235,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -27449,10 +27394,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -27619,10 +27563,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {
@@ -27650,7 +27593,7 @@
     },
     "/v1/tasks/{taskId}/runs/{runId}/cancel": {
       "post": {
-        "x-access": "full",
+        "x-access": "run",
         "operationId": "cancelTaskRun",
         "tags": [
           "task-runs"
@@ -27726,10 +27669,9 @@
             }
           },
           "403": {
-            "description": "The API key is read-only, or the end user cannot run this request",
+            "description": "The caller is not allowed to make this request",
             "x-error-codes": [
-              "forbidden",
-              "insufficient_scope"
+              "forbidden"
             ],
             "content": {
               "application/json": {

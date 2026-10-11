@@ -232,14 +232,14 @@ To fix it:
 
 **This API key is read-only.**
 
-A read-only API key called an operation that changes data, starts a turn or task, or spends credit. The request was refused before it ran, so nothing changed and nothing was charged. The response carries `WWW-Authenticate: Bearer error="insufficient_scope"`.
+A read-only API key called an operation that creates, changes, or deletes part of your setup, such as an agent, skill, prompt, workspace, task, provider, or setting, or tried to steer a turn that a full key started. Read-only keys can still read and run agents. The request was refused before it ran, so nothing changed and nothing was charged. The response carries `WWW-Authenticate: Bearer error="insufficient_scope"`.
 
 HTTP `403`. Retrying the same request fails the same way until you fix the cause.
 
 To fix it:
 
 - Make this call with a full API key (`ba_full_...`).
-- To give a workload write access, create a full key on the [API keys page](https://www.blazingagents.com/app/keys). A key's access level cannot be changed.
+- To let a workload change your setup, create a full key on the [API keys page](https://www.blazingagents.com/app/keys). A key's access level cannot be changed.
 
 ### `api_key_limit_reached` [#api_key_limit_reached]
 
