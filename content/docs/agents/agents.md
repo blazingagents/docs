@@ -115,7 +115,7 @@ This removes the agent's sessions, tasks, memories, skills, linked prompts, and 
 
 ## The admin agent [#the-admin-agent]
 
-Every tenant has exactly one admin agent. It is the agent behind [`ba assist`](/cli/assist), the built-in assistant that manages your tenant, and Blazing Agents creates it for you. It appears in `agents.list()` next to your own agents, and the dashboard marks it **Powers BA Assist for this tenant**.
+Every tenant has exactly one admin agent. It is the built-in assistant that manages your tenant, and Blazing Agents creates it for you. It appears in `agents.list()` next to your own agents, and the dashboard marks it **Manages this tenant**.
 
 You choose its provider and model, plus an optional thinking level. New sessions save its current configuration. Blazing Agents manages everything else: you cannot rename it, change its instructions, tools, or avatar, disable it, delete it, or give it a task. Those requests fail with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
 
