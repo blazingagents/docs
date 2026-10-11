@@ -17,7 +17,7 @@ Monetization is off until you turn it on. While it is off, nothing is sent to yo
 
 ## Set up monetization [#set-up-monetization]
 
-You can do every step in the dashboard under **Monetization**, or from your backend with the TypeScript SDK as shown here. The Python SDK has no monetization methods, so from Python use the dashboard or the [REST API](/api-reference/rest-api/merchant).
+You can do every step in the dashboard under **Monetization**, or from your backend with either SDK as shown here.
 
 <Steps>
 <Step>
@@ -25,7 +25,7 @@ You can do every step in the dashboard under **Monetization**, or from your back
 
 Create one connection with your provider, the environment (`sandbox` or `live`), and a credential:
 
-```typescript
+```typescript tab="TypeScript"
 import { BlazingAgents } from "@blazingagents/sdk";
 
 const client = new BlazingAgents({
@@ -40,6 +40,21 @@ await client.merchantConnection.create({
 await client.tenant.patch({ monetizationEnabled: true });
 ```
 
+```python tab="Python"
+import os
+
+from blazing_agents import BlazingAgents
+
+client = BlazingAgents()
+
+client.merchant_connection.create(
+    provider="polar",
+    environment="sandbox",
+    credential=os.environ["POLAR_ACCESS_TOKEN"],
+)
+client.tenant.update(monetization_enabled=True)
+```
+
 - **Polar:** use an Organization Access Token (`polar_oat_...`) with `organizations:read`, `customers:read`, and `events:write`, and nothing else.
 - **Dodo:** use an API key from your Dodo dashboard in the mode that matches the environment.
 
@@ -50,11 +65,15 @@ Blazing Agents checks the credential with your provider before the connection go
 
 When a user signs up or starts a paid plan, create the customer in your provider, then link your `userId` to it:
 
-```typescript
+```typescript tab="TypeScript"
 await client.merchantBindings.put({
   userId: "app:user-42",
   customerId: "cus_from_polar_or_dodo",
 });
+```
+
+```python tab="Python"
+client.merchant_bindings.put("app:user-42", customer_id="cus_from_polar_or_dodo")
 ```
 
 Blazing Agents checks that the customer exists. Usage for a user with no link is held as `unmapped`, never sent as zero. Link the user, then release those events.
@@ -69,7 +88,7 @@ In your provider, create a meter for events named `ba.model_tokens.v1`, using th
 
 Turn on the guard to check each user's plan or balance with your provider before every turn starts:
 
-```typescript
+```typescript tab="TypeScript"
 await client.merchantConnection.update({
   guard: {
     enabled: true,
@@ -77,6 +96,16 @@ await client.merchantConnection.update({
     meterId: "meter_or_credit_entitlement_id",
   },
 });
+```
+
+```python tab="Python"
+client.merchant_connection.update(
+    guard={
+        "enabled": True,
+        "product_ids": ["prod_..."],
+        "meter_id": "meter_or_credit_entitlement_id",
+    },
+)
 ```
 
 See [guard rules](#guard-rules) for what each setting requires.
@@ -126,7 +155,7 @@ The guard checks only when a turn starts. A turn can still run past a balance wh
 
 ## Delivery states [#delivery-states]
 
-`client.merchantUsageEvents.list()` shows every event with a `status` and a suggested `nextAction`:
+`client.merchantUsageEvents.list()` (`client.merchant_usage_events.list()` in Python) shows every event with a `status` and a suggested `nextAction`:
 
 | Status | Meaning | Next action |
 | ------ | ------- | ----------- |

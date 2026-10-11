@@ -26,6 +26,7 @@ Every method takes an optional `from_` and `to`, inclusive UTC dates such as `"2
 | --- | --- | --- |
 | [`overview()`](#overview-method) | Get dashboard totals and top breakdowns | `UsageOverview` |
 | [`get()`](#get) | Get usage for your tenant | `Usage` |
+| [`sessions()`](#sessions) | Get exact totals for selected sessions | `SessionUsageList` |
 | [`get_for_agent()`](#get-for-agent) | Get usage for one agent | `Usage` |
 
 ## Methods [#methods]
@@ -70,6 +71,24 @@ usage = client.usage.get(
 
 Returns [`Usage`](#usage). Raises `validation_failed` for a bad range, filter, grouping, or limit.
 
+### `sessions()` [#sessions]
+
+Returns exact totals for the session IDs you provide. Use it when you already have a list of sessions and need each one's usage. The result keeps the input order and includes zero totals for a visible session with no usage.
+
+```python
+result = client.for_user(verified_user_id).usage.sessions(
+    ["ss_0123456789abcdef", "ss_abcdef0123456789"],
+    from_="2026-09-01",
+    to="2026-09-26",
+)
+for row in result.data:
+    print(row.session_id, row.totals.input_tokens + row.totals.output_tokens)
+```
+
+**Signature:** `sessions(session_ids: Sequence[str], *, from_=..., to=...) -> SessionUsageList`
+
+Pass 1 to 100 distinct session IDs. `from_` and `to` follow the [date range rules](#date-ranges). A missing session, or one outside the tenant or user scope, returns `not_found` for the whole request. This method does not rank or truncate sessions. It is also available on a [`for_user()`](/sdk/python/client#for-user) client.
+
 ### `get_for_agent()` [#get-for-agent]
 
 Gets usage for one agent.
@@ -100,6 +119,10 @@ Takes the same parameters as [`get()`](#get), except `agent_id`, which is the fi
 | `duration_ms` | `int` | Total duration in milliseconds |
 
 Fields that do not match the grouping are `None`.
+
+### `SessionUsageList` [#sessionusagelist]
+
+`data` is a list of `SessionUsage`, one per requested session, in request order. Each has `session_id` and `totals`, a `UsageTotals`.
 
 ### `UsageOverview` [#usageoverview]
 

@@ -97,7 +97,7 @@ Supply `functions` again on each new chat request. The functions belong to that 
 
 Build handlers after you authenticate the request. Capture the signed-in user's identity in the handler and use it in database queries. A model-provided user ID is not proof that the caller may access another user's data.
 
-With TypeScript, use `client.forUser(userId)` to scope the chat session to the authenticated user. Python applications must authorize session access in their backend. Keep your API key and the function handlers on the server.
+Use `client.forUser(userId)` in TypeScript or `client.for_user(user_id)` in Python to scope the chat session to the authenticated user. Keep your API key and the function handlers on the server.
 
 ## Resume after approval [#resume-after-approval]
 
