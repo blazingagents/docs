@@ -1,7 +1,7 @@
 import { useRouterState } from "@tanstack/react-router";
 import { DocsLayout, useDocsLayout } from "fumadocs-ui/layouts/docs";
 import { RootProvider } from "fumadocs-ui/provider/tanstack";
-import { BookOpen, Boxes, Braces, Command, Menu } from "lucide-react";
+import { BookOpen, Boxes, Braces, Menu } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import { PUBLIC_SITE_ORIGIN } from "../../brand.ts";
 import { restApiOperations } from "../generated/documentation-manifest.ts";
@@ -38,13 +38,6 @@ const documentationSections = [
     matches: ["/sdk"],
     nodeIds: ["sdk"],
     url: "/sdk",
-  },
-  {
-    icon: Command,
-    label: "CLI",
-    matches: ["/cli"],
-    nodeIds: ["cli"],
-    url: "/cli",
   },
 ] as const;
 
@@ -216,9 +209,6 @@ function getSectionTree(
     })
     .filter((node) => node.$id !== "sdk/index.mdx")
     .map((node) => {
-      if (node.$id === "cli/index.mdx") {
-        return { ...node, name: "Install" };
-      }
       if (node.$id === "automation" && node.type === "folder") {
         return {
           ...node,

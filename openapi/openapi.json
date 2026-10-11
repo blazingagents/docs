@@ -12475,7 +12475,7 @@
           "workspaces"
         ],
         "summary": "List workspaces",
-        "description": "Lists your tenant's workspaces newest first, one page at a time. Pass `nextCursor` as `cursor` to get the next page. The workspace reserved for the platform-managed `ba assist` agent is never listed.",
+        "description": "Lists your tenant's workspaces newest first, one page at a time. Pass `nextCursor` as `cursor` to get the next page. The workspace reserved for the platform-managed agent is never listed.",
         "parameters": [
           {
             "schema": {
@@ -15377,7 +15377,7 @@
           "agents"
         ],
         "summary": "Update an agent",
-        "description": "Updates the current agent configuration. New sessions and future task runs use these settings; existing sessions and queued runs keep their saved configuration. Send at least one field. Fields you leave out keep their values, and arrays replace the current list. Changing `providerId` requires `model` in the same request, and sending both as `null` clears them. On the platform-managed `ba assist` agent, only `providerId`, `model`, and `thinkingLevel` can change.",
+        "description": "Updates the current agent configuration. New sessions and future task runs use these settings; existing sessions and queued runs keep their saved configuration. Send at least one field. Fields you leave out keep their values, and arrays replace the current list. Changing `providerId` requires `model` in the same request, and sending both as `null` clears them. On the platform-managed agent, only `providerId`, `model`, and `thinkingLevel` can change.",
         "parameters": [
           {
             "schema": {
@@ -15852,7 +15852,7 @@
           "agents"
         ],
         "summary": "Delete an agent",
-        "description": "Permanently deletes an agent. Its workspace is kept. Set `includeArtifacts` to choose whether its artifacts are deleted too. The platform-managed `ba assist` agent cannot be deleted.",
+        "description": "Permanently deletes an agent. Its workspace is kept. Set `includeArtifacts` to choose whether its artifacts are deleted too. The platform-managed agent cannot be deleted.",
         "parameters": [
           {
             "schema": {
@@ -15974,7 +15974,7 @@
           "agents"
         ],
         "summary": "Disable an agent",
-        "description": "Turns an agent off. New turns for a disabled agent fail with `agent_disabled` until you enable it again. The platform-managed `ba assist` agent cannot be disabled.",
+        "description": "Turns an agent off. New turns for a disabled agent fail with `agent_disabled` until you enable it again. The platform-managed agent cannot be disabled.",
         "parameters": [
           {
             "schema": {
@@ -16270,7 +16270,7 @@
           "agents"
         ],
         "summary": "Upload an agent avatar",
-        "description": "Sets the agent's avatar, replacing any current one. Send the image as the `file` field of a multipart form. The platform-managed `ba assist` agent's avatar cannot change.",
+        "description": "Sets the agent's avatar, replacing any current one. Send the image as the `file` field of a multipart form. The platform-managed agent's avatar cannot change.",
         "parameters": [
           {
             "schema": {
@@ -16455,7 +16455,7 @@
           "agents"
         ],
         "summary": "Delete an agent avatar",
-        "description": "Removes the agent's avatar and returns the updated agent. The platform-managed `ba assist` agent's avatar cannot change.",
+        "description": "Removes the agent's avatar and returns the updated agent. The platform-managed agent's avatar cannot change.",
         "parameters": [
           {
             "schema": {
@@ -25735,7 +25735,7 @@
           "tasks"
         ],
         "summary": "Create a task",
-        "description": "Creates a task: a saved prompt your agent runs in the background. With a `schedule`, the task runs by itself; without one, it runs only when you start it. Send `submit: true` to start a run right away, which returns `202 Accepted` with the run's ID in `runId`; otherwise you get `201 Created` and `runId` is `null`. Send an `idempotencyKey` to retry safely. Matching retries return the current task definition and the original initial run ID. Changed requests or a deleted task return 409. Keys are separate for tenant-wide access and each scoped user. Without a key, each request creates another task. The platform-managed `ba assist` agent cannot run tasks.",
+        "description": "Creates a task: a saved prompt your agent runs in the background. With a `schedule`, the task runs by itself; without one, it runs only when you start it. Send `submit: true` to start a run right away, which returns `202 Accepted` with the run's ID in `runId`; otherwise you get `201 Created` and `runId` is `null`. Send an `idempotencyKey` to retry safely. Matching retries return the current task definition and the original initial run ID. Changed requests or a deleted task return 409. Keys are separate for tenant-wide access and each scoped user. Without a key, each request creates another task. The platform-managed agent cannot run tasks.",
         "requestBody": {
           "required": true,
           "content": {

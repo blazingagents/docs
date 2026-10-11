@@ -194,30 +194,6 @@ export const documentationPages = [
     "url": "/automation/tasks"
   },
   {
-    "path": "cli/index.mdx",
-    "url": "/cli"
-  },
-  {
-    "path": "cli/assist.md",
-    "url": "/cli/assist"
-  },
-  {
-    "path": "cli/chat.md",
-    "url": "/cli/chat"
-  },
-  {
-    "path": "cli/run.md",
-    "url": "/cli/run"
-  },
-  {
-    "path": "cli/scripting-and-ci.md",
-    "url": "/cli/scripting-and-ci"
-  },
-  {
-    "path": "cli/setup-and-authentication.mdx",
-    "url": "/cli/setup-and-authentication"
-  },
-  {
     "path": "getting-started/index.mdx",
     "url": "/getting-started"
   },
@@ -12685,65 +12661,6 @@ export const documentationTree: SerializedPageTree = {
         "$ref": {
           "folder": "sdk",
           "meta": "sdk/meta.json"
-        }
-      },
-      {
-        "type": "folder",
-        "name": "CLI",
-        "children": [
-          {
-            "$id": "cli/index.mdx",
-            "type": "page",
-            "name": "CLI",
-            "description": "Chat with your agents, run them from scripts and CI, and manage your tenant from the terminal.",
-            "url": "/cli",
-            "$ref": "cli/index.mdx"
-          },
-          {
-            "$id": "cli/setup-and-authentication.mdx",
-            "type": "page",
-            "name": "CLI setup and authentication",
-            "description": "Sign the CLI in on your own machine, or give it a key in CI.",
-            "url": "/cli/setup-and-authentication",
-            "$ref": "cli/setup-and-authentication.mdx"
-          },
-          {
-            "$id": "cli/chat.md",
-            "type": "page",
-            "name": "ba chat",
-            "description": "Hold a conversation with one of your agents in the terminal, and pick it up again later.",
-            "url": "/cli/chat",
-            "$ref": "cli/chat.md"
-          },
-          {
-            "$id": "cli/run.md",
-            "type": "page",
-            "name": "ba run",
-            "description": "Run one agent turn from a script or pipe and get the answer on stdout.",
-            "url": "/cli/run",
-            "$ref": "cli/run.md"
-          },
-          {
-            "$id": "cli/assist.md",
-            "type": "page",
-            "name": "ba assist",
-            "description": "Manage agents, prompts, tasks, and more by asking a built-in assistant in plain language.",
-            "url": "/cli/assist",
-            "$ref": "cli/assist.md"
-          },
-          {
-            "$id": "cli/scripting-and-ci.md",
-            "type": "page",
-            "name": "Scripting and CI",
-            "description": "Run an agent from a CI job or script and use its answer in the next step.",
-            "url": "/cli/scripting-and-ci",
-            "$ref": "cli/scripting-and-ci.md"
-          }
-        ],
-        "$id": "cli",
-        "$ref": {
-          "folder": "cli",
-          "meta": "cli/meta.json"
         }
       },
       {

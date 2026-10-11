@@ -19,7 +19,7 @@ something in it. Every request is scoped to your tenant.
 
 List workspaces.
 
-Lists your tenant's workspaces newest first, one page at a time. Pass `nextCursor` as `cursor` to get the next page. The workspace reserved for the platform-managed `ba assist` agent is never listed.
+Lists your tenant's workspaces newest first, one page at a time. Pass `nextCursor` as `cursor` to get the next page. The workspace reserved for the platform-managed agent is never listed.
 
 #### Request
 

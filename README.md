@@ -15,7 +15,7 @@ SDK documentation, examples, and the REST API reference.
 ## Features
 
 - Getting-started and platform guides for Blazing Agents users.
-- CLI, Python SDK, and TypeScript SDK documentation.
+- Python SDK and TypeScript SDK documentation.
 - Agent, automation, security, and operations guides.
 - REST API reference with protocol and resource documentation.
 
@@ -158,6 +158,5 @@ land on `main`.
 
 - [Python SDK](https://github.com/blazingagents/python-sdk)
 - [TypeScript SDK](https://github.com/blazingagents/typescript-sdk)
-- [CLI](https://github.com/blazingagents/cli)
 - [Examples](https://github.com/blazingagents/examples)
 - [Coding-agent skills](https://github.com/blazingagents/skills)
