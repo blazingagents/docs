@@ -105,7 +105,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tasks" \
 
 Create a task.
 
-Creates a task: a saved prompt your agent runs in the background. With a `schedule`, the task runs by itself; without one, it runs only when you start it. Send `submit: true` to start a run right away, which returns `202 Accepted` with the run's ID in `runId`; otherwise you get `201 Created` and `runId` is `null`. Send an `idempotencyKey` to retry safely. Matching retries return the current task definition and the original initial run ID. Changed requests or a deleted task return 409. Keys are separate for tenant-wide access and each scoped user. Without a key, each request creates another task. The platform-managed `ba assist` agent cannot run tasks.
+Creates a task: a saved prompt your agent runs in the background. With a `schedule`, the task runs by itself; without one, it runs only when you start it. Send `submit: true` to start a run right away, which returns `202 Accepted` with the run's ID in `runId`; otherwise you get `201 Created` and `runId` is `null`. Send an `idempotencyKey` to retry safely. Matching retries return the current task definition and the original initial run ID. Changed requests or a deleted task return 409. Keys are separate for tenant-wide access and each scoped user. Without a key, each request creates another task. The platform-managed agent cannot run tasks.
 
 #### Request
 
