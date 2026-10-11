@@ -513,7 +513,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
 
 Update an agent.
 
-Updates the current agent configuration. New sessions and future task runs use these settings; existing sessions and queued runs keep their saved configuration. Send at least one field. Fields you leave out keep their values, and arrays replace the current list. Changing `providerId` requires `model` in the same request, and sending both as `null` clears them. On the platform-managed `ba assist` agent, only `providerId`, `model`, and `thinkingLevel` can change.
+Updates the current agent configuration. New sessions and future task runs use these settings; existing sessions and queued runs keep their saved configuration. Send at least one field. Fields you leave out keep their values, and arrays replace the current list. Changing `providerId` requires `model` in the same request, and sending both as `null` clears them. On the platform-managed agent, only `providerId`, `model`, and `thinkingLevel` can change.
 
 #### Request
 
@@ -606,7 +606,7 @@ curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
 
 Delete an agent.
 
-Permanently deletes an agent. Its workspace is kept. Set `includeArtifacts` to choose whether its artifacts are deleted too. The platform-managed `ba assist` agent cannot be deleted.
+Permanently deletes an agent. Its workspace is kept. Set `includeArtifacts` to choose whether its artifacts are deleted too. The platform-managed agent cannot be deleted.
 
 #### Request
 
@@ -645,7 +645,7 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF?in
 
 Disable an agent.
 
-Turns an agent off. New turns for a disabled agent fail with `agent_disabled` until you enable it again. The platform-managed `ba assist` agent cannot be disabled.
+Turns an agent off. New turns for a disabled agent fail with `agent_disabled` until you enable it again. The platform-managed agent cannot be disabled.
 
 #### Request
 
@@ -799,7 +799,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/enab
 
 Upload an agent avatar.
 
-Sets the agent's avatar, replacing any current one. Send the image as the `file` field of a multipart form. The platform-managed `ba assist` agent's avatar cannot change.
+Sets the agent's avatar, replacing any current one. Send the image as the `file` field of a multipart form. The platform-managed agent's avatar cannot change.
 
 #### Request
 
@@ -879,7 +879,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/avat
 
 Delete an agent avatar.
 
-Removes the agent's avatar and returns the updated agent. The platform-managed `ba assist` agent's avatar cannot change.
+Removes the agent's avatar and returns the updated agent. The platform-managed agent's avatar cannot change.
 
 #### Request
 
