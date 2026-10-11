@@ -70,7 +70,7 @@ When the run is done, you see its final status and the agent's last answer. A ru
 | `succeeded` | The agent finished. Its last assistant message is the result. |
 | `failed` | Something went wrong. Read `error`, but treat it as sensitive and redact it before you log it. |
 | `canceled` | You cancelled the run before it finished. |
-| `blocked` | The agent did not run because a quota, subscription, or usage credit check failed. It is not a failure. See [usage and quotas](/platform/usage-and-quotas). |
+| `blocked` | The agent did not run because a quota, plan, usage credit, billing guard, or model spending limit check failed. It is not a failure. See [usage and quotas](/platform/usage-and-quotas). |
 
 Each run that executes gets a fresh [session](/platform/sessions-and-turns), so the transcript holds only this run. A run blocked before its session was created has an empty transcript. Use `client.tasks.getRun()` when you need the run's timestamps, session ID, or its saved `agentConfig`.
 

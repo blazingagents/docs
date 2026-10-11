@@ -24,7 +24,7 @@ Every method takes one input object and accepts an optional `abortSignal`.
 
 ## Runs [#runs]
 
-A task has at most one active run at a time. A run moves from `queued` to `running`, then ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota ran out; `error` says why.
+A task has at most one active run at a time. A run moves from `queued` to `running`, then ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota or a model spending limit ran out; `error` says why.
 
 Runs use the agent's `approvalInTasks` policy. Nobody is there to approve a call, so tool calls that would need a person are denied and the agent is told so. See [tool approvals](/agents/tools/tool-approvals).
 

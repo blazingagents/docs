@@ -51,7 +51,7 @@ Returns resources scoped to one agent, without a network request. Use `client.ag
 
 **Signature:** `with_options(*, client_request_id: str) -> BlazingAgents`
 
-Returns a copy of the client that sends `X-Client-Request-Id` on every resource and generation call. The original client is unchanged. On `AsyncBlazingAgents` the method is also synchronous and returns an `AsyncBlazingAgents`.
+Returns a copy of the client that sends `X-Client-Request-Id` on every resource and generation call. The original client is unchanged. The copy is the same kind of client: `AsyncBlazingAgents` returns an `AsyncBlazingAgents`, and a `UserClient` returns a `UserClient` that keeps its user scope. The method is synchronous on every client.
 
 ```python
 correlated = client.with_options(client_request_id="checkout-attempt-42")
@@ -59,6 +59,29 @@ agent = correlated.agents.get("ag_0123456789abcdef")
 ```
 
 Generation methods also accept `client_request_id` per call, and every method accepts `extra_headers` and `timeout`.
+
+### `for_user()` [#for-user]
+
+**Signature:** `for_user(user_id: str) -> UserClient`
+
+Use `for_user()` in your backend after you authenticate an end user. It returns a `UserClient` that sends `X-BA-User-Id` on every request, and the API checks that user's ownership for reads and writes. On `AsyncBlazingAgents` it returns an `AsyncUserClient`. The method makes no network request.
+
+```python
+from blazing_agents import BlazingAgents
+
+tenant_client = BlazingAgents()
+
+
+def list_my_agents(verified_user_id: str):
+    user_client = tenant_client.for_user(verified_user_id)
+    return user_client.agents.list(limit=50)
+```
+
+Pass the ID from the session your backend verified. Do not take it from a request body or query parameter. The ID must contain 1 to 256 printable ASCII characters without a leading or trailing space, or `for_user()` raises `ValueError`. The scope header wins over `default_headers` and `extra_headers`.
+
+A `UserClient` has `agents`, `artifacts`, `memories`, `prompts`, `sessions`, `tasks`, `workspaces`, `agent()`, the [generation methods](#generation-methods), and `usage` with `get()` and [`sessions()`](/sdk/python/usage#sessions). It omits tenant administration, such as `providers`, `tenant`, and the merchant resources, and it omits usage overview and per-agent usage. Use the tenant client for those operations.
+
+A request body's `user_id` labels the resource or turn. It does not grant access. On a scoped request, the API fills in a missing `user_id` with the scoped ID and rejects a different one. Without `for_user()`, your API key keeps tenant-wide authority, even when a request body contains `user_id`.
 
 ### `close()` [#close]
 
