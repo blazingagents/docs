@@ -125,7 +125,7 @@ A request blocked before streaming returns HTTP `429` with [`model_spending_limi
 | `unpriced` | The model has no price in the built-in price list. | Switch the agent to a priced model, or turn off the limit that applies. |
 | `unknown_usage` | A model request finished without reporting its usage. The turn stops, and the request's estimated cost stays held until the next reset. | Check `availableUsd`. New turns run while allowance remains. |
 
-Chat and approval-continuation streams report a stop that happens mid-turn through a `data-model-spending-limit` event. Completion and object streams instead fail with `stream_error`. See [streaming errors](/api-reference/protocols/streaming#spending-stop-events). Chat messages and tool results that finished before the stop stay in the session. A task run stopped by a spending limit ends as `failed`.
+Chat and approval-continuation streams report a stop that happens mid-turn through a `data-model-spending-limit` event. Completion and object streams instead fail with `stream_error`. See [streaming errors](/api-reference/protocols/streaming#spending-stop-events). Chat messages and tool results that finished before the stop stay in the session. A task run that a spending limit refuses before any model work ends as `blocked`. A task run stopped after model work started ends as `failed`, and the work that finished stays in its transcript.
 
 Do not retry a budget stop automatically. Read the current limit and its reset time. Wait for running work to finish, wait for the reset, or increase the allowance. Changing a limit does not undo completed tools or restart a stopped turn.
 
@@ -158,6 +158,7 @@ Blazing Agents checks the current window before each turn starts. It does not st
 | A chat or generation call starts without an active plan or usage credit | HTTP `402` with [`subscription_required`](/api-reference/protocols/errors#subscription_required) or [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required) |
 | A task run starts while usage is over the ceiling | The run ends as `blocked`, not `failed`, without running |
 | A task run lacks a required subscription or usage credit | The run ends as `blocked` |
+| A task run starts while a model spending limit has nothing left | The run ends as `blocked`, without running |
 | Billing status cannot be checked | The run ends as `failed` |
 | Too many interactive turns run at once | HTTP `429` with [`rate_limited`](/api-reference/protocols/errors#rate_limited) |
 | Too many task runs are active at once | Extra runs wait as `queued` until a slot frees up |

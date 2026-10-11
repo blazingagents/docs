@@ -22,7 +22,7 @@ print(run.status)
 
 ## Runs and their status [#runs-and-their-status]
 
-A run moves from `"queued"` to `"running"`, then ends as `"succeeded"`, `"failed"`, `"canceled"`, or `"blocked"`. `"blocked"` means the run was not allowed to start, for example because your tenant's quota ran out; it is not an execution failure. A task has at most one active run at a time, and a scheduled run that would overlap an active one is skipped.
+A run moves from `"queued"` to `"running"`, then ends as `"succeeded"`, `"failed"`, `"canceled"`, or `"blocked"`. `"blocked"` means the run was not allowed to start, for example because your tenant's quota or a model spending limit ran out; it is not an execution failure. A task has at most one active run at a time, and a scheduled run that would overlap an active one is skipped.
 
 Each run gets a fresh session. `session_id` stays `None` until that session exists, and `turn_id` identifies the run's metered turn.
 
@@ -64,7 +64,7 @@ created = client.tasks.create(
 task = created.task
 ```
 
-**Signature:** `create(*, agent_id: str, name: str, prompt: str, schedule=..., enabled=..., submit=..., user_id=..., metadata=...) -> TaskCreateResponse`
+**Signature:** `create(*, agent_id: str, name: str, prompt: str, schedule=..., enabled=..., submit=..., idempotency_key=..., user_id=..., metadata=...) -> TaskCreateResponse`
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -74,6 +74,7 @@ task = created.task
 | `schedule` | `TaskScheduleInput \| None` | `None` | When to run; `None` means on demand only |
 | `enabled` | `bool` | `True` | Whether the schedule fires |
 | `submit` | `bool` | `False` | Also start the first run now |
+| `idempotency_key` | `str` | none | Reuse the same task and initial run when a create request is retried |
 | `user_id` | `str` | `""` | End user; fixed after creation and copied to every run |
 | `metadata` | `dict[str, object]` | `{}` | Your own data, copied to every run |
 
@@ -86,6 +87,8 @@ A schedule is one of:
 | `"cron"` | `{"expression": "0 9 * * 1-5"}`, a five-field expression, with optional `"timezone"` (default `"UTC"`) and `"stagger_ms"` |
 
 The SDK checks the schedule shape before sending and raises `TypeError` or `ValueError` for a malformed one. `submit=True` does not make creation safe to retry: retrying creates another task.
+
+Without `idempotency_key`, calling `create()` twice creates two tasks. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID. Reusing a key with different task fields, or after deleting the task, raises `idempotency_conflict`. The key must not be blank.
 
 Returns `TaskCreateResponse` with `task` and `run_id`, which is set only when `submit=True`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit=True` and the agent is disabled.
 
@@ -246,6 +249,7 @@ A queued run is canceled right away. A running one stops at its next safe point,
 | `schedule` | `TaskSchedule \| None` | Schedule, or `None` for on demand |
 | `enabled` | `bool` | Whether the schedule fires |
 | `active_run_id`, `latest_run_id` | `str \| None` | Current and most recent runs |
+| `next_fire_at` | `datetime \| None` | When the schedule next starts a run, or `None` when nothing is scheduled |
 | `user_id` | `str` | End user, or `""` for tenant level |
 | `metadata` | `dict[str, object]` | Your own data |
 | `deleted_at` | `datetime \| None` | Deletion time |
