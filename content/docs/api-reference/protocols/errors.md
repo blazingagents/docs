@@ -19,7 +19,7 @@ Each code links to its own entry. You can link straight to one, for example
 
 | Area | Codes |
 | --- | --- |
-| [Auth and access](#auth-and-access) | [`unauthorized`](#unauthorized), [`forbidden`](#forbidden), [`api_key_limit_reached`](#api_key_limit_reached), [`tenant_deleting`](#tenant_deleting), [`tenant_deletion_in_progress`](#tenant_deletion_in_progress), [`tenant_deletion_not_ready`](#tenant_deletion_not_ready), [`tenant_not_deleting`](#tenant_not_deleting) |
+| [Auth and access](#auth-and-access) | [`unauthorized`](#unauthorized), [`forbidden`](#forbidden), [`insufficient_scope`](#insufficient_scope), [`api_key_limit_reached`](#api_key_limit_reached), [`tenant_deleting`](#tenant_deleting), [`tenant_deletion_in_progress`](#tenant_deletion_in_progress), [`tenant_deletion_not_ready`](#tenant_deletion_not_ready), [`tenant_not_deleting`](#tenant_not_deleting) |
 | [Requests and validation](#requests-and-validation) | [`invalid_request`](#invalid_request), [`idempotency_conflict`](#idempotency_conflict), [`validation_failed`](#validation_failed), [`not_found`](#not_found), [`invalid_cursor`](#invalid_cursor) |
 | [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
 | [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`input_idempotency_conflict`](#input_idempotency_conflict), [`steer_not_available`](#steer_not_available), [`message_id_conflict`](#message_id_conflict), [`message_not_found`](#message_not_found), [`tool_approval_continuation_settled`](#tool_approval_continuation_settled), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict), [`session_fork_unavailable`](#session_fork_unavailable), [`session_fork_deleted`](#session_fork_deleted) |
@@ -227,6 +227,19 @@ To fix it:
 
 - Use a tenant API key without X-BA-User-Id for tenant administration.
 - Use a user-scoped client only for that user's agents, sessions, tasks, and other owned resources.
+
+### `insufficient_scope` [#insufficient_scope]
+
+**This API key is read-only.**
+
+A read-only API key called an operation that changes data, starts a turn or task, or spends credit. The request was refused before it ran, so nothing changed and nothing was charged. The response carries `WWW-Authenticate: Bearer error="insufficient_scope"`.
+
+HTTP `403`. Retrying the same request fails the same way until you fix the cause.
+
+To fix it:
+
+- Make this call with a full API key (`ba_full_...`).
+- To give a workload write access, create a full key on the [API keys page](https://www.blazingagents.com/app/keys). A key's access level cannot be changed.
 
 ### `api_key_limit_reached` [#api_key_limit_reached]
 
