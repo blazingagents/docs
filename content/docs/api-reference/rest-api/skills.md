@@ -288,7 +288,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills/skill_123456
 
 Delete a skill.
 
-Permanently deletes a skill and all its files. You cannot delete an agent's last skill while one of its approval policies has an override for the `activate_skill` tool, or for the `read` tool when the agent lacks the `workspace` tool group. Remove the override first.
+Permanently deletes a skill and all its files. You cannot delete an agent's last skill while one of its approval policies has an override for the `activate_skill` tool, or for the `read` tool when `read` is not in the agent's `tools`. Remove the override first.
 
 #### Request
 
