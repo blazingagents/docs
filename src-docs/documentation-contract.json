@@ -3114,6 +3114,46 @@
         "assignedIds": [],
         "kind": "h2"
       },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "json",
+            "metadata": {
+              "title": ".claude/settings.json"
+            }
+          },
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "bash",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "mcp.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
       "cards": [
         "/api-reference/rest-api",
         "/api-reference/protocols"
@@ -4393,6 +4433,13 @@
       "publishable": true,
       "title": "Tenant",
       "url": "/sdk/python/tenant"
+    },
+    {
+      "file": "mcp.mdx",
+      "name": "BA MCP server",
+      "publishable": true,
+      "title": "BA MCP server",
+      "url": "/mcp"
     },
     {
       "file": "api-reference/index.mdx",

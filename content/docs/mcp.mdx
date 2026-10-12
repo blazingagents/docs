@@ -1,0 +1,118 @@
+---
+title: BA MCP server
+description: Connect Claude Code, Codex, Pi, or Devin to your Blazing Agents setup and manage it from your coding agent.
+---
+
+# BA MCP server
+
+Let your coding agent inspect and manage your Blazing Agents setup. The BA MCP server exposes your administration as MCP tools: agents, skills, prompts, workspaces, tasks, providers, sessions, and usage. Any MCP client can connect to it.
+
+- URL: `https://api.blazingagents.com/mcp`
+- Transport: Streamable HTTP
+- Authentication: an API key in the `Authorization: Bearer` header
+
+## Choose a key [#choose-a-key]
+
+Create a key in the dashboard at [`www.blazingagents.com/app/keys`](https://www.blazingagents.com/app/keys). The key's [access level](/platform/security-and-credentials#api-key-access-levels) decides which tools your client sees.
+
+- **Read-only** (`ba_read_`) lists only the read tools, plus running tasks and cancelling task runs.
+- **Full** (`ba_full_`) lists every tool. It has full admin access to your setup.
+
+Use a read-only key for coding agents. Create a full key only when you want the agent to change your setup.
+
+## Keep the key out of your agent's reach [#keep-the-key-out-of-your-agents-reach]
+
+A read-only MCP key protects nothing if your agent can read a full key somewhere else. A coding agent that can read your backend's `.env` can use the full key in it, whatever key you gave the MCP server.
+
+- Keep the MCP key in an environment variable or your client's secret store. The examples below read it from `BA_API_KEY`.
+- Never put the key in a config file you commit.
+- Block your agent from reading `.env` files.
+
+For Claude Code, add deny rules to `.claude/settings.json`:
+
+```json title=".claude/settings.json"
+{
+  "permissions": {
+    "deny": ["Read(./.env)", "Read(./.env.*)"]
+  }
+}
+```
+
+## Connect your client [#connect-your-client]
+
+Set `BA_API_KEY` in your shell first. Each command below stores a reference to the variable, not the key itself, and the client reads the variable when it connects. Keep the single quotes: double quotes make your shell write the key into the client's config file.
+
+### Claude Code [#claude-code]
+
+```bash
+claude mcp add --transport http blazing-agents https://api.blazingagents.com/mcp --header 'Authorization: Bearer ${BA_API_KEY}'
+```
+
+Add `--scope user` to make the server available in every project. Run `claude mcp list` and check that `blazing-agents` shows `✔ Connected`. In a session, `/mcp` shows the server with its tool count.
+
+### Codex [#codex]
+
+```bash
+codex mcp add blazing-agents --url https://api.blazingagents.com/mcp --bearer-token-env-var BA_API_KEY
+```
+
+Run `codex mcp list` and check that `blazing-agents` uses bearer token auth. Then ask Codex to list the `blazing-agents` tools.
+
+### Pi [#pi]
+
+```bash
+pi mcp add blazing-agents --url https://api.blazingagents.com/mcp --bearer-token-env-var BA_API_KEY
+```
+
+This writes the server to `~/.pi/agent/mcp.json`. Add `--local` to write the project file `.pi/mcp.json` instead. Run `pi mcp list` to see the server's state and tools.
+
+### Devin CLI [#devin-cli]
+
+```bash
+devin mcp add --transport http blazing-agents https://api.blazingagents.com/mcp -H 'Authorization: Bearer ${BA_API_KEY}'
+```
+
+By default this writes `.devin/mcp_config.local.json`, which git ignores. Add `--scope user` to make the server available in every project. Avoid `--scope project`: it writes the committed `.devin/mcp_config.json`, and the key variable belongs outside committed files. `devin mcp list` does not connect to the server, so ask Devin in a session to list its MCP servers and tools.
+
+### Devin web app [#devin-web-app]
+
+The web app takes the key value itself instead of an environment variable. You need the Manage MCP Servers permission.
+
+1. Open **Customize** > **MCPs** at [`app.devin.ai/customize?tab=mcps`](https://app.devin.ai/customize?tab=mcps).
+2. Choose **Add MCP**, then **Add custom MCP**.
+3. Set the transport to **HTTP** and the server URL to `https://api.blazingagents.com/mcp`.
+4. Choose **Auth Header**. Set the key to `Authorization` and the value to `Bearer ` followed by your API key.
+5. Save, then choose **Test tools** to see the tools.
+
+The server is shared with everyone in your Devin organization. Use a read-only key there unless your team needs to make changes.
+
+## Approvals [#approvals]
+
+The BA MCP server does not ask for approval before a tool call. Every tool carries MCP annotations: read tools are marked `readOnlyHint`, and deletes are marked `destructiveHint`. Clients that honor them ask you before a write. Keep your client's approval prompts on for this server.
+
+## Tools [#tools]
+
+Tool names follow `<entity>_<action>`, such as `agents_list` and `agents_deleteById`. Ask your client to list the tools for the full set.
+
+- `tenant_*`: your account settings.
+- `agents_*`: agents.
+- `providers_*`: providers and their models.
+- `workspaces_*`: workspaces.
+- `skills_*`: skills and their files.
+- `prompts_*`: prompts.
+- `tasks_*`: tasks, including running one.
+- `taskRuns_*`: task runs, their messages, and cancelling a run.
+- `usage_*`: usage.
+- `sessions_*`: sessions and their messages.
+- `artifacts_*`: artifacts.
+
+A read-only key sees fewer tools. Tools that create, change, or delete parts of your setup do not appear in its list.
+
+## Errors [#errors]
+
+A refused or failed call returns a tool error, not a protocol error. The error carries the same code as the REST API, such as [`not_found`](/api-reference/protocols/errors#not_found) or [`validation_failed`](/api-reference/protocols/errors#validation_failed). See [errors](/api-reference/protocols/errors) for every code.
+
+## Next [#next]
+
+- [Security and credentials](/platform/security-and-credentials) to manage and rotate your keys.
+- [The admin agent](/agents/agents#the-admin-agent) to manage your setup by chatting in the dashboard.
