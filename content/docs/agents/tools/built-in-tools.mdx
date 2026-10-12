@@ -76,7 +76,7 @@ These tools work on the agent's [memory](/agents/memory). You can also add saved
 
 The agent sends a `query` of 1 to 1,024 characters and an optional `limit`. It gets back up to 10 results, which is also the default. Each result has a `url`, a `title`, and usually a `description` snippet. The tool does not fetch full page contents. When the results are too large to return whole, the tool returns the ones that fit and adds `truncated: true`.
 
-Each successful search uses $0.01 of usage credit, which is $10 per 1,000 searches. A failed search is free. Blazing Agents bills web search itself, so it uses credit even when your model runs on your own provider key.
+Each successful search uses usage credit. A failed search is free. Blazing Agents bills web search itself, so it uses credit even when your model runs on your own provider key.
 
 Blazing Agents sends each query to Exa, a third-party search provider. The gateway that routes the query does not list Exa as a zero-data-retention provider, so assume Exa can keep the queries it receives. Keep secrets and personal data out of searches, or leave `web_search` off.
 
