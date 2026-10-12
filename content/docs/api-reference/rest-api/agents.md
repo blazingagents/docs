@@ -190,7 +190,9 @@ Response schema: `AgentList`.
       "compactionReserveTokens": 16384,
       "memoryInjectionEnabled": false,
       "tools": [
-        "workspace",
+        "read",
+        "grep",
+        "glob",
         "write_todos"
       ],
       "instructions": "Answer billing questions clearly and briefly.",
@@ -250,7 +252,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `autoCompaction` | boolean | body |  | Summarize older context automatically when a conversation nears the model's context limit. Defaults to `true`. |
 | `compactionReserveTokens` | integer | body |  | Tokens to keep free for the model's reply when deciding whether to compact. Minimum 0. Defaults to `16384`. |
 | `memoryInjectionEnabled` | boolean | body |  | Add the agent's saved memories to every turn automatically. Defaults to `false`. |
-| `tools` | string[] | body |  | Built-in tool groups the agent can use: `workspace`, `write_todos`, and `memory`. Defaults to `[]`. |
+| `tools` | string[] | body |  | Built-in tools the agent can use. Each tool is enabled individually and is off until listed. File tools such as `read` and `bash` run in the attached workspace. Defaults to `[]`. |
 | `instructions` | string | body |  | Instructions the agent follows on every turn. Up to 3000 characters. Defaults to `""`. |
 | `userId` | string | body |  | Your end user's ID, used for attribution. An empty string means a tenant-level agent. It cannot change after creation. Defaults to `""`. |
 | `metadata` | object | body |  | Your own key-value data, returned unchanged. Defaults to `{}`. |
@@ -283,7 +285,9 @@ Response schema: `Agent`.
   "compactionReserveTokens": 16384,
   "memoryInjectionEnabled": false,
   "tools": [
-    "workspace",
+    "read",
+    "grep",
+    "glob",
     "write_todos"
   ],
   "instructions": "Answer billing questions clearly and briefly.",
@@ -319,7 +323,7 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"name":"Support Agent","providerId":"prv_7Tn4Kd9QwE2sLx5R","model":"openai/gpt-6-luna","tools":["workspace","write_todos"],"instructions":"Answer billing questions clearly and briefly.","metadata":{"team":"support"}}'
+  --data '{"name":"Support Agent","providerId":"prv_7Tn4Kd9QwE2sLx5R","model":"openai/gpt-6-luna","tools":["read","grep","glob","write_todos"],"instructions":"Answer billing questions clearly and briefly.","metadata":{"team":"support"}}'
 ```
 
 ### GET /v1/agents/:agentId/mcp-attachments [#list-agent-mcp-attachments]
@@ -474,7 +478,9 @@ Response schema: `Agent`.
   "compactionReserveTokens": 16384,
   "memoryInjectionEnabled": false,
   "tools": [
-    "workspace",
+    "read",
+    "grep",
+    "glob",
     "write_todos"
   ],
   "instructions": "Answer billing questions clearly and briefly.",
@@ -532,7 +538,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `autoCompaction` | boolean | body |  | Summarize older context automatically when a conversation nears the model's context limit. |
 | `compactionReserveTokens` | integer | body |  | Tokens to keep free for the model's reply when deciding whether to compact. Minimum 0. |
 | `memoryInjectionEnabled` | boolean | body |  | Add the agent's saved memories to every turn automatically. |
-| `tools` | string[] | body |  | Built-in tool groups the agent can use: `workspace`, `write_todos`, and `memory`. |
+| `tools` | string[] | body |  | Built-in tools the agent can use. Each tool is enabled individually and is off until listed. File tools such as `read` and `bash` run in the attached workspace. |
 | `instructions` | string | body |  | Instructions the agent follows on every turn. Up to 3000 characters. |
 | `metadata` | object | body |  | Your own key-value data, returned unchanged. |
 | `mcpConnectionIds` | string[] | body |  | IDs of the MCP connections attached to the agent. |
@@ -564,7 +570,10 @@ Response schema: `Agent`.
   "compactionReserveTokens": 16384,
   "memoryInjectionEnabled": false,
   "tools": [
-    "workspace"
+    "read",
+    "grep",
+    "glob",
+    "web_search"
   ],
   "instructions": "Answer billing and refund questions clearly and briefly.",
   "userId": "",
@@ -599,7 +608,7 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"instructions":"Answer billing and refund questions clearly and briefly.","tools":["workspace"]}'
+  --data '{"instructions":"Answer billing and refund questions clearly and briefly.","tools":["read","grep","glob","web_search"]}'
 ```
 
 ### DELETE /v1/agents/:agentId [#delete-agent]
@@ -682,7 +691,9 @@ Response schema: `Agent`.
   "compactionReserveTokens": 16384,
   "memoryInjectionEnabled": false,
   "tools": [
-    "workspace",
+    "read",
+    "grep",
+    "glob",
     "write_todos"
   ],
   "instructions": "Answer billing questions clearly and briefly.",
@@ -759,7 +770,9 @@ Response schema: `Agent`.
   "compactionReserveTokens": 16384,
   "memoryInjectionEnabled": false,
   "tools": [
-    "workspace",
+    "read",
+    "grep",
+    "glob",
     "write_todos"
   ],
   "instructions": "Answer billing questions clearly and briefly.",
@@ -837,7 +850,9 @@ Response schema: `Agent`.
   "compactionReserveTokens": 16384,
   "memoryInjectionEnabled": false,
   "tools": [
-    "workspace",
+    "read",
+    "grep",
+    "glob",
     "write_todos"
   ],
   "instructions": "Answer billing questions clearly and briefly.",
@@ -916,7 +931,9 @@ Response schema: `Agent`.
   "compactionReserveTokens": 16384,
   "memoryInjectionEnabled": false,
   "tools": [
-    "workspace",
+    "read",
+    "grep",
+    "glob",
     "write_todos"
   ],
   "instructions": "Answer billing questions clearly and briefly.",

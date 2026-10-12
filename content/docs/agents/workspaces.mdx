@@ -40,7 +40,7 @@ for agent_id in [writer_agent_id, reviewer_agent_id]:
     client.agents.update(agent_id, workspace_id=workspace.id)
 ```
 
-Both agents now read and write the same files. The agents also need the `workspace` tool group before they can touch those files; see [built-in tools](/agents/tools/built-in-tools#enable-a-group).
+Both agents now read and write the same files. Each agent can touch those files only through the file tools you turn on for it, such as `read` and `write`; see [built-in tools](/agents/tools/built-in-tools#file-operations).
 
 ## How a workspace behaves [#how-a-workspace-behaves]
 

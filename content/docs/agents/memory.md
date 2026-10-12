@@ -75,7 +75,7 @@ A `userId` sorts notes. It is not a security boundary: a tenant-wide API key can
 ## Choose how the agent recalls notes [#choose-how-the-agent-recalls-notes]
 
 - **Automatic.** With `memoryInjectionEnabled`, each turn starts with the newest visible notes, up to 4,000 words. The last note that fits may be cut short.
-- **Tools.** The `memory` tool group lets the agent save, look up, search, update, and delete notes on its own during a turn. Add it with `tools` on the [agent](/agents/agents#change-an-agent).
+- **Tools.** The memory tools let the agent save, look up, search, update, and delete notes on its own during a turn. Turn on the ones you want, such as `save_memory` and `search_memories`, with `tools` on the [agent](/agents/agents#change-an-agent).
 
 Use either one or both. Automatic recall suits a handful of stable preferences. Tools suit an agent that should decide what is worth remembering.
 
@@ -108,5 +108,5 @@ Each agent holds up to 500 notes across all its users. Saving a note at that lim
 ## Next [#next]
 
 - [Tenancy and attribution](/platform/tenancy-and-attribution) to pass the right `userId` for each end user.
-- [Built-in tools](/agents/tools/built-in-tools) for what the `memory` tools can do.
+- [Built-in tools](/agents/tools/built-in-tools#memory) for what each memory tool does.
 - Memories SDK reference for [TypeScript](/sdk/typescript/memories) or [Python](/sdk/python/memories).
