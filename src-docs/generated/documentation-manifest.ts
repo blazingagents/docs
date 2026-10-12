@@ -218,6 +218,10 @@ export const documentationPages = [
     "url": "/getting-started/setup"
   },
   {
+    "path": "mcp.mdx",
+    "url": "/mcp"
+  },
+  {
     "path": "platform/index.mdx",
     "url": "/platform"
   },
@@ -12662,6 +12666,14 @@ export const documentationTree: SerializedPageTree = {
           "folder": "sdk",
           "meta": "sdk/meta.json"
         }
+      },
+      {
+        "$id": "mcp.mdx",
+        "type": "page",
+        "name": "BA MCP server",
+        "description": "Connect Claude Code, Codex, Pi, or Devin to your Blazing Agents setup and manage it from your coding agent.",
+        "url": "/mcp",
+        "$ref": "mcp.mdx"
       },
       {
         "type": "folder",
