@@ -2130,6 +2130,7 @@
                                 "search_memories",
                                 "update_memory",
                                 "delete_memory",
+                                "web_search",
                                 "activate_skill"
                               ]
                             }
@@ -2239,6 +2240,7 @@
                                 "search_memories",
                                 "update_memory",
                                 "delete_memory",
+                                "web_search",
                                 "activate_skill"
                               ]
                             }
@@ -2358,9 +2360,20 @@
             "items": {
               "type": "string",
               "enum": [
-                "workspace",
+                "read",
+                "write",
+                "edit",
+                "grep",
+                "glob",
+                "bash",
+                "publish_artifacts",
                 "write_todos",
-                "memory"
+                "save_memory",
+                "get_memory",
+                "search_memories",
+                "update_memory",
+                "delete_memory",
+                "web_search"
               ]
             }
           },
@@ -3041,6 +3054,7 @@
                                     "search_memories",
                                     "update_memory",
                                     "delete_memory",
+                                    "web_search",
                                     "activate_skill"
                                   ]
                                 }
@@ -3150,6 +3164,7 @@
                                     "search_memories",
                                     "update_memory",
                                     "delete_memory",
+                                    "web_search",
                                     "activate_skill"
                                   ]
                                 }
@@ -3257,9 +3272,20 @@
                 "items": {
                   "type": "string",
                   "enum": [
-                    "workspace",
+                    "read",
+                    "write",
+                    "edit",
+                    "grep",
+                    "glob",
+                    "bash",
+                    "publish_artifacts",
                     "write_todos",
-                    "memory"
+                    "save_memory",
+                    "get_memory",
+                    "search_memories",
+                    "update_memory",
+                    "delete_memory",
+                    "web_search"
                   ]
                 }
               },
@@ -3434,6 +3460,7 @@
                             "search_memories",
                             "update_memory",
                             "delete_memory",
+                            "web_search",
                             "activate_skill"
                           ]
                         }
@@ -6904,6 +6931,7 @@
                                           "search_memories",
                                           "update_memory",
                                           "delete_memory",
+                                          "web_search",
                                           "activate_skill"
                                         ]
                                       }
@@ -7013,6 +7041,7 @@
                                           "search_memories",
                                           "update_memory",
                                           "delete_memory",
+                                          "web_search",
                                           "activate_skill"
                                         ]
                                       }
@@ -7120,9 +7149,20 @@
                       "items": {
                         "type": "string",
                         "enum": [
-                          "workspace",
+                          "read",
+                          "write",
+                          "edit",
+                          "grep",
+                          "glob",
+                          "bash",
+                          "publish_artifacts",
                           "write_todos",
-                          "memory"
+                          "save_memory",
+                          "get_memory",
+                          "search_memories",
+                          "update_memory",
+                          "delete_memory",
+                          "web_search"
                         ]
                       }
                     },
@@ -7331,6 +7371,7 @@
                                     "search_memories",
                                     "update_memory",
                                     "delete_memory",
+                                    "web_search",
                                     "activate_skill"
                                   ]
                                 }
@@ -7440,6 +7481,7 @@
                                     "search_memories",
                                     "update_memory",
                                     "delete_memory",
+                                    "web_search",
                                     "activate_skill"
                                   ]
                                 }
@@ -7547,9 +7589,20 @@
                 "items": {
                   "type": "string",
                   "enum": [
-                    "workspace",
+                    "read",
+                    "write",
+                    "edit",
+                    "grep",
+                    "glob",
+                    "bash",
+                    "publish_artifacts",
                     "write_todos",
-                    "memory"
+                    "save_memory",
+                    "get_memory",
+                    "search_memories",
+                    "update_memory",
+                    "delete_memory",
+                    "web_search"
                   ]
                 }
               },
@@ -14399,7 +14452,9 @@
                 "providerId": "prv_7Tn4Kd9QwE2sLx5R",
                 "model": "openai/gpt-6-luna",
                 "tools": [
-                  "workspace",
+                  "read",
+                  "grep",
+                  "glob",
                   "write_todos"
                 ],
                 "instructions": "Answer billing questions clearly and briefly.",
@@ -14462,6 +14517,7 @@
                                         "search_memories",
                                         "update_memory",
                                         "delete_memory",
+                                        "web_search",
                                         "activate_skill"
                                       ]
                                     }
@@ -14572,6 +14628,7 @@
                                         "search_memories",
                                         "update_memory",
                                         "delete_memory",
+                                        "web_search",
                                         "activate_skill"
                                       ]
                                     }
@@ -14698,13 +14755,24 @@
                     "items": {
                       "type": "string",
                       "enum": [
-                        "workspace",
+                        "read",
+                        "write",
+                        "edit",
+                        "grep",
+                        "glob",
+                        "bash",
+                        "publish_artifacts",
                         "write_todos",
-                        "memory"
+                        "save_memory",
+                        "get_memory",
+                        "search_memories",
+                        "update_memory",
+                        "delete_memory",
+                        "web_search"
                       ]
                     },
                     "default": [],
-                    "description": "Built-in tool groups the agent can use: `workspace`, `write_todos`, and `memory`."
+                    "description": "Built-in tools the agent can use. Each tool is enabled individually and is off until listed. File tools such as `read` and `bash` run in the attached workspace."
                   },
                   "instructions": {
                     "type": "string",
@@ -14767,7 +14835,9 @@
                   "compactionReserveTokens": 16384,
                   "memoryInjectionEnabled": false,
                   "tools": [
-                    "workspace",
+                    "read",
+                    "grep",
+                    "glob",
                     "write_todos"
                   ],
                   "instructions": "Answer billing questions clearly and briefly.",
@@ -14970,7 +15040,9 @@
                       "compactionReserveTokens": 16384,
                       "memoryInjectionEnabled": false,
                       "tools": [
-                        "workspace",
+                        "read",
+                        "grep",
+                        "glob",
                         "write_todos"
                       ],
                       "instructions": "Answer billing questions clearly and briefly.",
@@ -15367,7 +15439,9 @@
                   "compactionReserveTokens": 16384,
                   "memoryInjectionEnabled": false,
                   "tools": [
-                    "workspace",
+                    "read",
+                    "grep",
+                    "glob",
                     "write_todos"
                   ],
                   "instructions": "Answer billing questions clearly and briefly.",
@@ -15483,7 +15557,10 @@
               "example": {
                 "instructions": "Answer billing and refund questions clearly and briefly.",
                 "tools": [
-                  "workspace"
+                  "read",
+                  "grep",
+                  "glob",
+                  "web_search"
                 ]
               },
               "schema": {
@@ -15533,6 +15610,7 @@
                                         "search_memories",
                                         "update_memory",
                                         "delete_memory",
+                                        "web_search",
                                         "activate_skill"
                                       ]
                                     }
@@ -15639,6 +15717,7 @@
                                         "search_memories",
                                         "update_memory",
                                         "delete_memory",
+                                        "web_search",
                                         "activate_skill"
                                       ]
                                     }
@@ -15755,12 +15834,23 @@
                     "items": {
                       "type": "string",
                       "enum": [
-                        "workspace",
+                        "read",
+                        "write",
+                        "edit",
+                        "grep",
+                        "glob",
+                        "bash",
+                        "publish_artifacts",
                         "write_todos",
-                        "memory"
+                        "save_memory",
+                        "get_memory",
+                        "search_memories",
+                        "update_memory",
+                        "delete_memory",
+                        "web_search"
                       ]
                     },
-                    "description": "Built-in tool groups the agent can use: `workspace`, `write_todos`, and `memory`."
+                    "description": "Built-in tools the agent can use. Each tool is enabled individually and is off until listed. File tools such as `read` and `bash` run in the attached workspace."
                   },
                   "instructions": {
                     "type": "string",
@@ -15812,7 +15902,10 @@
                   "compactionReserveTokens": 16384,
                   "memoryInjectionEnabled": false,
                   "tools": [
-                    "workspace"
+                    "read",
+                    "grep",
+                    "glob",
+                    "web_search"
                   ],
                   "instructions": "Answer billing and refund questions clearly and briefly.",
                   "userId": "",
@@ -16102,7 +16195,9 @@
                   "compactionReserveTokens": 16384,
                   "memoryInjectionEnabled": false,
                   "tools": [
-                    "workspace",
+                    "read",
+                    "grep",
+                    "glob",
                     "write_todos"
                   ],
                   "instructions": "Answer billing questions clearly and briefly.",
@@ -16252,7 +16347,9 @@
                   "compactionReserveTokens": 16384,
                   "memoryInjectionEnabled": false,
                   "tools": [
-                    "workspace",
+                    "read",
+                    "grep",
+                    "glob",
                     "write_todos"
                   ],
                   "instructions": "Answer billing questions clearly and briefly.",
@@ -16428,7 +16525,9 @@
                   "compactionReserveTokens": 16384,
                   "memoryInjectionEnabled": false,
                   "tools": [
-                    "workspace",
+                    "read",
+                    "grep",
+                    "glob",
                     "write_todos"
                   ],
                   "instructions": "Answer billing questions clearly and briefly.",
@@ -16589,7 +16688,9 @@
                   "compactionReserveTokens": 16384,
                   "memoryInjectionEnabled": false,
                   "tools": [
-                    "workspace",
+                    "read",
+                    "grep",
+                    "glob",
                     "write_todos"
                   ],
                   "instructions": "Answer billing questions clearly and briefly.",
@@ -19047,7 +19148,9 @@
                     "compactionReserveTokens": 16384,
                     "memoryInjectionEnabled": false,
                     "tools": [
-                      "workspace",
+                      "read",
+                      "grep",
+                      "glob",
                       "write_todos"
                     ],
                     "instructions": "Answer billing questions clearly and briefly.",
@@ -19634,7 +19737,9 @@
                     "compactionReserveTokens": 16384,
                     "memoryInjectionEnabled": false,
                     "tools": [
-                      "workspace",
+                      "read",
+                      "grep",
+                      "glob",
                       "write_todos"
                     ],
                     "instructions": "Answer billing questions clearly and briefly.",
@@ -19685,7 +19790,9 @@
                     "compactionReserveTokens": 16384,
                     "memoryInjectionEnabled": false,
                     "tools": [
-                      "workspace",
+                      "read",
+                      "grep",
+                      "glob",
                       "write_todos"
                     ],
                     "instructions": "Answer billing questions clearly and briefly.",
@@ -27160,7 +27267,9 @@
                         "compactionReserveTokens": 16384,
                         "memoryInjectionEnabled": false,
                         "tools": [
-                          "workspace",
+                          "read",
+                          "grep",
+                          "glob",
                           "write_todos"
                         ],
                         "instructions": "Answer billing questions clearly and briefly.",
@@ -27323,7 +27432,9 @@
                     "compactionReserveTokens": 16384,
                     "memoryInjectionEnabled": false,
                     "tools": [
-                      "workspace",
+                      "read",
+                      "grep",
+                      "glob",
                       "write_todos"
                     ],
                     "instructions": "Answer billing questions clearly and briefly.",

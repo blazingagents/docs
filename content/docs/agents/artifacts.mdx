@@ -9,7 +9,7 @@ Hand a finished file from your agent to your users. When the agent publishes a f
 
 ## Publish and download a file [#publish-and-download-a-file]
 
-The agent publishes with the `publish_artifacts` tool, which comes with the `workspace` tool group. This example asks the agent to write and publish a report, then downloads it:
+The agent publishes with the `publish_artifacts` tool. Turn it on in the agent's `tools`, along with `write` so the agent can create the file first. This example asks the agent to write and publish a report, then downloads it:
 
 ```typescript tab="TypeScript"
 const turn = await client.chat({

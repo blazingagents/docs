@@ -272,7 +272,9 @@ Response schema: `Session`.
     "compactionReserveTokens": 16384,
     "memoryInjectionEnabled": false,
     "tools": [
-      "workspace",
+      "read",
+      "grep",
+      "glob",
       "write_todos"
     ],
     "instructions": "Answer billing questions clearly and briefly.",
@@ -446,7 +448,9 @@ Response schema: `Session`.
     "compactionReserveTokens": 16384,
     "memoryInjectionEnabled": false,
     "tools": [
-      "workspace",
+      "read",
+      "grep",
+      "glob",
       "write_todos"
     ],
     "instructions": "Answer billing questions clearly and briefly.",
@@ -494,7 +498,9 @@ Response schema: `Session`.
     "compactionReserveTokens": 16384,
     "memoryInjectionEnabled": false,
     "tools": [
-      "workspace",
+      "read",
+      "grep",
+      "glob",
       "write_todos"
     ],
     "instructions": "Answer billing questions clearly and briefly.",

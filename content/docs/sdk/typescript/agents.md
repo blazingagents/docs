@@ -13,7 +13,7 @@ const agent = await client.agents.create({
   providerId: "prv_0123456789abcdef",
   model: "openai/gpt-6-luna",
   instructions: "Write concise release notes.",
-  tools: ["workspace"],
+  tools: ["read", "write", "edit"],
 });
 ```
 
@@ -61,7 +61,7 @@ const agent = await client.agents.create({
 | `model` | `string \| null` | no | `null` | Model ID as your provider names it |
 | `thinkingLevel` | `string \| null` | no | `null` | Reasoning level; `null` uses the provider's default. See [thinking level](/agents/providers-and-models#thinking-level) |
 | `instructions` | `string` | no | `""` | System instructions, up to 3,000 characters |
-| `tools` | `AgentToolGroupId[]` | no | `[]` | Tool groups: `"workspace"`, `"write_todos"`, `"memory"` |
+| `tools` | `AgentToolName[]` | no | `[]` | Built-in tools, each turned on by name, such as `"read"`, `"write_todos"`, `"save_memory"`, or `"web_search"`. Names must be unique. See [built-in tools](/agents/tools/built-in-tools) |
 | `mcpConnectionIds` | `string[]` | no | `[]` | Up to 10 MCP connections |
 | `workspaceTier` | `"core" \| "plus"` | no | `"core"` | Tier for a new workspace; cannot combine with `workspaceId` |
 | `workspaceId` | `string` | no | new workspace | Existing workspace to share |
@@ -77,6 +77,8 @@ Set `providerId` and `model` together, or leave both out to create an agent you 
 
 Without `workspaceId`, the agent gets a new workspace of its own named after it. `workspaceTier` chooses Core or Plus for that new workspace and defaults to `core`. It cannot combine with `workspaceId`. Pass an ID to share an existing workspace. Changing the agent later does not rename its workspace.
 
+To build a tool picker, import `AGENT_TOOLS` from `@blazingagents/sdk`. Each entry has the tool's `name`, `category`, `description`, and `requiresWorkspace`. `AGENT_TOOL_CATEGORIES` holds a display name and description for each category. Categories only group tools for display; `tools` accepts tool names.
+
 An `ApprovalPolicy` has a `default` decision and optional `overrides` for single tools. Decisions are `"full"`, `"deny"`, `"manual"`, or `"auto"`. See [tool approvals](/agents/tools/tool-approvals#approval-policies).
 
 ```typescript
@@ -84,7 +86,7 @@ await client.agents.create({
   name: "Careful operator",
   providerId: "prv_0123456789abcdef",
   model: "openai/gpt-6-luna",
-  tools: ["workspace"],
+  tools: ["read", "bash"],
   approvalInChat: {
     default: "full",
     overrides: [{ tool: { type: "builtin", name: "bash" }, decision: "manual" }],
@@ -301,7 +303,7 @@ await client.agents.updateSpendingLimit({
 | `model` | `string \| null` | Model ID, or `null` when unconfigured |
 | `thinkingLevel` | `string \| null` | Reasoning level, or `null` for the provider's default |
 | `instructions` | `string` | System instructions |
-| `tools` | `AgentToolGroupId[]` | Tool groups |
+| `tools` | `AgentToolName[]` | Built-in tools turned on for the agent |
 | `mcpConnectionIds` | `string[]` | MCP connections |
 | `workspaceId` | `string` | The agent's workspace |
 | `memoryInjectionEnabled` | `boolean` | Automatic memory injection |

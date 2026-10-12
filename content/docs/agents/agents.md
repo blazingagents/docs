@@ -59,7 +59,7 @@ The new agent starts with status `active`, and it comes with its own [workspace]
 
 - **Model.** A [provider and model](/agents/providers-and-models) pair, plus an optional thinking level. An agent without a model can be saved but cannot answer.
 - **Instructions.** The standing guidance the agent follows on every turn.
-- **Tools.** Built-in tool groups (`workspace`, `write_todos`, `memory`) in `tools`, and remote [MCP connections](/agents/tools/mcp-tools) in `mcpConnectionIds`. See [built-in tools](/agents/tools/built-in-tools).
+- **Tools.** Built-in tools such as `read`, `write_todos`, `save_memory`, or `web_search`, each listed by name in `tools`, and remote [MCP connections](/agents/tools/mcp-tools) in `mcpConnectionIds`. A new agent has no built-in tools. See [built-in tools](/agents/tools/built-in-tools).
 - **Approvals.** Separate [tool approval](/agents/tools/tool-approvals) policies for chat (`approvalInChat`) and for tasks (`approvalInTasks`). Both allow every call until you change them.
 - **Files.** The [workspace](/agents/workspaces) attached to the agent. Pass `workspaceId` to share an existing workspace instead of getting a new one.
 - **Memory.** Whether saved [memories](/agents/memory) are added to every turn automatically (`memoryInjectionEnabled`).
@@ -79,12 +79,12 @@ Send only the fields you want to change:
 ```typescript tab="TypeScript" tab-group="sdk-language"
 await client.agents.update({
   agentId: agent.id,
-  tools: ["workspace", "memory"],
+  tools: ["read", "grep", "glob", "save_memory", "search_memories"],
 });
 ```
 
 ```python tab="Python"
-client.agents.update(agent.id, tools=["workspace", "memory"])
+client.agents.update(agent.id, tools=["read", "grep", "glob", "save_memory", "search_memories"])
 ```
 
 Lists such as `tools` replace the old list rather than adding to it. To switch models, send `providerId` and `model` together. New sessions and task runs save the updated configuration when they start. To stop an agent without deleting it, [disable it](/agents/configuration-snapshots#enable-and-disable).

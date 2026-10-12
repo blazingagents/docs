@@ -1,45 +1,34 @@
 ---
 title: Built-in tools
-description: Switch on files and a shell, a to-do list, or memory for your agent, and check what it did.
+description: Switch on file and shell tools, a to-do list, memory, or web search for your agent, one tool at a time.
 ---
 
 # Built-in tools
 
-Give your agent ready-made abilities without writing any tool code. Blazing Agents groups its tools into three sets you switch on per agent. A new agent starts with none, so it can only do what you turn on.
+Give your agent ready-made abilities without writing any tool code. You switch on each tool by name in the agent's `tools` list. A new agent starts with none, so it can only do what you turn on.
 
-## Tool groups [#tool-groups]
+## Turn on tools [#turn-on-tools]
 
-| Group | Tools | What the agent can do |
-| --- | --- | --- |
-| `workspace` | `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts` | Work with files and run commands in its [workspace](/agents/workspaces), and publish finished files as [artifacts](/agents/artifacts). |
-| `write_todos` | `write_todos` | Keep a to-do list to plan the current turn. |
-| `memory` | `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory` | Save and recall notes in the agent's [memory](/agents/memory). |
-
-[MCP tools](/agents/tools/mcp-tools) are added through connections, not through these groups.
-
-## Enable a group [#enable-a-group]
-
-The `tools` list you send replaces the agent's whole selection, so read the current list and add to it:
+The `tools` list you send replaces the agent's whole selection, so read the current list and add to it. This example gives the agent read-only access to its files:
 
 ```typescript tab="TypeScript"
 const agent = await client.agents.get({ agentId });
-if (!agent.tools.includes("workspace")) {
-  await client.agents.update({
-    agentId,
-    tools: [...agent.tools, "workspace"],
-  });
-}
+const tools = new Set(agent.tools).add("read").add("grep").add("glob");
+await client.agents.update({ agentId, tools: [...tools] });
 ```
 
 ```python tab="Python"
 agent = client.agents.get(agent_id)
-if "workspace" not in agent.tools:
-    client.agents.update(agent_id, tools=[*agent.tools, "workspace"])
+wanted = ["read", "grep", "glob"]
+tools = [*agent.tools, *(tool for tool in wanted if tool not in agent.tools)]
+client.agents.update(agent_id, tools=tools)
 ```
 
-New sessions and task runs use this update. Existing sessions keep their saved tool group list.
+Any combination of tools is valid, and each name can appear once. New sessions and task runs use the update. Existing sessions keep the tool list they saved. [MCP tools](/agents/tools/mcp-tools) are added through connections, not through `tools`.
 
-## Workspace tools [#workspace-tools]
+The tables below sort the tools into categories so they are easier to scan. A category is only a heading: you cannot turn on a category by name.
+
+## File operations [#file-operations]
 
 | Tool | What it does |
 | --- | --- |
@@ -51,19 +40,51 @@ New sessions and task runs use this update. Existing sessions keep their saved t
 | `bash` | Run a shell command and return its exit code and output. |
 | `publish_artifacts` | Publish one to ten files as [artifacts](/agents/artifacts). |
 
+These tools run in the agent's [workspace](/agents/workspaces). The workspace starts only when the agent calls one of them, so an agent with no file tools never starts it.
+
 The agent works under `/workspace`. Relative paths resolve there, `bash` starts there, and paths that would leave it are rejected. Commands get no provider keys or application environment variables, and they can reach only the hosts the workspace's [network policy](/agents/workspaces#control-network-access) allows.
 
 Writing a file does not deliver it anywhere. The agent must call `publish_artifacts` to hand a file to your application, and it can do that only in a chat session or task run, not in stateless generation.
 
 ### Tools that come with skills [#tools-that-come-with-skills]
 
-An agent with [skills](/agents/skills) also gets `activate_skill` and a `read` that can open its skill files, even without the `workspace` group. That `read` does not open workspace files. To run a script from a skill, the agent needs the `workspace` group: it reads the script, writes a copy into the workspace, and runs the copy with `bash`.
+An agent with [skills](/agents/skills) also gets `activate_skill` and `read`, whether or not you selected them. Without `read` in `tools`, that `read` opens only skill files, not workspace files. To run a script from a skill, the agent also needs `write` and `bash`: it reads the script, writes a copy into the workspace, and runs the copy.
+
+## Task planning [#task-planning]
+
+| Tool | What it does |
+| --- | --- |
+| `write_todos` | Keep a to-do list to plan and track multi-step work in the current turn. |
+
+## Memory [#memory]
+
+| Tool | What it does |
+| --- | --- |
+| `save_memory` | Save a note. |
+| `get_memory` | Read one saved note. |
+| `search_memories` | Search saved notes. |
+| `update_memory` | Change a saved note. |
+| `delete_memory` | Delete a saved note. |
+
+These tools work on the agent's [memory](/agents/memory). You can also add saved notes to every turn without any tool through `memoryInjectionEnabled`.
+
+## Web search [#web-search]
+
+| Tool | What it does |
+| --- | --- |
+| `web_search` | Search the public web and return matching pages. |
+
+The agent sends a `query` of 1 to 1,024 characters and an optional `limit`. It gets back up to 10 results, which is also the default. Each result has a `url`, a `title`, and usually a `description` snippet. The tool does not fetch full page contents. When the results are too large to return whole, the tool returns the ones that fit and adds `truncated: true`.
+
+Each successful search uses $0.01 of usage credit, which is $10 per 1,000 searches. A failed search is free. Blazing Agents bills web search itself, so it uses credit even when your model runs on your own provider key.
+
+The web search queries, not linked to an individual, might be kept for model training.
 
 ## Verify durable file operations [#verify-durable-file-operations]
 
 Check that files survive between sessions: write a value in one session, then read it back in a new one. Check the saved tool result rather than the agent's reply, because the model can paraphrase.
 
-Use an agent attached to a Plus workspace for this check, and wait more than 10 minutes between the two steps so the workspace stops in between. A Core workspace would pass the check only while it is still running.
+Use an agent with `write` and `read` turned on and attached to a Plus workspace for this check, and wait more than 10 minutes between the two steps so the workspace stops in between. A Core workspace would pass the check only while it is still running.
 
 First, ask the agent to write the file:
 
@@ -156,8 +177,8 @@ File changes are not undone when a turn fails or is stopped. Writes and edits th
 
 ## Production checklist [#production-checklist]
 
-- Turn on only the groups the agent needs. Selecting a group gives the agent that ability; it does not check who the user is.
-- Keep secrets out of prompts, commands, files, and tool arguments.
+- Turn on only the tools the agent needs. Selecting a tool gives the agent that ability; it does not check who the user is. For example, `read`, `grep`, and `glob` let the agent look at files without changing them.
+- Keep secrets out of prompts, commands, files, and tool arguments, including web search queries.
 - Treat files, commands, and summaries the agent produces as untrusted until your application checks them.
 - Put a person in front of risky calls such as `bash` with [tool approvals](/agents/tools/tool-approvals).
 - Expect limits on input and output size, file operations, and compute. See [limits and reliability](/platform/limits-and-reliability).
