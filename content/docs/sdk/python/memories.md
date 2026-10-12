@@ -5,7 +5,7 @@ description: Create, search, update, and delete the notes an agent remembers, wi
 
 # Memories
 
-`client.memories` manages the short text notes an agent keeps across sessions. Your code can seed, correct, or remove them, and the agent can also write them itself with its `memory` tools. Each memory belongs to one agent and, optionally, one end user.
+`client.memories` manages the short text notes an agent keeps across sessions. Your code can seed, correct, or remove them, and an agent with memory tools such as `save_memory` can also write them itself. Each memory belongs to one agent and, optionally, one end user.
 
 Examples assume `client = BlazingAgents()` and an `agent_id`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names and use `async for` with `iter()`.
 

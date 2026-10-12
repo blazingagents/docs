@@ -18,7 +18,7 @@ Each agent has two policies: `approvalInChat` for chat and stateless generation,
 | `manual` | Waits for a person to approve or deny it. |
 | `auto` | The agent's model allows it, denies it, or asks a person. If the review fails, the call is blocked. |
 
-This example lets chat tools run freely except `bash`, which needs a person, and lets tasks use only `read`. The agent needs the `workspace` tool group for these rules to be valid:
+This example lets chat tools run freely except `bash`, which needs a person, and lets tasks use only `read`. The agent needs `bash` and `read` in its `tools` for these rules to be valid:
 
 ```typescript tab="TypeScript"
 await client.agents.update({
@@ -48,7 +48,7 @@ client.agents.update(
 )
 ```
 
-To target an MCP tool, use `{ type: "mcp", connectionId, name }` with the tool's original name and a connection attached to the agent (`connection_id` in Python). Each tool can appear once per policy, and it must be available to the agent, so update your rules when you remove a tool group or connection.
+To target an MCP tool, use `{ type: "mcp", connectionId, name }` with the tool's original name and a connection attached to the agent (`connection_id` in Python). Each tool can appear once per policy, and it must be available to the agent. A built-in tool is available when it is in the agent's `tools`. An agent with [skills](/agents/skills) can also have rules for `activate_skill` and `read` without selecting them, but only while it has a skill. Update your rules before you remove a tool, a connection, or the agent's last skill.
 
 Sending a policy replaces it, and leaving one out keeps it as it is. Each session and task run saves its approval policy in [agent configuration](/agents/configuration-snapshots). Later policy edits apply to new work.
 

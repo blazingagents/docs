@@ -67,7 +67,9 @@ Response schema: `TaskRunList`.
         "compactionReserveTokens": 16384,
         "memoryInjectionEnabled": false,
         "tools": [
-          "workspace",
+          "read",
+          "grep",
+          "glob",
           "write_todos"
         ],
         "instructions": "Answer billing questions clearly and briefly.",
@@ -208,7 +210,9 @@ Response schema: `TaskRun`.
     "compactionReserveTokens": 16384,
     "memoryInjectionEnabled": false,
     "tools": [
-      "workspace",
+      "read",
+      "grep",
+      "glob",
       "write_todos"
     ],
     "instructions": "Answer billing questions clearly and briefly.",

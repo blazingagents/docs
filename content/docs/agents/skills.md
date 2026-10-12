@@ -109,7 +109,7 @@ Blazing Agents checks the whole archive before it saves anything, so a bad `SKIL
 
 ## How the agent uses a skill [#how-the-agent-uses-a-skill]
 
-On every turn the agent sees the name and description of each of its skills. When one fits the task, it loads that skill's current `SKILL.md`. It then sees a list of the skill's other files and can open any of them with the `read` tool. This works even when the agent has no tool groups enabled.
+On every turn the agent sees the name and description of each of its skills. When one fits the task, it loads that skill's current `SKILL.md`. It then sees a list of the skill's other files and can open any of them with the `read` tool. An agent with skills always gets `activate_skill` and `read`, even with an empty `tools` list. Unless you turn on `read` yourself, that `read` opens only skill files.
 
 Skill files are read-only to the agent and are not part of its [workspace](/agents/workspaces). Other file tools such as `grep`, `write`, and `bash` see only the workspace. To run a script that ships with a skill, the agent reads it, writes a copy into the workspace, and runs the copy.
 

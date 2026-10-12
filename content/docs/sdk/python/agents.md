@@ -58,7 +58,7 @@ agent = client.agents.create(
     name="Support agent",
     provider_id=provider.id,
     model="openai/gpt-6-luna",
-    tools=["workspace", "memory"],
+    tools=["read", "grep", "glob", "save_memory", "search_memories"],
     user_id="customer_123",
     metadata={"team": "support"},
 )
@@ -73,7 +73,7 @@ agent = client.agents.create(
 | `thinking_level` | `str \| None` | `None` | Reasoning level; `None` uses the provider default. Needs a provider and model. See [`get_thinking_levels()`](/sdk/python/providers#get-thinking-levels) |
 | `workspace_tier` | `Literal["core", "plus"]` | `"core"` | Tier for a new workspace; cannot combine with `workspace_id` |
 | `workspace_id` | `str` | new workspace | Existing workspace to share. When omitted, a new workspace is created with the agent's name and `user_id` |
-| `tools` | `list[AgentTool]` | `[]` | Built-in tool groups: `"workspace"`, `"write_todos"`, `"memory"` |
+| `tools` | `list[AgentTool]` | `[]` | Built-in tools, each turned on by name, such as `"read"`, `"write_todos"`, `"save_memory"`, or `"web_search"`. Names must be unique. See [built-in tools](/agents/tools/built-in-tools) |
 | `instructions` | `str` | `""` | System instructions, up to 3,000 characters |
 | `memory_injection_enabled` | `bool` | `False` | Add the agent's memories to each turn's context automatically |
 | `auto_compaction` | `bool` | `True` | Summarize older context when it nears the model's context window |
@@ -289,7 +289,7 @@ See [model spending limits](/platform/usage-and-quotas#model-spending-limits).
 | `model` | `str \| None` | Model ID, or `None` when unconfigured |
 | `thinking_level` | `str \| None` | Reasoning level, or `None` for the provider default |
 | `workspace_id` | `str` | Attached workspace |
-| `tools` | `list[str]` | Built-in tool groups |
+| `tools` | `list[AgentTool]` | Built-in tools turned on for the agent |
 | `instructions` | `str` | System instructions |
 | `memory_injection_enabled` | `bool` | Whether memories are added automatically |
 | `auto_compaction` | `bool` | Whether older context is summarized automatically |

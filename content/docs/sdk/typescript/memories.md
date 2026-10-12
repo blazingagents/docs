@@ -5,7 +5,7 @@ description: Add, search, edit, and delete an agent's memories with the TypeScri
 
 # Memories
 
-`client.memories` reads and writes the notes an agent keeps across sessions. Agents save memories themselves through the `memory` tools; use these methods to seed facts, show a user what the agent remembers about them, or remove something. To learn how memory reaches the agent, read [Memory](/agents/memory).
+`client.memories` reads and writes the notes an agent keeps across sessions. Agents with memory tools such as `save_memory` save notes themselves; use these methods to seed facts, show a user what the agent remembers about them, or remove something. To learn how memory reaches the agent, read [Memory](/agents/memory).
 
 ```typescript
 await client.memories.create({
