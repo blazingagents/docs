@@ -1004,7 +1004,6 @@ Returns `200 OK` as `application/json`. The stopped turn's ID and the session's 
 | --- | --- | --- |
 | `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
-| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict), [`steer_not_available`](/api-reference/protocols/errors#steer_not_available), [`session_busy`](/api-reference/protocols/errors#session_busy) | The request conflicts with the resource's current state |
