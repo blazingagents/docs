@@ -22,7 +22,7 @@ Each code links to its own entry. You can link straight to one, for example
 | [Auth and access](#auth-and-access) | [`unauthorized`](#unauthorized), [`forbidden`](#forbidden), [`insufficient_scope`](#insufficient_scope), [`api_key_limit_reached`](#api_key_limit_reached), [`tenant_deleting`](#tenant_deleting), [`tenant_deletion_in_progress`](#tenant_deletion_in_progress), [`tenant_deletion_not_ready`](#tenant_deletion_not_ready), [`tenant_not_deleting`](#tenant_not_deleting) |
 | [Requests and validation](#requests-and-validation) | [`invalid_request`](#invalid_request), [`idempotency_conflict`](#idempotency_conflict), [`validation_failed`](#validation_failed), [`not_found`](#not_found), [`invalid_cursor`](#invalid_cursor) |
 | [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
-| [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`input_idempotency_conflict`](#input_idempotency_conflict), [`steer_not_available`](#steer_not_available), [`message_id_conflict`](#message_id_conflict), [`message_not_found`](#message_not_found), [`tool_approval_continuation_settled`](#tool_approval_continuation_settled), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict), [`session_fork_unavailable`](#session_fork_unavailable), [`session_fork_deleted`](#session_fork_deleted) |
+| [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`session_turn_unresponsive`](#session_turn_unresponsive), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`input_idempotency_conflict`](#input_idempotency_conflict), [`steer_not_available`](#steer_not_available), [`message_id_conflict`](#message_id_conflict), [`message_not_found`](#message_not_found), [`tool_approval_continuation_settled`](#tool_approval_continuation_settled), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict), [`session_fork_unavailable`](#session_fork_unavailable), [`session_fork_deleted`](#session_fork_deleted) |
 | [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
 | [Tasks](#tasks) | [`task_active_run_exists`](#task_active_run_exists) |
 | [Quotas and billing](#quotas-and-billing) | [`quota_exceeded`](#quota_exceeded), [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`checkout_evidence_mismatch`](#checkout_evidence_mismatch), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_binding_required`](#merchant_binding_required), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable), [`model_spending_limit_exceeded`](#model_spending_limit_exceeded) |
@@ -108,6 +108,9 @@ the final value. Ordinary stream errors carry no specific code. A handled
 model spending stop in a chat stream first sends a structured `data-model-spending-limit` event
 with `code: "model_spending_limit_exceeded"`, scope, balances, and reset time.
 See [spending-stop events](/api-reference/protocols/streaming#spending-stop-events).
+A chat stream that is cut after it starts sends a `data-turn-interrupted` event
+with `code: "turn_interrupted"`, then the error chunk. That code is not an HTTP error code.
+See [interruption events](/api-reference/protocols/streaming#interruption-events).
 Relay responses built by the SDK keep the original request ID.
 
 Each entry on this page says whether retrying the same request can succeed.
@@ -546,7 +549,7 @@ Running turns, regenerating answers, and tool approvals.
 
 **The session is busy with another operation.**
 
-A turn is running, a tool approval is waiting for a decision, or an approval continuation is already running, so the session cannot start new work. New chat turns, regeneration, and deletion are refused until that work ends. Retrying an approval continuation that is already running also returns this code.
+A turn is running, a tool approval is waiting for a decision, or an approval continuation is already running, so the session cannot start new work. New chat turns, regeneration, and deletion are refused until that work ends. Retrying an approval continuation that is already running also returns this code. A turn that stopped responding looks busy for a short time, then the session returns [`session_turn_unresponsive`](#session_turn_unresponsive).
 
 HTTP `409`. Retrying the same request can succeed.
 
@@ -555,6 +558,20 @@ To fix it:
 - Decide any pending tool approvals. See [tool approvals](/agents/tools/tool-approvals).
 - To send while a turn runs, steer the message into it. See [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
 - Otherwise wait for the running work to finish, then send again. See [busy and concurrent sessions](/platform/sessions-and-turns#busy-and-concurrent-sessions).
+
+### `session_turn_unresponsive` [#session_turn_unresponsive]
+
+**The previous turn in this session stopped responding.**
+
+The session's previous turn stopped responding without releasing the session. The session is available again within a minute. Until then, new chat turns, regeneration, tool approval continuations, and deletion return this code. The response has a `Retry-After` header and `details.retryAfterSeconds`, both holding the whole seconds until the session is free. Sending the request again before then fails the same way.
+
+HTTP `409`. Retrying the same request can succeed.
+
+To fix it:
+
+- Wait for the number of seconds in the `Retry-After` header.
+- Read the session's messages to see what the stopped turn saved.
+- Send the turn again under a new message ID, because the stopped turn may have saved the old one. Repeat a tool approval continuation or a deletion as it was. A continuation keeps the decisions you already recorded.
 
 ### `function_call_conflict` [#function_call_conflict]
 
