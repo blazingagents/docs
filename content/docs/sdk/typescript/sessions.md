@@ -381,6 +381,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | `tool_approval_decision_conflict` | The call was already decided differently; reload the approvals |
 | `tool_approval_continuation_settled` | The approval round already finished; read the history |
 | `session_busy` | A turn or approval continuation is in progress; wait for it |
+| [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) | The previous turn stopped responding; wait for the `Retry-After` header, then send again under a new message ID |
 | [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) | The `requestId` or `message.id` was used for different content; retry with the original values |
 | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) | The agent is disabled |
 

@@ -50,7 +50,8 @@ The error code tells you what to fix. It does not tell you the retry is safe, so
 - **[`not_found`](/api-reference/protocols/errors#not_found):** check the ID and whether the resource was deleted.
 - **[`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded):** wait for the quota window to reset, or raise the quota.
 - **[`model_spending_limit_exceeded`](/api-reference/protocols/errors#model_spending_limit_exceeded):** do not retry automatically. Its `reason` tells you whether to wait for the reset, wait for running work, raise the limit, or switch models. See [handle a spending stop](/platform/usage-and-quotas#spending-limit-stops).
-- **[`rate_limited`](/api-reference/protocols/errors#rate_limited):** too many turns are running. Retry with backoff.
+- **[`rate_limited`](/api-reference/protocols/errors#rate_limited):** too many turns are running. Wait for the `Retry-After` header when it is present, otherwise retry with backoff.
+- **[`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive):** the session's previous turn stopped responding. Wait for the `Retry-After` header, which is at most a minute. Read the session's messages first, then send again under a new message ID.
 - **Provider or [`internal`](/api-reference/protocols/errors#internal) errors:** retry only if the cause looks temporary and the call is safe to repeat.
 
 Reads are safe to repeat. Creates and tool calls can take effect even when you never see the response. Use an idempotency key where one exists, and apply bounded retries with backoff, jitter, and an overall deadline.
@@ -58,6 +59,8 @@ Reads are safe to repeat. Creates and tool calls can take effect even when you n
 ## Errors during a stream [#errors-during-a-stream]
 
 An error before the stream starts arrives as a normal API error with a code. Once a chat stream has started, errors arrive as `error` events inside the stream, and some output may already have been shown. For interactive chat, keep the user's draft and let them resend. See [stop and resend](/platform/sessions-and-turns#stop-and-resend).
+
+A stream that is cut after it starts ends with a `data-turn-interrupted` event and an `error` chunk instead of ending as if it finished. See [interruption events](/api-reference/protocols/streaming#interruption-events).
 
 In TypeScript, a broken connection after streaming starts raises `stream_error`, an abort before the request is sent raises `request_aborted`, and other network failures raise `network_error`. In Python, these are `StreamError` and `APIConnectionError`.
 
