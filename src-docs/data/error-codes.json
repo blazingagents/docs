@@ -355,11 +355,24 @@
       "group": "sessions-and-turns",
       "statuses": [409],
       "title": "The session is busy with another operation.",
-      "whatHappened": "A turn is running, a tool approval is waiting for a decision, or an approval continuation is already running, so the session cannot start new work. New chat turns, regeneration, and deletion are refused until that work ends. Retrying an approval continuation that is already running also returns this code.",
+      "whatHappened": "A turn is running, a tool approval is waiting for a decision, or an approval continuation is already running, so the session cannot start new work. New chat turns, regeneration, and deletion are refused until that work ends. Retrying an approval continuation that is already running also returns this code. A turn that stopped responding looks busy for a short time, then the session returns [`session_turn_unresponsive`](#session_turn_unresponsive).",
       "howToFix": [
         "Decide any pending tool approvals. See [tool approvals](/agents/tools/tool-approvals).",
         "To send while a turn runs, steer the message into it. See [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).",
         "Otherwise wait for the running work to finish, then send again. See [busy and concurrent sessions](/platform/sessions-and-turns#busy-and-concurrent-sessions)."
+      ],
+      "retryable": true
+    },
+    {
+      "code": "session_turn_unresponsive",
+      "group": "sessions-and-turns",
+      "statuses": [409],
+      "title": "The previous turn in this session stopped responding.",
+      "whatHappened": "The session's previous turn stopped responding without releasing the session. The session is available again within a minute. Until then, new chat turns, regeneration, tool approval continuations, and deletion return this code. The response has a `Retry-After` header and `details.retryAfterSeconds`, both holding the whole seconds until the session is free. Sending the request again before then fails the same way.",
+      "howToFix": [
+        "Wait for the number of seconds in the `Retry-After` header.",
+        "Read the session's messages to see what the stopped turn saved.",
+        "Send the turn again under a new message ID, because the stopped turn may have saved the old one. Repeat a tool approval continuation or a deletion as it was. A continuation keeps the decisions you already recorded."
       ],
       "retryable": true
     },

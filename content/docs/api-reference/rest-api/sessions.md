@@ -310,7 +310,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567
 
 Resume a session with the next turn.
 
-Continues a session with a new turn. A session that does not exist or was deleted returns `404`; it is never created. The session keeps its saved agent configuration. To generate an answer again, set `trigger: "regenerate-message"` and optionally `messageId`; the conversation is cut back to that message (by default, the last answer) and the answer is generated again, and a failed regeneration keeps the previous answer. An ordinary submission containing any message ID already in accepted history returns `409 message_id_conflict` before model or tool work, including when its text changes or its batch also contains new IDs. Regeneration can reuse existing IDs. Returns `409 session_busy` while another turn is running or a tool approval is waiting for a decision. Send exactly one of `messages` or `promptId`; `variables` is allowed only with `promptId`. The answer streams back as an AI SDK UI message stream. A failure before the stream starts returns a JSON error. Once the stream has started, a failure arrives as an error chunk; the turn still counts toward usage, and the conversation is left as it was.
+Continues a session with a new turn. A session that does not exist or was deleted returns `404`; it is never created. The session keeps its saved agent configuration. To generate an answer again, set `trigger: "regenerate-message"` and optionally `messageId`; the conversation is cut back to that message (by default, the last answer) and the answer is generated again, and a failed regeneration keeps the previous answer. An ordinary submission containing any message ID already in accepted history returns `409 message_id_conflict` before model or tool work, including when its text changes or its batch also contains new IDs. Regeneration can reuse existing IDs. Returns `409 session_busy` while another turn is running or a tool approval is waiting for a decision. A turn that stopped responding keeps the session busy for up to a minute. Once it is clear that the turn stopped, the request returns `409 session_turn_unresponsive` with a `Retry-After` header that says when to send it again. Send exactly one of `messages` or `promptId`; `variables` is allowed only with `promptId`. The answer streams back as an AI SDK UI message stream. A failure before the stream starts returns a JSON error. Once the stream has started, a failure arrives as an error chunk; the turn still counts toward usage, and the conversation is left as it was.
 
 #### Request
 
@@ -342,7 +342,7 @@ Returns `200 OK` as `text/event-stream`. Server-sent events, each carrying one A
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required), [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required), [`merchant_subscription_required`](/api-reference/protocols/errors#merchant_subscription_required), [`merchant_balance_required`](/api-reference/protocols/errors#merchant_balance_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`message_not_found`](/api-reference/protocols/errors#message_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
-| `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`session_busy`](/api-reference/protocols/errors#session_busy), [`message_id_conflict`](/api-reference/protocols/errors#message_id_conflict), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) | The request conflicts with the resource's current state |
+| `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`session_busy`](/api-reference/protocols/errors#session_busy), [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive), [`message_id_conflict`](/api-reference/protocols/errors#message_id_conflict), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) | The request conflicts with the resource's current state |
 | `429` | [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded), [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
 
@@ -361,7 +361,7 @@ curl --no-buffer --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_123456789
 
 Delete a session.
 
-Deletes a session. Afterwards it can no longer be read or continued, and every request for it returns `404`. Set `deleteArtifacts` to choose whether its artifacts are deleted too. A session cannot be deleted while a Turn is running or a recorded approval continuation is waiting to resume.
+Deletes a session. Afterwards it can no longer be read or continued, and every request for it returns `404`. Set `deleteArtifacts` to choose whether its artifacts are deleted too. A session cannot be deleted while a Turn is running or a recorded approval continuation is waiting to resume. If its last turn stopped responding, the call returns `409 session_turn_unresponsive` with a `Retry-After` header that says when the session can be deleted.
 
 #### Request
 
@@ -386,7 +386,7 @@ Returns `204 No Content`. The session was deleted.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
-| `409` | [`session_busy`](/api-reference/protocols/errors#session_busy) | The request conflicts with the resource's current state |
+| `409` | [`session_busy`](/api-reference/protocols/errors#session_busy), [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) | The request conflicts with the resource's current state |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -685,7 +685,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567
 
 Decide an approval round and continue the turn.
 
-Records every decision in one approval round and streams the rest of the turn in this request. No continuation starts without this call. Pass caller-local functions for this invocation. Identical decisions are idempotent; changed decisions conflict. A running retry returns session_busy and a terminal retry returns tool_approval_continuation_settled. A failure before admission leaves the round waiting for an explicit retry. Output is not replayed.
+Records every decision in one approval round and streams the rest of the turn in this request. No continuation starts without this call. Pass caller-local functions for this invocation. Identical decisions are idempotent; changed decisions conflict. A running retry returns session_busy and a terminal retry returns tool_approval_continuation_settled. If the session's previous turn stopped responding, the call returns session_turn_unresponsive with a Retry-After header, and the decisions stay recorded for the retry. A failure before admission leaves the round waiting for an explicit retry. Output is not replayed.
 
 #### Request
 
@@ -711,7 +711,7 @@ Returns `200 OK` as `text/event-stream`. The continuation as an ordinary AI SDK 
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required), [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required), [`merchant_subscription_required`](/api-reference/protocols/errors#merchant_subscription_required), [`merchant_balance_required`](/api-reference/protocols/errors#merchant_balance_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
-| `409` | [`session_busy`](/api-reference/protocols/errors#session_busy), [`tool_approval_decision_conflict`](/api-reference/protocols/errors#tool_approval_decision_conflict), [`tool_approval_continuation_settled`](/api-reference/protocols/errors#tool_approval_continuation_settled), [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) | The request conflicts with the resource's current state |
+| `409` | [`session_busy`](/api-reference/protocols/errors#session_busy), [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive), [`tool_approval_decision_conflict`](/api-reference/protocols/errors#tool_approval_decision_conflict), [`tool_approval_continuation_settled`](/api-reference/protocols/errors#tool_approval_continuation_settled), [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) | The request conflicts with the resource's current state |
 | `429` | [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded), [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
 

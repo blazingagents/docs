@@ -133,6 +133,24 @@ Read the [current allowance and reset](/platform/usage-and-quotas#model-spending
 before deciding what to do next. The same cost may count against both scopes;
 the two limits are not separate charges.
 
+## Interruption events [#interruption-events]
+
+A chat or approval-continuation stream can be cut after it starts, for example when the platform restarts or loses its connection to the running turn. Instead of ending as if the answer were complete, the stream sends a transient event, then an error chunk, then `data: [DONE]`:
+
+```text
+data: {"type":"data-turn-interrupted","transient":true,"data":{"code":"turn_interrupted"}}
+
+data: {"type":"error","errorText":"The turn was interrupted before it finished. Read the session's messages to see what was saved. The session may stay busy for up to a minute."}
+
+data: [DONE]
+```
+
+Read the event through the AI SDK's `onData` callback or from the raw stream. The HTTP status stays `200`. `turn_interrupted` is the code of this event only. No HTTP error returns it, and the error chunk carries no code.
+
+The turn may have saved its work before the cut. Read the session's messages to see what was saved, and keep the output you already showed. The session can stay busy for up to a minute. A new turn sent in that time returns [`session_busy`](/api-reference/protocols/errors#session_busy) and then [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive). Wait for the seconds in its `Retry-After` header, then send again under a new message ID.
+
+Completion and object streams use plain text and do not carry this event. A cut stream fails, and awaiting the final value raises `stream_error`.
+
 ## Examples [#examples]
 
 A minimal UI-message stream looks like this. Real finish chunks also carry
