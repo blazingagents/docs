@@ -21728,19 +21728,6 @@
               }
             }
           },
-          "402": {
-            "description": "An active subscription or usage credit is required",
-            "x-error-codes": [
-              "subscription_required"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
           "403": {
             "description": "The caller is not allowed to make this request",
             "x-error-codes": [
@@ -27894,19 +27881,6 @@
             "description": "The credential is missing or invalid",
             "x-error-codes": [
               "unauthorized"
-            ],
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "402": {
-            "description": "An active subscription or usage credit is required",
-            "x-error-codes": [
-              "subscription_required"
             ],
             "content": {
               "application/json": {
