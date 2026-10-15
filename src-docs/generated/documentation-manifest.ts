@@ -6617,12 +6617,6 @@ export const restApiOperations = [
             "status": "401"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "402"
-          },
-          {
             "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The caller is not allowed to make this request.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -10747,12 +10741,6 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "401"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"subscription_required\",\n    \"message\": \"An active subscription or usage credit is required.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "402"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"forbidden\",\n    \"message\": \"The caller is not allowed to make this request.\"\n  }\n}",
