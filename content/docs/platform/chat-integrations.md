@@ -71,7 +71,11 @@ Each direct message keeps its own history. Each shared thread and each Telegram 
 
 Anyone who can reach the bot can talk to it, and anyone who can see an approval card can approve or deny it. Choose where you add the bot, and which tools the agent has, with that in mind. `channelIds` and `chatIds` only choose where health checks look. They are not allowlists.
 
-If you delete a conversation's session, send `/reset` in that chat to start fresh. `/reset` does not replace a session that still exists. In Telegram, send `/reset` in a private chat or `/reset@YourBotName` in a group. In a Slack channel, mention the bot first, as in `@bot /reset`. Any other slash command, such as Telegram's `/start`, reaches the agent as an ordinary message.
+Send `/new` to start a fresh conversation on purpose, even while the agent is still answering. In a Telegram private chat, send `/new`. In a Telegram group, send `/new@YourBotName`. In Slack, mention the bot, as in `@bot /new`. Slack treats a bare `/new` as its own slash command and never passes it to the bot.
+
+The bot replies "Started a new conversation." and your next message begins a new session without waiting for the old one. The old session stays in your history, and a reply it was still writing is posted when it is ready. A tool approval still waiting in the old session can no longer be decided from the chat. If the old session asks for one after `/new`, the bot says the request was cancelled. `/new` on its own never reaches the agent. `/new` followed by other text, and any other slash command such as Telegram's `/start`, reaches the agent as an ordinary message.
+
+If you delete a conversation's session, you do not need `/new`. The next direct message, or the next message that mentions the bot, starts a new conversation. A channel or group message that does not mention the bot starts nothing. If a message was still waiting when you deleted its session, the agent does not run it. The bot says the conversation was deleted and asks the person to send the message again.
 
 ## Message order and interruptions [#message-order]
 
@@ -81,7 +85,7 @@ In a Telegram private chat, the reply first appears as a draft that grows while 
 
 A turn can fail or stop before Blazing Agents saves its reply. Causes include a model error, a refused turn, and an interruption in Blazing Agents such as a platform update. The bot then posts "Your message was received, but the reply was interrupted before it was saved. Please send it again." Blazing Agents does not run the turn again, because tools may already have run. If an approval round is interrupted, the bot says the action was interrupted and asks the person to ask again.
 
-While a tool approval waits for its decision, the agent does not run new messages. The bot says the request must be approved or rejected first, and the person sends the message again after deciding.
+While a tool approval waits for its decision, the agent does not run new messages. The bot says the request must be approved or rejected first, and the person sends the message again after deciding. If the request is lost, the person can send `/new` instead.
 
 ## Manage and troubleshoot [#manage-and-troubleshoot]
 
