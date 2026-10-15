@@ -392,7 +392,7 @@ To fix it:
 
 **Blazing Agents manages this setting on the admin agent.**
 
-The [admin agent](/agents/agents#the-admin-agent), which manages your tenant, accepts changes only to its provider, model, and thinking level. It cannot be renamed, disabled, deleted, given an avatar, or assigned to a task.
+The [admin agent](/agents/agents#the-admin-agent), which manages your tenant, accepts changes only to its provider, model, and thinking level. It cannot be renamed, disabled, deleted, given an avatar, assigned to a task, or connected to a Slack or Telegram bot.
 
 HTTP `409`. Retrying the same request fails the same way until you fix the cause.
 

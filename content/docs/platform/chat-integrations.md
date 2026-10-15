@@ -5,7 +5,7 @@ description: Put your agent in Slack or Telegram with your own bot, with history
 
 # Slack and Telegram
 
-Let people talk to your agent in Slack or Telegram through your own bot. Blazing Agents receives the messages, keeps each conversation's history, posts the replies, and shows tool approval buttons in the chat. You need an agent with a provider and model, an active subscription, and your bot's credentials. Keep every credential on your backend.
+Let people talk to your agent in Slack or Telegram through your own bot. Blazing Agents receives the messages, keeps each conversation's history, posts the replies, and shows tool approval buttons in the chat. You need one of your own agents with a provider and model, an active subscription, and your bot's credentials. The [admin agent](/agents/agents#the-admin-agent) cannot join a chat, because everyone who can reach the bot would get the tools that manage your tenant. Keep every credential on your backend.
 
 ## Create a connection [#create-a-connection]
 
@@ -45,6 +45,8 @@ print(connection.id, connection.webhook_url)
 
 The connection is enabled by default, and Blazing Agents registers its `webhookUrl` with Telegram for you. Message the bot and the agent replies. For Slack, pass `platform: "slack"` with a `botToken` and `signingSecret`, then paste the returned `webhookUrl` into your Slack app as described below.
 
+Creating a connection for the admin agent fails with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`). The dashboard also leaves the admin agent out of the agent list when you add a bot.
+
 ## Connect Slack [#connect-slack]
 
 1. Create a Slack app and install it in your workspace. Copy its bot token and signing secret.
@@ -65,11 +67,21 @@ You never build the webhook URL yourself. Blazing Agents re-registers it with Te
 
 ## Conversations and approvals [#conversations-and-approvals]
 
-Each direct message keeps its own history. Each shared thread and each Telegram forum topic keeps its own session too. Mention the bot to start a shared conversation, then keep replying in that thread. Messages sent while the agent is still working on a reply may be dropped, and topics in the same forum share this limit.
+Each direct message keeps its own history. Each shared thread and each Telegram forum topic keeps its own session too. Mention the bot to start a shared conversation, then keep replying in that thread. A channel or group message that does not mention the bot gets an answer only in a thread the bot is already part of. A message with no text, such as a photo without a caption, is ignored.
 
 Anyone who can reach the bot can talk to it, and anyone who can see an approval card can approve or deny it. Choose where you add the bot, and which tools the agent has, with that in mind. `channelIds` and `chatIds` only choose where health checks look. They are not allowlists.
 
-If you delete a conversation's session, send `/reset` in that chat to start fresh. `/reset` does not replace a session that still exists.
+If you delete a conversation's session, send `/reset` in that chat to start fresh. `/reset` does not replace a session that still exists. In Telegram, send `/reset` in a private chat or `/reset@YourBotName` in a group. In a Slack channel, mention the bot first, as in `@bot /reset`. Any other slash command, such as Telegram's `/start`, reaches the agent as an ordinary message.
+
+## Message order and interruptions [#message-order]
+
+A message sent while the agent is still answering waits, and the agent answers it next in the same conversation. No message is dropped. Conversations do not wait for each other, including separate topics in one Telegram forum. If Slack or Telegram delivers the same event twice, the agent answers once.
+
+In a Telegram private chat, the reply first appears as a draft that grows while the agent works, then becomes the final message. Slack and Telegram groups show only the final message.
+
+A turn can fail or stop before Blazing Agents saves its reply. Causes include a model error, a refused turn, and an interruption in Blazing Agents such as a platform update. The bot then posts "Your message was received, but the reply was interrupted before it was saved. Please send it again." Blazing Agents does not run the turn again, because tools may already have run. If an approval round is interrupted, the bot says the action was interrupted and asks the person to ask again.
+
+While a tool approval waits for its decision, the agent does not run new messages. The bot says the request must be approved or rejected first, and the person sends the message again after deciding.
 
 ## Manage and troubleshoot [#manage-and-troubleshoot]
 
@@ -77,7 +89,7 @@ If you delete a conversation's session, send `/reset` in that chat to start fres
 - **Rotate credentials:** send the full set of credentials for the same bot or Slack installation. Conversations stay attached. For Telegram, send only the new bot token.
 - **Disable:** stops new messages and approval clicks. Work already started may finish. Enabling again accepts new messages but does not replay missed ones.
 - **Delete:** disconnects the bot and keeps its sessions. Blazing Agents removes the Telegram webhook it set. Uninstall the Slack app yourself.
-- **Reply missing after the agent finished:** [list the connection's deliveries](/api-reference/rest-api/chat-connections#list-chat-deliveries). To see failed and ambiguous deliveries from every connection at once, for example in an operator status view, [list your tenant's chat deliveries](/api-reference/rest-api/chat-connections#list-tenant-chat-deliveries) with `client.chatDeliveries.list()` (Python `client.chat_deliveries.list()`), filtered by `since`. `confirmed` means the platform accepted the message, `failed` means it did not, and `ambiguous` means it may have been sent. `pending` has not been attempted yet. [Repairing a delivery](/api-reference/rest-api/chat-connections#repair-chat-delivery) posts the saved reply without running the agent again, and it can post a duplicate.
+- **Reply missing after the agent finished:** [list the connection's deliveries](/api-reference/rest-api/chat-connections#list-chat-deliveries). To see failed and ambiguous deliveries from every connection at once, for example in an operator status view, [list your tenant's chat deliveries](/api-reference/rest-api/chat-connections#list-tenant-chat-deliveries) with `client.chatDeliveries.list()` (Python `client.chat_deliveries.list()`), filtered by `since`. `confirmed` means the platform accepted the message, `failed` means it did not, and `ambiguous` means it may have been sent. `pending` has not been attempted yet, and Blazing Agents sends a `pending` reply by itself, even after an interruption. [Repairing a delivery](/api-reference/rest-api/chat-connections#repair-chat-delivery) posts the saved reply without running the agent again, and it can post a duplicate.
 
 Slack may split a long reply into several messages, and Telegram may cut it short. The session always keeps the full reply.
 

@@ -8905,7 +8905,7 @@
           "chat-connections"
         ],
         "summary": "Create a chat connection",
-        "description": "Connects one of your agents to a Slack app or Telegram bot. Blazing Agents checks the credentials with the chat platform and reads the bot identity from the token before saving, and returns the `webhookUrl` to configure on the platform. Each bot installation belongs to one connection. Slack needs `botToken` and `signingSecret`; Telegram needs only `botToken`. Creating an enabled Telegram connection registers its webhook for you. If that registration fails, the connection is saved disabled and its `webhook_url` health check fails; fix the bot and call enable.",
+        "description": "Connects one of your agents to a Slack app or Telegram bot. Blazing Agents checks the credentials with the chat platform and reads the bot identity from the token before saving, and returns the `webhookUrl` to configure on the platform. Each bot installation belongs to one connection. Slack needs `botToken` and `signingSecret`; Telegram needs only `botToken`. Creating an enabled Telegram connection registers its webhook for you. If that registration fails, the connection is saved disabled and its `webhook_url` health check fails; fix the bot and call enable. The platform-managed agent cannot be connected.",
         "requestBody": {
           "required": true,
           "content": {
@@ -9180,6 +9180,19 @@
             "description": "The resource was not found",
             "x-error-codes": [
               "not_found"
+            ],
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the resource's current state",
+            "x-error-codes": [
+              "admin_agent_managed"
             ],
             "content": {
               "application/json": {
