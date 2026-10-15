@@ -10968,6 +10968,12 @@ export const restApiOperations = [
             "status": "404"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"admin_agent_managed\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "409"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",

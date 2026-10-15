@@ -217,7 +217,7 @@
       "group": "agents-and-providers",
       "statuses": [409],
       "title": "Blazing Agents manages this setting on the admin agent.",
-      "whatHappened": "The [admin agent](/agents/agents#the-admin-agent), which manages your tenant, accepts changes only to its provider, model, and thinking level. It cannot be renamed, disabled, deleted, given an avatar, or assigned to a task.",
+      "whatHappened": "The [admin agent](/agents/agents#the-admin-agent), which manages your tenant, accepts changes only to its provider, model, and thinking level. It cannot be renamed, disabled, deleted, given an avatar, assigned to a task, or connected to a Slack or Telegram bot.",
       "howToFix": [
         "Send only `providerId`, `model`, and `thinkingLevel` when you update this agent.",
         "Use one of your own agents for everything else."

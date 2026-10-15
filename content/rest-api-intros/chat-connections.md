@@ -8,9 +8,12 @@ description: Create and manage Slack and Telegram connections and inspect delive
 A chat connection puts one of your agents in a Slack workspace or a Telegram
 bot, so people can talk to it where they already chat. Each bot installation
 belongs to exactly one connection, and one agent can have several connections.
+The admin agent cannot be connected. Creating a connection for it returns `409`
+with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
 You cannot change a connection's agent or platform identity after you create
 it. Every endpoint needs a bearer credential and an active subscription. See
-[setup](/platform/chat-integrations) for callbacks and permissions.
+[setup](/platform/chat-integrations) for callbacks and permissions, and for how
+the bot orders messages and handles interruptions.
 
 Full credentials are never returned. A connection shows only
 `credentialFragment`, the last four characters of its token. Health includes
@@ -22,7 +25,8 @@ Full credentials are never returned. A connection shows only
 A delivery is one reply or approval card a connection tried to post to the
 chat. Its `status` is `pending` (not sent yet), `confirmed` (the platform
 accepted it), `failed` (it did not go through), or `ambiguous` (it may have
-been sent).
+been sent). Blazing Agents sends a `pending` reply by itself, even after an
+interruption, so only `failed` and `ambiguous` deliveries need your attention.
 
 `GET /v1/chat-deliveries` is an attention feed: it lists only `failed` and
 `ambiguous` deliveries across every connection, newest first. `status`
