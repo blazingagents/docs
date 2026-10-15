@@ -117,7 +117,7 @@ This removes the agent's sessions, tasks, memories, skills, linked prompts, and 
 
 Every tenant has exactly one admin agent. It is the built-in assistant that manages your tenant, and Blazing Agents creates it for you. It appears in `agents.list()` next to your own agents, and the dashboard marks it **Manages this tenant**.
 
-You choose its provider and model, plus an optional thinking level. New sessions save its current configuration. Blazing Agents manages everything else: you cannot rename it, change its instructions, tools, or avatar, disable it, delete it, or give it a task. Those requests fail with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
+You choose its provider and model, plus an optional thinking level. New sessions save its current configuration. Blazing Agents manages everything else: you cannot rename it, change its instructions, tools, or avatar, disable it, delete it, give it a task, or connect it to a Slack or Telegram bot. Those requests fail with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
 
 Its workspace is reserved for it. That workspace does not appear in your workspace list and cannot be attached to another agent. Its sessions and usage belong to your tenant, the same as any other agent's.
 

@@ -5,9 +5,9 @@ description: Connect an agent to your own Slack app or Telegram bot with the Pyt
 
 # Chat integrations
 
-`client.chat_connections` puts an existing agent behind your Slack app or Telegram bot. Blazing Agents receives the messages, keeps a session per conversation, posts the replies, and shows tool approval buttons in the chat. You send the bot credentials once; they are never returned. The agent must be configured with a provider and model, and your tenant needs an active subscription.
+`client.chat_connections` puts an existing agent behind your Slack app or Telegram bot. Blazing Agents receives the messages, keeps a session per conversation, posts the replies, and shows tool approval buttons in the chat. A message sent while the agent is answering waits and is answered in order, and a redelivered event is answered once. You send the bot credentials once; they are never returned. The agent must have a provider and model, and it cannot be the admin agent. Your tenant needs an active subscription.
 
-Examples assume `client = BlazingAgents()`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names. For the Slack and Telegram setup steps, see [Slack and Telegram](/platform/chat-integrations).
+Examples assume `client = BlazingAgents()`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names. For the Slack and Telegram setup steps, and for how the bot reports interrupted turns, see [Slack and Telegram](/platform/chat-integrations).
 
 ```python
 import os
@@ -93,7 +93,7 @@ print(connection.webhook_url)
 
 `credentials` must have exactly the keys for the platform, and `configuration` only the platform's keys, or the SDK raises `ValueError`. `channel_ids` and `chat_ids`, up to 20 each, pick where health checks look; they do not restrict who can use the bot. Set `business_mode` only for a Telegram Business bot.
 
-`enabled` defaults to `True`. Pass `False` to finish setup before messages arrive. For Slack, paste the returned `webhook_url` into your Slack app. For Telegram, Blazing Agents registers the webhook for you when the connection is enabled. To use a different agent or bot, create a new connection. If creation times out, list your connections before retrying, since the first attempt may have succeeded.
+`enabled` defaults to `True`. Pass `False` to finish setup before messages arrive. For Slack, paste the returned `webhook_url` into your Slack app. For Telegram, Blazing Agents registers the webhook for you when the connection is enabled. To use a different agent or bot, create a new connection. If `agent_id` is the admin agent, `create()` raises [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`) and creates nothing. If creation times out, list your connections before retrying, since the first attempt may have succeeded.
 
 ### `update()` [#update]
 
