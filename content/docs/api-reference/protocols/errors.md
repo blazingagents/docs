@@ -182,7 +182,7 @@ async fn inspect_task_error(
     match client.tasks().get(task_id).await {
         Err(Error::Api(error)) => {
             println!(
-                "{:?}",
+                "{}",
                 serde_json::json!({
                     "code": error.code(),
                     "request_id": error.request_id(),

@@ -281,7 +281,7 @@ def flush_waiting() -> None:
 
 ```rust tab="Rust"
 use blazing_agents::chat::ChatInput;
-use blazing_agents::error::Error;
+use blazing_agents::error::{Error, ErrorCode};
 use blazing_agents::messages::UserMessage;
 use blazing_agents::Client;
 use futures_util::TryStreamExt;
@@ -306,9 +306,9 @@ async fn send_or_steer(
         .await
     {
         Ok(_) => Ok(()),
-        Err(error @ Error::Api(_)) => {
+        Err(Error::Api(error)) if error.code() == &ErrorCode::SteerNotAvailable => {
             waiting.push(message);
-            Err(error.into())
+            Ok(())
         }
         Err(error) => Err(error.into()),
     }
@@ -561,7 +561,7 @@ let mut stream = client
 while stream.try_next().await?.is_some() {}
 ```
 
-The new answer replaces the old one only if the turn succeeds. If it fails or you stop it, the previous answer stays. To replace an earlier answer instead, pass its ID as `messageId` (`message_id` in Python).
+The new answer replaces the old one only if the turn succeeds. If it fails or you stop it, the previous answer stays. To replace an earlier answer instead, pass its ID as `messageId` (`message_id` in Python, `.message_id()` on the Rust regenerate call).
 
 ## Next [#next]
 

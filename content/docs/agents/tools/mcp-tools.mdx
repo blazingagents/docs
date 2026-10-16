@@ -140,7 +140,7 @@ At the start of each turn, Blazing Agents connects to every attached server and 
 
 Requests to the server use HTTPS, follow only safe redirects, and have time and size limits. Tool results are size-limited too, and a result that echoes a stored credential is rejected.
 
-Each attachment decides what end-user context the server receives. Turn on forwarding of the turn's `userId` or selected `metadata` keys with `agents.updateMcpAttachment()` (`update_mcp_attachment()` in Python, `update_mcp_attachment()` in Rust). The server receives that context as information only; it does not grant access.
+Each attachment decides what end-user context the server receives. Turn on forwarding of the turn's `userId` or selected `metadata` keys with `agents.updateMcpAttachment()` (`update_mcp_attachment()` in Python and Rust). The server receives that context as information only; it does not grant access.
 
 ## Reconnect or delete [#reconnect-or-delete]
 

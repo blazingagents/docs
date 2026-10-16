@@ -208,7 +208,7 @@ with client.chat(agent_id=agent_id, message=message) as stream:
 
 ```rust tab="Rust"
 use base64::{engine::general_purpose::STANDARD, Engine as _};
-use blazing_agents::messages::UserMessage;
+use blazing_agents::messages::{UserMessage, UserPart};
 use futures_util::TryStreamExt;
 
 let agent_id = "ag_0123456789abcdef";
@@ -216,14 +216,10 @@ let image_url = format!(
     "data:image/png;base64,{}",
     STANDARD.encode(std::fs::read("diagram.png")?)
 );
-let message: UserMessage = serde_json::from_value(serde_json::json!({
-    "id": "m_0123456789abcdef",
-    "role": "user",
-    "parts": [
-        { "type": "text", "text": "Describe this diagram." },
-        { "type": "file", "mediaType": "image/png", "url": image_url },
-    ],
-}))?;
+let message = UserMessage::text("Describe this diagram.").part(UserPart::File {
+    media_type: "image/png".into(),
+    url: image_url,
+});
 let mut stream = client.chat(agent_id, message).await?;
 while let Some(chunk) = stream.try_next().await? {
     print!("{}", String::from_utf8_lossy(&chunk));
@@ -265,7 +261,7 @@ use futures_util::TryStreamExt;
 let agent_id = "ag_0123456789abcdef";
 let session_id = "ss_0123456789abcdef";
 let message = UserMessage::text("Say hello in one short sentence.");
-let assistant_message_id = "m_0123456789abcdef";
+let assistant_message_id = "msg_0123456789abcdef";
 let mut stream = client
     .regenerate(agent_id, session_id, message)
     .message_id(assistant_message_id)

@@ -148,7 +148,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-For one agent, use `client.agents.updateSpendingLimit({ agentId, spendingLimit })` in TypeScript or `client.agents.update_spending_limit(agent_id=agent_id, spending_limit=...)` in Python. Read account settings with `client.tenant.getSpendingLimit()` or `client.tenant.get_spending_limit()`. For an agent, use `client.agents.getSpendingLimit({ agentId })` or `client.agents.get_spending_limit(agent_id=agent_id)`. Pass `spendingLimit: null` or `spending_limit=None` to disable that limit. Disabling one scope does not disable the other.
+For one agent, use `client.agents.updateSpendingLimit({ agentId, spendingLimit })` in TypeScript, `client.agents.update_spending_limit(agent_id=agent_id, spending_limit=...)` in Python, or `client.agents().update_spending_limit(agent_id, Some(limit))` in Rust. Read account settings with `client.tenant.getSpendingLimit()`, `client.tenant.get_spending_limit()`, or `client.tenant().get_spending_limit()`. For an agent, use `client.agents.getSpendingLimit({ agentId })`, `client.agents.get_spending_limit(agent_id=agent_id)`, or `client.agents().get_spending_limit(agent_id)`. Pass `spendingLimit: null`, `spending_limit=None`, or `None` in Rust to disable that limit. Disabling one scope does not disable the other.
 
 ### Choose when the allowance resets [#spending-limit-resets]
 

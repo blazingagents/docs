@@ -178,12 +178,36 @@ with client.continue_chat(
 use blazing_agents::chat::ApprovalDecision;
 use blazing_agents::functions::Functions;
 use futures_util::TryStreamExt;
+use schemars::JsonSchema;
+use serde::Deserialize;
 use std::io::Write;
+
+#[derive(Deserialize, JsonSchema, PartialEq)]
+enum Country {
+    GB,
+    US,
+}
+
+#[derive(Deserialize, JsonSchema)]
+struct ShippingInput {
+    country: Country,
+}
 
 let agent_id = "ag_0123456789abcdef";
 let session_id = "ss_0123456789abcdef";
 let decisions = vec![ApprovalDecision::approve("apr_0123456789abcdef")];
-let functions = Functions::builder().build()?;
+let functions = Functions::builder()
+    .function(
+        "shippingQuote",
+        "Get the shipping price for a destination country.",
+        |input: ShippingInput, _context| async move {
+            Ok::<_, std::convert::Infallible>(serde_json::json!({
+                "currency": "GBP",
+                "amountMinor": if input.country == Country::GB { 499 } else { 1499 },
+            }))
+        },
+    )
+    .build()?;
 let mut stream = client
     .continue_chat(agent_id, session_id, decisions)
     .functions(functions)

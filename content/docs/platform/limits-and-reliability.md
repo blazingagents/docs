@@ -161,7 +161,7 @@ use blazing_agents::error::Error;
 let task_id = "tk_0123456789abcdef";
 if let Err(Error::Api(error)) = client.tasks().get(task_id).await {
     println!(
-        "{:?}",
+        "{}",
         serde_json::json!({
             "code": error.code(),
             "request_id": error.request_id(),

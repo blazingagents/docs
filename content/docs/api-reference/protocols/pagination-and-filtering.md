@@ -157,7 +157,7 @@ while after is not None:
 use blazing_agents::pagination::Cursor;
 
 let task_id = "tk_0123456789abcdef";
-let run_id = "run_0123456789abcdef";
+let run_id = "tr_0123456789abcdef";
 
 fn save_tail(cursor: &Cursor) {
     // Store the cursor to resume polling later.

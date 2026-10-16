@@ -87,7 +87,7 @@ use blazing_agents::tasks::TaskRunStatus;
 use blazing_agents::transcript::MessageRole;
 
 let task_id = "tk_0123456789abcdef";
-let run_id = "run_0123456789abcdef";
+let run_id = "tr_0123456789abcdef";
 let run = client.tasks().run_messages(task_id, run_id).await?;
 if run.status == TaskRunStatus::Queued || run.status == TaskRunStatus::Running {
     println!("Still working. Check again later.");
@@ -124,7 +124,7 @@ client.tasks.cancel_run(task_id, run_id)
 
 ```rust tab="Rust"
 let task_id = "tk_0123456789abcdef";
-let run_id = "run_0123456789abcdef";
+let run_id = "tr_0123456789abcdef";
 client.tasks().cancel_run(task_id, run_id).await?;
 ```
 
