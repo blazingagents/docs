@@ -64,6 +64,36 @@ print(
 )
 ```
 
+```rust tab="Rust"
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+    let agent_id = std::env::var("AGENT_ID")?;
+    let user_id = "app-user-42";
+
+    client
+        .agents()
+        .update(&agent_id)
+        .memory_injection_enabled(true)
+        .await?;
+
+    client
+        .memories()
+        .create(&agent_id, "Prefers concise status updates.")
+        .user_id(user_id)
+        .await?;
+
+    let answer = client
+        .completion(&agent_id, "How should you format my status updates?")
+        .user_id(user_id)
+        .await?;
+    println!("{answer}");
+    Ok(())
+}
+```
+
 The answer mentions keeping updates concise, even though the question never said so. The same note reaches every later turn, in any session, that passes `userId: "app-user-42"`.
 
 ## Who sees which notes [#who-sees-which-notes]
@@ -99,6 +129,20 @@ page = client.memories.list(
 )
 for memory in page.data:
     print(memory.id, memory.text)
+```
+
+```rust tab="Rust"
+let agent_id = "ag_0123456789abcdef";
+let memories = client
+    .memories()
+    .list(agent_id)
+    .user_id("app-user-42")
+    .search("status updates")
+    .limit(10)
+    .await?;
+for memory in &memories.data {
+    println!("{} {}", memory.id, memory.text);
+}
 ```
 
 Search matches words, not meaning, so "status updates" finds notes containing those words but not "progress reports".

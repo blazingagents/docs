@@ -48,6 +48,30 @@ client.agents.update(
 )
 ```
 
+```rust tab="Rust"
+use blazing_agents::agents::{
+    AgentTool, ApprovalDecision, ApprovalPolicy, ToolReference,
+};
+
+let agent_id = "ag_0123456789abcdef";
+client
+    .agents()
+    .update(agent_id)
+    .approval_in_chat(
+        ApprovalPolicy::new(ApprovalDecision::Full).with_override(
+            ToolReference::builtin(AgentTool::Bash),
+            ApprovalDecision::Manual,
+        ),
+    )
+    .approval_in_tasks(
+        ApprovalPolicy::new(ApprovalDecision::Deny).with_override(
+            ToolReference::builtin(AgentTool::Read),
+            ApprovalDecision::Full,
+        ),
+    )
+    .await?;
+```
+
 To target an MCP tool, use `{ type: "mcp", connectionId, name }` with the tool's original name and a connection attached to the agent (`connection_id` in Python). Each tool can appear once per policy, and it must be available to the agent. A built-in tool is available when it is in the agent's `tools`. An agent with [skills](/agents/skills) can also have rules for `activate_skill` and `read` without selecting them, but only while it has a skill. Update your rules before you remove a tool, a connection, or the agent's last skill.
 
 Sending a policy replaces it, and leaving one out keeps it as it is. Each session and task run saves its approval policy in [agent configuration](/agents/configuration-snapshots). Later policy edits apply to new work.
@@ -63,7 +87,7 @@ Only interactive chat can wait for a person. In tasks and stateless generation, 
 
 1. The agent proposes calls that need a person, and the turn pauses.
 2. Your app shows the reviewer the tools and their arguments.
-3. Your backend sends every decision of the round in one `continueChat()` call (`continue_chat()` in Python). An approval round is all the calls that are waiting at once.
+3. Your backend sends every decision of the round in one `continueChat()` call (`continue_chat()` in Python and Rust). An approval round is all the calls that are waiting at once.
 4. The agent resumes in the same request. Approved calls run, and denied calls return a denied result to the agent. Your app streams the rest of the answer back.
 
 The resumed run is called a **continuation**. It is a new turn in the same session, and it counts toward usage like any other. Nothing runs on its own: the work starts only when a client makes the call, and listing approvals never starts it.
@@ -87,6 +111,22 @@ approvals = client.sessions.tool_approvals(agent_id=agent_id, session_id=session
 for item in approvals.data:
     if item.decision == "pending":
         print(item.approval_id, item.tool_name, item.input)
+```
+
+```rust tab="Rust"
+use blazing_agents::sessions::ToolApprovalDecision;
+
+let agent_id = "ag_0123456789abcdef";
+let session_id = "ss_0123456789abcdef";
+let approvals = client
+    .sessions()
+    .tool_approvals(agent_id, session_id)
+    .await?;
+for item in &approvals.data {
+    if item.decision == ToolApprovalDecision::Pending {
+        println!("{} {} {:?}", item.approval_id, item.tool_name, item.input);
+    }
+}
 ```
 
 When the reviewer decides, send one decision for every pending call and stream the resumed answer back. Check that the reviewer may access this session before you call this:
@@ -128,6 +168,34 @@ async def decide(
         headers={"x-vercel-ai-ui-message-stream": "v1"},
         media_type="text/event-stream",
     )
+```
+
+```rust tab="Rust"
+use axum::body::Body;
+use axum::http::{header, HeaderValue, StatusCode};
+use axum::response::Response;
+use blazing_agents::chat::ApprovalDecision;
+use blazing_agents::Client;
+
+async fn decide(
+    client: &Client,
+    agent_id: &str,
+    session_id: &str,
+    decisions: Vec<ApprovalDecision>,
+) -> Result<Response, StatusCode> {
+    let stream = client
+        .continue_chat(agent_id, session_id, decisions)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let mut response = Response::new(Body::from_stream(stream));
+    let headers = response.headers_mut();
+    headers.insert("x-vercel-ai-ui-message-stream", HeaderValue::from_static("v1"));
+    headers.insert(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static("text/event-stream"),
+    );
+    Ok(response)
+}
 ```
 
 Each decision carries the `approvalId`, an `approved` flag, and an optional `reason`. A round that is missing a decision, repeats one, or mixes decisions from different rounds returns `validation_failed`. The response is the resumed answer as an AI SDK UI message stream, including any error at the end.

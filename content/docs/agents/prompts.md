@@ -56,6 +56,36 @@ print(
 )
 ```
 
+```rust tab="Rust"
+use blazing_agents::generation::SavedPrompt;
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+
+    let prompt = client
+        .prompts()
+        .create(
+            "Release summary",
+            "Summarize {{ version }} for {{ audience }}.",
+        )
+        .await?;
+    println!("{:?}", prompt.variables); // ["version", "audience"]
+
+    let answer = client
+        .completion(
+            std::env::var("AGENT_ID")?,
+            SavedPrompt::new(&prompt.id)
+                .var("version", "2.4")
+                .var("audience", "developers"),
+        )
+        .await?;
+    println!("{answer}");
+    Ok(())
+}
+```
+
 You can reuse a prompt name. Save its ID if you need to update or delete that prompt later.
 
 ## How variables work [#how-variables-work]

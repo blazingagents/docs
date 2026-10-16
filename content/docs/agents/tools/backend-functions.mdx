@@ -89,6 +89,59 @@ with BlazingAgents() as client:
 			sys.stdout.buffer.write(chunk)
 ```
 
+```rust tab="Rust"
+use blazing_agents::functions::Functions;
+use blazing_agents::messages::UserMessage;
+use blazing_agents::Client;
+use futures_util::TryStreamExt;
+use schemars::JsonSchema;
+use serde::Deserialize;
+use std::io::Write;
+
+#[derive(Deserialize, JsonSchema, PartialEq)]
+enum Country {
+    GB,
+    US,
+}
+
+#[derive(Deserialize, JsonSchema)]
+struct ShippingInput {
+    country: Country,
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+
+    let functions = Functions::builder()
+        .function(
+            "shippingQuote",
+            "Get the shipping price for a destination country.",
+            |input: ShippingInput, _context| async move {
+                Ok::<_, std::convert::Infallible>(serde_json::json!({
+                    "currency": "GBP",
+                    "amountMinor": if input.country == Country::GB { 499 } else { 1499 },
+                }))
+            },
+        )
+        .build()?;
+
+    let mut stream = client
+        .chat(
+            std::env::var("BLAZING_AGENTS_AGENT_ID")?,
+            UserMessage::text("How much is shipping to the US?"),
+        )
+        .functions(functions)
+        .await?;
+
+    let mut stdout = std::io::stdout();
+    while let Some(chunk) = stream.try_next().await? {
+        stdout.write_all(&chunk)?;
+    }
+    Ok(())
+}
+```
+
 The SDK validates the call's arguments, runs your handler, and sends its JSON result to the agent. Keep reading or relaying the stream until the answer finishes. In a TypeScript HTTP route, return `result.toResponse()` to stream the answer to your browser.
 
 Supply `functions` again on each new chat request. The functions belong to that request and are not saved in the agent's configuration or anywhere else. Tasks, including scheduled tasks, and stateless generation cannot use backend functions. Use [MCP tools](/agents/tools/mcp-tools) for those workloads.
@@ -97,7 +150,7 @@ Supply `functions` again on each new chat request. The functions belong to that 
 
 Build handlers after you authenticate the request. Capture the signed-in user's identity in the handler and use it in database queries. A model-provided user ID is not proof that the caller may access another user's data.
 
-Use `client.forUser(userId)` in TypeScript or `client.for_user(user_id)` in Python to scope the chat session to the authenticated user. Keep your API key and the function handlers on the server.
+Use `client.forUser(userId)` in TypeScript or `client.for_user(user_id)` in Python and Rust to scope the chat session to the authenticated user. Keep your API key and the function handlers on the server.
 
 ## Resume after approval [#resume-after-approval]
 
@@ -121,11 +174,31 @@ with client.continue_chat(
 		sys.stdout.buffer.write(chunk)
 ```
 
+```rust tab="Rust"
+use blazing_agents::chat::ApprovalDecision;
+use blazing_agents::functions::Functions;
+use futures_util::TryStreamExt;
+use std::io::Write;
+
+let agent_id = "ag_0123456789abcdef";
+let session_id = "ss_0123456789abcdef";
+let decisions = vec![ApprovalDecision::approve("apr_0123456789abcdef")];
+let functions = Functions::builder().build()?;
+let mut stream = client
+    .continue_chat(agent_id, session_id, decisions)
+    .functions(functions)
+    .await?;
+let mut stdout = std::io::stdout();
+while let Some(chunk) = stream.try_next().await? {
+    stdout.write_all(&chunk)?;
+}
+```
+
 The function descriptions and schemas go out again with this request, so keep the handlers compatible with what the model saw. A missing handler or invalid input becomes a tool error.
 
 ## Handle cancellation and retries [#handle-cancellation-and-retries]
 
-Each handler receives a context. TypeScript provides `idempotencyKey` and `signal`. Python provides `idempotency_key`, `deadline_at`, and a `cancelled` event.
+Each handler receives a context. TypeScript provides `idempotencyKey` and `signal`. Python provides `idempotency_key`, `deadline_at`, and a `cancelled` event. Rust provides `idempotency_key()`, `deadline()`, and `is_cancelled()`.
 
 Each function call must return within 60 seconds of the agent making it. After that, the agent gets a tool error that says the outcome is unknown or the call did not run, even if your handler finishes later.
 

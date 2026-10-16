@@ -51,9 +51,32 @@ print(f"Agent: {agent.id}")
 print(client.completion(agent_id=agent.id, prompt="How do I reset my password?"))
 ```
 
+```rust tab="Rust"
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+
+    let agent = client
+        .agents()
+        .create("Support writer")
+        .model(std::env::var("PROVIDER_ID")?, "openai/gpt-6-luna")
+        .instructions("Answer clearly and briefly.")
+        .await?;
+    println!("Agent: {}", agent.id);
+
+    let answer = client
+        .completion(&agent.id, "How do I reset my password?")
+        .await?;
+    println!("{answer}");
+    Ok(())
+}
+```
+
 You see `Agent: ag_...` followed by the answer. Each run creates a new agent, even when its name matches an existing one. Save the ID to reuse the same agent.
 
-The new agent starts with status `active`, and it comes with its own [workspace](/agents/workspaces) for files. The workspace defaults to Core and starts compute only when the agent first reads, writes, or runs something in it. Choose Plus with `workspaceTier: "plus"` or `workspace_tier="plus"` in Python to keep its files when the workspace stops. Its tier cannot change later.
+The new agent starts with status `active`, and it comes with its own [workspace](/agents/workspaces) for files. The workspace defaults to Core and starts compute only when the agent first reads, writes, or runs something in it. Choose Plus with `workspaceTier: "plus"` in TypeScript, `workspace_tier="plus"` in Python, or `.workspace_tier(WorkspaceTier::Plus)` in Rust to keep its files when the workspace stops. Its tier cannot change later.
 
 ## What an agent controls [#what-an-agent-controls]
 
@@ -68,7 +91,7 @@ The new agent starts with status `active`, and it comes with its own [workspace]
 
 The agent stores references, not copies. It points to its provider, MCP connections, and workspace, and every turn uses their current state.
 
-A tenant-wide API key can access every agent in the tenant. For an agent owned by one end user, derive a client with `client.forUser(verifiedUserId)` in your backend. Blazing Agents then checks that the agent belongs to that user. Passing `userId` alone only labels the agent. See [tenancy and attribution](/platform/tenancy-and-attribution).
+A tenant-wide API key can access every agent in the tenant. For an agent owned by one end user, derive a client with `client.forUser(verifiedUserId)` (`client.for_user(verified_user_id)` in Rust) in your backend. Blazing Agents then checks that the agent belongs to that user. Passing `userId` alone only labels the agent. See [tenancy and attribution](/platform/tenancy-and-attribution).
 
 For every field, its default, and its limits, see `create()` in the [TypeScript](/sdk/typescript/agents#create) or [Python](/sdk/python/agents#create) SDK.
 
@@ -85,6 +108,23 @@ await client.agents.update({
 
 ```python tab="Python"
 client.agents.update(agent.id, tools=["read", "grep", "glob", "save_memory", "search_memories"])
+```
+
+```rust tab="Rust"
+use blazing_agents::agents::AgentTool;
+
+let agent_id = "ag_0123456789abcdef";
+client
+    .agents()
+    .update(agent_id)
+    .tools([
+        AgentTool::Read,
+        AgentTool::Grep,
+        AgentTool::Glob,
+        AgentTool::SaveMemory,
+        AgentTool::SearchMemories,
+    ])
+    .await?;
 ```
 
 Lists such as `tools` replace the old list rather than adding to it. To switch models, send `providerId` and `model` together. New sessions and task runs save the updated configuration when they start. To stop an agent without deleting it, [disable it](/agents/configuration-snapshots#enable-and-disable).
@@ -109,6 +149,11 @@ await client.agents.delete({ agentId: agent.id, includeArtifacts: false });
 
 ```python tab="Python"
 client.agents.delete(agent.id, include_artifacts=False)
+```
+
+```rust tab="Rust"
+let agent_id = "ag_0123456789abcdef";
+client.agents().delete(agent_id, false).await?;
 ```
 
 This removes the agent's sessions, tasks, memories, skills, linked prompts, and avatar. Its workspace, provider, and MCP connections stay, so you can attach them to another agent. Artifacts you keep and past usage records still show the deleted agent's ID.

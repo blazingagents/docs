@@ -24,6 +24,20 @@ tools = [*agent.tools, *(tool for tool in wanted if tool not in agent.tools)]
 client.agents.update(agent_id, tools=tools)
 ```
 
+```rust tab="Rust"
+use blazing_agents::agents::AgentTool;
+
+let agent_id = "ag_0123456789abcdef";
+let agent = client.agents().get(agent_id).await?;
+let mut tools = agent.tools;
+for tool in [AgentTool::Read, AgentTool::Grep, AgentTool::Glob] {
+    if !tools.contains(&tool) {
+        tools.push(tool);
+    }
+}
+client.agents().update(agent_id).tools(tools).await?;
+```
+
 Any combination of tools is valid, and each name can appear once. New sessions and task runs use the update. Existing sessions keep the tool list they saved. [MCP tools](/agents/tools/mcp-tools) are added through connections, not through `tools`.
 
 The tables below sort the tools into categories so they are easier to scan. A category is only a heading: you cannot turn on a category by name.
@@ -127,6 +141,33 @@ def ask(text: str) -> str:
 ask(f"Use write to create durable.txt containing exactly {sentinel}.")
 ```
 
+```rust tab="Rust"
+use blazing_agents::messages::UserMessage;
+use blazing_agents::Client;
+use futures_util::TryStreamExt;
+
+let agent_id = "ag_0123456789abcdef";
+let sentinel = "BA_DURABLE_42";
+
+async fn ask(
+    client: &Client,
+    agent_id: &str,
+    text: &str,
+) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    let mut stream = client.chat(agent_id, UserMessage::text(text)).await?;
+    let session_id = stream.session_id().to_string();
+    while stream.try_next().await?.is_some() {}
+    Ok(session_id)
+}
+
+ask(
+    &client,
+    agent_id,
+    &format!("Use write to create durable.txt containing exactly {sentinel}."),
+)
+.await?;
+```
+
 Then read it from a new session and check the `read` result:
 
 ```typescript tab="TypeScript"
@@ -167,6 +208,51 @@ outputs = [
 ]
 if not any(isinstance(o, dict) and o.get("content") == sentinel for o in outputs):
     raise RuntimeError("Persistence check failed")
+```
+
+```rust tab="Rust"
+use blazing_agents::messages::UserMessage;
+use blazing_agents::Client;
+use futures_util::TryStreamExt;
+
+let agent_id = "ag_0123456789abcdef";
+let sentinel = "BA_DURABLE_42";
+
+async fn ask(
+    client: &Client,
+    agent_id: &str,
+    text: &str,
+) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    let mut stream = client.chat(agent_id, UserMessage::text(text)).await?;
+    let session_id = stream.session_id().to_string();
+    while stream.try_next().await?.is_some() {}
+    Ok(session_id)
+}
+
+let session_id = ask(&client, agent_id, "Use read to read durable.txt.").await?;
+
+let page = client
+    .sessions()
+    .messages(agent_id, &session_id)
+    .await?;
+let found = page
+    .data
+    .iter()
+    .flat_map(|message| &message.parts)
+    .any(|part| {
+        part.kind == "tool-read"
+            && part.fields.get("state").and_then(|state| state.as_str())
+                == Some("output-available")
+            && part
+                .fields
+                .get("output")
+                .and_then(|output| output.get("content"))
+                .and_then(|content| content.as_str())
+                == Some(sentinel)
+    });
+if !found {
+    return Err("Persistence check failed".into());
+}
 ```
 
 Always read the whole stream, as these examples do. The turn finishes its tool work and saves the session only when the stream ends.

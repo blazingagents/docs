@@ -31,7 +31,26 @@ with client.completion_stream(
 print()
 ```
 
-If you only need the finished text, skip the loop: `await result.text` in TypeScript, or `client.completion(...)` in Python, which returns a string.
+```rust tab="Rust"
+use futures_util::TryStreamExt;
+use std::io::Write;
+
+let agent_id = "ag_0123456789abcdef";
+let mut stream = client
+    .completion_stream(
+        agent_id,
+        "Write a two-sentence release note for passkey login.",
+    )
+    .await?;
+
+let mut stdout = std::io::stdout();
+while let Some(delta) = stream.try_next().await? {
+    stdout.write_all(delta.as_bytes())?;
+}
+stdout.write_all(b"\n")?;
+```
+
+If you only need the finished text, skip the loop: `await result.text` in TypeScript, or `client.completion(...)` in Python and Rust, which returns a string.
 
 ## Choose chat or completion [#choose-chat-or-completion]
 
@@ -84,15 +103,64 @@ async def chat(request: Request) -> StreamingResponse:
     return StreamingResponse(stream, headers=headers, media_type="text/event-stream")
 ```
 
+```rust tab="Rust"
+use axum::body::Body;
+use axum::extract::State;
+use axum::http::{header, HeaderValue, StatusCode};
+use axum::response::Response;
+use axum::routing::post;
+use axum::{Json, Router};
+use blazing_agents::messages::UserMessage;
+use blazing_agents::Client;
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ChatRequest {
+    message: UserMessage,
+    session_id: Option<String>,
+}
+
+async fn chat(
+    State(client): State<Client>,
+    Json(body): Json<ChatRequest>,
+) -> Result<Response, StatusCode> {
+    let call = client.chat("ag_0123456789abcdef", body.message);
+    let stream = match body.session_id {
+        Some(session_id) => call.session(session_id).await,
+        None => call.await,
+    }
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let location = stream.meta().headers().get(header::LOCATION).cloned();
+    let mut response = Response::new(Body::from_stream(stream));
+    let headers = response.headers_mut();
+    headers.insert(
+        "x-vercel-ai-ui-message-stream",
+        HeaderValue::from_static("v1"),
+    );
+    headers.insert(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static("text/event-stream"),
+    );
+    if let Some(location) = location {
+        headers.insert(header::LOCATION, location);
+    }
+    Ok(response)
+}
+
+let app: Router = Router::new().route("/api/chat", post(chat)).with_state(client);
+```
+
 Without a `sessionId`, the call starts a new session and the response carries its ID in the `location` header. On the frontend, `useChat` with `BlazingAgentsChatTransport` renders the stream, reads that header, and sends the session ID back on the next message. [Build a chatbot](/getting-started/chatbot) shows the full frontend.
 
 ### What to add next [#relay-what-to-add-next]
 
-Before real users reach this endpoint, add the checks below. In TypeScript, `createChatRelay` does all of them for you; [connect Blazing Agents to your app](/getting-started/connect-your-app) shows it, and the same steps by hand in Python.
+Before real users reach this endpoint, add the checks below. In TypeScript, `createChatRelay` does all of them for you; [connect Blazing Agents to your app](/getting-started/connect-your-app) shows it, and the same steps by hand in Python and Rust.
 
 - **Sign-in.** Find out who the user is before you call Blazing Agents, and reject the request if you cannot.
-- **Session ownership.** Before you continue a session, check that it belongs to the signed-in user. The session ID is ready before the answer finishes (`await result.sessionId` in TypeScript, `stream.session_id` in Python), so save its owner right away.
-- **Usage labels.** Pass the user's ID as `userId` (`user_id` in Python) to label usage per end user. It does not grant access; your ownership check does.
+- **Session ownership.** Before you continue a session, check that it belongs to the signed-in user. The session ID is ready before the answer finishes (`await result.sessionId` in TypeScript, `stream.session_id` in Python, `stream.session_id()` in Rust), so save its owner right away.
+- **Usage labels.** Pass the user's ID as `userId` (`user_id` in Python, `.user_id()` on the call in Rust) to label usage per end user. It does not grant access; your ownership check does.
 - **Stopping.** In TypeScript, pass `abortSignal: request.signal` so a user who closes the tab stops the turn.
 
 A chat stream has one reader. In TypeScript, call either `toResponse()` or `toStream()` once; a second call throws `stream_error`. `sessionId` stays available either way.
@@ -138,11 +206,35 @@ with client.chat(agent_id=agent_id, message=message) as stream:
         print(chunk.decode(), end="")
 ```
 
+```rust tab="Rust"
+use base64::{engine::general_purpose::STANDARD, Engine as _};
+use blazing_agents::messages::UserMessage;
+use futures_util::TryStreamExt;
+
+let agent_id = "ag_0123456789abcdef";
+let image_url = format!(
+    "data:image/png;base64,{}",
+    STANDARD.encode(std::fs::read("diagram.png")?)
+);
+let message: UserMessage = serde_json::from_value(serde_json::json!({
+    "id": "m_0123456789abcdef",
+    "role": "user",
+    "parts": [
+        { "type": "text", "text": "Describe this diagram." },
+        { "type": "file", "mediaType": "image/png", "url": image_url },
+    ],
+}))?;
+let mut stream = client.chat(agent_id, message).await?;
+while let Some(chunk) = stream.try_next().await? {
+    print!("{}", String::from_utf8_lossy(&chunk));
+}
+```
+
 The image is part of the message only. It is not saved to the workspace or published as an artifact. Check the media type, source, and size in your backend before you send it.
 
 ## Regenerate an answer [#regenerate-an-answer]
 
-Pass `trigger: "regenerate-message"` on an existing session to replace an answer. Without `messageId`, the latest answer is replaced. With the ID of an earlier assistant message, that answer and everything after it is replaced. With the ID of a user message, that message is removed and the one you send takes its place.
+Pass `trigger: "regenerate-message"` (`client.regenerate()` in Rust) on an existing session to replace an answer. Without `messageId`, the latest answer is replaced. With the ID of an earlier assistant message, that answer and everything after it is replaced. With the ID of a user message, that message is removed and the one you send takes its place.
 
 ```typescript tab="TypeScript"
 const result = await client.chat({
@@ -164,6 +256,23 @@ with client.chat(
 ) as stream:
     for chunk in stream:
         print(chunk.decode(), end="")
+```
+
+```rust tab="Rust"
+use blazing_agents::messages::UserMessage;
+use futures_util::TryStreamExt;
+
+let agent_id = "ag_0123456789abcdef";
+let session_id = "ss_0123456789abcdef";
+let message = UserMessage::text("Say hello in one short sentence.");
+let assistant_message_id = "m_0123456789abcdef";
+let mut stream = client
+    .regenerate(agent_id, session_id, message)
+    .message_id(assistant_message_id)
+    .await?;
+while let Some(chunk) = stream.try_next().await? {
+    print!("{}", String::from_utf8_lossy(&chunk));
+}
 ```
 
 The old answer stays until the new one succeeds. If regeneration fails or you stop it, the session is unchanged.

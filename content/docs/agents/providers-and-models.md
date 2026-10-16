@@ -65,6 +65,41 @@ client.agents.update(
 )
 ```
 
+```rust tab="Rust"
+use blazing_agents::providers::ProviderType;
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+
+    let provider = client
+        .providers()
+        .create(
+            "Production OpenRouter",
+            ProviderType::OpenRouter,
+            std::env::var("OPENROUTER_API_KEY")?,
+        )
+        .await?;
+    println!(
+        "Provider: {}, key ending {}",
+        provider.id, provider.key_fragment
+    );
+
+    let models = client.providers().list_models(&provider.id).await?.models;
+    if !models.iter().any(|model| model.id == "openai/gpt-6-luna") {
+        return Err("openai/gpt-6-luna is not available on this provider".into());
+    }
+
+    client
+        .agents()
+        .update(std::env::var("AGENT_ID")?)
+        .model(&provider.id, "openai/gpt-6-luna")
+        .await?;
+    Ok(())
+}
+```
+
 Your key is write-only. Responses never return it, only its last four characters as `keyFragment`. Listing models sends no request to the model and costs no tokens.
 
 Blazing Agents also checks the model ID against the provider whenever you create an agent with a model, or change its model. An unknown ID fails with [`model_not_found`](/api-reference/protocols/errors#model_not_found). If the provider cannot be reached to check, or it rejects your key, the call fails with [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable).
@@ -119,6 +154,28 @@ if choices.known and choices.levels:
     client.agents.update(os.environ["AGENT_ID"], thinking_level=choices.levels[0])
 ```
 
+```rust tab="Rust"
+let agent_id = "ag_0123456789abcdef";
+let provider_id = "prv_0123456789abcdef";
+let choices = client
+    .providers()
+    .get_thinking_levels(provider_id, "openai/gpt-6-luna")
+    .await?;
+if choices.known {
+    println!("{:?}", choices.levels);
+} else {
+    println!("Levels unknown; any non-empty value is accepted");
+}
+
+if choices.known && !choices.levels.is_empty() {
+    client
+        .agents()
+        .update(agent_id)
+        .thinking_level(&choices.levels[0])
+        .await?;
+}
+```
+
 When the levels are known, Blazing Agents rejects any other value and lists the valid choices in the error. When they are unknown, it accepts any non-empty string, and a value the model does not understand fails when the agent runs. Blazing Agents never swaps in another level or retries without one.
 
 A thinking level is not a token or cost cap, and the same level can behave differently on different models. In the dashboard, changing the provider or model resets the level to the provider default.
@@ -132,7 +189,7 @@ You can rename a provider, but you cannot change its key, type, or endpoint. To 
 3. Run one turn on each agent to confirm it works.
 4. Delete the old provider.
 
-Deleting a provider that a current agent still uses fails with [`provider_in_use`](/api-reference/protocols/errors#provider_in_use). If saved sessions or queued or running task runs use it, deletion fails with [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use). Its details list `sessionIds` and `taskRunIds`. Keep the provider while that work needs it, or delete with `confirmSnapshotInvalidation` (`confirm_snapshot_invalidation=True` in Python). Saved configuration remains readable, but work that needs the deleted provider fails with [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
+Deleting a provider that a current agent still uses fails with [`provider_in_use`](/api-reference/protocols/errors#provider_in_use). If saved sessions or queued or running task runs use it, deletion fails with [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use). Its details list `sessionIds` and `taskRunIds`. Keep the provider while that work needs it, or delete with `confirmSnapshotInvalidation` (`confirm_snapshot_invalidation=True` in Python, `.confirm_snapshot_invalidation(true)` in Rust). Saved configuration remains readable, but work that needs the deleted provider fails with [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
 
 ## Next [#next]
 

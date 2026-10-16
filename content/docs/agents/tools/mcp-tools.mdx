@@ -58,6 +58,42 @@ if connection.id not in agent.mcp_connection_ids:
     )
 ```
 
+```rust tab="Rust"
+use blazing_agents::mcp_connections::{McpConnectionTest, NewMcpConnection};
+
+let agent_id = "ag_0123456789abcdef";
+let connection = client
+    .mcp_connections()
+    .create(NewMcpConnection::Bearer {
+        name: "Customer tools".to_string(),
+        url: "https://mcp.example.com/v1".to_string(),
+        bearer_token: std::env::var("CUSTOMER_MCP_TOKEN")?,
+    })
+    .await?;
+
+let tool_names = match client.mcp_connections().test(&connection.id).await? {
+    McpConnectionTest::Passed { tool_names, .. } => tool_names,
+    McpConnectionTest::Failed { error } => {
+        return Err(format!("{}: {}", error.code, error.message).into());
+    }
+    _ => Vec::new(),
+};
+if !tool_names.iter().any(|name| name == "lookup_customer") {
+    return Err("Expected a lookup_customer tool".into());
+}
+
+let agent = client.agents().get(agent_id).await?;
+if !agent.mcp_connection_ids.contains(&connection.id) {
+    let mut ids = agent.mcp_connection_ids;
+    ids.push(connection.id);
+    client
+        .agents()
+        .update(agent_id)
+        .mcp_connection_ids(ids)
+        .await?;
+}
+```
+
 The list of connection IDs you send replaces the agent's whole list, so the example adds to the current one. From the next turn, the agent can call `lookup_customer`. When a chat turn succeeds, the call and its result are saved in the session, so check them there rather than in the agent's reply.
 
 A connection has no on or off switch. Attaching it to an agent is what makes its tools available, and one connection can serve many agents.
@@ -104,7 +140,7 @@ At the start of each turn, Blazing Agents connects to every attached server and 
 
 Requests to the server use HTTPS, follow only safe redirects, and have time and size limits. Tool results are size-limited too, and a result that echoes a stored credential is rejected.
 
-Each attachment decides what end-user context the server receives. Turn on forwarding of the turn's `userId` or selected `metadata` keys with `agents.updateMcpAttachment()` (`update_mcp_attachment()` in Python). The server receives that context as information only; it does not grant access.
+Each attachment decides what end-user context the server receives. Turn on forwarding of the turn's `userId` or selected `metadata` keys with `agents.updateMcpAttachment()` (`update_mcp_attachment()` in Python, `update_mcp_attachment()` in Rust). The server receives that context as information only; it does not grant access.
 
 ## Reconnect or delete [#reconnect-or-delete]
 
