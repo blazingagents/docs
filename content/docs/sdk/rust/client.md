@@ -153,7 +153,7 @@ The client has `chat()`, `regenerate()`, and `continue_chat()` for conversations
 
 Give `chat()` one input: a `UserMessage`, a `ChatInput::try_from` over a `Vec<UserMessage>` for a batch, or a `SavedPrompt` for a saved prompt. `regenerate()` takes a `UserMessage` or `SavedPrompt`. The stateless methods take prompt text or a `SavedPrompt`, and `object()` and `object_stream()` also take an `ObjectSchema`. `SavedPrompt::new(id).var(name, value)` supplies the saved prompt's variables.
 
-Every chat and generation call has `user_id` and `metadata` setters to attribute the turn, plus the `with_*` transport options. The chat calls also have a `functions` setter for backend functions.
+`chat()`, `regenerate()`, and the four stateless calls (`completion`, `completion_stream`, `object`, `object_stream`) have `user_id` and `metadata` setters to attribute the turn; `chat()`, `regenerate()`, and `continue_chat()` have a `functions` setter; `continue_chat()` has only `functions`. Every call has the `with_*` transport options.
 
 ## Methods [#methods]
 
@@ -254,7 +254,7 @@ let functions = Functions::builder()
         "Refund one order.",
         |input: RefundInput, context: FunctionContext| async move {
             let _ = context.idempotency_key();
-            Ok::<_, anyhow::Error>(serde_json::json!({ "refunded": input.order_id }))
+            Ok::<_, std::io::Error>(serde_json::json!({ "refunded": input.order_id }))
         },
     )
     .build()?;

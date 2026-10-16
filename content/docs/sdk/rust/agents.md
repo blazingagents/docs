@@ -183,7 +183,7 @@ let agent = client
 
 **Signature:** `update(agent_id: impl Into<AgentId>) -> Call<UpdateAgent>`
 
-Accepts every [`create()`](#create) setter except `user_id`, which never changes, plus `model_on_current_provider`, `clear_model`, and `clear_thinking_level` for the nullable provider fields. Setters you do not call keep their current value. Supplied values replace the old ones completely: `tools`, `mcp_connection_ids`, `metadata`, and each approval policy are full replacements, not patches.
+Accepts every [`create()`](#create) setter except `user_id` (fixed after creation) and `workspace_tier`, plus `name` (1 to 80 characters), `model_on_current_provider`, `clear_model`, and `clear_thinking_level` for the nullable provider fields. Setters you do not call keep their current value. Supplied values replace the old ones completely: `tools`, `mcp_connection_ids`, `metadata`, and each approval policy are full replacements, not patches.
 
 - To change the model on the current provider, call `model_on_current_provider(model)` and the provider is kept. To switch providers, call `model(provider_id, model)` with both values.
 - To unconfigure the agent, `clear_model()` removes the provider, model, and thinking level together. The server rejects removing the provider while a thinking level remains.

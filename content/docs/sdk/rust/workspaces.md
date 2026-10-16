@@ -110,7 +110,7 @@ let workspace = client
 | `name(name)` | A new display name, up to 80 characters |
 | `clear_name()` | Removes the display name |
 | `metadata(metadata)` | Replaces the workspace's metadata completely |
-| `network_policy(network_policy)` | Replaces the network policy. Switching between `unrestricted` and a restricted mode stops a running workspace, which applies the new policy on next use |
+| `network_policy(network_policy)` | Replaces the network policy. Switching between `NetworkPolicy::Unrestricted` and a restricted policy stops a running workspace, which applies the new policy on next use |
 
 Awaiting returns [`Workspace`](#workspace). Fails with `validation_failed` or `workspace_not_found`.
 

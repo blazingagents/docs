@@ -185,10 +185,10 @@ let page = client
 
 | Setter | Type | Description |
 | --- | --- | --- |
-| `include_completed` | `bool` | Also returns `committed` and `not_placed` receipts. Defaults to `false` |
+| `include_completed` | `bool` | Also returns `InputState::Committed` and `InputState::NotPlaced` receipts. Defaults to `false` |
 | `limit` | `u8` | Page size, 1 to 200; defaults to 100 |
 
-Each `SessionInput` has `request_id`, `sequence`, `message`, `state`, `turn_id`, timestamps, and `reason`. A `not_placed` input never reached the agent and is safe to resend as a `chat()` message; an `uncertain` one may have been read, so never resend it automatically. Fails with `validation_failed` or `not_found`.
+Each `SessionInput` has `request_id`, `sequence`, `message`, `state`, `turn_id`, timestamps, and `reason`. An `InputState::NotPlaced` input never reached the agent and is safe to resend as a `chat()` message; an `InputState::Uncertain` one may have been read, so never resend it automatically. Fails with `validation_failed` or `not_found`.
 
 ### `stop()` [#stop]
 
@@ -281,7 +281,7 @@ A `UiMessage` has `id`, `role` (`MessageRole::System`, `User`, or `Assistant`), 
 | `state` | `ActivityState` | `Idle`, `Running`, `Stopping`, or `Approval` |
 | `turn_id` | `Option<TurnId>` | The running turn, when there is one |
 
-`Committed` means the message is saved in the history; `NotPlaced` is safe to send as an ordinary `chat()` message; `Uncertain` means the agent may have read it, so never resend it automatically.
+`InputState::Committed` means the message is saved in the history; `InputState::NotPlaced` is safe to send as an ordinary `chat()` message; `InputState::Uncertain` means the agent may have read it, so never resend it automatically.
 
 ## Next [#next]
 

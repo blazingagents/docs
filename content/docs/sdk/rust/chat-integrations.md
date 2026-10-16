@@ -37,7 +37,7 @@ println!("{}", connection.webhook_url);
 | [`disable()`](#disable) | Pause deliveries | [`ChatConnection`](#chatconnection) |
 | [`delete()`](#delete) | Delete a connection | `()` |
 | [`deliveries()`](#deliveries) | List one connection's deliveries | [`Page<ChatDelivery>`](#tenantchatdelivery) |
-| [`repair_delivery()`](#repair-delivery) | Resend a failed or ambiguous delivery | [`ChatDeliveryResult`](#tenantchatdelivery) |
+| [`repair_delivery()`](#repair-delivery) | Resend a failed or ambiguous delivery | [`ChatDeliveryResult`](#chatdeliveryresult) |
 | [`chat_deliveries().list()`](#list-deliveries) | List failed and ambiguous deliveries tenant-wide | [`Page<TenantChatDelivery>`](#tenantchatdelivery) |
 
 ## Methods [#methods]
@@ -216,7 +216,7 @@ println!("{}", result.status);
 
 **Signature:** `repair_delivery(chat_connection_id: impl Into<ChatConnectionId>, delivery_id: impl Into<ChatDeliveryId>, expected_attempt: u64) -> Call<RepairChatDelivery>`
 
-Awaiting returns [`ChatDeliveryResult`](#tenantchatdelivery). Fails with `validation_failed` or `not_found`.
+Awaiting returns [`ChatDeliveryResult`](#chatdeliveryresult). Fails with `validation_failed` or `not_found`.
 
 ### `chat_deliveries().list()` [#list-deliveries]
 
@@ -284,6 +284,18 @@ Awaiting returns [`Page<TenantChatDelivery>`](#tenantchatdelivery); `.items()` a
 | `approval_id` | `Option<ApprovalId>` | The approval it answers, when it is one |
 | `thread_id` | `String` | The platform thread |
 | `created_at`, `updated_at` | `Timestamp` | Timestamps |
+
+### `ChatDeliveryResult` [#chatdeliveryresult]
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | `ChatDeliveryId` | The delivery's ID |
+| `session_id` | `SessionId` | The session the message belongs to |
+| `thread_id` | `String` | The platform thread the delivery belongs to |
+| `connection_id` | `ChatConnectionId` | The connection the delivery went through |
+| `kind` | `ChatDeliveryKind` | What the delivery carries |
+| `status` | `ChatDeliveryStatus` | Where the delivery stands after the repair |
+| `attempt` | `u64` | How many sends have been tried |
 
 ## Next [#next]
 

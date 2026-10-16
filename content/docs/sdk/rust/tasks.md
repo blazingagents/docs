@@ -209,7 +209,7 @@ Pages walk backward with `.cursor()`; the `after` setter polls for messages newe
 
 ### `cancel_run()` [#cancel-run]
 
-Asks a queued or running run to stop; poll `get_run()` for its `canceled` status.
+Asks a queued or running run to stop; poll `get_run()` for its `TaskRunStatus::Canceled` status.
 
 ```rust
 client
@@ -249,7 +249,7 @@ It succeeds whenever the task exists, even if the run is missing or already fini
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | `TaskRunId` | Run ID |
+| `id` | `TaskRunId` | Run ID (`tr_...`) |
 | `task_id`, `tenant_id`, `agent_id` | `TaskId`, `TenantId`, `AgentId` | What it belongs to |
 | `agent_config` | `AgentConfig` | Configuration captured when queued |
 | `session_id` | `Option<SessionId>` | The run's session, once started |
