@@ -115,7 +115,7 @@ for file in skill.files:
 
 **Signature:** `get(*, skill_id: str) -> SkillDetail`
 
-Returns [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed` or [`skill_not_found`](/api-reference/protocols/errors#skill_not_found).
+Returns [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed`, `not_found`, or [`skill_not_found`](/api-reference/protocols/errors#skill_not_found).
 
 ### `delete()` [#delete]
 
@@ -127,7 +127,7 @@ client.agent(agent.id).skills.delete(skill_id=skill.id)
 
 **Signature:** `delete(*, skill_id: str) -> None`
 
-Raises `validation_failed` or `skill_not_found`.
+Raises `validation_failed`, `not_found`, or `skill_not_found`.
 
 ### `read_file()` [#read-file]
 
@@ -142,7 +142,7 @@ script = client.agent(agent.id).skills.read_file(
 
 **Signature:** `read_file(*, skill_id: str, path: str) -> bytes`
 
-`path` is a relative path inside the skill, such as `"SKILL.md"` or `"scripts/deploy.sh"`. Raises `validation_failed` or `skill_not_found`.
+`path` is a relative path inside the skill, such as `"SKILL.md"` or `"scripts/deploy.sh"`. Raises `validation_failed`, `not_found`, or `skill_not_found`.
 
 ### `replace_file()` [#replace-file]
 
@@ -160,7 +160,7 @@ skill = client.agent(agent.id).skills.replace_file(
 
 Replacing `SKILL.md` re-reads its frontmatter and updates the skill's name and description; the skill ID stays the same.
 
-Returns the updated [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed`, `skill_not_found`, `skill_invalid_markdown`, `skill_name_conflict`, `skill_too_many_files`, or `skill_uncompressed_too_large`.
+Returns the updated [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed`, `not_found`, `skill_not_found`, `skill_invalid_markdown`, `skill_name_conflict`, `skill_too_many_files`, or `skill_uncompressed_too_large`.
 
 ### `delete_file()` [#delete-file]
 
@@ -175,7 +175,7 @@ skill = client.agent(agent.id).skills.delete_file(
 
 **Signature:** `delete_file(*, skill_id: str, path: str) -> SkillDetail`
 
-Deleting a file that does not exist succeeds. You cannot delete `SKILL.md`. Returns the updated [`SkillDetail`](#skill-and-skilldetail). Raises [`invalid_request`](/api-reference/protocols/errors#invalid_request), `validation_failed`, or `skill_not_found`.
+Deleting a file that does not exist succeeds. You cannot delete `SKILL.md`. Returns the updated [`SkillDetail`](#skill-and-skilldetail). Raises [`invalid_request`](/api-reference/protocols/errors#invalid_request), `validation_failed`, `not_found`, or `skill_not_found`.
 
 ### `copy()` [#copy]
 
@@ -195,7 +195,7 @@ for result in results:
 
 **Signature:** `copy(*, skill_id: str, destination_agent_ids: Sequence[str]) -> list[SkillCopyResult]`
 
-Pass 1 to 30 unique agent IDs. Results come back in the same order. A failed destination does not undo the others; it appears as a `"failed"` result instead of raising. The whole call raises only `validation_failed` or `skill_not_found`.
+Pass 1 to 30 unique agent IDs. Results come back in the same order. A failed destination does not undo the others; it appears as a `"failed"` result instead of raising. The whole call raises only `validation_failed`, `not_found`, or `skill_not_found`.
 
 ## Response types [#response-types]
 
