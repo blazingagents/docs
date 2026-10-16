@@ -140,8 +140,6 @@ print(child.id)
 ```
 
 ```rust tab="Rust"
-let agent_id = "ag_0123456789abcdef";
-let session_id = "ss_0123456789abcdef";
 let history = client
     .sessions()
     .messages(agent_id, session_id)
@@ -151,7 +149,7 @@ let selected = history
     .iter()
     .find(|message| message.branchable)
     .ok_or("Choose a saved assistant reply first.")?;
-let idempotency_key = "weekend-plan-fork-1";
+let idempotency_key = format!("fork-{}", selected.id);
 let child = client
     .sessions()
     .fork(agent_id, session_id, &selected.id, idempotency_key)
@@ -287,8 +285,6 @@ use blazing_agents::Client;
 use futures_util::TryStreamExt;
 use std::io::Write;
 
-let agent_id = "ag_0123456789abcdef";
-let session_id = "ss_0123456789abcdef";
 let mut waiting: Vec<UserMessage> = Vec::new();
 
 async fn send_or_steer(
@@ -368,7 +364,7 @@ A finished receipt also carries a `reason`: `stopped` (you stopped the turn), `f
 
 ### Stop a turn [#stop-a-turn]
 
-Stopping needs the ID of the turn you mean. The response that started the turn names it in its `X-BA-Turn-Id` header. The SDKs expose that header as `await result.turnId` in TypeScript and `stream.turn_id` in Python, and both chat transports pass it to `onTurnId`. Any other client, such as a second tab, reads the ID from the session's activity, as below. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to end. Keep reading your existing stream until it ends, then check the history.
+Stopping needs the ID of the turn you mean. The response that started the turn names it in its `X-BA-Turn-Id` header. The SDKs expose that header as `await result.turnId` in TypeScript, `stream.turn_id` in Python, and `stream.turn_id()` in Rust, and both chat transports pass it to `onTurnId`. Any other client, such as a second tab, reads the ID from the session's activity, as below. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to end. Keep reading your existing stream until it ends, then check the history.
 
 ```typescript tab="TypeScript"
 const { activity } = await client.sessions.inputs({ agentId, sessionId });
@@ -390,8 +386,6 @@ if activity.turn_id is not None and activity.state == "running":
 ```rust tab="Rust"
 use blazing_agents::sessions::ActivityState;
 
-let agent_id = "ag_0123456789abcdef";
-let session_id = "ss_0123456789abcdef";
 let activity = client
     .sessions()
     .inputs(agent_id, session_id)
@@ -467,47 +461,79 @@ def handle_chat(request: app.Request) -> Iterator[bytes]:
 ```
 
 ```rust tab="Rust"
-use blazing_agents::chat::{ChatInput, ChatStream};
+use axum::body::Body;
+use axum::extract::Request;
+use axum::http::{header, HeaderValue, StatusCode};
+use axum::response::Response;
+use blazing_agents::chat::ChatInput;
 use blazing_agents::ids::SessionId;
 use blazing_agents::messages::UserMessage;
 use blazing_agents::Client;
 
-struct Request;
+struct Authorized {
+    chat_id: String,
+    user_id: String,
+    messages: Vec<UserMessage>,
+}
 
-fn authorize(request: &Request) -> (String, String, Vec<UserMessage>) {
-    todo!()
-}
-fn load_session_id(user_id: &str, chat_id: &str) -> Option<String> {
-    todo!()
-}
-fn save_session_id(user_id: &str, chat_id: &str, session_id: &SessionId) {
-    todo!()
+trait App {
+    async fn authorize(&self, request: &Request) -> Result<Authorized, StatusCode>;
+    async fn load_session_id(&self, user_id: &str, chat_id: &str) -> Option<String>;
+    async fn save_session_id(&self, user_id: &str, chat_id: &str, session_id: &SessionId);
 }
 
 async fn handle_chat(
+    app: &impl App,
     client: &Client,
-    request: &Request,
-) -> Result<ChatStream, Box<dyn std::error::Error + Send + Sync>> {
-    let agent_id = "ag_0123456789abcdef";
-    let (chat_id, user_id, messages) = authorize(request);
-    let stream = match load_session_id(&user_id, &chat_id) {
+    agent_id: &str,
+    request: Request,
+) -> Result<Response, StatusCode> {
+    let Authorized {
+        chat_id,
+        user_id,
+        messages,
+    } = app.authorize(&request).await?;
+    let input = ChatInput::try_from(messages).map_err(|_| StatusCode::BAD_REQUEST)?;
+    let stream = match app.load_session_id(&user_id, &chat_id).await {
         Some(session_id) => {
             client
-                .chat(agent_id, ChatInput::try_from(messages)?)
+                .chat(agent_id, input)
                 .session(session_id)
                 .user_id(&user_id)
-                .await?
+                .await
         }
-        None => {
-            let stream = client
-                .chat(agent_id, ChatInput::try_from(messages)?)
-                .user_id(&user_id)
-                .await?;
-            save_session_id(&user_id, &chat_id, stream.session_id());
-            stream
-        }
-    };
-    Ok(stream)
+        None => match client.chat(agent_id, input).user_id(&user_id).await {
+            Ok(stream) => {
+                app.save_session_id(&user_id, &chat_id, stream.session_id())
+                    .await;
+                Ok(stream)
+            }
+            Err(error) => Err(error),
+        },
+    }
+    .map_err(|error| {
+        error
+            .status()
+            .and_then(|status| StatusCode::from_u16(status).ok())
+            .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+    })?;
+
+    let location = stream.meta().headers().get(header::LOCATION).cloned();
+    let mut response = Response::new(Body::from_stream(stream));
+    let headers = response.headers_mut();
+    headers.insert(
+        "x-vercel-ai-ui-message-stream",
+        HeaderValue::from_static("v1"),
+    );
+    headers.insert(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static("text/event-stream"),
+    );
+    headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-cache"));
+    if let Some(location) = location {
+        headers.insert(header::LOCATION, location);
+    }
+    Ok(response)
 }
 ```
 
@@ -549,15 +575,24 @@ with client.chat(
 ```
 
 ```rust tab="Rust"
-use blazing_agents::messages::UserMessage;
+use blazing_agents::messages::{UserMessage, UserPart};
+use blazing_agents::transcript::MessageRole;
 use futures_util::TryStreamExt;
 
-let agent_id = "ag_0123456789abcdef";
-let session_id = "ss_0123456789abcdef";
-let follow_up = UserMessage::text("Make it suitable for children.");
-let mut stream = client
-    .regenerate(agent_id, session_id, follow_up)
-    .await?;
+let history = client.sessions().messages(agent_id, session_id).await?;
+let original = history
+    .data
+    .iter()
+    .rev()
+    .find(|message| message.role == MessageRole::User)
+    .ok_or("the session has no user message to resend")?;
+let text = original
+    .parts
+    .iter()
+    .find_map(|part| part.text())
+    .ok_or("the last user message has no text part")?;
+let resent = UserMessage::new(&original.id, UserPart::text(text));
+let mut stream = client.regenerate(agent_id, session_id, resent).await?;
 while stream.try_next().await?.is_some() {}
 ```
 

@@ -204,7 +204,7 @@ Dates are UTC and inclusive. Pass both `from` and `to`, or neither for the last 
 
 ## How quotas work [#how-quotas-work]
 
-A quota sets a monthly token ceiling, a request ceiling, or both, plus the day of the month (1 to 28) when the window resets. Update it with `client.tenant.patch()` in TypeScript or `client.tenant.update()` in Python, or remove it with `quota: null` (`quota=None` in Python). With no quota, usage is unlimited.
+A quota sets a monthly token ceiling, a request ceiling, or both, plus the day of the month (1 to 28) when the window resets. Update it with `client.tenant.patch()` in TypeScript, `client.tenant.update()` in Python, or `client.tenant().update().quota(QuotaInput::new(reset_day)...)` in Rust; remove it with `quota: null` (`quota=None` in Python, `.clear_quota()` in Rust). With no quota, usage is unlimited.
 
 Blazing Agents checks the current window before each turn starts. It does not stop a turn that crosses the ceiling while running, and several turns running at once can overshoot before their usage lands. Leave headroom.
 

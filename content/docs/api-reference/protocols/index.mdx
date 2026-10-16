@@ -65,7 +65,6 @@ with client.completion_stream(agent_id=agent_id, prompt="Summarize this.") as st
 ```rust tab="Rust"
 use futures_util::TryStreamExt;
 
-let agent_id = "ag_0123456789abcdef";
 let mut stream = client
     .completion_stream(agent_id, "Summarize this.")
     .await?;

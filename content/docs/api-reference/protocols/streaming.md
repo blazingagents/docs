@@ -199,7 +199,6 @@ with client.completion_stream(
 use futures_util::TryStreamExt;
 use std::io::Write;
 
-let agent_id = "ag_0123456789abcdef";
 let mut stream = client
     .completion_stream(agent_id, "Write a two-sentence release note.")
     .await?;

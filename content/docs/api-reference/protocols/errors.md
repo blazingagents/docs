@@ -231,7 +231,6 @@ except StreamError as error:
 ```rust tab="Rust"
 use blazing_agents::error::Error;
 
-let agent_id = "ag_0123456789abcdef";
 let prompt = "Summarize this.";
 match client
     .completion_stream(agent_id, prompt)

@@ -61,7 +61,6 @@ if connection.id not in agent.mcp_connection_ids:
 ```rust tab="Rust"
 use blazing_agents::mcp_connections::{McpConnectionTest, NewMcpConnection};
 
-let agent_id = "ag_0123456789abcdef";
 let connection = client
     .mcp_connections()
     .create(NewMcpConnection::Bearer {

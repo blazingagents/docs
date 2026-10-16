@@ -71,7 +71,6 @@ print(httpx.get(str(download.url)).text)
 use blazing_agents::messages::UserMessage;
 use futures_util::TryStreamExt;
 
-let agent_id = "ag_0123456789abcdef";
 let mut stream = client
     .chat(
         agent_id,

@@ -27,7 +27,6 @@ client.agents.update(agent_id, tools=tools)
 ```rust tab="Rust"
 use blazing_agents::agents::AgentTool;
 
-let agent_id = "ag_0123456789abcdef";
 let agent = client.agents().get(agent_id).await?;
 let mut tools = agent.tools;
 for tool in [AgentTool::Read, AgentTool::Grep, AgentTool::Glob] {
@@ -146,7 +145,6 @@ use blazing_agents::messages::UserMessage;
 use blazing_agents::Client;
 use futures_util::TryStreamExt;
 
-let agent_id = "ag_0123456789abcdef";
 let sentinel = "BA_DURABLE_42";
 
 async fn ask(
@@ -215,7 +213,6 @@ use blazing_agents::messages::UserMessage;
 use blazing_agents::Client;
 use futures_util::TryStreamExt;
 
-let agent_id = "ag_0123456789abcdef";
 let sentinel = "BA_DURABLE_42";
 
 async fn ask(

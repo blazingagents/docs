@@ -113,7 +113,6 @@ client.agents.update(agent.id, tools=["read", "grep", "glob", "save_memory", "se
 ```rust tab="Rust"
 use blazing_agents::agents::AgentTool;
 
-let agent_id = "ag_0123456789abcdef";
 client
     .agents()
     .update(agent_id)
@@ -152,7 +151,6 @@ client.agents.delete(agent.id, include_artifacts=False)
 ```
 
 ```rust tab="Rust"
-let agent_id = "ag_0123456789abcdef";
 client.agents().delete(agent_id, false).await?;
 ```
 

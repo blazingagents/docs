@@ -155,7 +155,6 @@ if choices.known and choices.levels:
 ```
 
 ```rust tab="Rust"
-let agent_id = "ag_0123456789abcdef";
 let provider_id = "prv_0123456789abcdef";
 let choices = client
     .providers()

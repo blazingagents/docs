@@ -132,7 +132,6 @@ for memory in page.data:
 ```
 
 ```rust tab="Rust"
-let agent_id = "ag_0123456789abcdef";
 let memories = client
     .memories()
     .list(agent_id)

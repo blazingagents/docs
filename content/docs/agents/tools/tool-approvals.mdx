@@ -53,7 +53,6 @@ use blazing_agents::agents::{
     AgentTool, ApprovalDecision, ApprovalPolicy, ToolReference,
 };
 
-let agent_id = "ag_0123456789abcdef";
 client
     .agents()
     .update(agent_id)
@@ -116,8 +115,6 @@ for item in approvals.data:
 ```rust tab="Rust"
 use blazing_agents::sessions::ToolApprovalStatus;
 
-let agent_id = "ag_0123456789abcdef";
-let session_id = "ss_0123456789abcdef";
 let approvals = client
     .sessions()
     .tool_approvals(agent_id, session_id)
@@ -186,7 +183,12 @@ async fn decide(
     let stream = client
         .continue_chat(agent_id, session_id, decisions)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|error| {
+            error
+                .status()
+                .and_then(|status| StatusCode::from_u16(status).ok())
+                .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+        })?;
     let mut response = Response::new(Body::from_stream(stream));
     let headers = response.headers_mut();
     headers.insert("x-vercel-ai-ui-message-stream", HeaderValue::from_static("v1"));

@@ -203,7 +203,9 @@ def run_authorized_turn(
 ```
 
 ```rust tab="Rust"
-use blazing_agents::chat::ChatStream;
+use axum::body::Body;
+use axum::http::{header, HeaderValue, StatusCode};
+use axum::response::Response;
 use blazing_agents::ids::SessionId;
 use blazing_agents::messages::UserMessage;
 use blazing_agents::types::Metadata;
@@ -219,46 +221,76 @@ struct AuthorizedChat {
     session_id: Option<String>,
 }
 
-fn resolve_authorized_chat(principal: &Principal, app_chat_id: &str) -> AuthorizedChat {
-    todo!()
-}
-fn save_authorized_session(app_chat_id: &str, session_id: &SessionId) {
-    todo!()
+trait App {
+    async fn resolve_authorized_chat(
+        &self,
+        principal: &Principal,
+        app_chat_id: &str,
+    ) -> Result<AuthorizedChat, StatusCode>;
+    async fn save_authorized_session(&self, app_chat_id: &str, session_id: &SessionId);
 }
 
 async fn run_authorized_turn(
+    app: &impl App,
     client: &Client,
     principal: &Principal,
     app_chat_id: &str,
     message: UserMessage,
-) -> Result<ChatStream, Box<dyn std::error::Error + Send + Sync>> {
-    let chat = resolve_authorized_chat(principal, app_chat_id);
+) -> Result<Response, StatusCode> {
+    let chat = app.resolve_authorized_chat(principal, app_chat_id).await?;
     let user_id = format!("app:{}", principal.subject);
     let metadata = Metadata::new().insert("organizationId", principal.organization_id.clone());
+    let user_client = client
+        .for_user(&user_id)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     let stream = match &chat.session_id {
         Some(session_id) => {
-            client
+            user_client
                 .chat(&chat.agent_id, message)
-                .session(session_id)
-                .user_id(&user_id)
+                .session(session_id.clone())
                 .metadata(metadata)
-                .await?
+                .await
         }
-        None => {
-            let stream = client
-                .chat(&chat.agent_id, message)
-                .user_id(&user_id)
-                .metadata(metadata)
-                .await?;
-            save_authorized_session(app_chat_id, stream.session_id());
-            stream
-        }
-    };
-    Ok(stream)
+        None => match user_client
+            .chat(&chat.agent_id, message)
+            .metadata(metadata)
+            .await
+        {
+            Ok(stream) => {
+                app.save_authorized_session(app_chat_id, stream.session_id())
+                    .await;
+                Ok(stream)
+            }
+            Err(error) => Err(error),
+        },
+    }
+    .map_err(|error| {
+        error
+            .status()
+            .and_then(|status| StatusCode::from_u16(status).ok())
+            .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+    })?;
+
+    let location = stream.meta().headers().get(header::LOCATION).cloned();
+    let mut response = Response::new(Body::from_stream(stream));
+    let headers = response.headers_mut();
+    headers.insert(
+        "x-vercel-ai-ui-message-stream",
+        HeaderValue::from_static("v1"),
+    );
+    headers.insert(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static("text/event-stream"),
+    );
+    headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-cache"));
+    if let Some(location) = location {
+        headers.insert(header::LOCATION, location);
+    }
+    Ok(response)
 }
 ```
 
-`app` is your own code. `resolveAuthorizedChat` throws unless the signed-in principal owns the chat, and it returns the agent and session IDs from your database. The TypeScript client also scopes the Blazing Agents request to that principal. Test that one user cannot reach another user's chat ID.
+`app` is your own code. `resolveAuthorizedChat` throws unless the signed-in principal owns the chat, and it returns the agent and session IDs from your database. The TypeScript and Rust clients also scope the Blazing Agents request to that principal. Test that one user cannot reach another user's chat ID.
 
 ## Production notes [#production-notes]
 

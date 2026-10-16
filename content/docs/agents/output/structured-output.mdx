@@ -79,7 +79,6 @@ struct Triage {
     summary: String,
 }
 
-let agent_id = "ag_0123456789abcdef";
 let triage: Triage = client
     .object(
         agent_id,
@@ -90,7 +89,7 @@ let triage: Triage = client
 println!("{:?} {}", triage.category, triage.urgent);
 ```
 
-In TypeScript, `result.object` resolves to `unknown`, so validate it with your own schema, here Zod, before you use it. In Python, pass a Pydantic model as `output_type`: the SDK sends its JSON Schema and returns a validated instance. In Rust, one struct deriving `Deserialize` and `JsonSchema` does both jobs: `ObjectSchema::derive()` sends its schema and the call returns the decoded value. You can also pass a raw schema as `json_schema` to get plain JSON back.
+In TypeScript, `result.object` resolves to `unknown`, so validate it with your own schema, here Zod, before you use it. In Python, pass a Pydantic model as `output_type`: the SDK sends its JSON Schema and returns a validated instance. In Rust, one struct deriving `Deserialize` and `JsonSchema` does both jobs: `ObjectSchema::derive()` sends its schema and the call returns the decoded value. You can also pass a raw schema as `json_schema` (`ObjectSchema::<serde_json::Value>::from_json_schema(schema)` in Rust) to get plain JSON back.
 
 ## Show progress while it streams [#show-progress-while-it-streams]
 
@@ -135,7 +134,6 @@ struct Triage {
     summary: String,
 }
 
-let agent_id = "ag_0123456789abcdef";
 let mut stream = client
     .object_stream::<Triage>(
         agent_id,

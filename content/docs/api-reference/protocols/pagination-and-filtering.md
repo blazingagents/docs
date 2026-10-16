@@ -98,7 +98,6 @@ for session in client.sessions.iter(agent_id=agent_id, limit=100):
 ```rust tab="Rust"
 use futures_util::TryStreamExt;
 
-let agent_id = "ag_0123456789abcdef";
 let mut sessions = client.sessions().list(agent_id).limit(100).items();
 while let Some(session) = sessions.try_next().await? {
     println!("{}", session.id);

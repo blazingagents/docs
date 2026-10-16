@@ -147,7 +147,6 @@ client.agent(agent_id).skills.upload(archive_type="zip", file="release-notes.zip
 use blazing_agents::files::Upload;
 use blazing_agents::skills::ArchiveType;
 
-let agent_id = "ag_0123456789abcdef";
 client
     .agent(agent_id)
     .skills()
