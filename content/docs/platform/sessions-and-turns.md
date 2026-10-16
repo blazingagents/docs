@@ -477,7 +477,7 @@ struct Authorized {
 }
 
 trait App {
-    async fn authorize(&self, request: &Request) -> Result<Authorized, StatusCode>;
+    async fn authorize(&self, request: Request) -> Result<Authorized, StatusCode>;
     async fn load_session_id(&self, user_id: &str, chat_id: &str) -> Option<String>;
     async fn save_session_id(&self, user_id: &str, chat_id: &str, session_id: &SessionId);
 }
@@ -492,7 +492,7 @@ async fn handle_chat(
         chat_id,
         user_id,
         messages,
-    } = app.authorize(&request).await?;
+    } = app.authorize(request).await?;
     let input = ChatInput::try_from(messages).map_err(|_| StatusCode::BAD_REQUEST)?;
     let stream = match app.load_session_id(&user_id, &chat_id).await {
         Some(session_id) => {
