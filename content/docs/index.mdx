@@ -61,9 +61,38 @@ with BlazingAgents() as client:
     print(f"BLAZING_AGENTS_AGENT_ID={agent.id}")
 ```
 
+```rust tab="Rust"
+use blazing_agents::providers::ProviderType;
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+
+    let provider = client
+        .providers()
+        .create(
+            "OpenRouter",
+            ProviderType::OpenRouter,
+            std::env::var("OPENROUTER_API_KEY")?,
+        )
+        .await?;
+
+    let agent = client
+        .agents()
+        .create("Support agent")
+        .instructions("Answer clearly and briefly.")
+        .model(&provider.id, "openai/gpt-6-luna")
+        .await?;
+
+    println!("BLAZING_AGENTS_AGENT_ID={}", agent.id);
+    Ok(())
+}
+```
+
 ### Add the chat route [#add-the-chat-route]
 
-Set `BLAZING_AGENTS_AGENT_ID` to the printed ID, then use the complete [TypeScript or Python chat endpoint](/getting-started/connect-your-app). That guide includes authentication, session ownership checks, and streaming responses. The endpoint starts a new conversation when the request has no `sessionId`, and continues an owned conversation when it does.
+Set `BLAZING_AGENTS_AGENT_ID` to the printed ID, then use the complete [TypeScript, Python, or Rust chat endpoint](/getting-started/connect-your-app). That guide includes authentication, session ownership checks, and streaming responses. The endpoint starts a new conversation when the request has no `sessionId`, and continues an owned conversation when it does.
 
 On the frontend, `useChat` with `BlazingAgentsChatTransport` renders the streamed reply and sends the session ID back on the next message. See [Build a chatbot](/getting-started/chatbot).
 

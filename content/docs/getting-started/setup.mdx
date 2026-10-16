@@ -5,11 +5,11 @@ description: Get an API key, install the SDK, and confirm your backend can reach
 
 # Set up Blazing Agents
 
-Get an API key, install the TypeScript or Python SDK, and run a short check that proves your code can talk to Blazing Agents. You use the same project folder in the [quickstart](/getting-started/quickstart).
+Get an API key, install the TypeScript, Python, or Rust SDK, and run a short check that proves your code can talk to Blazing Agents. You use the same project folder in the [quickstart](/getting-started/quickstart).
 
 ## Before you begin [#before-you-begin]
 
-You need a Blazing Agents account and either Node.js 24 or later, or Python 3.11 or later. The SDKs run on your backend, never in a browser or mobile app.
+You need a Blazing Agents account and either Node.js 24 or later, Python 3.11 or later, or Rust 1.85 or later. The SDKs run on your backend, never in a browser or mobile app.
 
 <Steps>
   <Step>
@@ -17,7 +17,7 @@ You need a Blazing Agents account and either Node.js 24 or later, or Python 3.11
 
     Open [API keys](https://www.blazingagents.com/app/keys) in the dashboard and create a key. Copy the full `ba_...` value right away: you see it only once.
 
-    Put the key in your shell environment. Both SDKs send it with every request.
+    Put the key in your shell environment. All SDKs send it with every request.
 
     ```bash
     export BLAZING_AGENTS_API_KEY="ba_..."
@@ -43,6 +43,13 @@ You need a Blazing Agents account and either Node.js 24 or later, or Python 3.11
     python3 -m venv .venv
     source .venv/bin/activate
     pip install blazing-agents
+    ```
+
+    ```bash tab="Rust"
+    cargo new blazing-quickstart && cd blazing-quickstart
+    cargo add blazing-agents --git https://github.com/blazingagents/rust-sdk --rev 789a123
+    cargo add tokio --features macros,rt-multi-thread
+    cargo add futures-util
     ```
 
     The TypeScript SDK needs the `ai` and `zod` packages alongside it. When the install finishes, you have an empty project with the SDK ready to import.
@@ -82,7 +89,21 @@ You need a Blazing Agents account and either Node.js 24 or later, or Python 3.11
     print(f"Connected. Your tenant has {len(agents)} agents.")
     ```
 
-    Run it with `node check.ts` or `python check.py`. The Python client reads `BLAZING_AGENTS_API_KEY` on its own; the TypeScript client takes it as `apiKey`. Neither needs a URL, because both point at `https://api.blazingagents.com` by default.
+    ```rust tab="Rust" title="src/bin/check.rs"
+    use blazing_agents::Client;
+    use futures_util::TryStreamExt;
+
+    #[tokio::main]
+    async fn main() -> Result<(), Box<dyn std::error::Error>> {
+        let client = Client::from_env()?;
+
+        let agents: Vec<_> = client.agents().list().items().try_collect().await?;
+        println!("Connected. Your tenant has {} agents.", agents.len());
+        Ok(())
+    }
+    ```
+
+    Run it with `node check.ts`, `python check.py`, or `cargo run --bin check`. The Python and Rust clients read `BLAZING_AGENTS_API_KEY` on their own; the TypeScript client takes it as `apiKey`. None needs a URL, because they all point at `https://api.blazingagents.com` by default.
 
     You see `Connected. Your tenant has N agents.` The count includes your [admin agent](/agents/agents#the-admin-agent), so a new tenant sees 1. If you see an authentication error instead, check that the key is exported in the same terminal and was copied in full. The [errors reference](/api-reference/protocols/errors) explains every error code.
 

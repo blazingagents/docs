@@ -5,3 +5,5 @@ node_modules/
 .wrangler/
 coverage/
 .DS_Store
+snippets-rust/target/
+snippets-rust/examples/

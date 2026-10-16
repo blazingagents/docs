@@ -125,6 +125,24 @@ if ceiling is not None:
         print("Request quota is nearly used")
 ```
 
+```rust tab="Rust"
+let usage = client
+    .usage()
+    .get()
+    .range("2026-07-01", "2026-07-20")
+    .await?;
+let settings = client.tenant().get().await?;
+
+if let Some(quota) = &settings.quota {
+    if let Some(ceiling) = quota.monthly_request_limit {
+        let remaining = ceiling.saturating_sub(usage.totals.request_count);
+        if remaining * 10 < ceiling {
+            println!("Request quota is nearly used");
+        }
+    }
+}
+```
+
 ## Next [#next]
 
 - [Errors](/api-reference/protocols/errors) for the codes these limits return.

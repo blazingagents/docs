@@ -43,6 +43,27 @@ task = client.tasks.create(
 print(task.id, task.schedule)
 ```
 
+```rust tab="Rust"
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+
+    let created = client
+        .tasks()
+        .create(
+            std::env::var("AGENT_ID")?,
+            "Weekly report",
+            "Build the weekly report and summarize the result.",
+        )
+        .user_id("app:user-42")
+        .await?;
+    println!("{} {:?}", created.task.id, created.task.schedule);
+    Ok(())
+}
+```
+
 You see `tk_... null` (`None` in Python). With no schedule, the task runs only when you [start a run](/automation/task-runs). Add a [schedule](/automation/schedules) to run it on a clock instead.
 
 ## What a task controls [#what-a-task-controls]
@@ -66,7 +87,7 @@ Deleting a task removes it and its schedule. It does not undo anything earlier r
 
 ## Production notes [#production-notes]
 
-- Creating a task with `submit: true` also starts a run. Pass `idempotencyKey` to `tasks.create()` (`idempotency_key` in Python) if your backend may retry the request.
+- Creating a task with `submit: true` also starts a run. Pass `idempotencyKey` to `tasks.create()` (`idempotency_key` in Python, `.idempotency_key()` in Rust) if your backend may retry the request.
 - For end-user requests, derive a scoped client from the verified user ID with [`forUser()`](/sdk/typescript/client#for-user) or [`for_user()`](/sdk/python/client#for-user). The API checks ownership before it reads, changes, or runs a task.
 
 ## Next [#next]

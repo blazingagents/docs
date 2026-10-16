@@ -67,6 +67,40 @@ for message in history.data:
     print(message.role, message.id)
 ```
 
+```rust tab="Rust"
+use blazing_agents::messages::UserMessage;
+use blazing_agents::Client;
+use futures_util::TryStreamExt;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+    let agent_id = std::env::var("AGENT_ID")?;
+
+    let mut stream = client
+        .chat(&agent_id, UserMessage::text("Plan a weekend in Lisbon."))
+        .await?;
+    let session_id = stream.session_id().clone();
+    while stream.try_next().await?.is_some() {}
+
+    let follow_up = UserMessage::text("Make it suitable for children.");
+    let mut stream = client
+        .chat(&agent_id, follow_up)
+        .session(&session_id)
+        .await?;
+    while stream.try_next().await?.is_some() {}
+
+    let history = client
+        .sessions()
+        .messages(&agent_id, &session_id)
+        .await?;
+    for message in &history.data {
+        println!("{} {}", message.role, message.id);
+    }
+    Ok(())
+}
+```
+
 You see four lines: `user`, `assistant`, `user`, `assistant`. Reading the stream to the end lets each turn finish before the next one starts. In a real app you return the stream to your frontend instead of reading it yourself.
 
 ## How sessions behave [#how-sessions-behave]
@@ -103,6 +137,24 @@ child = client.sessions.fork(
     message_id=selected.id, idempotency_key=idempotency_key,
 )
 print(child.id)
+```
+
+```rust tab="Rust"
+let history = client
+    .sessions()
+    .messages(agent_id, session_id)
+    .await?;
+let selected = history
+    .data
+    .iter()
+    .find(|message| message.branchable)
+    .ok_or("Choose a saved assistant reply first.")?;
+let idempotency_key = format!("fork-{}", selected.id);
+let child = client
+    .sessions()
+    .fork(agent_id, session_id, &selected.id, idempotency_key)
+    .await?;
+println!("{}", child.id);
 ```
 
 If the response is lost, retry the same source, message ID, and key. A successful replay returns the same child, even after the source is deleted. Changing the selected message under the same key returns `idempotency_conflict`; retrying a deleted child returns `session_fork_deleted`. Reload history if the selected reply was removed or became ineligible (`session_fork_unavailable`).
@@ -225,6 +277,63 @@ def flush_waiting() -> None:
             sys.stdout.buffer.write(chunk)
 ```
 
+```rust tab="Rust"
+use blazing_agents::chat::ChatInput;
+use blazing_agents::error::{Error, ErrorCode};
+use blazing_agents::messages::UserMessage;
+use blazing_agents::Client;
+use futures_util::TryStreamExt;
+use std::io::Write;
+
+let mut waiting: Vec<UserMessage> = Vec::new();
+
+async fn send_or_steer(
+    client: &Client,
+    agent_id: &str,
+    session_id: &str,
+    waiting: &mut Vec<UserMessage>,
+    text: &str,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let message = UserMessage::text(text);
+    let request_id = format!("steer-{}", message.id());
+    match client
+        .sessions()
+        .submit_input(agent_id, session_id, request_id, message.clone())
+        .await
+    {
+        Ok(_) => Ok(()),
+        Err(Error::Api(error)) if error.code() == &ErrorCode::SteerNotAvailable => {
+            waiting.push(message);
+            Ok(())
+        }
+        Err(error) => Err(error.into()),
+    }
+}
+
+async fn flush_waiting(
+    client: &Client,
+    agent_id: &str,
+    session_id: &str,
+    waiting: &mut Vec<UserMessage>,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    // Take the messages out before sending; see below.
+    let messages = std::mem::take(waiting);
+    if messages.is_empty() {
+        return Ok(());
+    }
+    let mut stream = client
+        .chat(agent_id, ChatInput::try_from(messages)?)
+        .session(session_id)
+        .await?;
+    let mut stdout = std::io::stdout();
+    while let Some(chunk) = stream.try_next().await? {
+        // Raw AI SDK stream chunks; relay them to your frontend instead.
+        stdout.write_all(&chunk)?;
+    }
+    Ok(())
+}
+```
+
 Call the flush once the turn's stream ends and the session is `idle` again. Remove the messages from the queue *before* you send so a later flush cannot send the same items again.
 
 If any submitted message ID is already saved in this session's history, ordinary chat returns HTTP `409` with [`message_id_conflict`](/api-reference/protocols/errors#message_id_conflict). The whole batch is rejected before any model or tool work, even when it mixes known and new IDs or changes the content of a known message. The same ID is allowed in another session. Explicit regeneration can still reference an existing message.
@@ -255,7 +364,7 @@ A finished receipt also carries a `reason`: `stopped` (you stopped the turn), `f
 
 ### Stop a turn [#stop-a-turn]
 
-Stopping needs the ID of the turn you mean. The response that started the turn names it in its `X-BA-Turn-Id` header. The SDKs expose that header as `await result.turnId` in TypeScript and `stream.turn_id` in Python, and both chat transports pass it to `onTurnId`. Any other client, such as a second tab, reads the ID from the session's activity, as below. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to end. Keep reading your existing stream until it ends, then check the history.
+Stopping needs the ID of the turn you mean. The response that started the turn names it in its `X-BA-Turn-Id` header. The SDKs expose that header as `await result.turnId` in TypeScript, `stream.turn_id` in Python, and `stream.turn_id()` in Rust, and both chat transports pass it to `onTurnId`. Any other client, such as a second tab, reads the ID from the session's activity, as below. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to end. Keep reading your existing stream until it ends, then check the history.
 
 ```typescript tab="TypeScript"
 const { activity } = await client.sessions.inputs({ agentId, sessionId });
@@ -272,6 +381,25 @@ if activity.turn_id is not None and activity.state == "running":
         agent_id=agent_id, session_id=session_id, turn_id=activity.turn_id
     )
     print(stopped.stopped_turn_id, stopped.activity.state)
+```
+
+```rust tab="Rust"
+use blazing_agents::sessions::ActivityState;
+
+let activity = client
+    .sessions()
+    .inputs(agent_id, session_id)
+    .await?
+    .activity;
+if activity.state == ActivityState::Running {
+    if let Some(turn_id) = activity.turn_id {
+        let stopped = client
+            .sessions()
+            .stop(agent_id, session_id, turn_id)
+            .await?;
+        println!("{} {}", stopped.stopped_turn_id, stopped.activity.state);
+    }
+}
 ```
 
 A retry with the same `turnId` never stops a later turn, and a turn you cannot see returns [`not_found`](/api-reference/protocols/errors#not_found). A stopped turn leaves the history as it was before the turn. Steering messages the agent already read may still have had effects, such as a tool call, even though they are not saved.
@@ -332,6 +460,83 @@ def handle_chat(request: app.Request) -> Iterator[bytes]:
         yield from stream
 ```
 
+```rust tab="Rust"
+use axum::body::Body;
+use axum::extract::Request;
+use axum::http::{header, HeaderValue, StatusCode};
+use axum::response::Response;
+use blazing_agents::chat::ChatInput;
+use blazing_agents::ids::SessionId;
+use blazing_agents::messages::UserMessage;
+use blazing_agents::Client;
+
+struct Authorized {
+    chat_id: String,
+    user_id: String,
+    messages: Vec<UserMessage>,
+}
+
+trait App {
+    async fn authorize(&self, request: Request) -> Result<Authorized, StatusCode>;
+    async fn load_session_id(&self, user_id: &str, chat_id: &str) -> Option<String>;
+    async fn save_session_id(&self, user_id: &str, chat_id: &str, session_id: &SessionId);
+}
+
+async fn handle_chat(
+    app: &impl App,
+    client: &Client,
+    agent_id: &str,
+    request: Request,
+) -> Result<Response, StatusCode> {
+    let Authorized {
+        chat_id,
+        user_id,
+        messages,
+    } = app.authorize(request).await?;
+    let input = ChatInput::try_from(messages).map_err(|_| StatusCode::BAD_REQUEST)?;
+    let stream = match app.load_session_id(&user_id, &chat_id).await {
+        Some(session_id) => {
+            client
+                .chat(agent_id, input)
+                .session(session_id)
+                .user_id(&user_id)
+                .await
+        }
+        None => match client.chat(agent_id, input).user_id(&user_id).await {
+            Ok(stream) => {
+                app.save_session_id(&user_id, &chat_id, stream.session_id())
+                    .await;
+                Ok(stream)
+            }
+            Err(error) => Err(error),
+        },
+    }
+    .map_err(|error| {
+        error
+            .status()
+            .and_then(|status| StatusCode::from_u16(status).ok())
+            .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+    })?;
+
+    let location = stream.meta().headers().get(header::LOCATION).cloned();
+    let mut response = Response::new(Body::from_stream(stream));
+    let headers = response.headers_mut();
+    headers.insert(
+        "x-vercel-ai-ui-message-stream",
+        HeaderValue::from_static("v1"),
+    );
+    headers.insert(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static("text/event-stream"),
+    );
+    headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-cache"));
+    if let Some(location) = location {
+        headers.insert(header::LOCATION, location);
+    }
+    Ok(response)
+}
+```
+
 Keep these rules in your handler:
 
 - Take the agent ID, session ID, and `userId` from your own server-side state, never from the request body.
@@ -369,7 +574,29 @@ with client.chat(
         pass
 ```
 
-The new answer replaces the old one only if the turn succeeds. If it fails or you stop it, the previous answer stays. To replace an earlier answer instead, pass its ID as `messageId` (`message_id` in Python).
+```rust tab="Rust"
+use blazing_agents::messages::{UserMessage, UserPart};
+use blazing_agents::transcript::MessageRole;
+use futures_util::TryStreamExt;
+
+let history = client.sessions().messages(agent_id, session_id).await?;
+let original = history
+    .data
+    .iter()
+    .rev()
+    .find(|message| message.role == MessageRole::User)
+    .ok_or("the session has no user message to resend")?;
+let text = original
+    .parts
+    .iter()
+    .find_map(|part| part.text())
+    .ok_or("the last user message has no text part")?;
+let resent = UserMessage::new(&original.id, UserPart::text(text));
+let mut stream = client.regenerate(agent_id, session_id, resent).await?;
+while stream.try_next().await?.is_some() {}
+```
+
+The new answer replaces the old one only if the turn succeeds. If it fails or you stop it, the previous answer stays. To replace an earlier answer instead, pass its ID as `messageId` (`message_id` in Python, `.message_id()` on the Rust regenerate call).
 
 ## Next [#next]
 

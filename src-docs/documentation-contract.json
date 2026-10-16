@@ -33,15 +33,9 @@
             }
           },
           {
-            "language": "typescript",
+            "language": "rust",
             "metadata": {
-              "tab": "TypeScript"
-            }
-          },
-          {
-            "language": "python",
-            "metadata": {
-              "tab": "Python"
+              "tab": "Rust"
             }
           }
         ]
@@ -121,6 +115,12 @@
             }
           },
           {
+            "language": "bash",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript",
@@ -133,6 +133,13 @@
             "metadata": {
               "tab": "Python",
               "title": "check.py"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust",
+              "title": "src/bin/check.rs"
             }
           }
         ]
@@ -176,18 +183,10 @@
             }
           },
           {
-            "language": "typescript",
+            "language": "rust",
             "metadata": {
-              "tab": "TypeScript",
-              "tab-group": "sdk-language",
-              "title": "quickstart.ts"
-            }
-          },
-          {
-            "language": "python",
-            "metadata": {
-              "tab": "Python",
-              "title": "quickstart.py"
+              "tab": "Rust",
+              "title": "src/bin/quickstart.rs"
             }
           },
           {
@@ -203,6 +202,35 @@
             "metadata": {
               "tab": "Python",
               "title": "quickstart.py"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust",
+              "title": "src/bin/quickstart.rs"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language",
+              "title": "quickstart.ts"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python",
+              "title": "quickstart.py"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust",
+              "title": "src/bin/quickstart.rs"
             }
           },
           {
@@ -249,6 +277,12 @@
             }
           },
           {
+            "language": "bash",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript",
@@ -261,6 +295,13 @@
             "metadata": {
               "tab": "Python",
               "title": "server.py"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust",
+              "title": "src/bin/server.rs"
             }
           },
           {
@@ -337,16 +378,9 @@
             }
           },
           {
-            "language": "typescript",
+            "language": "rust",
             "metadata": {
-              "tab": "TypeScript",
-              "tab-group": "sdk-language"
-            }
-          },
-          {
-            "language": "python",
-            "metadata": {
-              "tab": "Python"
+              "tab": "Rust"
             }
           },
           {
@@ -360,6 +394,31 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -394,6 +453,12 @@
             }
           },
           {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript",
@@ -404,6 +469,12 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -435,6 +506,12 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -469,16 +546,9 @@
             }
           },
           {
-            "language": "typescript",
+            "language": "rust",
             "metadata": {
-              "tab": "TypeScript",
-              "tab-group": "sdk-language"
-            }
-          },
-          {
-            "language": "python",
-            "metadata": {
-              "tab": "Python"
+              "tab": "Rust"
             }
           },
           {
@@ -492,6 +562,31 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript",
+              "tab-group": "sdk-language"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -526,6 +621,12 @@
             }
           },
           {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "text",
             "metadata": {}
           },
@@ -540,6 +641,12 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           },
           {
@@ -578,6 +685,12 @@
             }
           },
           {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript",
@@ -588,6 +701,12 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -619,6 +738,12 @@
             "metadata": {
               "tab": "Python"
             }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
           }
         ]
       },
@@ -642,6 +767,12 @@
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -692,9 +823,9 @@
             }
           },
           {
-            "language": "typescript",
+            "language": "rust",
             "metadata": {
-              "tab": "TypeScript"
+              "tab": "Rust"
             }
           },
           {
@@ -704,9 +835,33 @@
             }
           },
           {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -734,9 +889,21 @@
             }
           },
           {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -789,15 +956,33 @@
             }
           },
           {
-            "language": "typescript",
+            "language": "rust",
             "metadata": {
-              "tab": "TypeScript"
+              "tab": "Rust"
             }
           },
           {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -831,6 +1016,12 @@
             }
           },
           {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript"
@@ -840,6 +1031,12 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -864,6 +1061,12 @@
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -897,15 +1100,9 @@
             }
           },
           {
-            "language": "typescript",
+            "language": "rust",
             "metadata": {
-              "tab": "TypeScript"
-            }
-          },
-          {
-            "language": "python",
-            "metadata": {
-              "tab": "Python"
+              "tab": "Rust"
             }
           },
           {
@@ -918,6 +1115,30 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           },
           {
@@ -985,15 +1206,9 @@
             }
           },
           {
-            "language": "typescript",
+            "language": "rust",
             "metadata": {
-              "tab": "TypeScript"
-            }
-          },
-          {
-            "language": "python",
-            "metadata": {
-              "tab": "Python"
+              "tab": "Rust"
             }
           },
           {
@@ -1009,15 +1224,9 @@
             }
           },
           {
-            "language": "typescript",
+            "language": "rust",
             "metadata": {
-              "tab": "TypeScript"
-            }
-          },
-          {
-            "language": "python",
-            "metadata": {
-              "tab": "Python"
+              "tab": "Rust"
             }
           },
           {
@@ -1033,6 +1242,12 @@
             }
           },
           {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript"
@@ -1042,6 +1257,48 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -1075,6 +1332,12 @@
             }
           },
           {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript"
@@ -1084,6 +1347,12 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -1117,6 +1386,12 @@
             "metadata": {
               "tab": "Python"
             }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
           }
         ]
       },
@@ -1149,6 +1424,12 @@
             }
           },
           {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript"
@@ -1158,6 +1439,12 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -1191,6 +1478,12 @@
             }
           },
           {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript"
@@ -1200,6 +1493,12 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -1255,6 +1554,12 @@
             "metadata": {
               "tab": "Python"
             }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
           }
         ]
       },
@@ -1287,15 +1592,9 @@
             }
           },
           {
-            "language": "typescript",
+            "language": "rust",
             "metadata": {
-              "tab": "TypeScript"
-            }
-          },
-          {
-            "language": "python",
-            "metadata": {
-              "tab": "Python"
+              "tab": "Rust"
             }
           },
           {
@@ -1308,6 +1607,30 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -1338,6 +1661,12 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -3649,6 +3978,12 @@
             }
           },
           {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "bash",
             "metadata": {}
           }
@@ -3692,6 +4027,12 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           },
           {
@@ -3846,6 +4187,12 @@
             }
           },
           {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
             "language": "typescript",
             "metadata": {
               "tab": "TypeScript"
@@ -3855,6 +4202,12 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -3914,15 +4267,9 @@
             }
           },
           {
-            "language": "typescript",
+            "language": "rust",
             "metadata": {
-              "tab": "TypeScript"
-            }
-          },
-          {
-            "language": "python",
-            "metadata": {
-              "tab": "Python"
+              "tab": "Rust"
             }
           },
           {
@@ -3935,6 +4282,30 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "TypeScript"
+            }
+          },
+          {
+            "language": "python",
+            "metadata": {
+              "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -3965,6 +4336,12 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]

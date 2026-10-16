@@ -40,6 +40,28 @@ for agent_id in [writer_agent_id, reviewer_agent_id]:
     client.agents.update(agent_id, workspace_id=workspace.id)
 ```
 
+```rust tab="Rust"
+use blazing_agents::workspaces::{NetworkPolicy, WorkspaceTier};
+
+let writer_agent_id = "ag_0123456789abcdef";
+let reviewer_agent_id = "ag_fedcba9876543210";
+let workspace = client
+    .workspaces()
+    .create()
+    .name("Release files")
+    .tier(WorkspaceTier::Plus)
+    .network_policy(NetworkPolicy::allowlist(["registry.npmjs.org"]))
+    .await?;
+
+for agent_id in [writer_agent_id, reviewer_agent_id] {
+    client
+        .agents()
+        .update(agent_id)
+        .workspace_id(&workspace.id)
+        .await?;
+}
+```
+
 Both agents now read and write the same files. Each agent can touch those files only through the file tools you turn on for it, such as `read` and `write`; see [built-in tools](/agents/tools/built-in-tools#file-operations).
 
 ## How a workspace behaves [#how-a-workspace-behaves]
@@ -73,7 +95,7 @@ Switching between unrestricted access and a restricted mode restarts the workspa
 | Core | 1 GiB | Lost when the workspace stops |
 | Plus | 4 GiB | Kept when the workspace stops while idle |
 
-Create a workspace with `tier: "plus"`, or create an agent with `workspaceTier: "plus"` (`workspace_tier="plus"` in Python). Omit the tier to use Core. Do not combine `workspaceId` with `workspaceTier`, even when you request Core. An existing workspace keeps its own tier.
+Create a workspace with `tier: "plus"`, or create an agent with `workspaceTier: "plus"` (`workspace_tier="plus"` in Python, `.workspace_tier(WorkspaceTier::Plus)` in Rust). Omit the tier to use Core. Do not combine `workspaceId` with `workspaceTier`, even when you request Core. An existing workspace keeps its own tier.
 
 A workspace's tier cannot change. To change tiers, create another workspace and attach your agent to it. Files are not copied automatically.
 

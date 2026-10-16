@@ -67,6 +67,40 @@ download = client.artifacts.create_download_url(artifact_id=artifact.artifact_id
 print(httpx.get(str(download.url)).text)
 ```
 
+```rust tab="Rust"
+use blazing_agents::messages::UserMessage;
+use futures_util::TryStreamExt;
+
+let mut stream = client
+    .chat(
+        agent_id,
+        UserMessage::text(
+            "Write a short release summary to release.md, then publish it with publish_artifacts.",
+        ),
+    )
+    .await?;
+let session_id = stream.session_id().clone();
+while stream.try_next().await?.is_some() {}
+
+let artifacts = client
+    .artifacts()
+    .list()
+    .agent_id(agent_id)
+    .session_id(&session_id)
+    .await?;
+let artifact = artifacts
+    .data
+    .iter()
+    .find(|item| item.filename == "release.md")
+    .ok_or("release.md was not published")?;
+
+let download = client
+    .artifacts()
+    .create_download_url(&artifact.artifact_id)
+    .await?;
+println!("{}", reqwest::get(&download.url).await?.text().await?);
+```
+
 Read the whole stream before you list artifacts. The turn finishes saving its results only when the stream ends.
 
 ## What you get [#what-you-get]
