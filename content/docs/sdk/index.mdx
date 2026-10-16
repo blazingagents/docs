@@ -1,11 +1,11 @@
 ---
 title: SDK
-description: Call Blazing Agents from your backend with a typed TypeScript or Python client.
+description: Call Blazing Agents from your backend with a typed TypeScript, Python, or Rust client.
 ---
 
 # SDK
 
-Manage agents, run turns, and read results from your backend code with a typed client. Both SDKs cover the full API, check responses for you, and raise a `BlazingAgentsError` when a request fails.
+Manage agents, run turns, and read results from your backend code with a typed client. Each SDK covers the full API, checks responses for you, and reports a typed error when a request fails.
 
 ```typescript tab="TypeScript" tab-group="sdk-language"
 import { BlazingAgents } from "@blazingagents/sdk";
@@ -25,6 +25,14 @@ client = BlazingAgents()
 agents = client.agents.list().data
 ```
 
+```rust tab="Rust"
+use blazing_agents::Client;
+
+let client = Client::from_env()?;
+
+let agents = client.agents().list().await?.data;
+```
+
 Keep your API key on the server. It can reach every resource in your tenant, so never ship it to a browser or mobile app.
 
 <Cards>
@@ -37,5 +45,10 @@ Keep your API key on the server. It can reach every resource in your tenant, so 
     title="Python SDK"
     href="/sdk/python"
     description="Install blazing-agents with sync and async clients for Python 3.11 and newer."
+  />
+  <Card
+    title="Rust SDK"
+    href="/sdk/rust"
+    description="Install blazing-agents for async Rust on Tokio, Rust 1.85 and newer."
   />
 </Cards>
