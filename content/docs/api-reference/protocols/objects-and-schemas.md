@@ -414,7 +414,8 @@ so its sum still matches the overall totals. Tenant-level usage retains
 limit.
 
 See [TypeScript Usage](/sdk/typescript/usage#overview-method),
-[Python Usage](/sdk/python/usage#overview-method), and
+[Python Usage](/sdk/python/usage#overview-method),
+[Rust Usage](/sdk/rust/usage#overview-method), and
 [REST Usage](/api-reference/rest-api/usage#get-usage-overview).
 
 ### Tenant [#tenant]
@@ -477,5 +478,5 @@ This Task update leaves omitted fields unchanged while clearing the schedule:
 ## Next [#next]
 
 - [REST API](/api-reference/rest-api) for the operations that return these objects.
-- [TypeScript SDK](/sdk/typescript) or [Python SDK](/sdk/python) for typed clients.
+- [TypeScript SDK](/sdk/typescript), [Python SDK](/sdk/python), or [Rust SDK](/sdk/rust) for typed clients.
 - [Pagination and filtering](/api-reference/protocols/pagination-and-filtering) for list envelopes.

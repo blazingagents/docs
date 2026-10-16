@@ -105,10 +105,10 @@ Blazing Agents fills in the template before the agent runs, and only the filled-
 
 ## Organize prompts by agent [#organize-prompts-by-agent]
 
-Set `agentId` on a prompt to group it with an agent. You can then list one agent's prompts with `client.prompts.list({ agentId })`. The link is for organizing only, so any of your agents can still use the prompt. Deleting the agent deletes the prompts linked to it. For the full field and update rules, see the [TypeScript](/sdk/typescript/prompts) or [Python](/sdk/python/prompts) SDK.
+Set `agentId` on a prompt to group it with an agent. You can then list one agent's prompts with `client.prompts.list({ agentId })`. The link is for organizing only, so any of your agents can still use the prompt. Deleting the agent deletes the prompts linked to it. For the full field and update rules, see the [TypeScript](/sdk/typescript/prompts), [Python](/sdk/python/prompts), or [Rust](/sdk/rust/prompts) SDK.
 
 ## Next [#next]
 
 - [Generation and streaming](/agents/output/generation-and-streaming) to stream a prompt's answer.
 - [Structured output](/agents/output/structured-output) to get JSON back from a prompt.
-- Prompts SDK reference for [TypeScript](/sdk/typescript/prompts) or [Python](/sdk/python/prompts).
+- Prompts SDK reference for [TypeScript](/sdk/typescript/prompts), [Python](/sdk/python/prompts), or [Rust](/sdk/rust/prompts).

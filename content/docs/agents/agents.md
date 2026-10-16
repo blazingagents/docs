@@ -93,7 +93,7 @@ The agent stores references, not copies. It points to its provider, MCP connecti
 
 A tenant-wide API key can access every agent in the tenant. For an agent owned by one end user, derive a client with `client.forUser(verifiedUserId)` (`client.for_user(verified_user_id)` in Rust) in your backend. Blazing Agents then checks that the agent belongs to that user. Passing `userId` alone only labels the agent. See [tenancy and attribution](/platform/tenancy-and-attribution).
 
-For every field, its default, and its limits, see `create()` in the [TypeScript](/sdk/typescript/agents#create) or [Python](/sdk/python/agents#create) SDK.
+For every field, its default, and its limits, see `create()` in the [TypeScript](/sdk/typescript/agents#create), [Python](/sdk/python/agents#create), or [Rust](/sdk/rust/agents#create) SDK.
 
 ## Change an agent [#change-an-agent]
 

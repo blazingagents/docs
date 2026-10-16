@@ -193,5 +193,5 @@ Deleting a provider that a current agent still uses fails with [`provider_in_use
 ## Next [#next]
 
 - [Agents](/agents/agents) to see everything else an agent controls.
-- Providers SDK reference for [TypeScript](/sdk/typescript/providers) or [Python](/sdk/python/providers).
+- Providers SDK reference for [TypeScript](/sdk/typescript/providers), [Python](/sdk/python/providers), or [Rust](/sdk/rust/providers).
 - [Security and credentials](/platform/security-and-credentials) for how keys are stored and exposed.

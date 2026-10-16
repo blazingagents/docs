@@ -602,4 +602,4 @@ The new answer replaces the old one only if the turn succeeds. If it fails or yo
 
 - [Build a chatbot](/getting-started/chatbot) that sends messages, then add stop, edit, and regenerate.
 - [Stream answers to your frontend](/agents/output/generation-and-streaming).
-- [`client.chat()` reference](/sdk/typescript/client#chat) and [Python](/sdk/python/client#chat).
+- [`client.chat()` reference](/sdk/typescript/client#chat), [Python](/sdk/python/client#chat), and [Rust](/sdk/rust/client#chat).

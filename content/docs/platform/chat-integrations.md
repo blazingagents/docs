@@ -124,5 +124,5 @@ If you already run your own bot, you can call `client.completion()` from its mes
 
 ## Next [#next]
 
-- [TypeScript chat connections](/sdk/typescript/chat-integrations) or [Python chat connections](/sdk/python/chat-integrations) for every method.
+- [TypeScript chat connections](/sdk/typescript/chat-integrations), [Python chat connections](/sdk/python/chat-integrations), or [Rust chat connections](/sdk/rust/chat-integrations) for every method.
 - [Tool approvals](/agents/tools/tool-approvals) to control which tool calls need a person.
