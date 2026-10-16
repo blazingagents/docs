@@ -48,6 +48,39 @@ settings = client.tenant.update(
 print(settings.quota)
 ```
 
+```rust tab="Rust"
+use blazing_agents::tenant::QuotaInput;
+use blazing_agents::usage::UsageGroupBy;
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+
+    let report = client
+        .usage()
+        .get()
+        .range("2026-07-01", "2026-07-31")
+        .group_by(UsageGroupBy::Agent)
+        .await?;
+    for bucket in &report.buckets {
+        println!(
+            "{:?} {}",
+            bucket.agent_id,
+            bucket.input_tokens + bucket.output_tokens
+        );
+    }
+
+    let settings = client
+        .tenant()
+        .update()
+        .quota(QuotaInput::new(1).monthly_token_limit(1_000_000))
+        .await?;
+    println!("{:?}", settings.quota);
+    Ok(())
+}
+```
+
 You see one line per agent that ran in July, then the saved quota: a token ceiling of `1000000`, no request ceiling, and a window that resets on the 1st of each month.
 
 ## Set a model spending limit [#model-spending-limits]
@@ -88,6 +121,31 @@ budget = client.tenant.update_spending_limit(
     }
 )
 print(budget.period.spent_usd if budget.period else None, budget.next_reset_at)
+```
+
+```rust tab="Rust"
+use blazing_agents::spending_limits::{ResetInterval, SpendingLimitInput};
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+
+    let budget = client
+        .tenant()
+        .update_spending_limit(Some(SpendingLimitInput::new(
+            25.0,
+            "2026-10-01",
+            ResetInterval::Monthly,
+        )))
+        .await?;
+    println!(
+        "{:?} {:?}",
+        budget.period.map(|period| period.spent_usd),
+        budget.next_reset_at
+    );
+    Ok(())
+}
 ```
 
 For one agent, use `client.agents.updateSpendingLimit({ agentId, spendingLimit })` in TypeScript or `client.agents.update_spending_limit(agent_id=agent_id, spending_limit=...)` in Python. Read account settings with `client.tenant.getSpendingLimit()` or `client.tenant.get_spending_limit()`. For an agent, use `client.agents.getSpendingLimit({ agentId })` or `client.agents.get_spending_limit(agent_id=agent_id)`. Pass `spendingLimit: null` or `spending_limit=None` to disable that limit. Disabling one scope does not disable the other.

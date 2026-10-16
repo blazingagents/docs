@@ -69,6 +69,45 @@ usage = client.usage.get(user_id=user_id, group_by="day")
 print(usage.totals.input_tokens + usage.totals.output_tokens)
 ```
 
+```rust tab="Rust"
+use blazing_agents::messages::UserMessage;
+use blazing_agents::types::Metadata;
+use blazing_agents::usage::UsageGroupBy;
+use blazing_agents::Client;
+use futures_util::TryStreamExt;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+    let agent_id = std::env::var("AGENT_ID")?;
+    let user_id = "app:user-42";
+
+    let mut stream = client
+        .chat(&agent_id, UserMessage::text("Summarize my open items."))
+        .user_id(user_id)
+        .metadata(Metadata::new().insert("plan", "pro"))
+        .await?;
+    let session_id = stream.session_id().clone();
+    while stream.try_next().await?.is_some() {}
+
+    let sessions = client
+        .sessions()
+        .list(&agent_id)
+        .user_id(user_id)
+        .await?;
+    println!("{}", sessions.data.iter().any(|s| s.id == session_id));
+
+    let usage = client
+        .usage()
+        .get()
+        .user_id(user_id)
+        .group_by(UsageGroupBy::Day)
+        .await?;
+    println!("{}", usage.totals.input_tokens + usage.totals.output_tokens);
+    Ok(())
+}
+```
+
 The first line prints `true`: the new session carries the user's label. The second prints the tokens this user used over the last 30 days, the default usage window.
 
 ## What carries a user label [#what-carries-a-user-label]
@@ -161,6 +200,62 @@ def run_authorized_turn(
         app.save_authorized_session(app_chat_id, stream.session_id)
     with stream:
         yield from stream
+```
+
+```rust tab="Rust"
+use blazing_agents::chat::ChatStream;
+use blazing_agents::ids::SessionId;
+use blazing_agents::messages::UserMessage;
+use blazing_agents::types::Metadata;
+use blazing_agents::Client;
+
+struct Principal {
+    subject: String,
+    organization_id: String,
+}
+
+struct AuthorizedChat {
+    agent_id: String,
+    session_id: Option<String>,
+}
+
+fn resolve_authorized_chat(principal: &Principal, app_chat_id: &str) -> AuthorizedChat {
+    todo!()
+}
+fn save_authorized_session(app_chat_id: &str, session_id: &SessionId) {
+    todo!()
+}
+
+async fn run_authorized_turn(
+    client: &Client,
+    principal: &Principal,
+    app_chat_id: &str,
+    message: UserMessage,
+) -> Result<ChatStream, Box<dyn std::error::Error + Send + Sync>> {
+    let chat = resolve_authorized_chat(principal, app_chat_id);
+    let user_id = format!("app:{}", principal.subject);
+    let metadata = Metadata::new().insert("organizationId", principal.organization_id.clone());
+    let stream = match &chat.session_id {
+        Some(session_id) => {
+            client
+                .chat(&chat.agent_id, message)
+                .session(session_id)
+                .user_id(&user_id)
+                .metadata(metadata)
+                .await?
+        }
+        None => {
+            let stream = client
+                .chat(&chat.agent_id, message)
+                .user_id(&user_id)
+                .metadata(metadata)
+                .await?;
+            save_authorized_session(app_chat_id, stream.session_id());
+            stream
+        }
+    };
+    Ok(stream)
+}
 ```
 
 `app` is your own code. `resolveAuthorizedChat` throws unless the signed-in principal owns the chat, and it returns the agent and session IDs from your database. The TypeScript client also scopes the Blazing Agents request to that principal. Test that one user cannot reach another user's chat ID.

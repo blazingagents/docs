@@ -39,6 +39,30 @@ retry = client.tasks.submit(task_id, idempotency_key=idempotency_key)
 print(first.run_id == retry.run_id)
 ```
 
+```rust tab="Rust"
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+    let task_id = std::env::var("TASK_ID")?;
+    let idempotency_key = "daily-report:2026-07-20";
+
+    let first = client
+        .tasks()
+        .submit(&task_id)
+        .idempotency_key(idempotency_key)
+        .await?;
+    let retry = client
+        .tasks()
+        .submit(&task_id)
+        .idempotency_key(idempotency_key)
+        .await?;
+    println!("{}", first.run_id == retry.run_id);
+    Ok(())
+}
+```
+
 This prints `true`. Build the key from a stable business fact, such as the report date, and save it before you submit. A task runs one job at a time, so a submission with a different key while a run is active returns [`task_active_run_exists`](/api-reference/protocols/errors#task_active_run_exists) (HTTP `409`).
 
 ## Decide whether to retry [#decide-whether-to-retry]
@@ -129,6 +153,23 @@ except APIStatusError as error:
         "status": error.status_code,
         "task_id": task_id,
     })
+```
+
+```rust tab="Rust"
+use blazing_agents::error::Error;
+
+let task_id = "tk_0123456789abcdef";
+if let Err(Error::Api(error)) = client.tasks().get(task_id).await {
+    println!(
+        "{:?}",
+        serde_json::json!({
+            "code": error.code(),
+            "request_id": error.request_id(),
+            "status": error.status(),
+            "task_id": task_id,
+        })
+    );
+}
 ```
 
 Error messages and a task run's `error` field can contain sensitive text. Redact them before you log or share them.

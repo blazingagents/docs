@@ -43,6 +43,27 @@ connection = client.chat_connections.create(
 print(connection.id, connection.webhook_url)
 ```
 
+```rust tab="Rust"
+use blazing_agents::chat_connections::{NewChatConnection, TelegramCredentials};
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+
+    let connection = client
+        .chat_connections()
+        .create(NewChatConnection::telegram(
+            std::env::var("AGENT_ID")?,
+            "Support bot",
+            TelegramCredentials::new(std::env::var("TELEGRAM_BOT_TOKEN")?),
+        ))
+        .await?;
+    println!("{} {}", connection.id, connection.webhook_url);
+    Ok(())
+}
+```
+
 The connection is enabled by default, and Blazing Agents registers its `webhookUrl` with Telegram for you. Message the bot and the agent replies. For Slack, pass `platform: "slack"` with a `botToken` and `signingSecret`, then paste the returned `webhookUrl` into your Slack app as described below.
 
 Creating a connection for the admin agent fails with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`). The dashboard also leaves the admin agent out of the agent list when you add a bot.

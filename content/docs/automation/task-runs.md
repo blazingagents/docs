@@ -38,6 +38,25 @@ run_id = client.tasks.submit(task_id, idempotency_key="weekly-report:2026-07-20"
 print(run_id)
 ```
 
+```rust tab="Rust"
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+    let task_id = std::env::var("TASK_ID")?;
+
+    let run_id = client
+        .tasks()
+        .submit(&task_id)
+        .idempotency_key("weekly-report:2026-07-20")
+        .await?
+        .run_id;
+    println!("{run_id}");
+    Ok(())
+}
+```
+
 You see a `tr_...` run ID. Save it with the task ID, then return. Build the key from something stable about the job, such as the week it covers. A task runs one job at a time, so starting a run with a different key while another is active returns [`task_active_run_exists`](/api-reference/protocols/errors#task_active_run_exists).
 
 ## Check on it later [#check-on-it-later]
@@ -63,6 +82,25 @@ else:
     print(run.status, answer.parts if answer else None)
 ```
 
+```rust tab="Rust"
+use blazing_agents::tasks::TaskRunStatus;
+use blazing_agents::transcript::MessageRole;
+
+let task_id = "tk_0123456789abcdef";
+let run_id = "run_0123456789abcdef";
+let run = client.tasks().run_messages(task_id, run_id).await?;
+if run.status == TaskRunStatus::Queued || run.status == TaskRunStatus::Running {
+    println!("Still working. Check again later.");
+} else {
+    let answer = run
+        .data
+        .iter()
+        .rev()
+        .find(|message| message.role == MessageRole::Assistant);
+    println!("{} {:?}", run.status, answer.map(|message| &message.parts));
+}
+```
+
 When the run is done, you see its final status and the agent's last answer. A run moves from `queued` to `running`, then ends in one of four final statuses:
 
 | Status | Meaning |
@@ -82,6 +120,12 @@ await client.tasks.cancelRun({ taskId, runId });
 
 ```python tab="Python"
 client.tasks.cancel_run(task_id, run_id)
+```
+
+```rust tab="Rust"
+let task_id = "tk_0123456789abcdef";
+let run_id = "run_0123456789abcdef";
+client.tasks().cancel_run(task_id, run_id).await?;
 ```
 
 Cancelling asks the run to stop at its next safe point. Keep checking until you see a final status. The run may finish first, so handle `succeeded` as well as `canceled`. Cancelling a run that already finished does nothing and returns no error.
