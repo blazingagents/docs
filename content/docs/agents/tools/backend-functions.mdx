@@ -175,7 +175,7 @@ with client.continue_chat(
 ```
 
 ```rust tab="Rust"
-use blazing_agents::chat::ApprovalDecision;
+use blazing_agents::chat::ToolApprovalDecision;
 use blazing_agents::functions::Functions;
 use futures_util::TryStreamExt;
 use schemars::JsonSchema;
@@ -195,7 +195,7 @@ struct ShippingInput {
 
 let agent_id = "ag_0123456789abcdef";
 let session_id = "ss_0123456789abcdef";
-let decisions = vec![ApprovalDecision::approve("apr_0123456789abcdef")];
+let decisions = vec![ToolApprovalDecision::approve("apr_0123456789abcdef")];
 let functions = Functions::builder()
     .function(
         "shippingQuote",

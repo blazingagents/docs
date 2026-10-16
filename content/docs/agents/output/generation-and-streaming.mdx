@@ -216,10 +216,8 @@ let image_url = format!(
     "data:image/png;base64,{}",
     STANDARD.encode(std::fs::read("diagram.png")?)
 );
-let message = UserMessage::text("Describe this diagram.").part(UserPart::File {
-    media_type: "image/png".into(),
-    url: image_url,
-});
+let message = UserMessage::text("Describe this diagram.")
+    .part(UserPart::file("image/png", image_url));
 let mut stream = client.chat(agent_id, message).await?;
 while let Some(chunk) = stream.try_next().await? {
     print!("{}", String::from_utf8_lossy(&chunk));

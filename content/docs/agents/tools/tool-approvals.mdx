@@ -114,7 +114,7 @@ for item in approvals.data:
 ```
 
 ```rust tab="Rust"
-use blazing_agents::sessions::ToolApprovalDecision;
+use blazing_agents::sessions::ToolApprovalStatus;
 
 let agent_id = "ag_0123456789abcdef";
 let session_id = "ss_0123456789abcdef";
@@ -123,7 +123,7 @@ let approvals = client
     .tool_approvals(agent_id, session_id)
     .await?;
 for item in &approvals.data {
-    if item.decision == ToolApprovalDecision::Pending {
+    if item.decision == ToolApprovalStatus::Pending {
         println!("{} {} {:?}", item.approval_id, item.tool_name, item.input);
     }
 }
@@ -174,14 +174,14 @@ async def decide(
 use axum::body::Body;
 use axum::http::{header, HeaderValue, StatusCode};
 use axum::response::Response;
-use blazing_agents::chat::ApprovalDecision;
+use blazing_agents::chat::ToolApprovalDecision;
 use blazing_agents::Client;
 
 async fn decide(
     client: &Client,
     agent_id: &str,
     session_id: &str,
-    decisions: Vec<ApprovalDecision>,
+    decisions: Vec<ToolApprovalDecision>,
 ) -> Result<Response, StatusCode> {
     let stream = client
         .continue_chat(agent_id, session_id, decisions)
