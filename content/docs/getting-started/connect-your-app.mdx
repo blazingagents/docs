@@ -34,13 +34,20 @@ export DEMO_USER_TOKEN="demo-token"
     pip install fastapi uvicorn
     ```
 
+    ```bash tab="Rust"
+    cargo add axum
+    cargo add serde --features derive
+    cargo add serde_json
+    cargo add tokio --features net
+    ```
+
     Your backend does three things on every request: it signs the user in, checks that they own the conversation they ask for, and calls Blazing Agents with your API key.
 
   </Step>
   <Step>
     ## Add a chat endpoint [#add-a-chat-endpoint]
 
-    Save this as `server.ts` or `server.py`. The `users` and `owners` dictionaries stand in for your sign-in and your database.
+    Save this as `server.ts`, `server.py`, or `src/bin/server.rs`. The `users` and `owners` dictionaries stand in for your sign-in and your database.
 
     ```typescript tab="TypeScript" tab-group="sdk-language" title="server.ts"
     import { serve } from "@hono/node-server";
@@ -120,7 +127,119 @@ export DEMO_USER_TOKEN="demo-token"
         return StreamingResponse(stream, media_type="text/event-stream", headers=headers)
     ```
 
-    Start it with `node server.ts` or `uvicorn server:app --port 8787`.
+    ```rust tab="Rust" title="src/bin/server.rs"
+    use axum::body::Body;
+    use axum::extract::State;
+    use axum::http::{HeaderMap, HeaderValue, StatusCode};
+    use axum::response::{IntoResponse, Response};
+    use axum::routing::post;
+    use axum::{Json, Router};
+    use blazing_agents::messages::UserMessage;
+    use blazing_agents::Client;
+    use serde::Deserialize;
+    use std::collections::HashMap;
+    use std::sync::{Arc, Mutex};
+    use tokio::net::TcpListener;
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct ChatRequest {
+        message: UserMessage,
+        session_id: Option<String>,
+        trigger: Option<String>,
+    }
+
+    struct AppState {
+        client: Client,
+        agent_id: String,
+        // Replace these with your own sign-in check and database.
+        users: HashMap<String, String>,
+        owners: Mutex<HashMap<String, String>>,
+    }
+
+    async fn chat(
+        State(state): State<Arc<AppState>>,
+        headers: HeaderMap,
+        Json(body): Json<ChatRequest>,
+    ) -> Result<Response, Response> {
+        let token = headers
+            .get("authorization")
+            .and_then(|value| value.to_str().ok())
+            .map(|value| value.trim_start_matches("Bearer "))
+            .unwrap_or_default();
+        let Some(user_id) = state.users.get(token).cloned() else {
+            return Err((
+                StatusCode::UNAUTHORIZED,
+                Json(serde_json::json!({ "error": "unauthorized" })),
+            )
+                .into_response());
+        };
+
+        if let Some(session_id) = &body.session_id {
+            if state.owners.lock().unwrap().get(session_id) != Some(&user_id) {
+                return Err((
+                    StatusCode::FORBIDDEN,
+                    Json(serde_json::json!({ "error": "forbidden" })),
+                )
+                    .into_response());
+            }
+        }
+
+        let result = match (body.trigger.as_deref(), body.session_id) {
+            (Some("regenerate-message"), Some(session_id)) => state
+                .client
+                .regenerate(&state.agent_id, session_id, body.message)
+                .user_id(&user_id)
+                .await,
+            (_, session_id) => {
+                let call = state
+                    .client
+                    .chat(&state.agent_id, body.message)
+                    .user_id(&user_id);
+                match session_id {
+                    Some(session_id) => call.session(session_id).await,
+                    None => call.await,
+                }
+            }
+        };
+        let stream = result.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())?;
+
+        state
+            .owners
+            .lock()
+            .unwrap()
+            .insert(stream.session_id().to_string(), user_id);
+
+        let location = stream.meta().headers().get("location").cloned();
+        let mut response = Response::new(Body::from_stream(stream));
+        let response_headers = response.headers_mut();
+        response_headers.insert("content-type", HeaderValue::from_static("text/event-stream"));
+        response_headers.insert("cache-control", HeaderValue::from_static("no-cache"));
+        response_headers.insert("x-vercel-ai-ui-message-stream", HeaderValue::from_static("v1"));
+        if let Some(location) = location {
+            response_headers.insert("location", location);
+        }
+        Ok(response)
+    }
+
+    #[tokio::main]
+    async fn main() -> Result<(), Box<dyn std::error::Error>> {
+        let state = Arc::new(AppState {
+            client: Client::from_env()?,
+            agent_id: std::env::var("BLAZING_AGENTS_AGENT_ID")?,
+            users: HashMap::from([(std::env::var("DEMO_USER_TOKEN")?, "user-1".to_string())]),
+            owners: Mutex::new(HashMap::new()),
+        });
+        let app = Router::new()
+            .route("/api/chat", post(chat))
+            .with_state(state);
+        let listener = TcpListener::bind("0.0.0.0:8787").await?;
+        axum::serve(listener, app).await?;
+        Ok(())
+    }
+    ```
+
+    Start it with `node server.ts`, `uvicorn server:app --port 8787`, or `cargo run --bin server`.
 
   </Step>
   <Step>
@@ -153,7 +272,7 @@ export DEMO_USER_TOKEN="demo-token"
 
 The first request has no `sessionId`, so Blazing Agents starts a new session and returns its ID before the answer finishes streaming. Your endpoint records the owner right away, then relays the stream. Later requests send the `sessionId`, your endpoint checks the owner, and the agent sees the whole conversation. Your frontend sends only the newest message each time.
 
-In TypeScript, `createChatRelay` does this for you. It also passes the request's abort signal along, so a user who closes the tab stops the turn. The Python endpoint does the same steps by hand with one `client.chat()` call: it passes `session_id` only when the request has one, and `stream.session_id` holds the ID either way.
+In TypeScript, `createChatRelay` does this for you. It also passes the request's abort signal along, so a user who closes the tab stops the turn. The Python and Rust endpoints do the same steps by hand with one chat call: they pass `session_id` only when the request has one, and `stream.session_id` (`stream.session_id()` in Rust) holds the ID either way. The Rust endpoint also routes a `regenerate-message` trigger to `client.regenerate()`.
 
 This relay uses a tenant-wide client. The `userId` it passes labels usage and resources, while the `owners` check protects conversations. For other resource calls, derive a [user-scoped client](/sdk/typescript/client#for-user) from your verified user ID so the API checks ownership as well.
 
