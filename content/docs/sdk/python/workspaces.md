@@ -115,7 +115,7 @@ workspace = client.workspaces.update(
 
 Omitted parameters keep their current value. `name=None` clears the name. `metadata` and `network_policy` replace the current values completely. `user_id` cannot change. Calling `update()` with nothing to change raises `ValueError` before any request.
 
-Returns [`Workspace`](#workspace). Raises `validation_failed` or `workspace_not_found`.
+Returns [`Workspace`](#workspace). Raises `validation_failed`, `workspace_not_found`, or [`workspace_busy`](/api-reference/protocols/errors#workspace_busy).
 
 ### `delete()` [#delete]
 
@@ -131,8 +131,8 @@ Move every agent to another workspace first. Returns `"completed"` when deletion
 
 | Code | Meaning |
 | --- | --- |
+| `validation_failed` | The ID is malformed |
 | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use) | Agents still use it; their IDs are in `error.details["agentIds"]` |
-| [`workspace_busy`](/api-reference/protocols/errors#workspace_busy) | An agent is working in it; retry when that work finishes |
 | `workspace_not_found` | No such workspace in your tenant |
 | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | Temporary failure; retry with backoff |
 

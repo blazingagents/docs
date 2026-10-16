@@ -75,7 +75,7 @@ const { task } = await client.tasks.create({
 | `userId` | `string` | no | `""` | The end user it runs for; cannot change later |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your labels, copied onto each run |
 
-Without `idempotencyKey`, calling `create()` twice creates two tasks. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID. Reusing a key with different task fields or after deleting the task returns `idempotency_conflict`. Returns [`CreateTaskResponse`](#createtaskresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), and [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit` is `true`.
+Without `idempotencyKey`, calling `create()` twice creates two tasks. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID. Reusing a key with different task fields or after deleting the task returns `idempotency_conflict`. Returns [`CreateTaskResponse`](#createtaskresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found), `idempotency_conflict`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), and [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit` is `true`.
 
 ### `list()` [#list]
 
@@ -107,7 +107,7 @@ Reads one task.
 const task = await client.tasks.get({ taskId });
 ```
 
-Returns [`TaskResponse`](#taskresponse). Errors: `validation_failed`, [`not_found`](/api-reference/protocols/errors#not_found).
+Returns [`TaskResponse`](#taskresponse). Errors: `validation_failed`, `not_found`.
 
 ### `update()` [#update]
 
@@ -121,7 +121,7 @@ const task = await client.tasks.update({ taskId, enabled: false });
 
 Takes `taskId` plus any of `name`, `prompt`, `schedule`, `enabled`, and `metadata`, with at least one. Fields you leave out stay as they are. `schedule: null` makes the task on demand. `agentId` and `userId` cannot change. Queued runs keep their saved agent configuration.
 
-Returns [`TaskResponse`](#taskresponse). Errors: `validation_failed`, `not_found`, `admin_agent_managed`.
+Returns [`TaskResponse`](#taskresponse). Errors: `validation_failed`, `not_found`.
 
 ### `delete()` [#delete]
 

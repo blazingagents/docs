@@ -87,7 +87,7 @@ const next = page.nextCursor
 | `cursor` | `string` | no | `nextCursor` from the previous page |
 | `limit` | `number` | no | Page size, 1 to 100; defaults to 50 |
 
-Returns `{ data: PromptResponse[], nextCursor: string | null }`. Keep the same filters when paging.
+Returns `{ data: PromptResponse[], nextCursor: string | null }`. Keep the same filters when paging. Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `get()` [#get]
 

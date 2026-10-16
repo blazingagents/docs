@@ -88,7 +88,7 @@ Without `provider_id` and `model`, the agent is saved unconfigured. Passing only
 
 An approval policy is a dictionary with a required `default` decision and an optional list of per-tool `overrides`. Decisions are `"full"`, `"deny"`, `"manual"`, or `"auto"`. See [tool approvals](/agents/tools/tool-approvals) for what each decision does.
 
-Returns [`Agent`](#agent). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), or [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid).
+Returns [`Agent`](#agent). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), or [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed).
 
 ### `list()` [#list]
 
@@ -145,7 +145,7 @@ Accepts every [`create()`](#create) parameter except `user_id`, which never chan
 - `thinking_level=None` resets to the provider default.
 - `workspace_id` moves the agent to another workspace. It cannot be cleared.
 
-Calling `update()` with no parameters raises `ValueError` before any request. Returns [`Agent`](#agent). Raises `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, or `agent_mcp_connections_invalid`.
+Calling `update()` with no parameters raises `ValueError` before any request. Returns [`Agent`](#agent). Raises `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `model_validation_unavailable`, `workspace_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, `mcp_connection_discovery_failed`, or [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
 
 ### `delete()` [#delete]
 
@@ -157,7 +157,7 @@ client.agents.delete(agent.id, include_artifacts=False)
 
 **Signature:** `delete(agent_id: str, *, include_artifacts: bool) -> None`
 
-`include_artifacts` is required: `True` also deletes the agent's published artifacts, and `False` keeps them. Raises `validation_failed` or `not_found`.
+`include_artifacts` is required: `True` also deletes the agent's published artifacts, and `False` keeps them. Raises `validation_failed`, `not_found`, or `admin_agent_managed`.
 
 ### `disable()` [#disable]
 
@@ -169,7 +169,7 @@ agent = client.agents.disable(agent.id)
 
 **Signature:** `disable(agent_id: str) -> Agent`
 
-Returns [`Agent`](#agent) with `status == "disabled"`. Calling it again is harmless. A disabled agent stays readable and editable, and new turns fail with [`agent_disabled`](/api-reference/protocols/errors#agent_disabled). Raises `not_found`.
+Returns [`Agent`](#agent) with `status == "disabled"`. Calling it again is harmless. A disabled agent stays readable and editable, and new turns fail with [`agent_disabled`](/api-reference/protocols/errors#agent_disabled). Raises `validation_failed`, `not_found`, or `admin_agent_managed`.
 
 ### `enable()` [#enable]
 
@@ -181,7 +181,7 @@ agent = client.agents.enable(agent.id)
 
 **Signature:** `enable(agent_id: str) -> Agent`
 
-Returns [`Agent`](#agent) with `status == "active"`. Calling it again is harmless. Scheduled task runs skipped while the agent was disabled do not run afterwards. Raises `not_found`.
+Returns [`Agent`](#agent) with `status == "active"`. Calling it again is harmless. Scheduled task runs skipped while the agent was disabled do not run afterwards. Raises `validation_failed`, `not_found`, or `admin_agent_managed`.
 
 ### `upload_avatar()` [#upload-avatar]
 
@@ -197,7 +197,7 @@ agent = client.agents.upload_avatar(agent.id, Path("avatar.webp"))
 
 `file` is a PNG, JPEG, or WebP image of at most 512 KiB, given as bytes, a file path, or an open binary file. The SDK opens and closes paths itself and never closes a file object you pass. Bytes need `filename`; paths and named file objects supply their own. `content_type` overrides the type guessed from the filename.
 
-Returns [`Agent`](#agent) whose `avatar_url` is a short-lived signed URL. A missing filename raises `ValueError`. Raises `validation_failed` for a missing, oversized, or unsupported file, or `not_found`.
+Returns [`Agent`](#agent) whose `avatar_url` is a short-lived signed URL. A missing filename raises `ValueError`. Raises `validation_failed` for a missing, oversized, or unsupported file, `not_found`, or `admin_agent_managed`.
 
 ### `remove_avatar()` [#remove-avatar]
 
@@ -209,7 +209,7 @@ agent = client.agents.remove_avatar(agent.id)
 
 **Signature:** `remove_avatar(agent_id: str) -> Agent`
 
-Returns [`Agent`](#agent) with `avatar_url is None`. Raises `validation_failed` or `not_found`.
+Returns [`Agent`](#agent) with `avatar_url is None`. Raises `validation_failed`, `not_found`, or `admin_agent_managed`.
 
 ### `list_mcp_attachments()` [#list-mcp-attachments]
 
@@ -255,7 +255,7 @@ budget = client.agents.get_spending_limit("ag_0123456789abcdef")
 
 **Signature:** `get_spending_limit(agent_id: str) -> SpendingLimitResponse`
 
-Returns the same [`SpendingLimitResponse`](/sdk/python/tenant#get-spending-limit) as the tenant method.
+Returns the same [`SpendingLimitResponse`](/sdk/python/tenant#get-spending-limit) as the tenant method. Raises `validation_failed`, `not_found`, or [`forbidden`](/api-reference/protocols/errors#forbidden) from a user-scoped client.
 
 ### `update_spending_limit()` [#update-spending-limit]
 
@@ -274,7 +274,7 @@ client.agents.update_spending_limit(
 
 **Signature:** `update_spending_limit(agent_id: str, *, spending_limit: SpendingLimitInput | None) -> SpendingLimitResponse`
 
-See [model spending limits](/platform/usage-and-quotas#model-spending-limits).
+See [model spending limits](/platform/usage-and-quotas#model-spending-limits). Raises `validation_failed`, `not_found`, or `forbidden` from a user-scoped client.
 
 ## Response models [#response-models]
 

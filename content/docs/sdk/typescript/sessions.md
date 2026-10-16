@@ -131,7 +131,7 @@ Deletes a session and its messages for good. You choose whether its artifacts go
 await client.sessions.delete({ agentId, sessionId, deleteArtifacts: false });
 ```
 
-`deleteArtifacts: true` also deletes the files the agent published in this session; `false` keeps them. Errors: `validation_failed`, `not_found`.
+`deleteArtifacts: true` also deletes the files the agent published in this session; `false` keeps them. Errors: `validation_failed`, `not_found`, [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn is running or an approval continuation is still open, or [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) when the last turn stopped responding; wait for `Retry-After`.
 
 ### `toolApprovals()` [#tool-approvals]
 
@@ -172,7 +172,7 @@ const { data: input, activity } = await client.sessions.submitInput({
 | `requestId` | `string` | yes | Your ID for this steer, 1 to 128 characters, other than `.` or `..` |
 | `message` | `UIMessage` | yes | A user message with text and image parts |
 
-Resending the same `requestId` with the same message returns the same receipt, so retry with the original values after a timeout. A call that cannot steer, because no turn is running or can take one, fails with [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and saves nothing; keep the message in your app's own queue and send it later as an ordinary `chat()` message. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `validation_failed`, `not_found`, [`session_busy`](/api-reference/protocols/errors#session_busy), [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `requestId` or `message.id` was already used for different content.
+Resending the same `requestId` with the same message returns the same receipt, so retry with the original values after a timeout. A call that cannot steer, because no turn is running or can take one, fails with [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and saves nothing; keep the message in your app's own queue and send it later as an ordinary `chat()` message. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `validation_failed`, `not_found`, `session_busy`, [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `requestId` or `message.id` was already used for different content.
 
 ### `inputs()` [#inputs]
 
@@ -232,7 +232,7 @@ Select a message whose top-level `branchable` is `true`. Streaming replies and p
 
 Use a nonblank idempotency key of at most 200 characters. Save it before sending and reuse the exact source, message, and key after a lost response. Creation returns HTTP `201`; identical replay returns HTTP `200` and the same child, even if the source was deleted. Forking runs no model or tool and creates no usage. Continue through `chat()` with the child's ID; later turns have normal usage.
 
-Errors: `idempotency_conflict` (`409`) for the same key with another message, `session_fork_unavailable` (`409`) for a removed or ineligible reply, `session_fork_deleted` (`410`) for a replay whose child was deleted, and `not_found` (`404`) for a missing or inaccessible source or agent.
+Errors: `validation_failed` (`400`) for a malformed ID or body, `idempotency_conflict` (`409`) for the same key with another message, `session_fork_unavailable` (`409`) for a removed or ineligible reply, `session_fork_deleted` (`410`) for a replay whose child was deleted, and `not_found` (`404`) for a missing or inaccessible source or agent.
 
 ## Response types [#response-types]
 
@@ -381,7 +381,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | `tool_approval_decision_conflict` | The call was already decided differently; reload the approvals |
 | `tool_approval_continuation_settled` | The approval round already finished; read the history |
 | `session_busy` | A turn or approval continuation is in progress; wait for it |
-| [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) | The previous turn stopped responding; wait for the `Retry-After` header, then send again under a new message ID |
+| `session_turn_unresponsive` | The previous turn stopped responding; wait for the `Retry-After` header, then send again under a new message ID |
 | [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) | The `requestId` or `message.id` was used for different content; retry with the original values |
 | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) | The agent is disabled |
 

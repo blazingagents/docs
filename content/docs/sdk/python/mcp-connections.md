@@ -149,7 +149,7 @@ else:
 
 **Signature:** `test(mcp_connection_id: str) -> McpConnectionTestResult`
 
-A failed check is a normal result with `ok == False`, not an exception. Testing an OAuth connection can refresh its stored tokens. Raises `not_found` for an unknown connection.
+A failed check is a normal result with `ok == False`, not an exception. Testing an OAuth connection can refresh its stored tokens. Raises `validation_failed`, or `not_found` for an unknown connection.
 
 ### `reconnect()` [#reconnect]
 

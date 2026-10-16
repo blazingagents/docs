@@ -64,7 +64,7 @@ connection = client.chat_connections.get("cc_0123456789abcdef")
 
 **Signature:** `get(chat_connection_id: str) -> ChatConnection`
 
-Returns [`ChatConnection`](#chatconnection).
+Returns [`ChatConnection`](#chatconnection). Raises [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `create()` [#create]
 
@@ -93,7 +93,7 @@ print(connection.webhook_url)
 
 `credentials` must have exactly the keys for the platform, and `configuration` only the platform's keys, or the SDK raises `ValueError`. `channel_ids` and `chat_ids`, up to 20 each, pick where health checks look; they do not restrict who can use the bot. Set `business_mode` only for a Telegram Business bot.
 
-`enabled` defaults to `True`. Pass `False` to finish setup before messages arrive. For Slack, paste the returned `webhook_url` into your Slack app. For Telegram, Blazing Agents registers the webhook for you when the connection is enabled. To use a different agent or bot, create a new connection. If `agent_id` is the admin agent, `create()` raises [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`) and creates nothing. If creation times out, list your connections before retrying, since the first attempt may have succeeded.
+`enabled` defaults to `True`. Pass `False` to finish setup before messages arrive. For Slack, paste the returned `webhook_url` into your Slack app. For Telegram, Blazing Agents registers the webhook for you when the connection is enabled. To use a different agent or bot, create a new connection. If `agent_id` is the admin agent, `create()` raises [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`) and creates nothing. If creation times out, list your connections before retrying, since the first attempt may have succeeded. Raises `validation_failed`, `not_found` when the agent does not exist, or `admin_agent_managed`.
 
 ### `update()` [#update]
 
@@ -108,7 +108,7 @@ connection = client.chat_connections.update(
 
 **Signature:** `update(chat_connection_id: str, *, name=..., configuration=...) -> ChatConnection`
 
-Pass at least one parameter; passing neither, or unknown configuration keys, raises `ValueError` before any request.
+Pass at least one parameter; passing neither, or unknown configuration keys, raises `ValueError` before any request. Raises `validation_failed`, `not_found`, [`chat_webhook_conflict`](/api-reference/protocols/errors#chat_webhook_conflict), or [`chat_webhook_registration_failed`](/api-reference/protocols/errors#chat_webhook_registration_failed).
 
 ### `rotate_credentials()` [#rotate-credentials]
 
@@ -124,7 +124,7 @@ connection = client.chat_connections.rotate_credentials(
 
 **Signature:** `rotate_credentials(chat_connection_id: str, *, platform: Literal["slack", "telegram"], credentials) -> ChatConnection`
 
-Send the complete credential set for the platform, as in [`create()`](#create).
+Send the complete credential set for the platform, as in [`create()`](#create). Raises `validation_failed`, `not_found`, `chat_webhook_conflict`, or `chat_webhook_registration_failed`.
 
 ### `check_health()` [#check-health]
 
@@ -138,7 +138,7 @@ for check in connection.health.checks:
 
 **Signature:** `check_health(chat_connection_id: str) -> ChatConnection`
 
-Each check is `"pass"`, `"fail"`, or `"unknown"`. `"unknown"` means the check could not tell; verify that setting yourself. A valid token alone does not prove messages arrive: require the `webhook_url` check to pass.
+Each check is `"pass"`, `"fail"`, or `"unknown"`. `"unknown"` means the check could not tell; verify that setting yourself. A valid token alone does not prove messages arrive: require the `webhook_url` check to pass. Raises `validation_failed` or `not_found`.
 
 ### `enable()` [#enable]
 
@@ -150,7 +150,7 @@ connection = client.chat_connections.enable(connection.id)
 
 **Signature:** `enable(chat_connection_id: str) -> ChatConnection`
 
-Messages sent while the connection was disabled are not replayed. For Telegram, enabling registers the webhook: it raises [`chat_webhook_conflict`](/api-reference/protocols/errors#chat_webhook_conflict) when the bot already points to another webhook and [`chat_webhook_registration_failed`](/api-reference/protocols/errors#chat_webhook_registration_failed) for other registration failures.
+Messages sent while the connection was disabled are not replayed. For Telegram, enabling registers the webhook: it raises `chat_webhook_conflict` when the bot already points to another webhook and `chat_webhook_registration_failed` for other registration failures. Also raises `validation_failed` or `not_found`.
 
 ### `disable()` [#disable]
 
@@ -162,6 +162,8 @@ connection = client.chat_connections.disable(connection.id)
 
 **Signature:** `disable(chat_connection_id: str) -> ChatConnection`
 
+Raises `validation_failed` or `not_found`.
+
 ### `delete()` [#delete]
 
 Disconnects the bot. Sessions from its conversations are kept.
@@ -172,7 +174,7 @@ client.chat_connections.delete(connection.id)
 
 **Signature:** `delete(chat_connection_id: str) -> None`
 
-Blazing Agents clears the bot's Telegram webhook if it still points to this connection. Uninstalling a Slack app is up to you.
+Blazing Agents clears the bot's Telegram webhook if it still points to this connection. Uninstalling a Slack app is up to you. Raises `validation_failed` or `not_found`.
 
 ### `chat_deliveries.list()` [#list-deliveries]
 
