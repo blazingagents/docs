@@ -1,8 +1,9 @@
 /**
  * Compiles every `rust` fenced block under a Markdown root against the pinned Rust SDK.
  * A block with `fn main` compiles as written. Any other block compiles as the body of
- * `async fn snippet(client: blazing_agents::Client) -> Result<(), Box<dyn Error + Send + Sync>>`,
- * so it may use `client`, `?` and `.await` without boilerplate.
+ * `async fn snippet(client: blazing_agents::Client, agent_id: &str, session_id: &str)
+ *   -> Result<(), Box<dyn Error + Send + Sync>>`, like a continuation of the page's earlier
+ * examples, so it may use `client`, `agent_id`, `session_id`, `?` and `.await` without boilerplate.
  */
 import { spawnSync } from "node:child_process";
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -16,7 +17,7 @@ mkdirSync(examples);
 
 const FENCE = /^(\s*)(`{3,}|~{3,})\s*([^\s`]*)/;
 const PRELUDE =
-  "#[allow(unused, clippy::all)]\nasync fn snippet(client: blazing_agents::Client) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {\n";
+  "#[allow(unused, clippy::all)]\nasync fn snippet(client: blazing_agents::Client, agent_id: &str, session_id: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {\n";
 const PRELUDE_LINES = PRELUDE.split("\n").length - 1;
 
 /** Example file name -> { file, line, offset } so compiler lines map back to Markdown. */
