@@ -172,6 +172,36 @@ def inspect_task_error() -> None:
             raise
 ```
 
+```rust tab="Rust"
+use blazing_agents::error::{Error, ErrorCode};
+
+async fn inspect_task_error(
+    client: &blazing_agents::Client,
+    task_id: &str,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    match client.tasks().get(task_id).await {
+        Err(Error::Api(error)) => {
+            println!(
+                "{:?}",
+                serde_json::json!({
+                    "code": error.code(),
+                    "request_id": error.request_id(),
+                    "status": error.status(),
+                })
+            );
+            if error.code() != &ErrorCode::QuotaExceeded {
+                return Err(error.into());
+            }
+            Ok(())
+        }
+        result => {
+            result?;
+            Ok(())
+        }
+    }
+}
+```
+
 Await the final value to catch a failure after the response starts:
 
 ```typescript tab="TypeScript"
@@ -196,6 +226,26 @@ try:
         print(stream.get_final_text())
 except StreamError as error:
     print({"request_id": error.request_id})
+```
+
+```rust tab="Rust"
+use blazing_agents::error::Error;
+
+let agent_id = "ag_0123456789abcdef";
+let prompt = "Summarize this.";
+match client
+    .completion_stream(agent_id, prompt)
+    .await?
+    .final_text()
+    .await
+{
+    Ok(text) => println!("{text}"),
+    Err(Error::Stream(error)) => println!(
+        "{:?}",
+        serde_json::json!({ "request_id": error.meta().request_id() })
+    ),
+    Err(error) => return Err(error.into()),
+}
 ```
 
 <!-- error-catalog:start -->
