@@ -1331,4 +1331,4 @@ To fix it:
 
 - [Limits and reliability](/platform/limits-and-reliability) for retries and timeouts.
 - [Service limits](/api-reference/protocols/service-limits) for every limit and the code it returns.
-- [TypeScript client](/sdk/typescript/client) and [Python client](/sdk/python/client) for SDK error handling.
+- [TypeScript client](/sdk/typescript/client), [Python client](/sdk/python/client), and [Rust client](/sdk/rust/client) for SDK error handling.

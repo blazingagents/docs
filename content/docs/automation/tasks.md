@@ -88,7 +88,7 @@ Deleting a task removes it and its schedule. It does not undo anything earlier r
 ## Production notes [#production-notes]
 
 - Creating a task with `submit: true` also starts a run. Pass `idempotencyKey` to `tasks.create()` (`idempotency_key` in Python, `.idempotency_key()` in Rust) if your backend may retry the request.
-- For end-user requests, derive a scoped client from the verified user ID with [`forUser()`](/sdk/typescript/client#for-user) or [`for_user()`](/sdk/python/client#for-user). The API checks ownership before it reads, changes, or runs a task.
+- For end-user requests, derive a scoped client from the verified user ID with [`forUser()`](/sdk/typescript/client#for-user) in TypeScript, [`for_user()`](/sdk/python/client#for-user) in Python, or [`for_user()`](/sdk/rust/client#for-user) in Rust. The API checks ownership before it reads, changes, or runs a task.
 
 ## Next [#next]
 

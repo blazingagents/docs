@@ -17,7 +17,7 @@ Monetization is off until you turn it on. While it is off, nothing is sent to yo
 
 ## Set up monetization [#set-up-monetization]
 
-You can do every step in the dashboard under **Monetization**, or from your backend with either SDK as shown here.
+You can do every step in the dashboard under **Monetization**, or from your backend with any SDK as shown here.
 
 <Steps>
 <Step>

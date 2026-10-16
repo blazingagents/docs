@@ -65,7 +65,7 @@ This table compares building on a plain model SDK with your own database and san
 Blazing Agents sits behind your backend:
 
 1. **Your frontend** renders the chat and sends messages to your backend.
-2. **Your backend** signs in the user, checks access, and calls Blazing Agents through the [TypeScript SDK](/sdk/typescript) or [Python SDK](/sdk/python).
+2. **Your backend** signs in the user, checks access, and calls Blazing Agents through the [TypeScript SDK](/sdk/typescript), [Python SDK](/sdk/python), or [Rust SDK](/sdk/rust).
 3. **Blazing Agents** runs the turn and streams the answer back through your backend.
 
 The stream uses the Vercel AI SDK UI message format, so `useChat` from `@ai-sdk/react` renders it with no custom parsing. The [chatbot guide](/getting-started/chatbot) builds the send flow and lists how to add stop, edit, and regenerate.

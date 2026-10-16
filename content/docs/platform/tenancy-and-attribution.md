@@ -136,7 +136,7 @@ If you forget to pass `userId`, the activity is recorded with the empty label. D
 
 ## User labels and user scope [#user-labels-and-user-scope]
 
-A `userId` in a request body or list filter labels or selects data. It does not change the API key's authority. Derive the user ID from a session your backend verified, then call [`forUser()`](/sdk/typescript/client#for-user) in TypeScript or [`for_user()`](/sdk/python/client#for-user) in Python. The scoped client sends `X-BA-User-Id`, and the API checks that resources belong to that user. A scoped request cannot administer tenant-wide settings.
+A `userId` in a request body or list filter labels or selects data. It does not change the API key's authority. Derive the user ID from a session your backend verified, then call [`forUser()`](/sdk/typescript/client#for-user) in TypeScript, [`for_user()`](/sdk/python/client#for-user) in Python, or [`for_user()`](/sdk/rust/client#for-user) in Rust. The scoped client sends `X-BA-User-Id`, and the API checks that resources belong to that user. A scoped request cannot administer tenant-wide settings.
 
 Blazing Agents does not authenticate your product's users. Your backend still decides whether the signed-in person may use a feature or reach an application record.
 
