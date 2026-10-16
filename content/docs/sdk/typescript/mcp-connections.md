@@ -142,7 +142,7 @@ if (result.ok) {
 }
 ```
 
-A failed check returns `ok: false` instead of throwing, and updates the connection's `status`: `"connected"` on success, `"needs_auth"` when the credentials are rejected, `"error"` otherwise. Testing an OAuth connection may refresh its token. Returns [`McpConnectionTestResponse`](#mcpconnectiontestresponse). Errors: `not_found`.
+A failed check returns `ok: false` instead of throwing, and updates the connection's `status`: `"connected"` on success, `"needs_auth"` when the credentials are rejected, `"error"` otherwise. Testing an OAuth connection may refresh its token. Returns [`McpConnectionTestResponse`](#mcpconnectiontestresponse). Errors: `validation_failed`, `not_found`.
 
 ### `connect()` [#connect]
 
@@ -157,7 +157,7 @@ const { authorizationUrl } = await dashboardClient.mcpConnections.connect({ mcpC
 
 The URL opens the connection's page in the Blazing Agents dashboard, where the person signs in to the MCP server's provider and approves access. The connection then turns `"connected"`. This call needs a signed-in dashboard user's access token in place of the API key; a client built with an API key gets [`unauthorized`](/api-reference/protocols/errors#unauthorized). Most apps send the person to the [dashboard](https://www.blazingagents.com/app) to finish OAuth instead.
 
-Returns [`McpConnectionOauthConnectResponse`](#mcpconnectionoauthconnectresponse). Errors: `unauthorized`, `validation_failed`.
+Returns [`McpConnectionOauthConnectResponse`](#mcpconnectionoauthconnectresponse). Errors: `unauthorized`, `validation_failed`, and `not_found` when the connection is missing or does not need authorization.
 
 ### `reconnect()` [#reconnect]
 

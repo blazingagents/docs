@@ -60,7 +60,7 @@ const skill = await client.agent({ agentId }).skills.create({
 | `path` | `"SKILL.md"` | yes | Always `"SKILL.md"` |
 | `content` | `string` | yes | The file text, starting with frontmatter |
 
-Add supporting files afterwards with [`putFile()`](#put-file). Returns [`SkillDetail`](#skilldetail). Errors: [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict), [`skill_limit_reached`](/api-reference/protocols/errors#skill_limit_reached), [`validation_failed`](/api-reference/protocols/errors#validation_failed), and [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
+Add supporting files afterwards with [`putFile()`](#put-file). Returns [`SkillDetail`](#skilldetail). Errors: [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict), [`skill_limit_reached`](/api-reference/protocols/errors#skill_limit_reached), [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large), [`validation_failed`](/api-reference/protocols/errors#validation_failed), and [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
 
 ### `upload()` [#upload]
 
@@ -81,7 +81,7 @@ const skill = await client.agent({ agentId }).skills.upload({
 | `source.file` | `Blob \| Uint8Array` | yes | Archive bytes, at most 10 MiB |
 | `source.type` | `"zip" \| "tar" \| "tar.gz"` | yes | Archive format |
 
-Returns [`SkillDetail`](#skilldetail). Errors: `validation_failed`, [`skill_invalid_archive`](/api-reference/protocols/errors#skill_invalid_archive), `skill_invalid_markdown`, `skill_name_conflict`, `skill_limit_reached`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large), and `not_found` when the agent does not exist.
+Returns [`SkillDetail`](#skilldetail). Errors: `validation_failed`, [`skill_invalid_archive`](/api-reference/protocols/errors#skill_invalid_archive), `skill_invalid_markdown`, `skill_name_conflict`, `skill_limit_reached`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), `skill_uncompressed_too_large`, and `not_found` when the agent does not exist.
 
 ### `list()` [#list]
 
@@ -110,7 +110,7 @@ Reads a skill with its current file list.
 const skill = await client.agent({ agentId }).skills.get({ skillId });
 ```
 
-Returns [`SkillDetail`](#skilldetail). Errors: `validation_failed`, [`skill_not_found`](/api-reference/protocols/errors#skill_not_found).
+Returns [`SkillDetail`](#skilldetail). Errors: `validation_failed`, `not_found`, [`skill_not_found`](/api-reference/protocols/errors#skill_not_found).
 
 ### `getFile()` [#get-file]
 
@@ -126,7 +126,7 @@ const bytes = await client.agent({ agentId }).skills.getFile({
 console.log(new TextDecoder().decode(bytes));
 ```
 
-Returns a `Uint8Array`. Decode text files yourself. Errors: `validation_failed`, `skill_not_found`.
+Returns a `Uint8Array`. Decode text files yourself. Errors: `validation_failed`, `not_found`, `skill_not_found`.
 
 ### `putFile()` [#put-file]
 
@@ -142,7 +142,7 @@ const skill = await client.agent({ agentId }).skills.putFile({
 });
 ```
 
-Replacing `SKILL.md` also updates the skill's name and description from the new frontmatter. Returns the updated [`SkillDetail`](#skilldetail). Errors: `validation_failed`, `skill_not_found`, `skill_invalid_markdown`, `skill_name_conflict`, `skill_too_many_files`, `skill_uncompressed_too_large`.
+Replacing `SKILL.md` also updates the skill's name and description from the new frontmatter. Returns the updated [`SkillDetail`](#skilldetail). Errors: `validation_failed`, `not_found`, `skill_not_found`, `skill_invalid_markdown`, `skill_name_conflict`, `skill_too_many_files`, `skill_uncompressed_too_large`.
 
 ### `deleteFile()` [#delete-file]
 
@@ -157,7 +157,7 @@ const skill = await client.agent({ agentId }).skills.deleteFile({
 });
 ```
 
-You cannot delete `SKILL.md`; that fails with [`invalid_request`](/api-reference/protocols/errors#invalid_request). Delete the whole skill instead. Returns the updated [`SkillDetail`](#skilldetail). Errors: `invalid_request`, `validation_failed`, `skill_not_found`.
+You cannot delete `SKILL.md`; that fails with [`invalid_request`](/api-reference/protocols/errors#invalid_request). Delete the whole skill instead. Returns the updated [`SkillDetail`](#skilldetail). Errors: `invalid_request`, `validation_failed`, `not_found`, `skill_not_found`.
 
 ### `copy()` [#copy]
 
@@ -175,7 +175,7 @@ for (const result of results) {
 }
 ```
 
-`to.agentIds` lists 1 to 30 different agents. One failed destination does not stop the others, so check each result. Results come back in the order you listed the agents. Returns [`SkillCopyResults`](#skillcopyresults). Errors for the whole call: `validation_failed`, `skill_not_found`.
+`to.agentIds` lists 1 to 30 different agents. One failed destination does not stop the others, so check each result. Results come back in the order you listed the agents. Returns [`SkillCopyResults`](#skillcopyresults). Errors for the whole call: `validation_failed`, `not_found`, `skill_not_found`.
 
 ### `delete()` [#delete]
 
@@ -187,7 +187,7 @@ Deletes a skill and all its files.
 await client.agent({ agentId }).skills.delete({ skillId });
 ```
 
-Errors: `validation_failed`, `skill_not_found`.
+Errors: `validation_failed`, `not_found`, `skill_not_found`.
 
 ## Response types [#response-types]
 

@@ -90,7 +90,7 @@ The SDK checks the schedule shape before sending and raises `TypeError` or `Valu
 
 Without `idempotency_key`, calling `create()` twice creates two tasks. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID. Reusing a key with different task fields, or after deleting the task, raises `idempotency_conflict`. The key must not be blank.
 
-Returns `TaskCreateResponse` with `task` and `run_id`, which is set only when `submit=True`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit=True` and the agent is disabled.
+Returns `TaskCreateResponse` with `task` and `run_id`, which is set only when `submit=True`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found) for an unknown agent, `idempotency_conflict`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) for the admin agent, or [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit=True` and the agent is disabled.
 
 ### `list()` [#list]
 
@@ -127,7 +127,7 @@ task = client.tasks.get(task.id)
 
 **Signature:** `get(task_id: str) -> Task`
 
-Returns [`Task`](#task). Raises `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
+Returns [`Task`](#task). Raises `validation_failed` or `not_found`.
 
 ### `update()` [#update]
 

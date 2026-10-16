@@ -74,7 +74,7 @@ console.log(connection.webhookUrl);
 
 For Telegram, Blazing Agents registers the bot's webhook when the connection is enabled. For Slack, paste the returned `webhookUrl` into your Slack app's settings. Pass `enabled: false` to finish setup before messages arrive. To use another agent or bot, create a new connection. If `agentId` is the admin agent, `create()` fails with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`) and creates nothing.
 
-If `create()` times out, list your connections before you retry, so you do not create two. Returns [`ChatConnection`](#chatconnection).
+If `create()` times out, list your connections before you retry, so you do not create two. Returns [`ChatConnection`](#chatconnection). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist, `admin_agent_managed`.
 
 ### `list()` [#list]
 
@@ -98,7 +98,7 @@ Reads one connection.
 const connection = await client.chatConnections.get({ chatConnectionId });
 ```
 
-Returns [`ChatConnection`](#chatconnection).
+Returns [`ChatConnection`](#chatconnection). Errors: `validation_failed`, `not_found`.
 
 ### `update()` [#update]
 
@@ -113,7 +113,7 @@ const connection = await client.chatConnections.update({
 });
 ```
 
-Pass `name`, `configuration`, or both. `configuration` takes any of `channelIds`, `chatIds`, and `businessMode`, and changes only the keys you send. Returns [`ChatConnection`](#chatconnection).
+Pass `name`, `configuration`, or both. `configuration` takes any of `channelIds`, `chatIds`, and `businessMode`, and changes only the keys you send. Returns [`ChatConnection`](#chatconnection). Errors: `validation_failed`, `not_found`, [`chat_webhook_conflict`](/api-reference/protocols/errors#chat_webhook_conflict), [`chat_webhook_registration_failed`](/api-reference/protocols/errors#chat_webhook_registration_failed).
 
 ### `rotateCredentials()` [#rotate-credentials]
 
@@ -130,7 +130,7 @@ const connection = await client.chatConnections.rotateCredentials({
 });
 ```
 
-Send the full set for the platform: `botToken` and `signingSecret` for Slack, `botToken` for Telegram. Returns [`ChatConnection`](#chatconnection).
+Send the full set for the platform: `botToken` and `signingSecret` for Slack, `botToken` for Telegram. Returns [`ChatConnection`](#chatconnection). Errors: `validation_failed`, `not_found`, `chat_webhook_conflict`, `chat_webhook_registration_failed`.
 
 ### `checkHealth()` [#check-health]
 
@@ -144,7 +144,7 @@ const webhook = health.checks.find(({ code }) => code === "webhook_url");
 if (webhook?.status !== "pass") console.warn("Webhook not confirmed", webhook);
 ```
 
-Each check is `pass`, `fail`, or `unknown`; confirm `unknown` ones by hand. A valid token alone does not prove messages arrive, so require the `webhook_url` check to pass and send the bot a test message. Returns [`ChatConnection`](#chatconnection).
+Each check is `pass`, `fail`, or `unknown`; confirm `unknown` ones by hand. A valid token alone does not prove messages arrive, so require the `webhook_url` check to pass and send the bot a test message. Returns [`ChatConnection`](#chatconnection). Errors: `validation_failed`, `not_found`.
 
 ### `enable()` [#enable]
 
@@ -156,7 +156,7 @@ Starts handling the bot's messages.
 await client.chatConnections.enable({ chatConnectionId });
 ```
 
-Messages sent while the connection was disabled are not replayed. Returns [`ChatConnection`](#chatconnection) with `enabled: true`.
+Messages sent while the connection was disabled are not replayed. Returns [`ChatConnection`](#chatconnection) with `enabled: true`. Errors: `validation_failed`, `not_found`, `chat_webhook_conflict`, `chat_webhook_registration_failed`.
 
 ### `disable()` [#disable]
 
@@ -168,7 +168,7 @@ Stops handling new messages and approval clicks. Work already running may finish
 await client.chatConnections.disable({ chatConnectionId });
 ```
 
-Returns [`ChatConnection`](#chatconnection) with `enabled: false`.
+Returns [`ChatConnection`](#chatconnection) with `enabled: false`. Errors: `validation_failed`, `not_found`.
 
 ### `delete()` [#delete]
 
@@ -180,7 +180,7 @@ Disconnects the bot from Blazing Agents. Its sessions stay readable.
 await client.chatConnections.delete({ chatConnectionId });
 ```
 
-A Telegram bot's webhook is cleared for you. Uninstall a Slack app yourself.
+A Telegram bot's webhook is cleared for you. Uninstall a Slack app yourself. Errors: `validation_failed`, `not_found`.
 
 ### `chatDeliveries.list()` [#list-deliveries]
 
@@ -205,7 +205,7 @@ for (const delivery of page.data) {
 
 `failed` means the platform did not accept the message, and `ambiguous` means it may have been sent. The feed never lists `pending` or `confirmed` deliveries; [list one connection's deliveries](/api-reference/rest-api/chat-connections#list-chat-deliveries) for those, and passing any other `status` fails with `validation_failed`. Keep the same filters when you pass `nextCursor` back as `cursor`.
 
-Returns [`ChatDeliveriesResponse`](#chatdeliveriesresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
+Returns [`ChatDeliveriesResponse`](#chatdeliveriesresponse). Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ## Response types [#response-types]
 

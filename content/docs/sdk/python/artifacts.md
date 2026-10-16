@@ -63,7 +63,7 @@ print(artifact.filename, artifact.media_type, artifact.size_bytes)
 
 **Signature:** `get(*, artifact_id: str) -> Artifact`
 
-Returns [`Artifact`](#artifact). Raises [`not_found`](/api-reference/protocols/errors#not_found).
+Returns [`Artifact`](#artifact). Raises `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `create_download_url()` [#create-download-url]
 
@@ -76,7 +76,7 @@ print(download.url, download.expires_at)
 
 **Signature:** `create_download_url(*, artifact_id: str) -> ArtifactDownloadUrl`
 
-Anyone with the link can download the file until it expires, so keep it out of logs and share it only with the intended user. Returns `ArtifactDownloadUrl` with `url` and `expires_at`. Raises `not_found`, or [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) when downloads are temporarily unavailable.
+Anyone with the link can download the file until it expires, so keep it out of logs and share it only with the intended user. Returns `ArtifactDownloadUrl` with `url` and `expires_at`. Raises `validation_failed`, `not_found`, or [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) when downloads are temporarily unavailable.
 
 ### `delete()` [#delete]
 
@@ -88,7 +88,7 @@ client.artifacts.delete(artifact_id=artifact.artifact_id)
 
 **Signature:** `delete(*, artifact_id: str) -> None`
 
-The original file in the agent's workspace is not touched. Deleting the same artifact again raises `not_found`.
+The original file in the agent's workspace is not touched. Raises `validation_failed` or `not_found`; deleting the same artifact again raises `not_found`.
 
 ## Response models [#response-models]
 

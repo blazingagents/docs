@@ -139,7 +139,7 @@ client.sessions.delete(agent_id=agent_id, session_id=session_id, delete_artifact
 
 **Signature:** `delete(*, agent_id: str, session_id: str, delete_artifacts: bool) -> None`
 
-`delete_artifacts` is required: `True` also deletes artifacts published in the session, and `False` keeps them. Raises `session_busy` while a turn is running or a recorded approval continuation is still open. Also raises `validation_failed` or `not_found`.
+`delete_artifacts` is required: `True` also deletes artifacts published in the session, and `False` keeps them. Raises `session_busy` while a turn is running or a recorded approval continuation is still open, or [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) when the last turn stopped responding; wait for `Retry-After`. Also raises `validation_failed` or `not_found`.
 
 ### `submit_input()` [#submit-input]
 
@@ -235,7 +235,7 @@ Select a message whose top-level `branchable` is `true`. Streaming replies and p
 
 Use a nonblank idempotency key of at most 200 characters. Save it before sending and reuse the exact source, message, and key after a lost response. Creation returns HTTP `201`; identical replay returns HTTP `200` and the same child, even if the source was deleted. Forking runs no model or tool and creates no usage. Continue through `chat()` with the child's ID; later turns have normal usage.
 
-Errors: `idempotency_conflict` (`409`) for the same key with another message, `session_fork_unavailable` (`409`) for a removed or ineligible reply, `session_fork_deleted` (`410`) for a replay whose child was deleted, and `not_found` (`404`) for a missing or inaccessible source or agent.
+Errors: `validation_failed` (`400`) for a malformed ID or body, `idempotency_conflict` (`409`) for the same key with another message, `session_fork_unavailable` (`409`) for a removed or ineligible reply, `session_fork_deleted` (`410`) for a replay whose child was deleted, and `not_found` (`404`) for a missing or inaccessible source or agent.
 
 ## Response models [#response-models]
 

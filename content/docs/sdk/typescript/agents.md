@@ -95,7 +95,7 @@ await client.agents.create({
 });
 ```
 
-Returns [`Agent`](#agent). Errors include [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), and [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid).
+Returns [`Agent`](#agent). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed).
 
 ### `list()` [#list]
 
@@ -154,7 +154,7 @@ Takes `agentId` plus any [`create()`](#create) field except `userId`. Pass at le
 - To switch providers, send `providerId` and `model` together. To unconfigure the agent, send both as `null`.
 - `workspaceId` moves the agent to another workspace. It cannot be cleared.
 
-Returns [`Agent`](#agent). Errors: `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
+Returns [`Agent`](#agent). Errors: `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `model_validation_unavailable`, `workspace_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, `mcp_connection_discovery_failed`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
 
 ### `delete()` [#delete]
 
@@ -183,7 +183,7 @@ Stops the agent from starting new turns. Turns already running finish.
 const agent = await client.agents.disable({ agentId });
 ```
 
-New turns fail with [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), and scheduled task runs are skipped. You can still read and update a disabled agent. Returns [`Agent`](#agent) with `status: "disabled"`. Errors: `not_found`, `admin_agent_managed`.
+New turns fail with [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), and scheduled task runs are skipped. You can still read and update a disabled agent. Returns [`Agent`](#agent) with `status: "disabled"`. Errors: `validation_failed`, `not_found`, `admin_agent_managed`.
 
 ### `enable()` [#enable]
 
@@ -195,7 +195,7 @@ Lets a disabled agent run turns again.
 const agent = await client.agents.enable({ agentId });
 ```
 
-Schedule fires skipped while the agent was disabled do not run later. Returns [`Agent`](#agent) with `status: "active"`. Errors: `not_found`, `admin_agent_managed`.
+Schedule fires skipped while the agent was disabled do not run later. Returns [`Agent`](#agent) with `status: "active"`. Errors: `validation_failed`, `not_found`, `admin_agent_managed`.
 
 ### `uploadAvatar()` [#upload-avatar]
 
@@ -273,7 +273,7 @@ const { period } = await client.agents.getSpendingLimit({ agentId: "ag_012345678
 console.log(period?.spentUsd);
 ```
 
-Returns [`SpendingLimitResponse`](/sdk/typescript/tenant#spendinglimitresponse).
+Returns [`SpendingLimitResponse`](/sdk/typescript/tenant#spendinglimitresponse). Errors: `validation_failed`, `not_found`, and `forbidden` from a user-scoped client.
 
 ### `updateSpendingLimit()` [#update-spending-limit]
 
@@ -340,8 +340,11 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | `not_found` | No such agent or connection in your tenant |
 | `provider_not_found` | The provider does not exist |
 | `model_not_found` | The provider does not offer this model |
+| `model_validation_unavailable` | The provider's model list could not be fetched; try again |
+| `workspace_not_found` | The workspace does not exist |
 | `agent_mcp_connection_not_found` | A listed MCP connection does not exist |
 | `agent_mcp_connections_invalid` | The MCP connection list is invalid |
+| `mcp_connection_discovery_failed` | An attached MCP connection's tools or sign-in could not be discovered; nothing was saved |
 | `admin_agent_managed` | The [admin agent](/agents/agents#the-admin-agent) does not allow this change |
 | `invalid_cursor` | Start paging again without the cursor |
 

@@ -109,7 +109,7 @@ const workspace = await client.workspaces.update({
 | `metadata` | `Record<string, unknown>` | no | Replaces all metadata |
 | `networkPolicy` | `WorkspaceNetworkPolicy` | no | Replaces the network rules |
 
-Pass at least one field. Fields you leave out stay as they are, and `userId` cannot change. Returns [`Workspace`](#workspace). Errors: `validation_failed`, `workspace_not_found`.
+Pass at least one field. Fields you leave out stay as they are, and `userId` cannot change. Returns [`Workspace`](#workspace). Errors: `validation_failed`, `workspace_not_found`, [`workspace_busy`](/api-reference/protocols/errors#workspace_busy).
 
 ### `delete()` [#delete]
 
@@ -125,8 +125,8 @@ Move every agent that uses the workspace to another one first. Returns `"complet
 
 Errors:
 
+- `validation_failed`: the ID is malformed.
 - [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use): agents still use it. `details.agentIds` lists them.
-- [`workspace_busy`](/api-reference/protocols/errors#workspace_busy): the workspace is running a command. Try again shortly.
 - `workspace_not_found`: no such workspace in your tenant.
 - [`service_unavailable`](/api-reference/protocols/errors#service_unavailable): try again with backoff.
 
