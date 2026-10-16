@@ -318,6 +318,18 @@ export const documentationPages = [
     "url": "/sdk/python/workspaces"
   },
   {
+    "path": "sdk/rust/index.mdx",
+    "url": "/sdk/rust"
+  },
+  {
+    "path": "sdk/rust/agents.md",
+    "url": "/sdk/rust/agents"
+  },
+  {
+    "path": "sdk/rust/client.md",
+    "url": "/sdk/rust/client"
+  },
+  {
     "path": "sdk/typescript/index.mdx",
     "url": "/sdk/typescript"
   },
@@ -12388,7 +12400,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "sdk/index.mdx",
             "type": "page",
             "name": "SDK",
-            "description": "Call Blazing Agents from your backend with a typed TypeScript or Python client.",
+            "description": "Call Blazing Agents from your backend with a typed TypeScript, Python, or Rust client.",
             "url": "/sdk",
             "$ref": "sdk/index.mdx"
           },
@@ -12652,6 +12664,41 @@ export const documentationTree: SerializedPageTree = {
             "$ref": {
               "folder": "sdk/python",
               "meta": "sdk/python/meta.json"
+            }
+          },
+          {
+            "type": "folder",
+            "name": "Rust SDK",
+            "children": [
+              {
+                "$id": "sdk/rust/index.mdx",
+                "type": "page",
+                "name": "Rust SDK",
+                "description": "Install the typed async Rust client and call every Blazing Agents API from your backend.",
+                "url": "/sdk/rust",
+                "$ref": "sdk/rust/index.mdx"
+              },
+              {
+                "$id": "sdk/rust/client.md",
+                "type": "page",
+                "name": "Client",
+                "description": "Configure the Rust client, handle errors, and generate chat, text, and structured output.",
+                "url": "/sdk/rust/client",
+                "$ref": "sdk/rust/client.md"
+              },
+              {
+                "$id": "sdk/rust/agents.md",
+                "type": "page",
+                "name": "Agents",
+                "description": "Create, configure, pause, and delete agents with the Rust SDK.",
+                "url": "/sdk/rust/agents",
+                "$ref": "sdk/rust/agents.md"
+              }
+            ],
+            "$id": "sdk/rust",
+            "$ref": {
+              "folder": "sdk/rust",
+              "meta": "sdk/rust/meta.json"
             }
           }
         ],

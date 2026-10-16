@@ -1,0 +1,8 @@
+{
+  "title": "Rust SDK",
+  "pages": [
+    "index",
+    "client",
+    "agents"
+  ]
+}

@@ -1683,12 +1683,13 @@
       },
       "cards": [
         "/sdk/typescript",
-        "/sdk/python"
+        "/sdk/python",
+        "/sdk/rust"
       ],
       "callout": null,
       "componentCounts": {
         "Cards": 1,
-        "Card": 2
+        "Card": 3
       },
       "fences": {
         "endpointCurls": false,
@@ -1704,6 +1705,12 @@
             "language": "python",
             "metadata": {
               "tab": "Python"
+            }
+          },
+          {
+            "language": "rust",
+            "metadata": {
+              "tab": "Rust"
             }
           }
         ]
@@ -2648,6 +2655,38 @@
     },
     {
       "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {
+        "Callout": 1
+      },
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "toml",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/index.mdx",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
         "assignedIds": [
           "agent",
           "with-options",
@@ -2708,6 +2747,92 @@
         ]
       },
       "file": "sdk/python/client.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "agent",
+          "with-client-request-id",
+          "for-user",
+          "chat",
+          "regenerate",
+          "functions",
+          "continue-chat",
+          "completion",
+          "completion-stream",
+          "object",
+          "object-stream"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/client.md",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -2796,6 +2921,102 @@
         ]
       },
       "file": "sdk/python/agents.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "update",
+          "delete",
+          "disable",
+          "enable",
+          "upload-avatar",
+          "remove-avatar",
+          "list-mcp-attachments",
+          "update-mcp-attachment",
+          "get-spending-limit",
+          "update-spending-limit"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/agents.md",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -4721,6 +4942,13 @@
       "url": "/sdk/python"
     },
     {
+      "file": "sdk/rust/index.mdx",
+      "name": "Rust SDK",
+      "publishable": true,
+      "title": "Rust SDK",
+      "url": "/sdk/rust"
+    },
+    {
       "file": "sdk/python/client.md",
       "name": "Client",
       "publishable": true,
@@ -4728,11 +4956,25 @@
       "url": "/sdk/python/client"
     },
     {
+      "file": "sdk/rust/client.md",
+      "name": "Client",
+      "publishable": true,
+      "title": "Client",
+      "url": "/sdk/rust/client"
+    },
+    {
       "file": "sdk/python/agents.md",
       "name": "Agents",
       "publishable": true,
       "title": "Agents",
       "url": "/sdk/python/agents"
+    },
+    {
+      "file": "sdk/rust/agents.md",
+      "name": "Agents",
+      "publishable": true,
+      "title": "Agents",
+      "url": "/sdk/rust/agents"
     },
     {
       "file": "sdk/python/workspaces.md",

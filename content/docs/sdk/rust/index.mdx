@@ -1,0 +1,85 @@
+---
+title: Rust SDK
+description: Install the typed async Rust client and call every Blazing Agents API from your backend.
+---
+
+# Rust SDK
+
+Call Blazing Agents from Rust with typed responses, lazy pagination, and streaming. The `blazing-agents` crate is async and runs on Tokio. Install it and import it as `blazing_agents`. It supports Rust 1.85 and newer.
+
+<Callout type="warn" title="Server-side only">
+  A tenant API key can reach everything in your tenant. Keep it in backend code and never ship it to a browser or mobile app.
+</Callout>
+
+## Install [#install]
+
+The crate installs from the GitHub repository. Your project also needs Tokio and `futures-util`, which provides the `TryStreamExt` the stream examples use.
+
+```bash
+cargo add blazing-agents --git https://github.com/blazingagents/rust-sdk
+cargo add tokio --features macros,rt-multi-thread
+cargo add futures-util
+```
+
+```toml
+[dependencies]
+blazing-agents = { git = "https://github.com/blazingagents/rust-sdk" }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+futures-util = "0.3"
+```
+
+TLS uses rustls by default; enable the `native-tls` feature instead with `default-features = false, features = ["native-tls", "schemars"]`.
+
+## Create a client [#create-a-client]
+
+Set `BLAZING_AGENTS_API_KEY` in your environment, or pass `api_key` to the builder. The client talks to `https://api.blazingagents.com` by default.
+
+```rust
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+    let tenant = client.tenant().get().await?;
+    println!("{}", tenant.name);
+    Ok(())
+}
+```
+
+## Client objects [#client-objects]
+
+| Accessor | What you manage |
+| --- | --- |
+| [`Client`](/sdk/rust/client) | Client options, errors, and the `chat()`, `completion()`, and `object()` generation methods |
+| [`agents()`](/sdk/rust/agents) | Agent configuration, avatars, and MCP settings |
+| `workspaces()` | Private file systems your agents share |
+| `agent(agent_id).skills()` | Skills owned by one agent |
+| `sessions()` | Conversations, transcripts, and tool approvals |
+| `providers()` | Model provider keys and model lists |
+| `mcp_connections()` | Remote MCP servers your agents can call |
+| `memories()` | Notes an agent remembers across sessions |
+| `artifacts()` | Files your agents publish |
+| `tasks()` | Background and scheduled agent work |
+| `prompts()` | Reusable message templates |
+| `usage()` | Token and request usage |
+| `tenant()` | Tenant name and quota |
+| `chat_connections()` | Slack and Telegram bots |
+| `chat_deliveries()` | Failed and ambiguous deliveries across your Slack and Telegram bots |
+| `merchant_connection()`, `merchant_bindings()`, `merchant_usage_events()` | [Billing your users](/platform/monetization) |
+
+## Conventions [#conventions]
+
+- Every method returns a `Call` that does nothing until you `.await` it. A `Call` owns a handle to the client, so it is `Send + 'static` and can be passed to `tokio::spawn`.
+- Required inputs are positional arguments; optional inputs are setters on the `Call`, such as `client.agents().list().user_id("user_123").limit(50)`. A setter you do not call sends nothing, so the server keeps its default or current value.
+- Nullable fields pair an `x(value)` setter with a `clear_x()` setter that sends `null`.
+- Every call also takes the transport options `with_timeout`, `without_timeout`, `with_header`, and `with_client_request_id`, and `send_with_meta()` returns the decoded value with the response status, headers, and server request ID.
+- A list call awaits to a `Page` with `data` and `next_cursor` fields. Its `pages()` and `items()` adapters walk every page lazily, and `cursor()` resumes from a saved cursor.
+- IDs are typed (`AgentId`, `SessionId`, and so on) and accept `&str` or `String` values, so literals stay short while an ID from one resource cannot be passed where another kind belongs.
+- Response models are `#[non_exhaustive]` structs with snake_case fields. Unknown server fields are ignored, and open enums such as `AgentStatus` hold values this version does not know in their `Unrecognized` variant, so a newer API does not break your code.
+- `Timestamp` is an RFC 3339 instant, and `Metadata` is a JSON object of your own data the API returns unchanged.
+
+## Next [#next]
+
+- [Run your first agent](/getting-started/quickstart)
+- [Client options, errors, and generation](/sdk/rust/client)
+- [Agents](/sdk/rust/agents)
