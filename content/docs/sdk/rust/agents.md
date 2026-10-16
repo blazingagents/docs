@@ -155,7 +155,7 @@ while let Some(agent) = items.try_next().await? {
 }
 ```
 
-Fails with `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
+Fails with `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `not_found` when a `UserClient` filters by a workspace it does not own.
 
 ### `get()` [#get]
 

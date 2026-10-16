@@ -172,7 +172,7 @@ const { data: input, activity } = await client.sessions.submitInput({
 | `requestId` | `string` | yes | Your ID for this steer, 1 to 128 characters, other than `.` or `..` |
 | `message` | `UIMessage` | yes | A user message with text and image parts |
 
-Resending the same `requestId` with the same message returns the same receipt, so retry with the original values after a timeout. A call that cannot steer, because no turn is running or can take one, fails with [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and saves nothing; keep the message in your app's own queue and send it later as an ordinary `chat()` message. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `validation_failed`, `not_found`, `session_busy`, [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `requestId` or `message.id` was already used for different content.
+Resending the same `requestId` with the same message returns the same receipt, so retry with the original values after a timeout. A call that cannot steer, because no turn is running or can take one, fails with [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and saves nothing; keep the message in your app's own queue and send it later as an ordinary `chat()` message. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `validation_failed`, `not_found`, [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `requestId` or `message.id` was already used for different content.
 
 ### `inputs()` [#inputs]
 

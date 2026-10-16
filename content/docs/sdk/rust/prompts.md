@@ -83,7 +83,7 @@ let page = client
 | `agent_id` | `impl Into<AgentId>` | Only prompts linked to this agent |
 | `limit` | `u8` | Page size, 1 to 100; defaults to 50 |
 
-Awaiting returns [`Page<Prompt>`](#prompt); `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
+Awaiting returns [`Page<Prompt>`](#prompt); `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `not_found` when a `UserClient` filters by an agent it does not own.
 
 ### `get()` [#get]
 
