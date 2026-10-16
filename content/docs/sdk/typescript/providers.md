@@ -165,6 +165,8 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The provid
 | Code | Meaning |
 | --- | --- |
 | `provider_not_found` | The provider does not exist |
+| `provider_name_conflict` | Another provider already uses this name |
+| `provider_limit_reached` | Your tenant already has the maximum number of providers |
 | `model_discovery_unsupported` | Custom providers have no model list |
 | `model_validation_unavailable` | The provider's model list could not be fetched; try again |
 | `provider_in_use` | An agent currently uses this provider |

@@ -79,7 +79,7 @@ if page.next_cursor is not None:
 
 **Signature:** `list(*, agent_id=..., user_id=..., cursor=..., limit=...) -> PromptsPage`
 
-Omit both filters for every prompt. `user_id=""` returns tenant-level prompts. With both filters you get prompts that match both. `limit` is 1 to 100 and defaults to 50. Returns `PromptsPage` with `data: list[Prompt]` and `next_cursor: str | None`. Keep the same filters when paging. Raises `validation_failed`.
+Omit both filters for every prompt. `user_id=""` returns tenant-level prompts. With both filters you get prompts that match both. `limit` is 1 to 100 and defaults to 50. Returns `PromptsPage` with `data: list[Prompt]` and `next_cursor: str | None`. Keep the same filters when paging. Raises `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `get()` [#get]
 

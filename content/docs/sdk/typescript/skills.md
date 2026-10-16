@@ -60,7 +60,7 @@ const skill = await client.agent({ agentId }).skills.create({
 | `path` | `"SKILL.md"` | yes | Always `"SKILL.md"` |
 | `content` | `string` | yes | The file text, starting with frontmatter |
 
-Add supporting files afterwards with [`putFile()`](#put-file). Returns [`SkillDetail`](#skilldetail). Errors: [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict), [`skill_limit_reached`](/api-reference/protocols/errors#skill_limit_reached), [`validation_failed`](/api-reference/protocols/errors#validation_failed), and [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
+Add supporting files afterwards with [`putFile()`](#put-file). Returns [`SkillDetail`](#skilldetail). Errors: [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict), [`skill_limit_reached`](/api-reference/protocols/errors#skill_limit_reached), [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large), [`validation_failed`](/api-reference/protocols/errors#validation_failed), and [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
 
 ### `upload()` [#upload]
 
@@ -81,7 +81,7 @@ const skill = await client.agent({ agentId }).skills.upload({
 | `source.file` | `Blob \| Uint8Array` | yes | Archive bytes, at most 10 MiB |
 | `source.type` | `"zip" \| "tar" \| "tar.gz"` | yes | Archive format |
 
-Returns [`SkillDetail`](#skilldetail). Errors: `validation_failed`, [`skill_invalid_archive`](/api-reference/protocols/errors#skill_invalid_archive), `skill_invalid_markdown`, `skill_name_conflict`, `skill_limit_reached`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large), and `not_found` when the agent does not exist.
+Returns [`SkillDetail`](#skilldetail). Errors: `validation_failed`, [`skill_invalid_archive`](/api-reference/protocols/errors#skill_invalid_archive), `skill_invalid_markdown`, `skill_name_conflict`, `skill_limit_reached`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), `skill_uncompressed_too_large`, and `not_found` when the agent does not exist.
 
 ### `list()` [#list]
 

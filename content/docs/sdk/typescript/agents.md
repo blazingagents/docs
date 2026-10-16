@@ -344,6 +344,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | `workspace_not_found` | The workspace does not exist |
 | `agent_mcp_connection_not_found` | A listed MCP connection does not exist |
 | `agent_mcp_connections_invalid` | The MCP connection list is invalid |
+| `mcp_connection_discovery_failed` | An attached MCP connection's tools or sign-in could not be discovered; nothing was saved |
 | `admin_agent_managed` | The [admin agent](/agents/agents#the-admin-agent) does not allow this change |
 | `invalid_cursor` | Start paging again without the cursor |
 

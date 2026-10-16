@@ -75,7 +75,7 @@ const { task } = await client.tasks.create({
 | `userId` | `string` | no | `""` | The end user it runs for; cannot change later |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your labels, copied onto each run |
 
-Without `idempotencyKey`, calling `create()` twice creates two tasks. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID. Reusing a key with different task fields or after deleting the task returns `idempotency_conflict`. Returns [`CreateTaskResponse`](#createtaskresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found), [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), and [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit` is `true`.
+Without `idempotencyKey`, calling `create()` twice creates two tasks. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID. Reusing a key with different task fields or after deleting the task returns `idempotency_conflict`. Returns [`CreateTaskResponse`](#createtaskresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found), `idempotency_conflict`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), and [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit` is `true`.
 
 ### `list()` [#list]
 
