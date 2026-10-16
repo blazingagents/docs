@@ -725,6 +725,12 @@ export const restApiOperations = [
             "status": "403"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "404"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -3505,12 +3511,6 @@ export const restApiOperations = [
             "status": "403"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "404"
-          },
-          {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -3603,12 +3603,6 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "403"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "404"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
@@ -6689,12 +6683,6 @@ export const restApiOperations = [
             "status": "404"
           },
           {
-            "code": "{\n  \"error\": {\n    \"code\": \"input_idempotency_conflict\",\n    \"message\": \"The request conflicts with the resource's current state.\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "409"
-          },
-          {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -6896,16 +6884,16 @@ export const restApiOperations = [
             "status": "404"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"The service is temporarily unavailable.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "503"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
             "status": "500"
-          },
-          {
-            "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"Service unavailable\"\n  }\n}",
-            "contentType": "application/json",
-            "language": "json",
-            "status": "503"
           }
         ],
         "url": "/api-reference/rest-api/artifacts/create-artifact-download-url"
@@ -7692,6 +7680,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "403"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"not_found\",\n    \"message\": \"The resource was not found.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "404"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"internal\",\n    \"message\": \"Internal Server Error\"\n  }\n}",

@@ -167,7 +167,7 @@ let submitted = client
 
 **Signature:** `submit_input(agent_id: impl Into<AgentId>, session_id: impl Into<SessionId>, request_id: impl Into<String>, message: UserMessage) -> Call<SubmitSessionInput>`
 
-Fails with [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) when no turn is running or can take one; send the message later as an ordinary [`chat()`](/sdk/rust/client#chat) message. Awaiting returns [`SubmittedInput`](#sessioninput) with the `input` receipt and the session's `activity`. Also fails with `validation_failed`, `not_found`, [`session_busy`](/api-reference/protocols/errors#session_busy), or [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `request_id` or message ID was already used for different content.
+Fails with [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) when no turn is running or can take one; send the message later as an ordinary [`chat()`](/sdk/rust/client#chat) message. Awaiting returns [`SubmittedInput`](#sessioninput) with the `input` receipt and the session's `activity`. Also fails with `validation_failed`, `not_found`, or [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `request_id` or message ID was already used for different content.
 
 ### `inputs()` [#inputs]
 

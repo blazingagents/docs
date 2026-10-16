@@ -118,7 +118,7 @@ const next = page.nextCursor
 | `cursor` | `string` | no | `nextCursor` from the previous page |
 | `limit` | `number` | no | Page size, 1 to 100; defaults to 50 |
 
-Returns `{ data: Agent[], nextCursor: string | null }`. Keep the same filters when paging. Errors: `validation_failed`, `invalid_cursor`.
+Returns `{ data: Agent[], nextCursor: string | null }`. Keep the same filters when paging. Errors: `validation_failed`, `invalid_cursor`, and `not_found` when a user-scoped client filters by a workspace it does not own.
 
 ### `get()` [#get]
 

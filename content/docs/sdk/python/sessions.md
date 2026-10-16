@@ -139,7 +139,7 @@ client.sessions.delete(agent_id=agent_id, session_id=session_id, delete_artifact
 
 **Signature:** `delete(*, agent_id: str, session_id: str, delete_artifacts: bool) -> None`
 
-`delete_artifacts` is required: `True` also deletes artifacts published in the session, and `False` keeps them. Raises `session_busy` while a turn is running or a recorded approval continuation is still open, or [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) when the last turn stopped responding; wait for `Retry-After`. Also raises `validation_failed` or `not_found`.
+`delete_artifacts` is required: `True` also deletes artifacts published in the session, and `False` keeps them. Raises [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn is running or a recorded approval continuation is still open, or [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) when the last turn stopped responding; wait for `Retry-After`. Also raises `validation_failed` or `not_found`.
 
 ### `submit_input()` [#submit-input]
 
@@ -169,7 +169,7 @@ print(result.data.state, result.activity.state)
 | `request_id` | `str` | Your ID for this steer, 1 to 128 characters, other than `.` or `..` |
 | `message` | `Mapping[str, object]` | A user message with text and image parts |
 
-Resending the same `request_id` with the same message returns the same receipt, so retry with the original values after a timeout. A call that cannot steer, because no turn is running or can take one, raises [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and saves nothing; keep the message in your app's own queue and send it later as an ordinary `chat()` message. Raises `validation_failed`, `not_found`, [`session_busy`](/api-reference/protocols/errors#session_busy), or [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `request_id` or message ID was already used for different content.
+Resending the same `request_id` with the same message returns the same receipt, so retry with the original values after a timeout. A call that cannot steer, because no turn is running or can take one, raises [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and saves nothing; keep the message in your app's own queue and send it later as an ordinary `chat()` message. Raises `validation_failed`, `not_found`, or [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `request_id` or message ID was already used for different content.
 
 ### `inputs()` [#inputs]
 
