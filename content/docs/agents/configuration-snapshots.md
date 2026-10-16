@@ -32,6 +32,23 @@ session = client.sessions.get(agent_id, session_id)
 print(session.agent_config.model, session.agent_config.instructions)
 ```
 
+```rust tab="Rust"
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+    let agent_id = std::env::var("AGENT_ID")?;
+    let session_id = std::env::var("SESSION_ID")?;
+    let session = client.sessions().get(agent_id, session_id).await?;
+    println!(
+        "{:?} {}",
+        session.agent_config.model, session.agent_config.instructions
+    );
+    Ok(())
+}
+```
+
 A session started through chat saves its configuration when its first turn begins. A fork saves the source session's configuration at creation, before any turn runs in the child. Every later turn in that session uses those saved settings. Session lists show brief summaries; use `sessions.get()` for `agentConfig`. Transcript message pages contain messages, not the configuration.
 
 A task run saves its configuration when it is queued. You can read it before the run creates a session:
@@ -53,6 +70,21 @@ from blazing_agents import BlazingAgents
 client = BlazingAgents()
 run = client.tasks.get_run(os.environ["TASK_ID"], os.environ["RUN_ID"])
 print(run.agent_config.model)
+```
+
+```rust tab="Rust"
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+    let run = client
+        .tasks()
+        .get_run(std::env::var("TASK_ID")?, std::env::var("RUN_ID")?)
+        .await?;
+    println!("{:?}", run.agent_config.model);
+    Ok(())
+}
 ```
 
 A task edit changes future runs. A run keeps its saved configuration even if it is blocked before a session exists. Once the run starts, its session uses the same configuration.
@@ -84,6 +116,19 @@ client = BlazingAgents()
 agent_id = os.environ["AGENT_ID"]
 client.agents.disable(agent_id)
 client.agents.enable(agent_id)
+```
+
+```rust tab="Rust"
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+    let agent_id = std::env::var("AGENT_ID")?;
+    client.agents().disable(&agent_id).await?;
+    client.agents().enable(&agent_id).await?;
+    Ok(())
+}
 ```
 
 A disabled agent rejects new chat turns, completions, manual task runs, and tool approval continuations with [`agent_disabled`](/api-reference/protocols/errors#agent_disabled). Turns already running finish. Scheduled runs are skipped. You can still read and edit a disabled agent.

@@ -12,7 +12,15 @@ const fenceFixture = resolve(
 );
 const FENCE = /```(?<label>[a-z0-9]+)\n[\s\S]*?\n```/g;
 const HIGHLIGHTED_BLOCK = /className: "shiki shiki-themes/g;
-const REQUIRED_FENCE_LABELS = ["tsx", "yaml", "powershell", "yml", "ps1"];
+const REQUIRED_FENCE_LABELS = [
+  "tsx",
+  "yaml",
+  "powershell",
+  "rust",
+  "yml",
+  "ps1",
+  "rs",
+];
 
 describe("documentation source configuration", () => {
   test("highlights planned fence languages and aliases", async () => {
@@ -42,6 +50,9 @@ describe("documentation source configuration", () => {
           default: [expect.objectContaining({ name: "powershell" })],
         }),
         expect.objectContaining({
+          default: [expect.objectContaining({ name: "rust" })],
+        }),
+        expect.objectContaining({
           default: [expect.objectContaining({ name: "tsx" })],
         }),
         expect.objectContaining({
@@ -50,6 +61,7 @@ describe("documentation source configuration", () => {
       ])
     );
     expect(codeOptions.langAlias?.ps1).toBe("powershell");
+    expect(codeOptions.langAlias?.rs).toBe("rust");
     expect(codeOptions.langAlias?.yml).toBe("yaml");
 
     for (const fence of fences) {

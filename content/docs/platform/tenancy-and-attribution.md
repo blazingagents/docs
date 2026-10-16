@@ -69,6 +69,45 @@ usage = client.usage.get(user_id=user_id, group_by="day")
 print(usage.totals.input_tokens + usage.totals.output_tokens)
 ```
 
+```rust tab="Rust"
+use blazing_agents::messages::UserMessage;
+use blazing_agents::types::Metadata;
+use blazing_agents::usage::UsageGroupBy;
+use blazing_agents::Client;
+use futures_util::TryStreamExt;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+    let agent_id = std::env::var("AGENT_ID")?;
+    let user_id = "app:user-42";
+
+    let mut stream = client
+        .chat(&agent_id, UserMessage::text("Summarize my open items."))
+        .user_id(user_id)
+        .metadata(Metadata::new().insert("plan", "pro"))
+        .await?;
+    let session_id = stream.session_id().clone();
+    while stream.try_next().await?.is_some() {}
+
+    let sessions = client
+        .sessions()
+        .list(&agent_id)
+        .user_id(user_id)
+        .await?;
+    println!("{}", sessions.data.iter().any(|s| s.id == session_id));
+
+    let usage = client
+        .usage()
+        .get()
+        .user_id(user_id)
+        .group_by(UsageGroupBy::Day)
+        .await?;
+    println!("{}", usage.totals.input_tokens + usage.totals.output_tokens);
+    Ok(())
+}
+```
+
 The first line prints `true`: the new session carries the user's label. The second prints the tokens this user used over the last 30 days, the default usage window.
 
 ## What carries a user label [#what-carries-a-user-label]
@@ -163,7 +202,95 @@ def run_authorized_turn(
         yield from stream
 ```
 
-`app` is your own code. `resolveAuthorizedChat` throws unless the signed-in principal owns the chat, and it returns the agent and session IDs from your database. The TypeScript client also scopes the Blazing Agents request to that principal. Test that one user cannot reach another user's chat ID.
+```rust tab="Rust"
+use axum::body::Body;
+use axum::http::{header, HeaderValue, StatusCode};
+use axum::response::Response;
+use blazing_agents::ids::SessionId;
+use blazing_agents::messages::UserMessage;
+use blazing_agents::types::Metadata;
+use blazing_agents::Client;
+
+struct Principal {
+    subject: String,
+    organization_id: String,
+}
+
+struct AuthorizedChat {
+    agent_id: String,
+    session_id: Option<String>,
+}
+
+trait App {
+    async fn resolve_authorized_chat(
+        &self,
+        principal: &Principal,
+        app_chat_id: &str,
+    ) -> Result<AuthorizedChat, StatusCode>;
+    async fn save_authorized_session(&self, app_chat_id: &str, session_id: &SessionId);
+}
+
+async fn run_authorized_turn(
+    app: &impl App,
+    client: &Client,
+    principal: &Principal,
+    app_chat_id: &str,
+    message: UserMessage,
+) -> Result<Response, StatusCode> {
+    let chat = app.resolve_authorized_chat(principal, app_chat_id).await?;
+    let user_id = format!("app:{}", principal.subject);
+    let metadata = Metadata::new().insert("organizationId", principal.organization_id.clone());
+    let user_client = client
+        .for_user(&user_id)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let stream = match &chat.session_id {
+        Some(session_id) => {
+            user_client
+                .chat(&chat.agent_id, message)
+                .session(session_id.clone())
+                .metadata(metadata)
+                .await
+        }
+        None => match user_client
+            .chat(&chat.agent_id, message)
+            .metadata(metadata)
+            .await
+        {
+            Ok(stream) => {
+                app.save_authorized_session(app_chat_id, stream.session_id())
+                    .await;
+                Ok(stream)
+            }
+            Err(error) => Err(error),
+        },
+    }
+    .map_err(|error| {
+        error
+            .status()
+            .and_then(|status| StatusCode::from_u16(status).ok())
+            .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+    })?;
+
+    let location = stream.meta().headers().get(header::LOCATION).cloned();
+    let mut response = Response::new(Body::from_stream(stream));
+    let headers = response.headers_mut();
+    headers.insert(
+        "x-vercel-ai-ui-message-stream",
+        HeaderValue::from_static("v1"),
+    );
+    headers.insert(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static("text/event-stream"),
+    );
+    headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-cache"));
+    if let Some(location) = location {
+        headers.insert(header::LOCATION, location);
+    }
+    Ok(response)
+}
+```
+
+`app` is your own code. `resolveAuthorizedChat` throws unless the signed-in principal owns the chat, and it returns the agent and session IDs from your database. The TypeScript and Rust clients also scope the Blazing Agents request to that principal. Test that one user cannot reach another user's chat ID.
 
 ## Production notes [#production-notes]
 

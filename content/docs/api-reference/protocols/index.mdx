@@ -62,6 +62,17 @@ with client.completion_stream(agent_id=agent_id, prompt="Summarize this.") as st
         print(delta, end="", flush=True)
 ```
 
+```rust tab="Rust"
+use futures_util::TryStreamExt;
+
+let mut stream = client
+    .completion_stream(agent_id, "Summarize this.")
+    .await?;
+while let Some(delta) = stream.try_next().await? {
+    print!("{delta}");
+}
+```
+
 Listing sessions over REST uses IDs, pagination, objects, errors, and limits
 together:
 

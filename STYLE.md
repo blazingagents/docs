@@ -45,11 +45,12 @@ people who built it.
   examples omit `baseUrl`), dashboard `https://www.blazingagents.com/app`,
   API keys at `https://www.blazingagents.com/app/keys`.
 - Examples use OpenRouter: `providerType: "openrouter"` (Python
-  `provider_type="openrouter"`), `baseUrl: null`, the key from
-  `OPENROUTER_API_KEY`, and model `openai/gpt-6-luna`. Always write the model
-  with its `openai/` prefix, and never pair `gpt-6-luna` with the `openai`
-  provider type.
-- Code comes in TypeScript and Python tabs when both SDKs support the
+  `provider_type="openrouter"`, Rust `ProviderType::OpenRouter`), `baseUrl:
+  null` (Python and Rust leave the endpoint override unset), the key from
+  `OPENROUTER_API_KEY` (Rust `std::env::var("OPENROUTER_API_KEY")?`), and
+  model `openai/gpt-6-luna`. Always write the model with its `openai/`
+  prefix, and never pair `gpt-6-luna` with the `openai` provider type.
+- Code comes in TypeScript, Python and Rust tabs when the SDKs support the
   operation:
 
   ````md
@@ -59,7 +60,24 @@ people who built it.
   ```python tab="Python"
   ...
   ```
+  ```rust tab="Rust"
+  ...
+  ```
   ````
+
+  `npm run check:rust-snippets` compiles every `rust` block against the
+  pinned SDK and runs as its own CI job, separate from `npm run check`.
+  A block with `fn main` compiles as written, so a full program needs
+  `#[tokio::main] async fn main`. Any other block compiles as the body of
+  an async function that receives `client: blazing_agents::Client`,
+  `agent_id: &str` and `session_id: &str` and returns a boxed error, like a
+  continuation of the page's earlier examples, so it may use `client`,
+  `agent_id`, `session_id`, `?`, `.await`, `use` lines and item definitions,
+  and it must declare every other value with a full placeholder ID
+  (`let task_id = "tk_0123456789abcdef";`, never `"ag_..."`).
+  To bump the pinned SDK, change `rev` in `snippets-rust/Cargo.toml` and in
+  the pages' `cargo add blazing-agents ... --rev` commands, then run
+  `cargo update -p blazing-agents --manifest-path snippets-rust/Cargo.toml`.
 
 - No `as` type casts in snippets (for example on `await request.json()`).
   Let inference or the SDK's own types carry the shape.

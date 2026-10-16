@@ -53,14 +53,17 @@ The development server runs at <http://localhost:3761>.
 | `npm test` | Run documentation tests and coverage checks |
 | `npm run check` | Run the required type-check, test, style, and REST reference freshness gate |
 | `npm run lint:docs` | Check `content/docs/` against the style guide's mechanical rules |
+| `npm run check:rust-snippets` | Compile every Rust snippet against the pinned Rust SDK |
 | `npm run sync:openapi` | Copy the platform's API contract into `openapi/openapi.json` |
 
 ## Smoke-testing the examples against a live API
 
-`npm run smoke:examples` runs the TypeScript and Python code on the setup page,
-the quickstart, and the home page chat route against a real API. It reads
-every snippet from the page, so there are no copies to keep in sync. It needs a
-live API, so it is not part of `npm run check`.
+`npm run smoke:examples` runs the TypeScript, Python, and Rust code on the setup
+page, the quickstart, the connect-your-app chat server, and the home page chat
+route against a real API. It reads every snippet from the page, so there are no
+copies to keep in sync. The Rust steps run when `cargo` is available (or set
+`SMOKE_RUST` to a cargo binary; `SMOKE_RUST_SDK` can point at a local rust-sdk
+checkout). It needs a live API, so it is not part of `npm run check`.
 
 ```bash
 export BLAZING_AGENTS_BASE_URL="http://localhost:8787"

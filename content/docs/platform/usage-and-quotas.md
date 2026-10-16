@@ -48,6 +48,39 @@ settings = client.tenant.update(
 print(settings.quota)
 ```
 
+```rust tab="Rust"
+use blazing_agents::tenant::QuotaInput;
+use blazing_agents::usage::UsageGroupBy;
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+
+    let report = client
+        .usage()
+        .get()
+        .range("2026-07-01", "2026-07-31")
+        .group_by(UsageGroupBy::Agent)
+        .await?;
+    for bucket in &report.buckets {
+        println!(
+            "{:?} {}",
+            bucket.agent_id,
+            bucket.input_tokens + bucket.output_tokens
+        );
+    }
+
+    let settings = client
+        .tenant()
+        .update()
+        .quota(QuotaInput::new(1).monthly_token_limit(1_000_000))
+        .await?;
+    println!("{:?}", settings.quota);
+    Ok(())
+}
+```
+
 You see one line per agent that ran in July, then the saved quota: a token ceiling of `1000000`, no request ceiling, and a window that resets on the 1st of each month.
 
 ## Set a model spending limit [#model-spending-limits]
@@ -90,7 +123,32 @@ budget = client.tenant.update_spending_limit(
 print(budget.period.spent_usd if budget.period else None, budget.next_reset_at)
 ```
 
-For one agent, use `client.agents.updateSpendingLimit({ agentId, spendingLimit })` in TypeScript or `client.agents.update_spending_limit(agent_id=agent_id, spending_limit=...)` in Python. Read account settings with `client.tenant.getSpendingLimit()` or `client.tenant.get_spending_limit()`. For an agent, use `client.agents.getSpendingLimit({ agentId })` or `client.agents.get_spending_limit(agent_id=agent_id)`. Pass `spendingLimit: null` or `spending_limit=None` to disable that limit. Disabling one scope does not disable the other.
+```rust tab="Rust"
+use blazing_agents::spending_limits::{ResetInterval, SpendingLimitInput};
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+
+    let budget = client
+        .tenant()
+        .update_spending_limit(Some(SpendingLimitInput::new(
+            25.0,
+            "2026-10-01",
+            ResetInterval::Monthly,
+        )))
+        .await?;
+    println!(
+        "{:?} {:?}",
+        budget.period.map(|period| period.spent_usd),
+        budget.next_reset_at
+    );
+    Ok(())
+}
+```
+
+For one agent, use `client.agents.updateSpendingLimit({ agentId, spendingLimit })` in TypeScript, `client.agents.update_spending_limit(agent_id=agent_id, spending_limit=...)` in Python, or `client.agents().update_spending_limit(agent_id, Some(limit))` in Rust. Read account settings with `client.tenant.getSpendingLimit()`, `client.tenant.get_spending_limit()`, or `client.tenant().get_spending_limit()`. For an agent, use `client.agents.getSpendingLimit({ agentId })`, `client.agents.get_spending_limit(agent_id=agent_id)`, or `client.agents().get_spending_limit(agent_id)`. Pass `spendingLimit: null`, `spending_limit=None`, or `None` in Rust to disable that limit. Disabling one scope does not disable the other.
 
 ### Choose when the allowance resets [#spending-limit-resets]
 
@@ -146,7 +204,7 @@ Dates are UTC and inclusive. Pass both `from` and `to`, or neither for the last 
 
 ## How quotas work [#how-quotas-work]
 
-A quota sets a monthly token ceiling, a request ceiling, or both, plus the day of the month (1 to 28) when the window resets. Update it with `client.tenant.patch()` in TypeScript or `client.tenant.update()` in Python, or remove it with `quota: null` (`quota=None` in Python). With no quota, usage is unlimited.
+A quota sets a monthly token ceiling, a request ceiling, or both, plus the day of the month (1 to 28) when the window resets. Update it with `client.tenant.patch()` in TypeScript, `client.tenant.update()` in Python, or `client.tenant().update().quota(QuotaInput::new(reset_day)...)` in Rust; remove it with `quota: null` (`quota=None` in Python, `.clear_quota()` in Rust). With no quota, usage is unlimited.
 
 Blazing Agents checks the current window before each turn starts. It does not stop a turn that crosses the ceiling while running, and several turns running at once can overshoot before their usage lands. Leave headroom.
 

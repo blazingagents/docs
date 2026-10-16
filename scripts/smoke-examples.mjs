@@ -8,6 +8,10 @@
  * Optional: SMOKE_PYTHON, a Python 3.11+ interpreter (default python3).
  * Optional: SMOKE_PYTHON_SDK, a pip requirement (for example a path to a local
  * python-sdk checkout) used instead of the pinned wheel.
+ * Optional: SMOKE_RUST, a cargo binary (default cargo). The Rust steps are
+ * skipped when `cargo --version` fails.
+ * Optional: SMOKE_RUST_SDK, a path to a local rust-sdk checkout used instead of
+ * the pinned git rev (`cargo add blazing-agents --path ...`).
  */
 import { spawn } from "node:child_process";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -17,6 +21,8 @@ import { join } from "node:path";
 
 const root = new URL("..", import.meta.url).pathname;
 const SYSTEM_PYTHON = process.env.SMOKE_PYTHON ?? "python3";
+const CARGO = process.env.SMOKE_RUST ?? "cargo";
+const RUST_SDK = process.env.SMOKE_RUST_SDK;
 const PYTHON_SDK =
   process.env.SMOKE_PYTHON_SDK ?? join(root, "vendor/blazing_agents-0.21.0-py3-none-any.whl");
 const PYTHON_SERVER_DEPS = ["fastapi==0.141.1", "uvicorn==0.53.0"];
@@ -78,8 +84,20 @@ function pick(fences, lang, predicate = () => true) {
   return matches.map(({ body }) => body);
 }
 
-/** Neither SDK reads a base URL from the environment, so the snippets cannot reach a local API unedited. */
+/** None of the SDKs read a base URL from the environment, so the snippets cannot reach a local API unedited. */
 function pointAtBaseUrl(lang, code) {
+  if (lang === "rust") {
+    const pattern = /Client::from_env\(\)\?/g;
+    const count = code.match(pattern)?.length ?? 0;
+    if (count !== 1) {
+      throw new Error(`expected one Client::from_env() to point at the base URL, found ${count}`);
+    }
+    /* The builder still reads BLAZING_AGENTS_API_KEY from the environment. */
+    return code.replace(
+      pattern,
+      'Client::builder().base_url(std::env::var("BLAZING_AGENTS_BASE_URL")?).build()? /* SMOKE HARNESS: base URL injected */'
+    );
+  }
   const pattern =
     lang === "typescript" ? /new BlazingAgents\(\{\n/g : /\b((?:Async)?BlazingAgents)\(\)(.*)$/gm;
   const count = code.match(pattern)?.length ?? 0;
@@ -166,20 +184,27 @@ const node = process.execPath;
 const python = join(workdir, "py/.venv/bin/python");
 const tsDir = join(workdir, "ts");
 const pyDir = join(workdir, "py");
+const rustDir = join(workdir, "rust");
 const exampleEnv = {
   BLAZING_AGENTS_BASE_URL: baseUrl,
   BLAZING_AGENTS_API_KEY: apiKey,
   OPENROUTER_API_KEY: openRouterKey ?? PLACEHOLDER_OPENROUTER_KEY,
 };
 const langs = {
-  typescript: { dir: tsDir, ext: "ts", exec: (file) => [node, [file]] },
-  python: { dir: pyDir, ext: "py", exec: (file) => [python, [file]] },
+  typescript: { dir: tsDir, ext: "ts", target: (file) => file, exec: (file) => [node, [file]] },
+  python: { dir: pyDir, ext: "py", target: (file) => file, exec: (file) => [python, [file]] },
+  rust: {
+    dir: rustDir,
+    ext: "rs",
+    target: (file) => join("src", "bin", file),
+    exec: (file) => [CARGO, ["run", "--quiet", "--bin", file.slice(0, -3)]],
+  },
 };
 
 async function runExample(lang, name, code, options = {}) {
-  const { dir, ext, exec } = langs[lang];
+  const { dir, ext, target, exec } = langs[lang];
   const file = `${name}.${ext}`;
-  await writeFile(join(dir, file), pointAtBaseUrl(lang, code));
+  await writeFile(join(dir, target(file)), pointAtBaseUrl(lang, code));
   const [command, args] = exec(file);
   return run(command, args, { cwd: dir, env: exampleEnv, ...options });
 }
@@ -216,6 +241,15 @@ async function runCleanups() {
 try {
   console.log(`Project: ${workdir}\nAPI: ${baseUrl}\nPython SDK: ${PYTHON_SDK}\n`);
 
+  let rustAvailable = false;
+  try {
+    const { output } = await run(CARGO, ["--version"]);
+    rustAvailable = true;
+    console.log(`Cargo: ${output.trim()}\n`);
+  } catch {
+    console.log("SKIP     Rust steps (cargo unavailable; set SMOKE_RUST)");
+  }
+
   await step(`Install TypeScript project (@blazingagents/sdk@${pkg.dependencies["@blazingagents/sdk"]}, ai@${pkg.devDependencies.ai}, Node ${process.version})`, async () => {
     await mkdir(tsDir);
     await mkdir(pyDir);
@@ -229,11 +263,44 @@ try {
     await run(python, ["-m", "pip", "install", "-q", PYTHON_SDK, ...PYTHON_SERVER_DEPS], { cwd: pyDir });
     console.log(`        ${(await run(python, ["--version"])).output.trim()}`);
   });
+  if (rustAvailable) {
+    await step("Install Rust project", async () => {
+      await run(CARGO, ["new", "--vcs", "none", rustDir]);
+      await mkdir(join(rustDir, "src", "bin"));
+      const addLines = (pageFences) =>
+        pageFences
+          .filter((fence) => fence.lang === "bash" && fence.meta.includes('tab="Rust"'))
+          .flatMap((fence) => fence.body.split("\n"))
+          .map((line) => line.trim())
+          .filter((line) => line.startsWith("cargo add"));
+      const cargoAdds = [
+        ...addLines(await readFences("getting-started/setup.mdx")),
+        ...addLines(await readFences("getting-started/connect-your-app.mdx")),
+      ];
+      for (const line of cargoAdds) {
+        if (RUST_SDK && line.startsWith("cargo add blazing-agents")) {
+          await run(CARGO, ["add", "blazing-agents", "--path", RUST_SDK], { cwd: rustDir });
+        } else {
+          const [command, ...args] = line.split(/\s+/);
+          await run(command, args, { cwd: rustDir });
+        }
+      }
+      /* Build once so later `cargo run` calls fit the timeout. */
+      await run(CARGO, ["build"], { cwd: rustDir });
+      console.log(`        ${(await run(CARGO, ["--version"])).output.trim()}`);
+    });
+  }
 
   const setup = await readFences("getting-started/setup.mdx");
   for (const lang of Object.keys(langs)) {
-    await step(`setup.mdx: check the connection (${lang})`, async () => {
-      const [code] = pick(setup, lang, ({ meta }) => meta.includes('title="check.'));
+    const checkStep = `setup.mdx: check the connection (${lang})`;
+    if (lang === "rust" && !rustAvailable) {
+      record("SKIP", checkStep);
+      continue;
+    }
+    await step(checkStep, async () => {
+      const [code] = pick(setup, lang, ({ meta }) =>
+        meta.includes(lang === "rust" ? 'title="src/bin/check.rs' : 'title="check.'));
       const { output } = await runExample(lang, "check", code);
       const agents = await listAllAgents();
       expectLine(output, new RegExp(`^Connected\\. Your tenant has ${agents.length} agents\\.$`, "m"), `"Connected. Your tenant has ${agents.length} agents."`);
@@ -246,11 +313,23 @@ try {
   const quickstartProviderExisted = providersBefore.some(({ name }) => name === providerName);
   const quickstartProviderIds = new Set();
   for (const lang of Object.keys(langs)) {
-    const steps = pick(quickstart, lang, ({ meta }) => meta.includes('title="quickstart.'));
+    /* Each Rust quickstart fence is the whole file so far, so step n runs fence n alone. */
+    const steps = pick(quickstart, lang, ({ meta }) =>
+      meta.includes(lang === "rust" ? 'title="src/bin/quickstart.rs' : 'title="quickstart.'));
     if (steps.length !== 3) {
       throw new Error(`quickstart.mdx: expected 3 ${lang} steps, found ${steps.length}`);
     }
-    const upTo = (count) => steps.slice(0, count).join("\n");
+    const upTo = (count) => (lang === "rust" ? steps[count - 1] : steps.slice(0, count).join("\n"));
+    if (lang === "rust" && !rustAvailable) {
+      for (const name of [
+        "step 1, connect a model provider",
+        "step 2, create an agent",
+        "step 3, stream the first answer",
+      ]) {
+        record("SKIP", `quickstart.mdx: ${name} (${lang})`);
+      }
+      continue;
+    }
     await step(`quickstart.mdx: step 1, connect a model provider (${lang})`, async () => {
       const first = expectLine((await runExample(lang, "quickstart", upTo(1))).output, /^Provider: (prv_[A-Za-z0-9]{16})$/m, "Provider: prv_...")[1];
       const again = expectLine((await runExample(lang, "quickstart", upTo(1))).output, /^Provider: (prv_[A-Za-z0-9]{16})$/m, "Provider: prv_...")[1];
@@ -283,15 +362,33 @@ try {
     });
   }
   if (quickstartProviderIds.size > 1) {
-    record("FAIL", "quickstart.mdx: both SDKs reuse one provider", [...quickstartProviderIds].join(", "));
+    record("FAIL", "quickstart.mdx: all SDKs reuse one provider", [...quickstartProviderIds].join(", "));
   }
   await runCleanups();
 
+  const connect = await readFences("getting-started/connect-your-app.mdx");
+  const serverStep = "connect-your-app.mdx: serve the Rust chat endpoint";
+  if (!rustAvailable) {
+    record("SKIP", serverStep);
+  } else {
+    await step(serverStep, async () => {
+      if (!openRouterKey) {
+        throw new Blocked("needs OPENROUTER_API_KEY: the endpoint needs an agent from the quickstart");
+      }
+      const agent = (await listAllAgents()).find(({ name }) => name === "Quickstart agent");
+      if (!agent) {
+        throw new Blocked('no "Quickstart agent" in this tenant; the quickstart step creates it');
+      }
+      const [serverCode] = pick(connect, "rust", ({ meta }) => meta.includes('title="src/bin/server.rs"'));
+      await serveRustServer(pointAtBaseUrl("rust", serverCode), agent.id);
+    });
+  }
+
   const home = await readFences("index.mdx");
-  for (const lang of Object.keys(langs)) {
-    const [createAgent] = pick(home, lang, ({ section }) => section === "create-the-agent");
-    const [route] = pick(home, lang, ({ section }) => section === "add-the-chat-route");
+  for (const lang of ["typescript", "python"]) {
     await step(`index.mdx: create the agent and serve the chat route (${lang})`, async () => {
+      const [createAgent] = pick(home, lang, ({ section }) => section === "create-the-agent");
+      const [route] = pick(home, lang, ({ section }) => section === "add-the-chat-route");
       if (!openRouterKey) {
         throw new Blocked('needs OPENROUTER_API_KEY: "Run once" calls agents.create, which validates the model with OpenRouter');
       }
@@ -378,6 +475,66 @@ createServer(async (req, res) => {
         response = await post({ message: message("Say hello in one short sentence.") });
       } catch {
         if (exited || attempt > 100) throw new Error(`the route server did not answer\n${log}`);
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+    }
+    const sessionId = await assertStream(response, log, true);
+    const next = await post({ message: message("Say it again."), sessionId });
+    await assertStream(next, log, false);
+  } finally {
+    server.kill();
+  }
+}
+
+async function serveRustServer(code, agentId) {
+  /* server.rs binds the hardcoded 0.0.0.0:8787, which is also the README's local
+   * API base URL, so inject a free port like the route servers do. */
+  const port = await freePort();
+  const matches = code.match(/0\.0\.0\.0:8787/g) ?? [];
+  if (matches.length !== 1) {
+    throw new Error(`expected one "0.0.0.0:8787" in server.rs to inject the port, found ${matches.length}`);
+  }
+  code = code.replace(
+    '"0.0.0.0:8787"',
+    `"0.0.0.0:${port}" /* SMOKE HARNESS: port injected */`
+  );
+  await writeFile(join(rustDir, "src", "bin", "server.rs"), code);
+  const server = spawn(CARGO, ["run", "--quiet", "--bin", "server"], {
+    cwd: rustDir,
+    env: {
+      ...baseEnv,
+      ...exampleEnv,
+      BLAZING_AGENTS_AGENT_ID: agentId,
+      DEMO_USER_TOKEN: "demo-token",
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let log = "";
+  let exited = false;
+  server.on("exit", () => (exited = true));
+  server.stdout.on("data", (chunk) => (log += chunk));
+  server.stderr.on("data", (chunk) => (log += chunk));
+  try {
+    const post = (body) =>
+      fetch(`http://127.0.0.1:${port}/api/chat`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer demo-token",
+        },
+        body: JSON.stringify(body),
+      });
+    const message = (text) => ({
+      id: crypto.randomUUID(),
+      role: "user",
+      parts: [{ type: "text", text }],
+    });
+    let response;
+    for (let attempt = 0; !response; attempt++) {
+      try {
+        response = await post({ message: message("Say hello in one short sentence.") });
+      } catch {
+        if (exited || attempt > 300) throw new Error(`the server did not answer\n${log}`);
         await new Promise((resolve) => setTimeout(resolve, 200));
       }
     }

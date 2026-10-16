@@ -95,6 +95,15 @@ for session in client.sessions.iter(agent_id=agent_id, limit=100):
     print(session.id)
 ```
 
+```rust tab="Rust"
+use futures_util::TryStreamExt;
+
+let mut sessions = client.sessions().list(agent_id).limit(100).items();
+while let Some(session) = sessions.try_next().await? {
+    println!("{}", session.id);
+}
+```
+
 Read a task run's transcript once, save its tail, then poll forward. Only pass
 back as `after` a `nextCursor` that came from a forward request:
 
@@ -143,6 +152,50 @@ while after is not None:
     after = page.next_cursor
 ```
 
+```rust tab="Rust"
+use blazing_agents::pagination::Cursor;
+
+let task_id = "tk_0123456789abcdef";
+let run_id = "tr_0123456789abcdef";
+
+fn save_tail(cursor: &Cursor) {
+    // Store the cursor to resume polling later.
+    let _ = cursor;
+}
+
+let bootstrap = client
+    .tasks()
+    .run_messages(task_id, run_id)
+    .limit(50)
+    .await?;
+for message in &bootstrap.data {
+    println!("{message:?}");
+}
+let Some(mut after) = bootstrap.latest_cursor.clone() else {
+    return Err("The task run has no transcript yet".into());
+};
+save_tail(&after);
+
+loop {
+    let page = client
+        .tasks()
+        .run_messages(task_id, run_id)
+        .after(after)
+        .limit(50)
+        .await?;
+    for message in &page.data {
+        println!("{message:?}");
+    }
+    if let Some(latest) = &page.latest_cursor {
+        save_tail(latest);
+    }
+    match page.next_cursor {
+        Some(cursor) => after = cursor,
+        None => break,
+    }
+}
+```
+
 Read tenant-level usage and keep the overall totals apart from the top-N
 buckets:
 
@@ -168,6 +221,20 @@ usage = client.usage.get(
 )
 
 print(usage.totals.request_count, usage.buckets)
+```
+
+```rust tab="Rust"
+use blazing_agents::usage::UsageGroupBy;
+
+let usage = client
+    .usage()
+    .get()
+    .range("2026-07-01", "2026-07-20")
+    .user_id("")
+    .group_by(UsageGroupBy::Session)
+    .limit(25)
+    .await?;
+println!("{} {:?}", usage.totals.request_count, usage.buckets);
 ```
 
 ## Next [#next]

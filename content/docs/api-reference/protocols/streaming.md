@@ -195,6 +195,21 @@ with client.completion_stream(
     final_text = stream.get_final_text()
 ```
 
+```rust tab="Rust"
+use futures_util::TryStreamExt;
+use std::io::Write;
+
+let mut stream = client
+    .completion_stream(agent_id, "Write a two-sentence release note.")
+    .await?;
+let mut stdout = std::io::stdout();
+while let Some(delta) = stream.try_next().await? {
+    stdout.write_all(delta.as_bytes())?;
+    stdout.flush()?;
+}
+let final_text = stream.final_text().await?;
+```
+
 Cancel a turn from the caller in TypeScript:
 
 ```typescript

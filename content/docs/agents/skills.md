@@ -74,6 +74,44 @@ print(
 )
 ```
 
+```rust tab="Rust"
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+    let agent_id = std::env::var("AGENT_ID")?;
+
+    let skill = client
+        .agent(&agent_id)
+        .skills()
+        .create(
+            "SKILL.md",
+            r#"---
+name: release-notes
+description: Draft release notes from a list of changes.
+---
+
+# Release notes
+
+Begin the response with exactly RELEASE NOTES READY, then group the changes
+under Added, Changed, and Fixed.
+"#,
+        )
+        .await?;
+    println!("Skill: {}", skill.id);
+
+    let answer = client
+        .completion(
+            &agent_id,
+            "Write release notes for: dark mode, faster search, fixed login bug.",
+        )
+        .await?;
+    println!("{answer}");
+    Ok(())
+}
+```
+
 The answer starts with `RELEASE NOTES READY`, which shows the agent loaded the skill. Skill names are unique per agent, so delete the skill or change its name before you run this again.
 
 `SKILL.md` needs frontmatter with a `name` and a `description`. The name uses lowercase letters, digits, and hyphens, up to 64 characters. Write the description for the model: it is all the agent sees when deciding whether to load the skill. You can also add `license`, `compatibility`, string `metadata`, and the experimental `allowed-tools`.
@@ -103,6 +141,17 @@ await client.agent({ agentId }).skills.upload({
 
 ```python tab="Python"
 client.agent(agent_id).skills.upload(archive_type="zip", file="release-notes.zip")
+```
+
+```rust tab="Rust"
+use blazing_agents::files::Upload;
+use blazing_agents::skills::ArchiveType;
+
+client
+    .agent(agent_id)
+    .skills()
+    .upload(ArchiveType::Zip, Upload::file("release-notes.zip").await?)
+    .await?;
 ```
 
 Blazing Agents checks the whole archive before it saves anything, so a bad `SKILL.md` leaves the agent unchanged.

@@ -55,6 +55,31 @@ client.merchant_connection.create(
 client.tenant.update(monetization_enabled=True)
 ```
 
+```rust tab="Rust"
+use blazing_agents::merchant::{MerchantEnvironment, MerchantProvider};
+use blazing_agents::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::from_env()?;
+
+    client
+        .merchant_connection()
+        .create(
+            MerchantProvider::Polar,
+            MerchantEnvironment::Sandbox,
+            std::env::var("POLAR_ACCESS_TOKEN")?,
+        )
+        .await?;
+    client
+        .tenant()
+        .update()
+        .monetization_enabled(true)
+        .await?;
+    Ok(())
+}
+```
+
 - **Polar:** use an Organization Access Token (`polar_oat_...`) with `organizations:read`, `customers:read`, and `events:write`, and nothing else.
 - **Dodo:** use an API key from your Dodo dashboard in the mode that matches the environment.
 
@@ -74,6 +99,13 @@ await client.merchantBindings.put({
 
 ```python tab="Python"
 client.merchant_bindings.put("app:user-42", customer_id="cus_from_polar_or_dodo")
+```
+
+```rust tab="Rust"
+client
+    .merchant_bindings()
+    .set("app:user-42", "cus_from_polar_or_dodo")
+    .await?;
 ```
 
 Blazing Agents checks that the customer exists. Usage for a user with no link is held as `unmapped`, never sent as zero. Link the user, then release those events.
@@ -106,6 +138,20 @@ client.merchant_connection.update(
         "meter_id": "meter_or_credit_entitlement_id",
     },
 )
+```
+
+```rust tab="Rust"
+use blazing_agents::merchant::MerchantGuard;
+
+client
+    .merchant_connection()
+    .update()
+    .guard(
+        MerchantGuard::new(true)
+            .product_ids(["prod_..."])
+            .meter_id("meter_or_credit_entitlement_id"),
+    )
+    .await?;
 ```
 
 See [guard rules](#guard-rules) for what each setting requires.
