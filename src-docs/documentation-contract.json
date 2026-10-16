@@ -2940,7 +2940,9 @@
           "list-mcp-attachments",
           "update-mcp-attachment",
           "get-spending-limit",
-          "update-spending-limit"
+          "update-spending-limit",
+          "agent",
+          "mcpattachment"
         ],
         "kind": "methods"
       },
@@ -3078,6 +3080,56 @@
       "anchors": {
         "assignedIds": [
           "create",
+          "list",
+          "get",
+          "update",
+          "delete",
+          "workspace",
+          "workspacedeletion"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/workspaces.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
           "upload",
           "list",
           "iter",
@@ -3143,6 +3195,75 @@
         ]
       },
       "file": "sdk/python/skills.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "upload",
+          "list",
+          "get",
+          "delete",
+          "read-file",
+          "replace-file",
+          "delete-file",
+          "copy",
+          "skill-and-skilldetail"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/skills.md",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -3228,6 +3349,82 @@
     {
       "anchors": {
         "assignedIds": [
+          "list",
+          "list-latest",
+          "get",
+          "messages",
+          "tool-approvals",
+          "delete",
+          "submit-input",
+          "inputs",
+          "stop",
+          "fork",
+          "session",
+          "toolapprovals",
+          "sessioninput"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/sessions.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
           "create",
           "list",
           "get",
@@ -3279,6 +3476,65 @@
         ]
       },
       "file": "sdk/python/providers.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "list-models",
+          "get-thinking-levels",
+          "update",
+          "delete",
+          "provider"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/providers.md",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -3351,6 +3607,67 @@
         "assignedIds": [
           "create",
           "list",
+          "get",
+          "update",
+          "delete",
+          "test",
+          "reconnect",
+          "mcpconnection",
+          "mcpconnectiontestresult",
+          "mcpconnectionreconnectresult"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/mcp-connections.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "list",
           "iter",
           "get",
           "update",
@@ -3402,6 +3719,55 @@
     {
       "anchors": {
         "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "update",
+          "delete",
+          "memory"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/memories.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
           "list",
           "iter",
           "get",
@@ -3443,6 +3809,50 @@
         ]
       },
       "file": "sdk/python/artifacts.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "list",
+          "get",
+          "create-download-url",
+          "delete",
+          "artifact"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/artifacts.md",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -3537,6 +3947,81 @@
           "list",
           "get",
           "update",
+          "delete",
+          "submit",
+          "list-runs",
+          "get-run",
+          "run-messages",
+          "cancel-run",
+          "task",
+          "taskrun"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/tasks.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "update",
           "delete"
         ],
         "kind": "methods"
@@ -3574,6 +4059,55 @@
         ]
       },
       "file": "sdk/python/prompts.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "create",
+          "list",
+          "get",
+          "update",
+          "delete",
+          "prompt"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/prompts.md",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -3619,6 +4153,52 @@
     {
       "anchors": {
         "assignedIds": [
+          "overview-method",
+          "get",
+          "sessions",
+          "get-for-agent",
+          "usage",
+          "sessionusagelist",
+          "usageoverview"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/usage.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
           "get",
           "update",
           "get-spending-limit",
@@ -3655,6 +4235,54 @@
         ]
       },
       "file": "sdk/python/tenant.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "get",
+          "update",
+          "get-spending-limit",
+          "update-spending-limit",
+          "tenantsettings"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          },
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/tenant.md",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -4984,11 +5612,25 @@
       "url": "/sdk/python/workspaces"
     },
     {
+      "file": "sdk/rust/workspaces.md",
+      "name": "Workspaces",
+      "publishable": true,
+      "title": "Workspaces",
+      "url": "/sdk/rust/workspaces"
+    },
+    {
       "file": "sdk/python/skills.md",
       "name": "Skills",
       "publishable": true,
       "title": "Skills",
       "url": "/sdk/python/skills"
+    },
+    {
+      "file": "sdk/rust/skills.md",
+      "name": "Skills",
+      "publishable": true,
+      "title": "Skills",
+      "url": "/sdk/rust/skills"
     },
     {
       "file": "sdk/python/sessions.md",
@@ -4998,11 +5640,25 @@
       "url": "/sdk/python/sessions"
     },
     {
+      "file": "sdk/rust/sessions.md",
+      "name": "Sessions",
+      "publishable": true,
+      "title": "Sessions",
+      "url": "/sdk/rust/sessions"
+    },
+    {
       "file": "sdk/python/providers.md",
       "name": "Providers",
       "publishable": true,
       "title": "Providers",
       "url": "/sdk/python/providers"
+    },
+    {
+      "file": "sdk/rust/providers.md",
+      "name": "Providers",
+      "publishable": true,
+      "title": "Providers",
+      "url": "/sdk/rust/providers"
     },
     {
       "file": "sdk/python/mcp-connections.md",
@@ -5012,11 +5668,25 @@
       "url": "/sdk/python/mcp-connections"
     },
     {
+      "file": "sdk/rust/mcp-connections.md",
+      "name": "MCP connections",
+      "publishable": true,
+      "title": "MCP connections",
+      "url": "/sdk/rust/mcp-connections"
+    },
+    {
       "file": "sdk/python/memories.md",
       "name": "Memories",
       "publishable": true,
       "title": "Memories",
       "url": "/sdk/python/memories"
+    },
+    {
+      "file": "sdk/rust/memories.md",
+      "name": "Memories",
+      "publishable": true,
+      "title": "Memories",
+      "url": "/sdk/rust/memories"
     },
     {
       "file": "sdk/python/artifacts.md",
@@ -5026,11 +5696,25 @@
       "url": "/sdk/python/artifacts"
     },
     {
+      "file": "sdk/rust/artifacts.md",
+      "name": "Artifacts",
+      "publishable": true,
+      "title": "Artifacts",
+      "url": "/sdk/rust/artifacts"
+    },
+    {
       "file": "sdk/python/tasks.md",
       "name": "Tasks",
       "publishable": true,
       "title": "Tasks",
       "url": "/sdk/python/tasks"
+    },
+    {
+      "file": "sdk/rust/tasks.md",
+      "name": "Tasks",
+      "publishable": true,
+      "title": "Tasks",
+      "url": "/sdk/rust/tasks"
     },
     {
       "file": "sdk/python/prompts.md",
@@ -5040,6 +5724,13 @@
       "url": "/sdk/python/prompts"
     },
     {
+      "file": "sdk/rust/prompts.md",
+      "name": "Prompts",
+      "publishable": true,
+      "title": "Prompts",
+      "url": "/sdk/rust/prompts"
+    },
+    {
       "file": "sdk/python/usage.md",
       "name": "Usage",
       "publishable": true,
@@ -5047,11 +5738,25 @@
       "url": "/sdk/python/usage"
     },
     {
+      "file": "sdk/rust/usage.md",
+      "name": "Usage",
+      "publishable": true,
+      "title": "Usage",
+      "url": "/sdk/rust/usage"
+    },
+    {
       "file": "sdk/python/tenant.md",
       "name": "Tenant",
       "publishable": true,
       "title": "Tenant",
       "url": "/sdk/python/tenant"
+    },
+    {
+      "file": "sdk/rust/tenant.md",
+      "name": "Tenant",
+      "publishable": true,
+      "title": "Tenant",
+      "url": "/sdk/rust/tenant"
     },
     {
       "file": "mcp.mdx",

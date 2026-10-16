@@ -3,6 +3,18 @@
   "pages": [
     "index",
     "client",
-    "agents"
+    "agents",
+    "workspaces",
+    "skills",
+    "sessions",
+    "providers",
+    "mcp-connections",
+    "memories",
+    "artifacts",
+    "tasks",
+    "prompts",
+    "usage",
+    "tenant",
+    "chat-integrations"
   ]
 }

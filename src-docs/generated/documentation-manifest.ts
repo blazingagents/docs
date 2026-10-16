@@ -326,8 +326,56 @@ export const documentationPages = [
     "url": "/sdk/rust/agents"
   },
   {
+    "path": "sdk/rust/artifacts.md",
+    "url": "/sdk/rust/artifacts"
+  },
+  {
+    "path": "sdk/rust/chat-integrations.md",
+    "url": "/sdk/rust/chat-integrations"
+  },
+  {
     "path": "sdk/rust/client.md",
     "url": "/sdk/rust/client"
+  },
+  {
+    "path": "sdk/rust/mcp-connections.md",
+    "url": "/sdk/rust/mcp-connections"
+  },
+  {
+    "path": "sdk/rust/memories.md",
+    "url": "/sdk/rust/memories"
+  },
+  {
+    "path": "sdk/rust/prompts.md",
+    "url": "/sdk/rust/prompts"
+  },
+  {
+    "path": "sdk/rust/providers.md",
+    "url": "/sdk/rust/providers"
+  },
+  {
+    "path": "sdk/rust/sessions.md",
+    "url": "/sdk/rust/sessions"
+  },
+  {
+    "path": "sdk/rust/skills.md",
+    "url": "/sdk/rust/skills"
+  },
+  {
+    "path": "sdk/rust/tasks.md",
+    "url": "/sdk/rust/tasks"
+  },
+  {
+    "path": "sdk/rust/tenant.md",
+    "url": "/sdk/rust/tenant"
+  },
+  {
+    "path": "sdk/rust/usage.md",
+    "url": "/sdk/rust/usage"
+  },
+  {
+    "path": "sdk/rust/workspaces.md",
+    "url": "/sdk/rust/workspaces"
   },
   {
     "path": "sdk/typescript/index.mdx",
@@ -12693,6 +12741,102 @@ export const documentationTree: SerializedPageTree = {
                 "description": "Create, configure, pause, and delete agents with the Rust SDK.",
                 "url": "/sdk/rust/agents",
                 "$ref": "sdk/rust/agents.md"
+              },
+              {
+                "$id": "sdk/rust/workspaces.md",
+                "type": "page",
+                "name": "Workspaces",
+                "description": "Create, list, update, and delete the private file systems your agents use with the Rust SDK.",
+                "url": "/sdk/rust/workspaces",
+                "$ref": "sdk/rust/workspaces.md"
+              },
+              {
+                "$id": "sdk/rust/skills.md",
+                "type": "page",
+                "name": "Skills",
+                "description": "Create, upload, edit, copy, and delete an agent's skills with the Rust SDK.",
+                "url": "/sdk/rust/skills",
+                "$ref": "sdk/rust/skills.md"
+              },
+              {
+                "$id": "sdk/rust/sessions.md",
+                "type": "page",
+                "name": "Sessions",
+                "description": "List conversations, read transcripts, approve tool calls, and delete sessions with the Rust SDK.",
+                "url": "/sdk/rust/sessions",
+                "$ref": "sdk/rust/sessions.md"
+              },
+              {
+                "$id": "sdk/rust/providers.md",
+                "type": "page",
+                "name": "Providers",
+                "description": "Store model provider keys, list their models, and check reasoning levels with the Rust SDK.",
+                "url": "/sdk/rust/providers",
+                "$ref": "sdk/rust/providers.md"
+              },
+              {
+                "$id": "sdk/rust/mcp-connections.md",
+                "type": "page",
+                "name": "MCP connections",
+                "description": "Connect remote MCP servers, test them, and rotate their credentials with the Rust SDK.",
+                "url": "/sdk/rust/mcp-connections",
+                "$ref": "sdk/rust/mcp-connections.md"
+              },
+              {
+                "$id": "sdk/rust/memories.md",
+                "type": "page",
+                "name": "Memories",
+                "description": "Create, search, update, and delete the notes an agent remembers, with the Rust SDK.",
+                "url": "/sdk/rust/memories",
+                "$ref": "sdk/rust/memories.md"
+              },
+              {
+                "$id": "sdk/rust/artifacts.md",
+                "type": "page",
+                "name": "Artifacts",
+                "description": "List, inspect, download, and delete the files your agents publish, with the Rust SDK.",
+                "url": "/sdk/rust/artifacts",
+                "$ref": "sdk/rust/artifacts.md"
+              },
+              {
+                "$id": "sdk/rust/tasks.md",
+                "type": "page",
+                "name": "Tasks",
+                "description": "Run agents in the background, on demand or on a schedule, and follow each run with the Rust SDK.",
+                "url": "/sdk/rust/tasks",
+                "$ref": "sdk/rust/tasks.md"
+              },
+              {
+                "$id": "sdk/rust/prompts.md",
+                "type": "page",
+                "name": "Prompts",
+                "description": "Save reusable message templates and run them with variables, using the Rust SDK.",
+                "url": "/sdk/rust/prompts",
+                "$ref": "sdk/rust/prompts.md"
+              },
+              {
+                "$id": "sdk/rust/usage.md",
+                "type": "page",
+                "name": "Usage",
+                "description": "Read token, request, and duration totals for your tenant or one agent with the Rust SDK.",
+                "url": "/sdk/rust/usage",
+                "$ref": "sdk/rust/usage.md"
+              },
+              {
+                "$id": "sdk/rust/tenant.md",
+                "type": "page",
+                "name": "Tenant",
+                "description": "Read and change your tenant's name, monthly usage quota, and model spending limit with the Rust SDK.",
+                "url": "/sdk/rust/tenant",
+                "$ref": "sdk/rust/tenant.md"
+              },
+              {
+                "$id": "sdk/rust/chat-integrations.md",
+                "type": "page",
+                "name": "Chat integrations",
+                "description": "Connect an agent to your own Slack app or Telegram bot with the Rust SDK.",
+                "url": "/sdk/rust/chat-integrations",
+                "$ref": "sdk/rust/chat-integrations.md"
               }
             ],
             "$id": "sdk/rust",
