@@ -152,4 +152,4 @@ Each agent holds up to 500 notes across all its users. Saving a note at that lim
 
 - [Tenancy and attribution](/platform/tenancy-and-attribution) to pass the right `userId` for each end user.
 - [Built-in tools](/agents/tools/built-in-tools#memory) for what each memory tool does.
-- Memories SDK reference for [TypeScript](/sdk/typescript/memories) or [Python](/sdk/python/memories).
+- Memories SDK reference for [TypeScript](/sdk/typescript/memories), [Python](/sdk/python/memories), or [Rust](/sdk/rust/memories).

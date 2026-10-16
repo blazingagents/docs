@@ -168,7 +168,7 @@ Skill files are read-only to the agent and are not part of its [workspace](/agen
 - **Copy.** Copy a skill to other agents. Each copy is independent, and if one destination fails the others still succeed.
 - **Delete.** Deleting a skill removes all its files. Deleting the agent deletes its skills.
 
-Each agent can have up to 100 skills. Treat skill content like code: review changes, and keep secrets out of it. For every method, see the [TypeScript](/sdk/typescript/skills) or [Python](/sdk/python/skills) SDK.
+Each agent can have up to 100 skills. Treat skill content like code: review changes, and keep secrets out of it. For every method, see the [TypeScript](/sdk/typescript/skills), [Python](/sdk/python/skills), or [Rust](/sdk/rust/skills) SDK.
 
 ## Skills for your coding assistant [#skills-for-your-coding-assistant]
 
@@ -184,4 +184,4 @@ Run `npx skills add blazingagents/skills --list` to see the whole catalog. See t
 
 - [Memory](/agents/memory) to let the agent remember facts across sessions.
 - [Built-in tools](/agents/tools/built-in-tools) to give the agent actions to go with its skills.
-- Skills SDK reference for [TypeScript](/sdk/typescript/skills) or [Python](/sdk/python/skills).
+- Skills SDK reference for [TypeScript](/sdk/typescript/skills), [Python](/sdk/python/skills), or [Rust](/sdk/rust/skills).
