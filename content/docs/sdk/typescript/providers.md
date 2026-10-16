@@ -81,7 +81,7 @@ Reads one provider.
 const provider = await client.providers.get({ providerId });
 ```
 
-Returns [`ProviderResponse`](#providerresponse). Errors: `validation_failed`, [`not_found`](/api-reference/protocols/errors#not_found).
+Returns [`ProviderResponse`](#providerresponse). Errors: `validation_failed`, [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
 
 ### `listModels()` [#list-models]
 
@@ -95,7 +95,7 @@ const { models } = await client.providers.listModels({ providerId });
 
 Returns `{ models: Array<{ id: string }> }`, sorted by ID. Pass one of these IDs as an agent's `model`; agent create and update check the model against this same list.
 
-For `"vercel_ai_gateway"`, the list shows what the gateway offers, not what your key can use: credits, team policy, or routing can still make a turn fail. `"custom"` providers raise [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported), and you type the model ID yourself. Errors: `not_found`, `model_discovery_unsupported`, [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable).
+For `"vercel_ai_gateway"`, the list shows what the gateway offers, not what your key can use: credits, team policy, or routing can still make a turn fail. `"custom"` providers raise [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported), and you type the model ID yourself. Errors: `validation_failed`, `provider_not_found`, `model_discovery_unsupported`, [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable).
 
 ### `getThinkingLevels()` [#get-thinking-levels]
 
@@ -113,7 +113,7 @@ if (known && levels.includes("high")) {
 }
 ```
 
-Returns `{ known: boolean; levels: string[] }`. When `known` is `true`, `levels` lists every accepted value, and an empty list means only the provider default (`null`) works. When `known` is `false`, Blazing Agents does not know the model, so any value is accepted but the provider may reject it during a turn. It works for any model ID, including custom providers.
+Returns `{ known: boolean; levels: string[] }`. When `known` is `true`, `levels` lists every accepted value, and an empty list means only the provider default (`null`) works. When `known` is `false`, Blazing Agents does not know the model, so any value is accepted but the provider may reject it during a turn. It works for any model ID, including custom providers. Errors: `validation_failed`, `provider_not_found`.
 
 ### `update()` [#update]
 
@@ -125,7 +125,7 @@ Renames a provider. The name is the only field you can change.
 const provider = await client.providers.update({ providerId, name: "OpenRouter production" });
 ```
 
-Returns [`ProviderResponse`](#providerresponse). Errors: `validation_failed`, `not_found`, `provider_name_conflict`.
+Returns [`ProviderResponse`](#providerresponse). Errors: `validation_failed`, `provider_not_found`, `provider_name_conflict`.
 
 ### `delete()` [#delete]
 
@@ -142,7 +142,7 @@ await client.providers.delete({ providerId, confirmSnapshotInvalidation: true })
 | `providerId` | `string` | yes | none | Provider ID (`prv_…`) |
 | `confirmSnapshotInvalidation` | `boolean` | no | `false` | Delete even though saved sessions and queued or running task runs use it |
 
-Deletion fails with [`provider_in_use`](/api-reference/protocols/errors#provider_in_use) while any agent's current configuration uses the provider; move those agents first. It fails with [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) when only saved sessions or queued or running task runs refer to it; `details.sessionIds` and `details.taskRunIds` list them. Pass `confirmSnapshotInvalidation: true` to delete anyway. Saved configuration stays readable, but work that needs that provider fails with [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
+Deletion fails with [`provider_in_use`](/api-reference/protocols/errors#provider_in_use) while any agent's current configuration uses the provider; move those agents first. It fails with [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) when only saved sessions or queued or running task runs refer to it; `details.sessionIds` and `details.taskRunIds` list them. Pass `confirmSnapshotInvalidation: true` to delete anyway. Saved configuration stays readable, but work that needs that provider fails with `provider_not_found`. Errors: `validation_failed`, `provider_not_found`, `provider_in_use`, `provider_historical_use`.
 
 ## Response types [#response-types]
 
@@ -164,6 +164,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The provid
 
 | Code | Meaning |
 | --- | --- |
+| `provider_not_found` | The provider does not exist |
 | `model_discovery_unsupported` | Custom providers have no model list |
 | `model_validation_unavailable` | The provider's model list could not be fetched; try again |
 | `provider_in_use` | An agent currently uses this provider |

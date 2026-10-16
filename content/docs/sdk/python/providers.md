@@ -84,7 +84,7 @@ print(provider.key_fragment)
 
 **Signature:** `get(provider_id: str) -> Provider`
 
-Returns [`Provider`](#provider). Raises `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
+Returns [`Provider`](#provider). Raises `validation_failed` or [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
 
 ### `list_models()` [#list-models]
 
@@ -98,7 +98,7 @@ ids = [model.id for model in client.providers.list_models(provider.id).models]
 
 Returns `ProviderModels`, whose `models` field lists `ProviderModel` items with an `id`, sorted and without duplicates. Use an `id` as the agent's `model`.
 
-A listed model is not a guarantee that your key can use it: credits, account policy, or routing can still reject a request. `"custom"` providers raise [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported); type their model IDs yourself. A temporarily unavailable catalog raises [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable).
+A listed model is not a guarantee that your key can use it: credits, account policy, or routing can still reject a request. `"custom"` providers raise [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported); type their model IDs yourself. A temporarily unavailable catalog raises [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable). Raises `validation_failed`, `provider_not_found`, `model_discovery_unsupported`, or `model_validation_unavailable`.
 
 ### `get_thinking_levels()` [#get-thinking-levels]
 
@@ -112,7 +112,7 @@ if levels.known and "high" in levels.levels:
 
 **Signature:** `get_thinking_levels(provider_id: str, *, model: str) -> ThinkingLevels`
 
-Returns `ThinkingLevels` with `known: bool` and `levels: list[str]`. When `known` is `True`, only the listed levels are accepted, and an empty list means the model supports only the provider default (`thinking_level=None`). When `known` is `False`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time.
+Returns `ThinkingLevels` with `known: bool` and `levels: list[str]`. When `known` is `True`, only the listed levels are accepted, and an empty list means the model supports only the provider default (`thinking_level=None`). When `known` is `False`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time. Raises `validation_failed` or `provider_not_found`.
 
 ### `update()` [#update]
 
@@ -124,7 +124,7 @@ provider = client.providers.update(provider.id, name="OpenRouter production")
 
 **Signature:** `update(provider_id: str, *, name=...) -> Provider`
 
-Only the name can change. To change the type, key, or base URL, create a new provider and move your agents to it. Calling `update()` without `name` raises `ValueError` before any request. Returns [`Provider`](#provider). Raises `validation_failed`, `not_found`, or `provider_name_conflict`.
+Only the name can change. To change the type, key, or base URL, create a new provider and move your agents to it. Calling `update()` without `name` raises `ValueError` before any request. Returns [`Provider`](#provider). Raises `validation_failed`, `provider_not_found`, or `provider_name_conflict`.
 
 ### `delete()` [#delete]
 
@@ -136,12 +136,14 @@ client.providers.delete(provider.id, confirm_snapshot_invalidation=True)
 
 **Signature:** `delete(provider_id: str, *, confirm_snapshot_invalidation: bool = False) -> None`
 
+Raises `validation_failed`, `provider_not_found`, or one of these codes:
+
 | Code | Meaning |
 | --- | --- |
 | [`provider_in_use`](/api-reference/protocols/errors#provider_in_use) | A current agent uses it. Move the agent first; confirmation does not override this |
 | [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) | Saved sessions or queued or running task runs use it. `error.details.sessionIds` and `error.details.taskRunIds` list them. Pass `confirm_snapshot_invalidation=True` to delete anyway |
 
-After a confirmed delete, session and task run history remains, but any later turn that needs the provider raises [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
+After a confirmed delete, session and task run history remains, but any later turn that needs the provider raises `provider_not_found`.
 
 ## Response models [#response-models]
 
