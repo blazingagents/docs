@@ -38,7 +38,7 @@ let client = blazing_agents::Client::builder()
 
 `default_header` headers go on every request, and `with_header` on a single call overrides them for that call.
 
-The SDK owns three headers. It always sets `Authorization` from your tenant API key, overwriting any value you pass. It removes `X-Request-Id` and `X-BA-User-Id` from default and per-call headers. To correlate requests with your own IDs, use `with_client_request_id` instead.
+The SDK owns four headers. It always sets `Authorization` from your tenant API key, and sets `Content-Type` from the request body. `default_header` and `with_header` ignore `Authorization`, `Content-Type`, `X-Request-Id`, and `X-BA-User-Id`: values you pass for them are dropped. To correlate requests with your own IDs, use `with_client_request_id` instead.
 
 A `Client` is cheap to clone, and clones share the connection pool. There is no `close()`; drop the client when you are done.
 
@@ -74,7 +74,7 @@ let page = user_client.agents().list().limit(50).await?;
 
 Pass the ID from the session your backend verified. Do not take it from a request body or query parameter. The ID must be 1 to 256 printable ASCII characters without a leading or trailing space, or `for_user()` fails with `ConfigError::InvalidUserId`. The scope header wins over default and per-call headers.
 
-A `UserClient` has `agents()`, `artifacts()`, `memories()`, `prompts()`, `sessions()`, `tasks()`, `workspaces()`, `agent()`, the [generation methods](#generation-methods), and `usage()` with `get()` and `sessions()`. Tenant administration is missing at compile time: a `UserClient` has no `providers()`, `mcp_connections()`, `chat_connections()`, `chat_deliveries()`, `tenant()`, or merchant accessors, and its `usage()` has no `overview()` or `get_for_agent()`. Use the tenant client for those operations.
+A `UserClient` has `agents()`, `artifacts()`, `memories()`, `prompts()`, `sessions()`, `tasks()`, `workspaces()`, `agent()`, the [generation methods](#generation-methods), and `usage()` with `get()` and [`sessions()`](/sdk/rust/usage#sessions). Tenant administration is missing at compile time: a `UserClient` has no `providers()`, `mcp_connections()`, `chat_connections()`, `chat_deliveries()`, `tenant()`, or merchant accessors, and its `usage()` has no `overview()` or `get_for_agent()`. Use the tenant client for those operations.
 
 A request body's `user_id` labels the resource or turn. It does not grant access. On a scoped request, the API fills in a missing `user_id` with the scoped ID and rejects a different one. Without `for_user()`, your API key keeps tenant-wide authority, even when a request body contains `user_id`.
 
@@ -176,7 +176,7 @@ while let Some(event) = stream.try_next().await? {
 }
 ```
 
-Without the `session` setter, `chat()` starts a new session. Its `ss_...` ID is available as `stream.session_id()` before you read the body, and `stream.turn_id()` holds the running turn's ID for `sessions().stop()`. Pass the session ID on a later call to continue the conversation. The first turn saves the current agent configuration for every later turn.
+Without the `session` setter, `chat()` starts a new session. Its `ss_...` ID is available as `stream.session_id()` before you read the body, and `stream.turn_id()` holds the running turn's ID for [`sessions().stop()`](/sdk/rust/sessions#stop). Pass the session ID on a later call to continue the conversation. The first turn saves the current agent configuration for every later turn.
 
 | Setter | Description |
 | --- | --- |
@@ -185,7 +185,7 @@ Without the `session` setter, `chat()` starts a new session. Its `ss_...` ID is 
 | `metadata(metadata)` | Your own data, stored with the turn |
 | `functions(functions)` | Backend functions the agent may call during the turn |
 
-`UserMessage::text(...)` builds a text message with a random ID. `UserMessage::new(id, UserPart::Text { text })` sets the ID and first part, and `.part(...)` and `.metadata(...)` add to it. Keep the message and resend it to retry safely. A batch sends several waiting messages in one turn, and each stays a separate user message in order:
+`UserMessage::text(...)` builds a text message with a random ID. `UserMessage::new(id, UserPart::text(...))` sets the ID and first part, and `.part(...)` and `.metadata(...)` add to it. `UserPart::file(media_type, url)` attaches a file, such as an image, as a `data:` URL or a fetchable URL. Keep the message and resend it to retry safely. A batch sends several waiting messages in one turn, and each stays a separate user message in order:
 
 ```rust
 use blazing_agents::chat::ChatInput;
@@ -230,11 +230,13 @@ while let Some(event) = stream.try_next().await? {
 
 `regenerate()` also has `user_id`, `metadata`, and `functions` setters. Awaiting returns a `ChatStream`, the same as `chat()`.
 
-### `functions()` [#functions]
+### `Functions::builder()` [#functions]
 
 **Signature:** `Functions::builder().function(name, description, handler).build() -> Result<Functions, FunctionsError>`
 
 Backend functions are handlers in your process that the agent can call during a chat turn. `function()` derives the input schema from a `schemars` type and decodes the input into it; `function_json()` takes a hand-written JSON Schema and a handler that receives a `serde_json::Value`. The handler's `Ok` value is sent to the agent as JSON.
+
+A `with_header` or `with_client_request_id` on a chat call is forwarded to that call's backend function claim and result requests too. Those requests keep the client's timeout, not the chat call's.
 
 ```rust
 use blazing_agents::functions::{FunctionContext, Functions};
@@ -266,12 +268,12 @@ Build one `Functions` value and attach it to every chat call with the `functions
 
 ### `continue_chat()` [#continue-chat]
 
-**Signature:** `continue_chat(agent_id: impl Into<AgentId>, session_id: impl Into<SessionId>, decisions: impl IntoIterator<Item = ApprovalDecision>) -> Call<ContinueChat>`
+**Signature:** `continue_chat(agent_id: impl Into<AgentId>, session_id: impl Into<SessionId>, decisions: impl IntoIterator<Item = ToolApprovalDecision>) -> Call<ContinueChat>`
 
-Records one complete tool approval round and streams the rest of the turn. Pass one decision for every call pending in the round: `ApprovalDecision::approve(id)` or `ApprovalDecision::deny(id)` with an optional `.reason(...)`. Nothing runs until you make this call, and a dropped continuation stream cannot be rejoined.
+Records one complete tool approval round and streams the rest of the turn. Pass one decision for every call pending in the round: `ToolApprovalDecision::approve(id)` or `ToolApprovalDecision::deny(id)` with an optional `.reason(...)`. Nothing runs until you make this call, and a dropped continuation stream cannot be rejoined.
 
 ```rust
-use blazing_agents::chat::ApprovalDecision;
+use blazing_agents::chat::ToolApprovalDecision;
 use futures_util::TryStreamExt;
 
 let mut stream = client
@@ -279,8 +281,8 @@ let mut stream = client
         "ag_0123456789abcdef",
         "ss_0123456789abcdef",
         [
-            ApprovalDecision::approve("apr_1"),
-            ApprovalDecision::deny("apr_2").reason("Too risky to run."),
+            ToolApprovalDecision::approve("apr_1"),
+            ToolApprovalDecision::deny("apr_2").reason("Too risky to run."),
         ],
     )
     .await?;
@@ -391,4 +393,4 @@ Status, connection, and timeout failures before the stream starts surface as the
 
 - [Generation and streaming](/agents/output/generation-and-streaming)
 - [Structured output](/agents/output/structured-output)
-- [Sessions and turns](/platform/sessions-and-turns)
+- [Sessions](/sdk/rust/sessions)

@@ -80,7 +80,7 @@ Awaiting returns [`Agent`](#agent).
 | Setter | Type | Default | Description |
 | --- | --- | --- | --- |
 | `model(provider_id, model)` | `impl Into<ProviderId>`, `impl Into<String>` | none | Provider and its native model ID, sent together |
-| `thinking_level` | `impl Into<String>` | provider default | Reasoning level. Needs a provider and model, and must be a level the model supports |
+| `thinking_level` | `impl Into<String>` | provider default | Reasoning level. Needs a provider and model, and must be a level the model supports. See [`get_thinking_levels()`](/sdk/rust/providers#get-thinking-levels) |
 | `workspace_tier` | `WorkspaceTier` | `WorkspaceTier::Core` | Tier for a new workspace; mutually exclusive with `workspace_id`, the setter called last wins |
 | `workspace_id` | `impl Into<WorkspaceId>` | new workspace | Existing workspace to share instead of getting a new one |
 | `tools` | `impl IntoIterator<Item = AgentTool>` | `[]` | Built-in tools, each turned on by variant, such as `AgentTool::Read`, `AgentTool::WriteTodos`, `AgentTool::SaveMemory`, or `AgentTool::WebSearch`. See [built-in tools](/agents/tools/built-in-tools) |
@@ -194,7 +194,7 @@ Awaiting always sends a request, even with no setters. Awaiting returns [`Agent`
 
 ### `delete()` [#delete]
 
-Permanently deletes an agent with its sessions, tasks, memories, skills, and linked prompts. Its workspace, providers, and MCP connections are kept.
+Permanently deletes an agent with its sessions, tasks, memories, [skills](/sdk/rust/skills), and linked prompts. Its workspace, providers, and MCP connections are kept.
 
 ```rust
 client.agents().delete("ag_0123456789abcdef", false).await?;
@@ -310,7 +310,7 @@ let budget = client
 
 **Signature:** `get_spending_limit(agent_id: impl Into<AgentId>) -> Call<GetAgentSpendingLimit>`
 
-Awaiting returns the same `SpendingLimitStatus` as the tenant method.
+Awaiting returns the same `SpendingLimitStatus` as the [tenant method](/sdk/rust/tenant#get-spending-limit).
 
 ### `update_spending_limit()` [#update-spending-limit]
 
@@ -375,4 +375,4 @@ See [model spending limits](/platform/usage-and-quotas#model-spending-limits). A
 
 - [Agents guide](/agents/agents)
 - [Configuration snapshots and lifecycle](/agents/configuration-snapshots)
-- [Providers and models](/agents/providers-and-models)
+- [Providers](/sdk/rust/providers)

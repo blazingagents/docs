@@ -13,17 +13,17 @@ Call Blazing Agents from Rust with typed responses, lazy pagination, and streami
 
 ## Install [#install]
 
-The crate installs from the GitHub repository. Your project also needs Tokio and `futures-util`, which provides the `TryStreamExt` the stream examples use.
+The crate installs from the GitHub repository, pinned to the commit these docs describe. Your project also needs Tokio and `futures-util`, which provides the `TryStreamExt` the stream examples use.
 
 ```bash
-cargo add blazing-agents --git https://github.com/blazingagents/rust-sdk
+cargo add blazing-agents --git https://github.com/blazingagents/rust-sdk --rev 789a123
 cargo add tokio --features macros,rt-multi-thread
 cargo add futures-util
 ```
 
 ```toml
 [dependencies]
-blazing-agents = { git = "https://github.com/blazingagents/rust-sdk" }
+blazing-agents = { git = "https://github.com/blazingagents/rust-sdk", rev = "789a12397333868577404b4d9bafaee89446e4d0" }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 futures-util = "0.3"
 ```
@@ -52,19 +52,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 | --- | --- |
 | [`Client`](/sdk/rust/client) | Client options, errors, and the `chat()`, `completion()`, and `object()` generation methods |
 | [`agents()`](/sdk/rust/agents) | Agent configuration, avatars, and MCP settings |
-| `workspaces()` | Private file systems your agents share |
-| `agent(agent_id).skills()` | Skills owned by one agent |
-| `sessions()` | Conversations, transcripts, and tool approvals |
-| `providers()` | Model provider keys and model lists |
-| `mcp_connections()` | Remote MCP servers your agents can call |
-| `memories()` | Notes an agent remembers across sessions |
-| `artifacts()` | Files your agents publish |
-| `tasks()` | Background and scheduled agent work |
-| `prompts()` | Reusable message templates |
-| `usage()` | Token and request usage |
-| `tenant()` | Tenant name and quota |
-| `chat_connections()` | Slack and Telegram bots |
-| `chat_deliveries()` | Failed and ambiguous deliveries across your Slack and Telegram bots |
+| [`workspaces()`](/sdk/rust/workspaces) | Private file systems your agents share |
+| [`agent(agent_id).skills()`](/sdk/rust/skills) | Skills owned by one agent |
+| [`sessions()`](/sdk/rust/sessions) | Conversations, transcripts, and tool approvals |
+| [`providers()`](/sdk/rust/providers) | Model provider keys and model lists |
+| [`mcp_connections()`](/sdk/rust/mcp-connections) | Remote MCP servers your agents can call |
+| [`memories()`](/sdk/rust/memories) | Notes an agent remembers across sessions |
+| [`artifacts()`](/sdk/rust/artifacts) | Files your agents publish |
+| [`tasks()`](/sdk/rust/tasks) | Background and scheduled agent work |
+| [`prompts()`](/sdk/rust/prompts) | Reusable message templates |
+| [`usage()`](/sdk/rust/usage) | Token and request usage |
+| [`tenant()`](/sdk/rust/tenant) | Tenant name and quota |
+| [`chat_connections()`](/sdk/rust/chat-integrations) | Slack and Telegram bots |
+| [`chat_deliveries()`](/sdk/rust/chat-integrations#list-deliveries) | Failed and ambiguous deliveries across your Slack and Telegram bots |
 | `merchant_connection()`, `merchant_bindings()`, `merchant_usage_events()` | [Billing your users](/platform/monetization) |
 
 ## Conventions [#conventions]
