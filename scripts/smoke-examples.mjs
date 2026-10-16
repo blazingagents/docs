@@ -487,6 +487,17 @@ createServer(async (req, res) => {
 }
 
 async function serveRustServer(code, agentId) {
+  /* server.rs binds the hardcoded 0.0.0.0:8787, which is also the README's local
+   * API base URL, so inject a free port like the route servers do. */
+  const port = await freePort();
+  const matches = code.match(/0\.0\.0\.0:8787/g) ?? [];
+  if (matches.length !== 1) {
+    throw new Error(`expected one "0.0.0.0:8787" in server.rs to inject the port, found ${matches.length}`);
+  }
+  code = code.replace(
+    '"0.0.0.0:8787"',
+    `"0.0.0.0:${port}" /* SMOKE HARNESS: port injected */`
+  );
   await writeFile(join(rustDir, "src", "bin", "server.rs"), code);
   const server = spawn(CARGO, ["run", "--quiet", "--bin", "server"], {
     cwd: rustDir,
@@ -505,7 +516,7 @@ async function serveRustServer(code, agentId) {
   server.stderr.on("data", (chunk) => (log += chunk));
   try {
     const post = (body) =>
-      fetch("http://127.0.0.1:8787/api/chat", {
+      fetch(`http://127.0.0.1:${port}/api/chat`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
