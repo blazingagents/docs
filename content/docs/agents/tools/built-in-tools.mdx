@@ -39,19 +39,57 @@ client.agents().update(agent_id).tools(tools).await?;
 
 Any combination of tools is valid, and each name can appear once. New sessions and task runs use the update. Existing sessions keep the tool list they saved. [MCP tools](/agents/tools/mcp-tools) are added through connections, not through `tools`.
 
-The tables below sort the tools into categories so they are easier to scan. A category is only a heading: you cannot turn on a category by name.
+The tables below sort the tools into groups so they are easier to scan. A group is only a heading: you cannot turn on a group by name.
+
+## Read tool tags [#read-tool-tags]
+
+Each tool in the SDK's tool list carries tags that describe it. Its first tag is its group: `files`, `planning`, `memory`, or `web`. A file tool also has one access tag that says what it can do to the workspace:
+
+- `file_read` tools (`read`, `grep`, `glob`) never change workspace files.
+- `file_write` tools (`write`, `edit`) change files.
+- `execute` (`bash`) runs any shell command, so it can change files and do more.
+
+An agent whose file tools are all `file_read` is read-only: it can look through its workspace but not change it. Leave out `bash` for a read-only agent, because a command can do anything a `file_write` tool can. Tags never turn a tool on; you still list tool names in `tools`.
+
+This example turns on every read-only file tool:
+
+```typescript tab="TypeScript"
+import { AGENT_TOOLS } from "@blazingagents/sdk";
+
+const readOnly = AGENT_TOOLS.filter((tool) => tool.tags.includes("file_read")).map(
+  (tool) => tool.name
+);
+await client.agents.update({ agentId, tools: readOnly });
+```
+
+```python tab="Python"
+from blazing_agents import AGENT_TOOLS
+
+read_only = [tool.name for tool in AGENT_TOOLS if "file_read" in tool.tags]
+client.agents.update(agent_id, tools=read_only)
+```
+
+```rust tab="Rust"
+use blazing_agents::agents::{AGENT_TOOLS, AgentToolTag};
+
+let read_only = AGENT_TOOLS
+    .iter()
+    .filter(|tool| tool.tags.contains(&AgentToolTag::FileRead))
+    .map(|tool| tool.name.clone());
+client.agents().update(agent_id).tools(read_only).await?;
+```
 
 ## File operations [#file-operations]
 
-| Tool | What it does |
-| --- | --- |
-| `read` | Read a file. |
-| `write` | Write a text file, creating folders as needed. |
-| `edit` | Replace exact text in an existing file. |
-| `grep` | Search file contents. |
-| `glob` | List paths that match a pattern such as `src/**/*.ts`. |
-| `bash` | Run a shell command and return its exit code and output. |
-| `publish_artifacts` | Publish one to ten files as [artifacts](/agents/artifacts). |
+| Tool | Access tag | What it does |
+| --- | --- | --- |
+| `read` | `file_read` | Read a file. |
+| `write` | `file_write` | Write a text file, creating folders as needed. |
+| `edit` | `file_write` | Replace exact text in an existing file. |
+| `grep` | `file_read` | Search file contents. |
+| `glob` | `file_read` | List paths that match a pattern such as `src/**/*.ts`. |
+| `bash` | `execute` | Run a shell command and return its exit code and output. |
+| `publish_artifacts` | none | Publish one to ten files as [artifacts](/agents/artifacts). |
 
 These tools run in the agent's [workspace](/agents/workspaces). The workspace starts only when the agent calls one of them, so an agent with no file tools never starts it.
 

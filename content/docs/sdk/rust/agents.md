@@ -96,6 +96,8 @@ Awaiting returns [`Agent`](#agent).
 
 Without `model`, the agent is saved unconfigured. `workspace_tier` chooses Core or Plus for a new workspace and defaults to Core. It cannot combine with `workspace_id`. A workspace created for the agent stays independent afterwards: renaming the agent does not rename it.
 
+To build a tool picker, read `agents::AGENT_TOOLS`. Each `AgentToolDefinition` has the tool's `name`, `description`, `requires_workspace`, and `tags`. The first tag is the tool's group, and `agents::AGENT_TOOL_GROUPS` holds a display name and description for each group tag. A file tool also has an access tag: `AgentToolTag::FileRead`, `FileWrite`, or `Execute`, so filtering on `tool.tags.contains(&AgentToolTag::FileRead)` gives the read-only file tools. Tags only describe tools; `tools` accepts tool names. See [tool tags](/agents/tools/built-in-tools#read-tool-tags).
+
 An approval policy is `ApprovalPolicy::new(default)` with `with_override(tool, decision)` per tool. Decisions are `ApprovalDecision::Full`, `Deny`, `Manual`, or `Auto`, and a tool reference is `ToolReference::builtin(AgentTool)` or `ToolReference::mcp(connection_id, name)`. See [tool approvals](/agents/tools/tool-approvals) for what each decision does.
 
 ```rust
