@@ -111,7 +111,7 @@ if page.next_cursor is not None:
 | `cursor` | `str` | `next_cursor` from the previous page |
 | `limit` | `int` | Page size, 1 to 100; defaults to 50 |
 
-Returns `AgentsPage` with `data: list[Agent]` and `next_cursor: str | None`. Keep the same filters when paging. Raises `validation_failed` or `invalid_cursor`.
+Returns `AgentsPage` with `data: list[Agent]` and `next_cursor: str | None`. Keep the same filters when paging. Raises `validation_failed`, `invalid_cursor`, or `not_found` when a user-scoped client filters by a workspace it does not own.
 
 ### `get()` [#get]
 
