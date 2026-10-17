@@ -78,7 +78,7 @@ export async function listMyAgents(verifiedSession: { user: { id: string } }) {
 
 Pass the session your backend has verified. Do not take the user ID from a request body or query parameter. The ID must contain 1 to 256 printable ASCII characters without a leading or trailing space. `withOptions()` on a `UserClient` keeps the user scope.
 
-A request body's `userId` labels the resource or turn. It does not grant access. On a scoped request, the API fills in a missing `userId` with the scoped ID and rejects a different one. Without `forUser()`, your API key retains tenant-wide authority, even when a request body contains `userId`. The scoped client omits tenant administration and usage overview; use the tenant client for those operations. Its `agents.getSpendingLimit()` and `agents.updateSpendingLimit()` are deprecated, because the API always refuses them for a scoped client.
+A request body's `userId` labels the resource or turn. It does not grant access. On a scoped request, the API fills in a missing `userId` with the scoped ID and rejects a different one. Without `forUser()`, your API key retains tenant-wide authority, even when a request body contains `userId`. The scoped client omits tenant administration, usage overview, and Agent spending limits; use the tenant client for those operations.
 
 ## Custom fetch [#custom-fetch]
 
