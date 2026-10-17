@@ -79,7 +79,7 @@ def list_my_agents(verified_user_id: str):
 
 Pass the ID from the session your backend verified. Do not take it from a request body or query parameter. The ID must contain 1 to 256 printable ASCII characters without a leading or trailing space, or `for_user()` raises `ValueError`. The scope header wins over `default_headers` and `extra_headers`.
 
-A `UserClient` has `agents`, `artifacts`, `memories`, `prompts`, `sessions`, `tasks`, `workspaces`, `agent()`, the [generation methods](#generation-methods), and `usage` with `get()` and [`sessions()`](/sdk/python/usage#sessions). It omits tenant administration, such as `providers`, `tenant`, and the merchant resources, and it omits usage overview and per-agent usage. Use the tenant client for those operations.
+A `UserClient` has `agents`, `artifacts`, `memories`, `prompts`, `sessions`, `tasks`, `workspaces`, `agent()`, the [generation methods](#generation-methods), and `usage` with `get()`, [`sessions()`](/sdk/python/usage#sessions), and [`get_for_agent()`](/sdk/python/usage#get-for-agent). It omits tenant administration, such as `providers`, `tenant`, and the merchant resources, and it omits the usage overview. Use the tenant client for those operations. Its `agents.get_spending_limit()` and `agents.update_spending_limit()` are deprecated and emit a `DeprecationWarning`, because the API always refuses them for a user-scoped client.
 
 A request body's `user_id` labels the resource or turn. It does not grant access. On a scoped request, the API fills in a missing `user_id` with the scoped ID and rejects a different one. Without `for_user()`, your API key keeps tenant-wide authority, even when a request body contains `user_id`.
 
