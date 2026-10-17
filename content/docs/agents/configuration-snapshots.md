@@ -49,6 +49,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	agentID := ba.AgentID(os.Getenv("AGENT_ID"))
+	sessionID := ba.SessionID(os.Getenv("SESSION_ID"))
+	session, err := client.Sessions.Get(ctx, agentID, sessionID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if model := session.AgentConfig.Model; model != nil {
+		fmt.Println(*model)
+	}
+	fmt.Println(session.AgentConfig.Instructions)
+}
+```
+
 A session started through chat saves its configuration when its first turn begins. A fork saves the source session's configuration at creation, before any turn runs in the child. Every later turn in that session uses those saved settings. Session lists show brief summaries; use `sessions.get()` for `agentConfig`. Transcript message pages contain messages, not the configuration.
 
 A task run saves its configuration when it is queued. You can read it before the run creates a session:
@@ -84,6 +115,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
     println!("{:?}", run.agent_config.model);
     Ok(())
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	taskID := ba.TaskID(os.Getenv("TASK_ID"))
+	runID := ba.TaskRunID(os.Getenv("RUN_ID"))
+	run, err := client.Tasks.GetRun(ctx, taskID, runID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if model := run.AgentConfig.Model; model != nil {
+		fmt.Println(*model)
+	}
 }
 ```
 
@@ -128,6 +189,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     client.agents().disable(&agent_id).await?;
     client.agents().enable(&agent_id).await?;
     Ok(())
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	agentID := ba.AgentID(os.Getenv("AGENT_ID"))
+	if _, err := client.Agents.Disable(ctx, agentID); err != nil {
+		log.Fatal(err)
+	}
+	if _, err := client.Agents.Enable(ctx, agentID); err != nil {
+		log.Fatal(err)
+	}
 }
 ```
 

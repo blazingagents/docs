@@ -89,7 +89,23 @@ let triage: Triage = client
 println!("{:?} {}", triage.category, triage.urgent);
 ```
 
-In TypeScript, `result.object` resolves to `unknown`, so validate it with your own schema, here Zod, before you use it. In Python, pass a Pydantic model as `output_type`: the SDK sends its JSON Schema and returns a validated instance. In Rust, one struct deriving `Deserialize` and `JsonSchema` does both jobs: `ObjectSchema::derive()` sends its schema and the call returns the decoded value. You can also pass a raw schema as `json_schema` (`ObjectSchema::<serde_json::Value>::from_json_schema(schema)` in Rust) to get plain JSON back.
+```go tab="Go"
+type Triage struct {
+	Category string `json:"category" jsonschema:"One of billing, technical, or other"`
+	Urgent   bool   `json:"urgent"`
+	Summary  string `json:"summary"`
+}
+
+triage, err := ba.Object(ctx, client.Generation, agentID,
+	ba.Text("Triage: I was charged twice and need a refund today."), ba.ObjectParams[Triage]{})
+if err != nil {
+	return err
+}
+fmt.Println(triage.Category, triage.Urgent)
+return nil
+```
+
+In TypeScript, `result.object` resolves to `unknown`, so validate it with your own schema, here Zod, before you use it. In Python, pass a Pydantic model as `output_type`: the SDK sends its JSON Schema and returns a validated instance. In Rust, one struct deriving `Deserialize` and `JsonSchema` does both jobs: `ObjectSchema::derive()` sends its schema and the call returns the decoded value. In Go, `ba.Object` builds the schema from your struct's `json` tags and returns the decoded value; that schema has no enums, so describe the allowed values in a `jsonschema` tag as here, or pass a hand-written schema with `ba.RawSchema`. You can also pass a raw schema as `json_schema` (`ObjectSchema::<serde_json::Value>::from_json_schema(schema)` in Rust, `ba.RawSchema[map[string]any](schema)` in Go) to get plain JSON back.
 
 ## Show progress while it streams [#show-progress-while-it-streams]
 
@@ -147,7 +163,34 @@ while let Some(json_text) = stream.try_next().await? {
 let triage = stream.final_object().await?;
 ```
 
-TypeScript gives you partial objects parsed from the JSON so far. Python and Rust give you the raw JSON text. Either way, a partial value can miss required fields or end mid-string, so use it for display only and never as a fallback result.
+```go tab="Go"
+type Triage struct {
+	Category string `json:"category" jsonschema:"One of billing, technical, or other"`
+	Urgent   bool   `json:"urgent"`
+	Summary  string `json:"summary"`
+}
+
+stream, err := ba.StreamObject(ctx, client.Generation, agentID,
+	ba.Text("Triage: I was charged twice and need a refund today."), ba.ObjectParams[Triage]{})
+if err != nil {
+	return err
+}
+defer stream.Close()
+for jsonText, err := range stream.Deltas() {
+	if err != nil {
+		return err
+	}
+	fmt.Print(jsonText)
+}
+triage, err := stream.Object()
+if err != nil {
+	return err
+}
+fmt.Println(triage.Category)
+return nil
+```
+
+TypeScript gives you partial objects parsed from the JSON so far. Python, Rust, and Go give you the raw JSON text. Either way, a partial value can miss required fields or end mid-string, so use it for display only and never as a fallback result.
 
 ## Write a schema that works [#write-a-schema-that-works]
 
@@ -157,10 +200,10 @@ The schema must be a JSON Schema object with at least `type` or `properties`. An
 
 - **No history.** Structured output creates no session and saves no transcript, so the agent cannot publish [artifacts](/agents/artifacts) during it. Everything else about the agent applies, including its tools.
 - **Usage is recorded** whether the request succeeds, fails, or is stopped.
-- **Invalid final JSON fails.** If the answer does not parse, `result.object` rejects with `stream_error`, Python raises a stream error, and Rust returns an object error. A dropped connection or abort also ends without a final object.
+- **Invalid final JSON fails.** If the answer does not parse, `result.object` rejects with `stream_error`, Python raises a stream error, Rust returns an object error, and Go returns a `*ba.ObjectError`. A dropped connection or abort also ends without a final object.
 - **Saved prompts.** Pass `promptId` with its `variables` instead of `prompt` to use a saved [prompt](/agents/prompts). Each call uses the agent's current configuration.
 
 ## Next [#next]
 
 - [Generation and streaming](/agents/output/generation-and-streaming) for free-form text and chat.
-- `object()` in the [TypeScript SDK](/sdk/typescript/client#object), [Python SDK](/sdk/python/client#object), and [Rust SDK](/sdk/rust/client#object).
+- `object()` in the [TypeScript SDK](/sdk/typescript/client#object), [Python SDK](/sdk/python/client#object), [Rust SDK](/sdk/rust/client#object), and [Go SDK](/sdk/go/client#object).

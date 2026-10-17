@@ -80,6 +80,39 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = client.MerchantConnection.Create(ctx, ba.CreateMerchantConnectionParams{
+		Provider:    ba.MerchantProviderPolar,
+		Environment: ba.MerchantEnvironmentSandbox,
+		Credential:  ba.NewSecret(os.Getenv("POLAR_ACCESS_TOKEN")),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = client.Tenant.Update(ctx, ba.UpdateTenantParams{MonetizationEnabled: new(true)})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
 - **Polar:** use an Organization Access Token (`polar_oat_...`) with `organizations:read`, `customers:read`, and `events:write`, and nothing else.
 - **Dodo:** use an API key from your Dodo dashboard in the mode that matches the environment.
 
@@ -106,6 +139,13 @@ client
     .merchant_bindings()
     .put("app:user-42", "cus_from_polar_or_dodo")
     .await?;
+```
+
+```go tab="Go"
+_, err := client.MerchantBindings.Set(ctx, "app:user-42", ba.SetMerchantBindingParams{
+	CustomerID: "cus_from_polar_or_dodo",
+})
+return err
 ```
 
 Blazing Agents checks that the customer exists. Usage for a user with no link is held as `unmapped`, never sent as zero. Link the user, then release those events.
@@ -152,6 +192,17 @@ client
             .meter_id("meter_or_credit_entitlement_id"),
     )
     .await?;
+```
+
+```go tab="Go"
+_, err := client.MerchantConnection.Update(ctx, ba.UpdateMerchantConnectionParams{
+	Guard: &ba.MerchantGuard{
+		Enabled:    true,
+		ProductIDs: []string{"prod_..."},
+		MeterID:    new("meter_or_credit_entitlement_id"),
+	},
+})
+return err
 ```
 
 See [guard rules](#guard-rules) for what each setting requires.

@@ -86,6 +86,45 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	prompt, err := client.Prompts.Create(ctx, ba.CreatePromptParams{
+		Name:     "Release summary",
+		Template: "Summarize {{ version }} for {{ audience }}.",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(prompt.Variables) // [version audience]
+
+	answer, err := client.Generation.Completion(ctx, ba.AgentID(os.Getenv("AGENT_ID")), ba.SavedPrompt{
+		ID:        prompt.ID,
+		Variables: map[string]string{"version": "2.4", "audience": "developers"},
+	}, ba.GenerateParams{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(answer)
+}
+```
+
 You can reuse a prompt name. Save its ID if you need to update or delete that prompt later.
 
 ## How variables work [#how-variables-work]
@@ -105,10 +144,10 @@ Blazing Agents fills in the template before the agent runs, and only the filled-
 
 ## Organize prompts by agent [#organize-prompts-by-agent]
 
-Set `agentId` on a prompt to group it with an agent. You can then list one agent's prompts with `client.prompts.list({ agentId })`. The link is for organizing only, so any of your agents can still use the prompt. Deleting the agent deletes the prompts linked to it. For the full field and update rules, see the [TypeScript](/sdk/typescript/prompts), [Python](/sdk/python/prompts), or [Rust](/sdk/rust/prompts) SDK.
+Set `agentId` on a prompt to group it with an agent. You can then list one agent's prompts with `client.prompts.list({ agentId })`. The link is for organizing only, so any of your agents can still use the prompt. Deleting the agent deletes the prompts linked to it. For the full field and update rules, see the [TypeScript](/sdk/typescript/prompts), [Python](/sdk/python/prompts), [Rust](/sdk/rust/prompts), or [Go](/sdk/go/prompts) SDK.
 
 ## Next [#next]
 
 - [Generation and streaming](/agents/output/generation-and-streaming) to stream a prompt's answer.
 - [Structured output](/agents/output/structured-output) to get JSON back from a prompt.
-- Prompts SDK reference for [TypeScript](/sdk/typescript/prompts), [Python](/sdk/python/prompts), or [Rust](/sdk/rust/prompts).
+- Prompts SDK reference for [TypeScript](/sdk/typescript/prompts), [Python](/sdk/python/prompts), [Rust](/sdk/rust/prompts), or [Go](/sdk/go/prompts).

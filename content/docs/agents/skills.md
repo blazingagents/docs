@@ -112,6 +112,52 @@ under Added, Changed, and Fixed.
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	agentID := ba.AgentID(os.Getenv("AGENT_ID"))
+
+	skill, err := client.Skills.Create(ctx, agentID, ba.CreateSkillParams{
+		Content: `---
+name: release-notes
+description: Draft release notes from a list of changes.
+---
+
+# Release notes
+
+Begin the response with exactly RELEASE NOTES READY, then group the changes
+under Added, Changed, and Fixed.
+`,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Skill: %s\n", skill.ID)
+
+	answer, err := client.Generation.Completion(ctx, agentID,
+		ba.Text("Write release notes for: dark mode, faster search, fixed login bug."), ba.GenerateParams{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(answer)
+}
+```
+
 The answer starts with `RELEASE NOTES READY`, which shows the agent loaded the skill. Skill names are unique per agent, so delete the skill or change its name before you run this again.
 
 `SKILL.md` needs frontmatter with a `name` and a `description`. The name uses lowercase letters, digits, and hyphens, up to 64 characters. Write the description for the model: it is all the agent sees when deciding whether to load the skill. You can also add `license`, `compatibility`, string `metadata`, and the experimental `allowed-tools`.
@@ -154,6 +200,14 @@ client
     .await?;
 ```
 
+```go tab="Go"
+_, err := client.Skills.Upload(ctx, agentID, ba.UploadSkillParams{
+	Type: ba.ArchiveTypeZip,
+	File: ba.UploadFile("release-notes.zip"),
+})
+return err
+```
+
 Blazing Agents checks the whole archive before it saves anything, so a bad `SKILL.md` leaves the agent unchanged.
 
 ## How the agent uses a skill [#how-the-agent-uses-a-skill]
@@ -168,7 +222,7 @@ Skill files are read-only to the agent and are not part of its [workspace](/agen
 - **Copy.** Copy a skill to other agents. Each copy is independent, and if one destination fails the others still succeed.
 - **Delete.** Deleting a skill removes all its files. Deleting the agent deletes its skills.
 
-Each agent can have up to 100 skills. Treat skill content like code: review changes, and keep secrets out of it. For every method, see the [TypeScript](/sdk/typescript/skills), [Python](/sdk/python/skills), or [Rust](/sdk/rust/skills) SDK.
+Each agent can have up to 100 skills. Treat skill content like code: review changes, and keep secrets out of it. For every method, see the [TypeScript](/sdk/typescript/skills), [Python](/sdk/python/skills), [Rust](/sdk/rust/skills), or [Go](/sdk/go/skills) SDK.
 
 ## Skills for your coding assistant [#skills-for-your-coding-assistant]
 
@@ -184,4 +238,4 @@ Run `npx skills add blazingagents/skills --list` to see the whole catalog. See t
 
 - [Memory](/agents/memory) to let the agent remember facts across sessions.
 - [Built-in tools](/agents/tools/built-in-tools) to give the agent actions to go with its skills.
-- Skills SDK reference for [TypeScript](/sdk/typescript/skills), [Python](/sdk/python/skills), or [Rust](/sdk/rust/skills).
+- Skills SDK reference for [TypeScript](/sdk/typescript/skills), [Python](/sdk/python/skills), [Rust](/sdk/rust/skills), or [Go](/sdk/go/skills).

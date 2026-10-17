@@ -104,6 +104,16 @@ while let Some(session) = sessions.try_next().await? {
 }
 ```
 
+```go tab="Go"
+for session, err := range client.Sessions.All(ctx, agentID, ba.ListSessionsParams{Limit: new(100)}) {
+	if err != nil {
+		return err
+	}
+	fmt.Println(session.ID)
+}
+return nil
+```
+
 Read a task run's transcript once, save its tail, then poll forward. Only pass
 back as `after` a `nextCursor` that came from a forward request:
 
@@ -196,6 +206,47 @@ loop {
 }
 ```
 
+```go tab="Go"
+taskID := ba.TaskID("tk_0123456789abcdef")
+runID := ba.TaskRunID("tr_0123456789abcdef")
+
+saveTail := func(cursor string) {
+	// Store the cursor to resume polling later.
+	_ = cursor
+}
+
+bootstrap, err := client.Tasks.ListRunMessages(ctx, taskID, runID, ba.ListTaskRunMessagesParams{Limit: new(50)})
+if err != nil {
+	return err
+}
+for _, message := range bootstrap.Data {
+	fmt.Println(message.Role, message.ID)
+}
+if bootstrap.LatestCursor == nil {
+	return errors.New("the task run has no transcript yet")
+}
+after := *bootstrap.LatestCursor
+saveTail(after)
+
+for after != "" {
+	page, err := client.Tasks.ListRunMessages(ctx, taskID, runID, ba.ListTaskRunMessagesParams{
+		After: &after,
+		Limit: new(50),
+	})
+	if err != nil {
+		return err
+	}
+	for _, message := range page.Data {
+		fmt.Println(message.Role, message.ID)
+	}
+	if page.LatestCursor != nil {
+		saveTail(*page.LatestCursor)
+	}
+	after = page.NextCursor
+}
+return nil
+```
+
 Read tenant-level usage and keep the overall totals apart from the top-N
 buckets:
 
@@ -235,6 +286,23 @@ let usage = client
     .limit(25)
     .await?;
 println!("{} {:?}", usage.totals.request_count, usage.buckets);
+```
+
+```go tab="Go"
+usage, err := client.Usage.Get(ctx, ba.UsageParams{
+	DateRange: &ba.DateRange{
+		From: ba.Date{Year: 2026, Month: time.July, Day: 1},
+		To:   ba.Date{Year: 2026, Month: time.July, Day: 20},
+	},
+	UserID:  new(""),
+	GroupBy: new(ba.UsageGroupBySession),
+	Limit:   new(25),
+})
+if err != nil {
+	return err
+}
+fmt.Println(usage.Totals.RequestCount, len(usage.Buckets))
+return nil
 ```
 
 ## Next [#next]

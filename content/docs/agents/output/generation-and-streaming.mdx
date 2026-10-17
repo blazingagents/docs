@@ -49,7 +49,25 @@ while let Some(delta) = stream.try_next().await? {
 stdout.write_all(b"\n")?;
 ```
 
-If you only need the finished text, skip the loop: `await result.text` in TypeScript, or `client.completion(...)` in Python and Rust, which returns a string.
+```go tab="Go"
+stream, err := client.Generation.CompletionStream(ctx, agentID,
+	ba.Text("Write a two-sentence release note for passkey login."), ba.GenerateParams{})
+if err != nil {
+	return err
+}
+defer stream.Close()
+
+for delta, err := range stream.Deltas() {
+	if err != nil {
+		return err
+	}
+	fmt.Print(delta)
+}
+fmt.Println()
+return nil
+```
+
+If you only need the finished text, skip the loop: `await result.text` in TypeScript, `client.completion(...)` in Python and Rust, or `client.Generation.Completion(...)` in Go, which return a string.
 
 ## Choose chat or completion [#choose-chat-or-completion]
 
@@ -158,15 +176,49 @@ let app: Router = Router::new()
     .with_state((client, agent_id.to_owned()));
 ```
 
+```go tab="Go"
+type chatRequest struct {
+	Message   ba.UserMessage `json:"message"`
+	SessionID ba.SessionID   `json:"sessionId"`
+}
+
+http.HandleFunc("POST /api/chat", func(w http.ResponseWriter, r *http.Request) {
+	var body chatRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+	stream, err := client.Chat.Send(r.Context(), agentID, ba.Messages(body.Message),
+		ba.ChatParams{SessionID: body.SessionID})
+	if err != nil {
+		status := http.StatusInternalServerError
+		var apiErr *ba.APIError
+		if errors.As(err, &apiErr) {
+			status = apiErr.Status
+		}
+		http.Error(w, http.StatusText(status), status)
+		return
+	}
+	defer stream.Close()
+
+	stream.SetRelayHeaders(w.Header())
+	if location := stream.Meta().Header.Get("Location"); location != "" {
+		w.Header().Set("Location", location)
+	}
+	stream.WriteTo(w)
+})
+return nil
+```
+
 Without a `sessionId`, the call starts a new session and the response carries its ID in the `location` header. On the frontend, `useChat` with `BlazingAgentsChatTransport` renders the stream, reads that header, and sends the session ID back on the next message. [Build a chatbot](/getting-started/chatbot) shows the full frontend.
 
 ### What to add next [#relay-what-to-add-next]
 
-Before real users reach this endpoint, add the checks below. In TypeScript, `createChatRelay` does all of them for you; [connect Blazing Agents to your app](/getting-started/connect-your-app) shows it, and the same steps by hand in Python and Rust.
+Before real users reach this endpoint, add the checks below. In TypeScript, `createChatRelay` does all of them for you; [connect Blazing Agents to your app](/getting-started/connect-your-app) shows it, and the same steps by hand in Python, Rust, and Go.
 
 - **Sign-in.** Find out who the user is before you call Blazing Agents, and reject the request if you cannot.
-- **Session ownership.** Before you continue a session, check that it belongs to the signed-in user. The session ID is ready before the answer finishes (`await result.sessionId` in TypeScript, `stream.session_id` in Python, `stream.session_id()` in Rust), so save its owner right away.
-- **Usage labels.** Pass the user's ID as `userId` (`user_id` in Python, `.user_id()` on the call in Rust) to label usage per end user. It does not grant access; your ownership check does.
+- **Session ownership.** Before you continue a session, check that it belongs to the signed-in user. The session ID is ready before the answer finishes (`await result.sessionId` in TypeScript, `stream.session_id` in Python, `stream.session_id()` in Rust, `stream.SessionID()` in Go), so save its owner right away.
+- **Usage labels.** Pass the user's ID as `userId` (`user_id` in Python, `.user_id()` on the call in Rust, the `UserID` params field in Go) to label usage per end user. It does not grant access; your ownership check does.
 - **Stopping.** In TypeScript, pass `abortSignal: request.signal` so a user who closes the tab stops the turn.
 
 A chat stream has one reader. In TypeScript, call either `toResponse()` or `toStream()` once; a second call throws `stream_error`. `sessionId` stays available either way.
@@ -229,11 +281,29 @@ while let Some(chunk) = stream.try_next().await? {
 }
 ```
 
+```go tab="Go"
+image, err := os.ReadFile("diagram.png")
+if err != nil {
+	return err
+}
+imageURL := "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
+
+message := ba.TextMessage("Describe this diagram.")
+message.Parts = append(message.Parts, ba.FilePart{MediaType: "image/png", URL: imageURL})
+stream, err := client.Chat.Send(ctx, agentID, ba.Messages(message), ba.ChatParams{})
+if err != nil {
+	return err
+}
+defer stream.Close()
+_, err = stream.WriteTo(os.Stdout)
+return err
+```
+
 The image is part of the message only. It is not saved to the workspace or published as an artifact. Check the media type, source, and size in your backend before you send it.
 
 ## Regenerate an answer [#regenerate-an-answer]
 
-Pass `trigger: "regenerate-message"` (`client.regenerate()` in Rust) on an existing session to replace an answer. Without `messageId`, the latest answer is replaced. With the ID of an earlier assistant message, that answer and everything after it is replaced. With the ID of a user message, that message is removed and the one you send takes its place.
+Pass `trigger: "regenerate-message"` (`client.regenerate()` in Rust, `client.Chat.Regenerate()` in Go) on an existing session to replace an answer. Without `messageId`, the latest answer is replaced. With the ID of an earlier assistant message, that answer and everything after it is replaced. With the ID of a user message, that message is removed and the one you send takes its place.
 
 ```typescript tab="TypeScript"
 const result = await client.chat({
@@ -272,6 +342,20 @@ while let Some(chunk) = stream.try_next().await? {
 }
 ```
 
+```go tab="Go"
+message := ba.TextMessage("Say hello in one short sentence.")
+assistantMessageID := "msg_0123456789abcdef"
+stream, err := client.Chat.Regenerate(ctx, agentID, sessionID, message, ba.RegenerateParams{
+	MessageID: &assistantMessageID,
+})
+if err != nil {
+	return err
+}
+defer stream.Close()
+_, err = stream.WriteTo(os.Stdout)
+return err
+```
+
 The old answer stays until the new one succeeds. If regeneration fails or you stop it, the session is unchanged.
 
 ## Stops, errors, and what gets saved [#stops-errors-and-what-gets-saved]
@@ -287,4 +371,4 @@ Tools that need [approval](/agents/tools/tool-approvals) cannot wait for a perso
 
 - [Build a chatbot](/getting-started/chatbot) to render the stream with `useChat`.
 - [Sessions and turns](/platform/sessions-and-turns) to reload and continue conversations.
-- `chat()` and `completion()` in the [TypeScript SDK](/sdk/typescript/client#chat), [Python SDK](/sdk/python/client#chat), and [Rust SDK](/sdk/rust/client#chat).
+- `chat()` and `completion()` in the [TypeScript SDK](/sdk/typescript/client#chat), [Python SDK](/sdk/python/client#chat), [Rust SDK](/sdk/rust/client#chat), and [Go SDK](/sdk/go/client#chat).

@@ -978,4 +978,4 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
 ## Next [#next]
 
 - [Chat integrations](/platform/chat-integrations) to set up Slack or Telegram.
-- [TypeScript](/sdk/typescript/chat-integrations), [Python](/sdk/python/chat-integrations), or [Rust](/sdk/rust/chat-integrations) chat integration methods.
+- [TypeScript](/sdk/typescript/chat-integrations), [Python](/sdk/python/chat-integrations), [Rust](/sdk/rust/chat-integrations), or [Go](/sdk/go/chat-integrations) chat integration methods.

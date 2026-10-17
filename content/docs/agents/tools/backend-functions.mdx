@@ -142,6 +142,56 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+type ShippingInput struct {
+	Country string `json:"country" jsonschema:"Destination country: GB or US"`
+}
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	functions, err := ba.NewFunctions(
+		ba.Function("shippingQuote", "Get the shipping price for a destination country.",
+			func(ctx context.Context, call ba.FunctionCall, input ShippingInput) (any, error) {
+				amountMinor := 1499
+				if input.Country == "GB" {
+					amountMinor = 499
+				}
+				return map[string]any{"currency": "GBP", "amountMinor": amountMinor}, nil
+			}),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	stream, err := client.Chat.Send(ctx, ba.AgentID(os.Getenv("BLAZING_AGENTS_AGENT_ID")),
+		ba.Messages(ba.TextMessage("How much is shipping to the US?")),
+		ba.ChatParams{Functions: functions})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stream.Close()
+
+	if _, err := stream.WriteTo(os.Stdout); err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
 The SDK validates the call's arguments, runs your handler, and sends its JSON result to the agent. Keep reading or relaying the stream until the answer finishes. In a TypeScript HTTP route, return `result.toResponse()` to stream the answer to your browser.
 
 Supply `functions` again on each new chat request. The functions belong to that request and are not saved in the agent's configuration or anywhere else. Tasks, including scheduled tasks, and stateless generation cannot use backend functions. Use [MCP tools](/agents/tools/mcp-tools) for those workloads.
@@ -150,7 +200,7 @@ Supply `functions` again on each new chat request. The functions belong to that 
 
 Build handlers after you authenticate the request. Capture the signed-in user's identity in the handler and use it in database queries. A model-provided user ID is not proof that the caller may access another user's data.
 
-Use `client.forUser(userId)` in TypeScript or `client.for_user(user_id)` in Python and Rust to scope the chat session to the authenticated user. Keep your API key and the function handlers on the server.
+Use `client.forUser(userId)` in TypeScript, `client.for_user(user_id)` in Python and Rust, or `client.ForUser(userID)` in Go to scope the chat session to the authenticated user. Keep your API key and the function handlers on the server.
 
 ## Resume after approval [#resume-after-approval]
 
@@ -216,11 +266,39 @@ while let Some(chunk) = stream.try_next().await? {
 }
 ```
 
+```go tab="Go"
+type ShippingInput struct {
+	Country string `json:"country" jsonschema:"Destination country: GB or US"`
+}
+
+decisions := []ba.ToolApprovalDecision{ba.Approve("apr_0123456789abcdef")}
+functions, err := ba.NewFunctions(
+	ba.Function("shippingQuote", "Get the shipping price for a destination country.",
+		func(ctx context.Context, call ba.FunctionCall, input ShippingInput) (any, error) {
+			amountMinor := 1499
+			if input.Country == "GB" {
+				amountMinor = 499
+			}
+			return map[string]any{"currency": "GBP", "amountMinor": amountMinor}, nil
+		}),
+)
+if err != nil {
+	return err
+}
+stream, err := client.Chat.Continue(ctx, agentID, sessionID, decisions, ba.ContinueParams{Functions: functions})
+if err != nil {
+	return err
+}
+defer stream.Close()
+_, err = stream.WriteTo(os.Stdout)
+return err
+```
+
 The function descriptions and schemas go out again with this request, so keep the handlers compatible with what the model saw. A missing handler or invalid input becomes a tool error.
 
 ## Handle cancellation and retries [#handle-cancellation-and-retries]
 
-Each handler receives a context. TypeScript provides `idempotencyKey` and `signal`. Python provides `idempotency_key`, `deadline_at`, and a `cancelled` event. Rust provides `idempotency_key()`, `deadline()`, and `is_cancelled()`.
+Each handler receives a context. TypeScript provides `idempotencyKey` and `signal`. Python provides `idempotency_key`, `deadline_at`, and a `cancelled` event. Rust provides `idempotency_key()`, `deadline()`, and `is_cancelled()`. Go passes a `ba.FunctionCall` with `ID`, `Name`, and `Deadline`, plus a context that is canceled at the deadline.
 
 Each function call must return within 60 seconds of the agent making it. After that, the agent gets a tool error that says the outcome is unknown or the call did not run, even if your handler finishes later.
 

@@ -44,3 +44,20 @@ jobs:
           workspaces: snippets-rust
       - run: npm ci
       - run: npm run check:rust-snippets
+
+  go-snippets:
+    name: Go snippets
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: snippets-go/go.mod
+          cache-dependency-path: snippets-go/go.sum
+      - run: npm ci
+      - run: npm run check:go-snippets

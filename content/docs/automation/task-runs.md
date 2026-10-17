@@ -57,6 +57,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	taskID := ba.TaskID(os.Getenv("TASK_ID"))
+
+	run, err := client.Tasks.Submit(ctx, taskID, ba.SubmitTaskParams{
+		IdempotencyKey: new("weekly-report:2026-07-20"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(run.RunID)
+}
+```
+
 You see a `tr_...` run ID. Save it with the task ID, then return. Build the key from something stable about the job, such as the week it covers. A task runs one job at a time, so starting a run with a different key while another is active returns [`task_active_run_exists`](/api-reference/protocols/errors#task_active_run_exists).
 
 ## Check on it later [#check-on-it-later]
@@ -101,6 +131,31 @@ if run.status == TaskRunStatus::Queued || run.status == TaskRunStatus::Running {
 }
 ```
 
+```go tab="Go"
+run, err := client.Tasks.ListRunMessages(ctx, "tk_0123456789abcdef", "tr_0123456789abcdef",
+	ba.ListTaskRunMessagesParams{})
+if err != nil {
+	return err
+}
+if run.Status == ba.TaskRunStatusQueued || run.Status == ba.TaskRunStatusRunning {
+	fmt.Println("Still working. Check again later.")
+	return nil
+}
+var answer *ba.Message
+for i := range run.Data {
+	if run.Data[i].Role == ba.MessageRoleAssistant {
+		answer = &run.Data[i]
+	}
+}
+fmt.Println(run.Status)
+if answer != nil {
+	for _, part := range answer.Parts {
+		fmt.Println(string(part))
+	}
+}
+return nil
+```
+
 When the run is done, you see its final status and the agent's last answer. A run moves from `queued` to `running`, then ends in one of four final statuses:
 
 | Status | Meaning |
@@ -126,6 +181,10 @@ client.tasks.cancel_run(task_id, run_id)
 let task_id = "tk_0123456789abcdef";
 let run_id = "tr_0123456789abcdef";
 client.tasks().cancel_run(task_id, run_id).await?;
+```
+
+```go tab="Go"
+return client.Tasks.CancelRun(ctx, "tk_0123456789abcdef", "tr_0123456789abcdef")
 ```
 
 Cancelling asks the run to stop at its next safe point. Keep checking until you see a final status. The run may finish first, so handle `succeeded` as well as `canceled`. Cancelling a run that already finished does nothing and returns no error.

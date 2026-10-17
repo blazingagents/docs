@@ -202,6 +202,26 @@ async fn inspect_task_error(
 }
 ```
 
+```go tab="Go"
+inspectTaskError := func(taskID ba.TaskID) error {
+	_, err := client.Tasks.Get(ctx, taskID)
+	var apiErr *ba.APIError
+	if !errors.As(err, &apiErr) {
+		return err
+	}
+	slog.Error("task lookup failed",
+		"code", apiErr.Code,
+		"requestId", apiErr.Meta.RequestID,
+		"status", apiErr.Status,
+	)
+	if apiErr.Code == ba.ErrorCodeQuotaExceeded {
+		return nil
+	}
+	return err
+}
+return inspectTaskError("tk_0123456789abcdef")
+```
+
 Await the final value to catch a failure after the response starts:
 
 ```typescript tab="TypeScript"
@@ -245,6 +265,26 @@ match client
     ),
     Err(error) => return Err(error.into()),
 }
+```
+
+```go tab="Go"
+stream, err := client.Generation.CompletionStream(ctx, agentID, ba.Text("Summarize this."), ba.GenerateParams{})
+if err != nil {
+	return err
+}
+defer stream.Close()
+
+text, err := stream.Text()
+var streamErr *ba.StreamError
+switch {
+case errors.As(err, &streamErr):
+	slog.Error("stream failed", "requestId", streamErr.Meta.RequestID)
+case err != nil:
+	return err
+default:
+	fmt.Println(text)
+}
+return nil
 ```
 
 <!-- error-catalog:start -->
@@ -1331,4 +1371,4 @@ To fix it:
 
 - [Limits and reliability](/platform/limits-and-reliability) for retries and timeouts.
 - [Service limits](/api-reference/protocols/service-limits) for every limit and the code it returns.
-- [TypeScript client](/sdk/typescript/client), [Python client](/sdk/python/client), and [Rust client](/sdk/rust/client) for SDK error handling.
+- [TypeScript client](/sdk/typescript/client), [Python client](/sdk/python/client), [Rust client](/sdk/rust/client), and [Go client](/sdk/go/client) for SDK error handling.

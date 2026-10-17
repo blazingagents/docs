@@ -64,7 +64,39 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-You see `tk_... null` (`None` in Python). With no schedule, the task runs only when you [start a run](/automation/task-runs). Add a [schedule](/automation/schedules) to run it on a clock instead.
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	created, err := client.Tasks.Create(ctx, ba.CreateTaskParams{
+		AgentID: ba.AgentID(os.Getenv("AGENT_ID")),
+		Name:    "Weekly report",
+		Prompt:  "Build the weekly report and summarize the result.",
+		UserID:  new("app:user-42"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(created.Task.ID, created.Task.Schedule)
+}
+```
+
+You see `tk_... null` (`None` in Python, `<nil>` in Go). With no schedule, the task runs only when you [start a run](/automation/task-runs). Add a [schedule](/automation/schedules) to run it on a clock instead.
 
 ## What a task controls [#what-a-task-controls]
 
@@ -87,8 +119,8 @@ Deleting a task removes it and its schedule. It does not undo anything earlier r
 
 ## Production notes [#production-notes]
 
-- Creating a task with `submit: true` also starts a run. Pass `idempotencyKey` to `tasks.create()` (`idempotency_key` in Python, `.idempotency_key()` in Rust) if your backend may retry the request.
-- For end-user requests, derive a scoped client from the verified user ID with [`forUser()`](/sdk/typescript/client#for-user) in TypeScript, [`for_user()`](/sdk/python/client#for-user) in Python, or [`for_user()`](/sdk/rust/client#for-user) in Rust. The API checks ownership before it reads, changes, or runs a task.
+- Creating a task with `submit: true` also starts a run. Pass `idempotencyKey` to `tasks.create()` (`idempotency_key` in Python, `.idempotency_key()` in Rust, `IdempotencyKey` in Go) if your backend may retry the request.
+- For end-user requests, derive a scoped client from the verified user ID with [`forUser()`](/sdk/typescript/client#for-user) in TypeScript, [`for_user()`](/sdk/python/client#for-user) in Python, [`for_user()`](/sdk/rust/client#for-user) in Rust, or [`ForUser()`](/sdk/go/client#for-user) in Go. The API checks ownership before it reads, changes, or runs a task.
 
 ## Next [#next]
 

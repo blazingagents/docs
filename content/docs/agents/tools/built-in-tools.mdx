@@ -37,6 +37,21 @@ for tool in [AgentTool::Read, AgentTool::Grep, AgentTool::Glob] {
 client.agents().update(agent_id).tools(tools).await?;
 ```
 
+```go tab="Go"
+agent, err := client.Agents.Get(ctx, agentID)
+if err != nil {
+	return err
+}
+tools := agent.Tools
+for _, tool := range []ba.AgentTool{ba.AgentToolRead, ba.AgentToolGrep, ba.AgentToolGlob} {
+	if !slices.Contains(tools, tool) {
+		tools = append(tools, tool)
+	}
+}
+_, err = client.Agents.Update(ctx, agentID, ba.UpdateAgentParams{Tools: tools})
+return err
+```
+
 Any combination of tools is valid, and each name can appear once. New sessions and task runs use the update. Existing sessions keep the tool list they saved. [MCP tools](/agents/tools/mcp-tools) are added through connections, not through `tools`.
 
 The tables below sort the tools into groups so they are easier to scan. A group is only a heading: you cannot turn on a group by name.
@@ -77,6 +92,13 @@ let read_only = AGENT_TOOLS
     .filter(|tool| tool.file_access == Some(AgentToolFileAccessTag::FileRead))
     .map(|tool| tool.name.clone());
 client.agents().update(agent_id).tools(read_only).await?;
+```
+
+```go tab="Go"
+// The Go SDK has no tool catalog, so list the file_read tools from the table below.
+readOnly := []ba.AgentTool{ba.AgentToolRead, ba.AgentToolGrep, ba.AgentToolGlob}
+_, err := client.Agents.Update(ctx, agentID, ba.UpdateAgentParams{Tools: readOnly})
+return err
 ```
 
 ## File operations [#file-operations]
@@ -204,6 +226,27 @@ ask(
 .await?;
 ```
 
+```go tab="Go"
+sentinel := "BA_DURABLE_42"
+
+ask := func(text string) (ba.SessionID, error) {
+	stream, err := client.Chat.Send(ctx, agentID, ba.Messages(ba.TextMessage(text)), ba.ChatParams{})
+	if err != nil {
+		return "", err
+	}
+	defer stream.Close()
+	for _, err := range stream.Events() {
+		if err != nil {
+			return "", err
+		}
+	}
+	return stream.SessionID(), nil
+}
+
+_, err := ask(fmt.Sprintf("Use write to create durable.txt containing exactly %s.", sentinel))
+return err
+```
+
 Then read it from a new session and check the `read` result:
 
 ```typescript tab="TypeScript"
@@ -290,6 +333,54 @@ if !found {
 }
 ```
 
+```go tab="Go"
+sentinel := "BA_DURABLE_42"
+
+ask := func(text string) (ba.SessionID, error) {
+	stream, err := client.Chat.Send(ctx, agentID, ba.Messages(ba.TextMessage(text)), ba.ChatParams{})
+	if err != nil {
+		return "", err
+	}
+	defer stream.Close()
+	for _, err := range stream.Events() {
+		if err != nil {
+			return "", err
+		}
+	}
+	return stream.SessionID(), nil
+}
+
+readSessionID, err := ask("Use read to read durable.txt.")
+if err != nil {
+	return err
+}
+
+page, err := client.Sessions.ListMessages(ctx, agentID, readSessionID, ba.ListSessionMessagesParams{})
+if err != nil {
+	return err
+}
+found := false
+for _, message := range page.Data {
+	for _, raw := range message.Parts {
+		var part struct {
+			Type   string `json:"type"`
+			State  string `json:"state"`
+			Output struct {
+				Content string `json:"content"`
+			} `json:"output"`
+		}
+		if json.Unmarshal(raw, &part) == nil && part.Type == "tool-read" &&
+			part.State == "output-available" && part.Output.Content == sentinel {
+			found = true
+		}
+	}
+}
+if !found {
+	return errors.New("persistence check failed")
+}
+return nil
+```
+
 Always read the whole stream, as these examples do. The turn finishes its tool work and saves the session only when the stream ends.
 
 ## Failures and shared files [#failures-and-shared-files]
@@ -308,4 +399,4 @@ File changes are not undone when a turn fails or is stopped. Writes and edits th
 
 - [Workspaces](/agents/workspaces) for how files persist and who can reach the network.
 - [Tool approvals](/agents/tools/tool-approvals) to review calls before they run.
-- `agents.update()` in the [TypeScript SDK](/sdk/typescript/agents#update), [Python SDK](/sdk/python/agents#update), and [Rust SDK](/sdk/rust/agents#update).
+- `agents.update()` in the [TypeScript SDK](/sdk/typescript/agents#update), [Python SDK](/sdk/python/agents#update), [Rust SDK](/sdk/rust/agents#update), and [Go SDK](/sdk/go/agents#update).

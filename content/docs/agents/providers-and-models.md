@@ -100,6 +100,59 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provider, err := client.Providers.Create(ctx, ba.CreateProviderParams{
+		Name:         "Production OpenRouter",
+		ProviderType: ba.ProviderTypeOpenRouter,
+		APIKey:       ba.NewSecret(os.Getenv("OPENROUTER_API_KEY")),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Provider: %s, key ending %s\n", provider.ID, provider.KeyFragment)
+
+	models, err := client.Providers.ListModels(ctx, provider.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	available := false
+	for _, model := range models {
+		if model.ID == "openai/gpt-6-luna" {
+			available = true
+		}
+	}
+	if !available {
+		log.Fatal("openai/gpt-6-luna is not available on this provider")
+	}
+
+	_, err = client.Agents.Update(ctx, ba.AgentID(os.Getenv("AGENT_ID")), ba.UpdateAgentParams{
+		ProviderID: ba.Value(provider.ID),
+		Model:      ba.Value("openai/gpt-6-luna"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
 Your key is write-only. Responses never return it, only its last four characters as `keyFragment`. Listing models sends no request to the model and costs no tokens.
 
 Blazing Agents also checks the model ID against the provider whenever you create an agent with a model, or change its model. An unknown ID fails with [`model_not_found`](/api-reference/protocols/errors#model_not_found). If the provider cannot be reached to check, or it rejects your key, the call fails with [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable).
@@ -175,6 +228,26 @@ if choices.known && !choices.levels.is_empty() {
 }
 ```
 
+```go tab="Go"
+providerID := ba.ProviderID("prv_0123456789abcdef")
+choices, err := client.Providers.ThinkingLevels(ctx, providerID, "openai/gpt-6-luna")
+if err != nil {
+	return err
+}
+if choices.Known {
+	fmt.Println(choices.Levels)
+} else {
+	fmt.Println("Levels unknown; any non-empty value is accepted")
+}
+
+if choices.Known && len(choices.Levels) > 0 {
+	_, err = client.Agents.Update(ctx, agentID, ba.UpdateAgentParams{
+		ThinkingLevel: ba.Value(choices.Levels[0]),
+	})
+}
+return err
+```
+
 When the levels are known, Blazing Agents rejects any other value and lists the valid choices in the error. When they are unknown, it accepts any non-empty string, and a value the model does not understand fails when the agent runs. Blazing Agents never swaps in another level or retries without one.
 
 A thinking level is not a token or cost cap, and the same level can behave differently on different models. In the dashboard, changing the provider or model resets the level to the provider default.
@@ -188,10 +261,10 @@ You can rename a provider, but you cannot change its key, type, or endpoint. To 
 3. Run one turn on each agent to confirm it works.
 4. Delete the old provider.
 
-Deleting a provider that a current agent still uses fails with [`provider_in_use`](/api-reference/protocols/errors#provider_in_use). If saved sessions or queued or running task runs use it, deletion fails with [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use). Its details list `sessionIds` and `taskRunIds`. Keep the provider while that work needs it, or delete with `confirmSnapshotInvalidation` (`confirm_snapshot_invalidation=True` in Python, `.confirm_snapshot_invalidation(true)` in Rust). Saved configuration remains readable, but work that needs the deleted provider fails with [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
+Deleting a provider that a current agent still uses fails with [`provider_in_use`](/api-reference/protocols/errors#provider_in_use). If saved sessions or queued or running task runs use it, deletion fails with [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use). Its details list `sessionIds` and `taskRunIds`. Keep the provider while that work needs it, or delete with `confirmSnapshotInvalidation` (`confirm_snapshot_invalidation=True` in Python, `.confirm_snapshot_invalidation(true)` in Rust, `ConfirmSnapshotInvalidation: new(true)` in Go). Saved configuration remains readable, but work that needs the deleted provider fails with [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
 
 ## Next [#next]
 
 - [Agents](/agents/agents) to see everything else an agent controls.
-- Providers SDK reference for [TypeScript](/sdk/typescript/providers), [Python](/sdk/python/providers), or [Rust](/sdk/rust/providers).
+- Providers SDK reference for [TypeScript](/sdk/typescript/providers), [Python](/sdk/python/providers), [Rust](/sdk/rust/providers), or [Go](/sdk/go/providers).
 - [Security and credentials](/platform/security-and-credentials) for how keys are stored and exposed.

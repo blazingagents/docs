@@ -7,3 +7,4 @@ coverage/
 .DS_Store
 snippets-rust/target/
 snippets-rust/examples/
+snippets-go/blocks/

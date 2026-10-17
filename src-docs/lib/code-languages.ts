@@ -1,6 +1,7 @@
 export const documentationCodeLanguages = {
   bash: import("shiki/langs/bash.mjs"),
   dotenv: import("shiki/langs/dotenv.mjs"),
+  go: import("shiki/langs/go.mjs"),
   http: import("shiki/langs/http.mjs"),
   json: import("shiki/langs/json.mjs"),
   markdown: import("shiki/langs/markdown.mjs"),
