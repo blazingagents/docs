@@ -86,7 +86,7 @@ A schedule is one of:
 | `"interval"` | `{"every_ms": 3_600_000}`, at least `60000` |
 | `"cron"` | `{"expression": "0 9 * * 1-5"}`, a five-field expression, with optional `"timezone"` (default `"UTC"`) and `"stagger_ms"` |
 
-The SDK checks the schedule shape before sending and raises `TypeError` or `ValueError` for a malformed one. `submit=True` does not make creation safe to retry: retrying creates another task.
+The SDK checks the schedule shape before sending and raises pydantic's `ValidationError`, a `ValueError`, for a malformed one. `submit=True` does not make creation safe to retry: retrying creates another task.
 
 Without `idempotency_key`, calling `create()` twice creates two tasks. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID. Reusing a key with different task fields, or after deleting the task, raises `idempotency_conflict`. The key must not be blank.
 
