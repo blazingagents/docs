@@ -18,7 +18,7 @@
     "smoke:examples": "node scripts/smoke-examples.mjs"
   },
   "dependencies": {
-    "@blazingagents/sdk": "file:vendor/blazingagents-sdk-0.28.1.tgz",
+    "@blazingagents/sdk": "file:vendor/blazingagents-sdk-0.29.0.tgz",
     "@orama/orama": "^3.1.18",
     "@tanstack/react-router": "^1.170.32",
     "@tanstack/react-start": "^1.168.49",
