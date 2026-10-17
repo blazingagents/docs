@@ -215,7 +215,7 @@ return nil
 
 `ba.UpdateAgentParams` has every [`Create`](#create) field except `UserID` (fixed after creation) and `WorkspaceTier`, and its `Name` is a `*string` of 1 to 80 characters. Fields you leave unset keep their current value. Values you set replace the old ones completely: `Tools`, `MCPConnectionIDs`, `Metadata`, and each approval policy are full replacements, not patches. To clear a list, set it to an empty slice such as `[]ba.AgentTool{}`.
 
-- To change the model, set `ProviderID` and `Model` together. To stay on the current provider, pass its ID again.
+- To change the model on the current provider, set only `Model` and the provider is kept. To switch providers, set `ProviderID` and `Model` together. Setting `ProviderID` without `Model` fails client-side with `*ba.ArgumentError`.
 - To unconfigure the agent, set `ProviderID: ba.Null[ba.ProviderID]()` and `Model: ba.Null[string]()`. When you leave `ThinkingLevel` unset, the SDK also sends a `null` thinking level, because the server rejects removing the provider while a thinking level remains.
 - `ThinkingLevel: ba.Null[string]()` resets to the provider default.
 - `WorkspaceID` moves the agent to another workspace. It cannot be cleared.

@@ -99,7 +99,7 @@ return nil
 
 **Signature:** `func (s *SpendingLimitsService) GetTenant(ctx context.Context, opts ...RequestOption) (*ModelSpendingLimitStatus, error)`
 
-Returns `*ba.ModelSpendingLimitStatus` with `SpendingLimit`, `Period` (`StartsAt`, `EndsAt`, `SpentUSD`, `ReservedUSD`, `AvailableUSD`), and `NextResetAt`. All three are nil while no limit is set.
+Returns `*ba.ModelSpendingLimitStatus` with `SpendingLimit`, `Period` (a `*ba.SpendingLimitPeriod` with `StartsAt`, `EndsAt`, `SpentUSD`, `ReservedUSD`, and `AvailableUSD`), and `NextResetAt`. All three are nil while no limit is set.
 
 ### `SpendingLimits.UpdateTenant` [#update-spending-limit]
 
@@ -135,8 +135,8 @@ Turning `MonetizationEnabled` off drops usage events your merchant has not yet a
 | Field | Type | Description |
 | --- | --- | --- |
 | `Name` | `string` | Display name |
-| `Quota` | pointer, or nil | The monthly quota (`MonthlyTokenLimit`, `MonthlyRequestLimit`, `ResetDay`), or nil |
-| `Deletion` | pointer, or nil | A scheduled deletion (`DeletesAt`, `RequestedAt`), or nil |
+| `Quota` | `*ba.TenantQuota` | The monthly quota (`MonthlyTokenLimit`, `MonthlyRequestLimit`, `ResetDay`), or nil |
+| `Deletion` | `*ba.TenantDeletion` | A scheduled deletion (`DeletesAt`, `RequestedAt`), or nil |
 | `MonetizationEnabled` | `bool` | Whether usage is billed to your end users |
 
 ## Next [#next]

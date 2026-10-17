@@ -527,7 +527,7 @@ if err != nil {
 	return err
 }
 activity := inputs.Activity
-if activity.State == "running" && activity.TurnID != nil {
+if activity.State == ba.SessionActivityStateRunning && activity.TurnID != nil {
 	stopped, err := client.Sessions.Stop(ctx, agentID, sessionID, ba.StopSessionTurnParams{
 		TurnID: *activity.TurnID,
 	})

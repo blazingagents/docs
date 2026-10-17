@@ -283,15 +283,15 @@ Returns [`*ba.Page[TenantChatDelivery]`](#tenantchatdelivery); `All` walks every
 | `TenantID` | `ba.TenantID` | Your tenant ID |
 | `AgentID` | `ba.AgentID` | The agent that answers messages |
 | `Name` | `string` | Display name |
-| `Platform` | string enum | `slack` or `telegram` |
+| `Platform` | `ba.ChatPlatform` | `ba.ChatPlatformSlack` or `ba.ChatPlatformTelegram` |
 | `Enabled` | `bool` | Whether the connection accepts messages |
 | `Configuration` | `ba.ChatConfiguration` | Platform settings: `ba.SlackConfiguration` with `ChannelIDs`, or `ba.TelegramConfiguration` with `BusinessMode` and `ChatIDs` |
-| `Identity` | struct | The bot's identity on the platform |
-| `Health` | struct | The last health check (`CheckedAt`, `TokenValid`, `IdentityVerified`, `Checks`) |
+| `Identity` | `ba.ChatIdentity` | The bot's identity on the platform (`BotID`, `BotUserID`, `TeamID`, `AppID`) |
+| `Health` | `ba.ChatHealth` | The last health check (`CheckedAt`, `TokenValid`, `IdentityVerified`, and `Checks`, a `[]ba.ChatHealthCheck`) |
 | `CredentialFragment` | `string` | Last characters of the credential, for display |
 | `CredentialVersion` | `int64` | Incremented on each rotation |
 | `WebhookURL` | `string` | The webhook URL registered with the platform |
-| `CreatedAt`, `UpdatedAt` | timestamp | Timestamps |
+| `CreatedAt`, `UpdatedAt` | `time.Time` | Timestamps |
 
 ### `TenantChatDelivery` [#tenantchatdelivery]
 
@@ -300,18 +300,18 @@ Returns [`*ba.Page[TenantChatDelivery]`](#tenantchatdelivery); `All` walks every
 | Field | Type | Description |
 | --- | --- | --- |
 | `ID` | `ba.ChatDeliveryID` | Delivery ID (`cd_...`) |
-| `Kind` | string enum | `reply` or `card` |
+| `Kind` | `ba.ChatDeliveryKind` | `ba.ChatDeliveryKindReply` or `ba.ChatDeliveryKindCard` |
 | `Status` | `ba.ChatDeliveryStatus` | `pending`, `confirmed`, `failed`, or `ambiguous` |
 | `Attempt` | `int64` | How many sends have been tried |
 | `CredentialVersion` | `int64` | The credential version used |
 | `Representation` | `string` | What the delivery sent, as text |
 | `Diagnostic` | `*string` | Why it failed |
-| `Receipts` | raw JSON | The platform's receipts, in its own shape |
+| `Receipts` | `json.RawMessage` | The platform's receipts, in its own shape |
 | `SessionID` | `ba.SessionID` | The session the message belongs to |
 | `MessageID` | `*string` | The message's ID, when one exists |
 | `ApprovalID` | `*ba.ApprovalID` | The approval it answers, when it is one |
 | `ThreadID` | `string` | The platform thread |
-| `CreatedAt`, `UpdatedAt` | timestamp | Timestamps |
+| `CreatedAt`, `UpdatedAt` | `time.Time` | Timestamps |
 
 ### `ChatDeliveryResult` [#chatdeliveryresult]
 
@@ -321,7 +321,7 @@ Returns [`*ba.Page[TenantChatDelivery]`](#tenantchatdelivery); `All` walks every
 | `SessionID` | `ba.SessionID` | The session the message belongs to |
 | `ThreadID` | `string` | The platform thread the delivery belongs to |
 | `ConnectionID` | `ba.ChatConnectionID` | The connection the delivery went through |
-| `Kind` | string enum | What the delivery carries |
+| `Kind` | `ba.ChatDeliveryKind` | What the delivery carries |
 | `Status` | `ba.ChatDeliveryStatus` | Where the delivery stands after the repair |
 | `Attempt` | `int64` | How many sends have been tried |
 

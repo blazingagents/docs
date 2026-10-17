@@ -15,7 +15,7 @@ if err != nil {
 	return err
 }
 for _, artifact := range page.Data {
-	fmt.Println(artifact.ArtifactID, artifact.Filename)
+	fmt.Println(artifact.ID, artifact.Filename)
 }
 return nil
 ```
@@ -111,7 +111,7 @@ Fails with `validation_failed` or `not_found`.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `ArtifactID` | `ba.ArtifactID` | Artifact ID (`at_...`) |
+| `ID` | `ba.ArtifactID` | Artifact ID (`at_...`) |
 | `AgentID` | `ba.AgentID` | The agent that published it |
 | `TenantID` | `ba.TenantID` | Your tenant ID |
 | `SessionID` | `ba.SessionID` | The session it was published in |

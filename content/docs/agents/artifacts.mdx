@@ -122,7 +122,7 @@ if err != nil {
 var artifactID ba.ArtifactID
 for _, item := range page.Data {
 	if item.Filename == "release.md" {
-		artifactID = item.ArtifactID
+		artifactID = item.ID
 	}
 }
 if artifactID == "" {

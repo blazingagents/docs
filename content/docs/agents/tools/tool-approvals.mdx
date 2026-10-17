@@ -150,7 +150,7 @@ if err != nil {
 	return err
 }
 for _, item := range approvals.Data {
-	if item.Decision == "pending" {
+	if item.Decision == ba.ToolApprovalStatusPending {
 		fmt.Println(item.ApprovalID, item.ToolName, item.Input)
 	}
 }

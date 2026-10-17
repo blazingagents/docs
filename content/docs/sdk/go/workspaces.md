@@ -136,7 +136,7 @@ deletion, err := client.Workspaces.Delete(ctx, "ws_0123456789abcdef")
 if err != nil {
 	return err
 }
-switch deletion {
+switch deletion.(type) {
 case ba.WorkspaceDeletionCompleted:
 	fmt.Println("gone")
 case ba.WorkspaceDeletionPending:
@@ -147,7 +147,7 @@ return nil
 
 **Signature:** `func (s *WorkspacesService) Delete(ctx context.Context, workspaceID WorkspaceID, opts ...RequestOption) (WorkspaceDeletion, error)`
 
-Move attached agents to another workspace first. Returns `ba.WorkspaceDeletionCompleted` when deletion finished right away, or `ba.WorkspaceDeletionPending` when it was accepted and cleanup continues in the background.
+Move attached agents to another workspace first. Returns `ba.WorkspaceDeletionCompleted{}` when deletion finished right away, or `ba.WorkspaceDeletionPending{}` when it was accepted and cleanup continues in the background.
 
 | Code | Meaning |
 | --- | --- |

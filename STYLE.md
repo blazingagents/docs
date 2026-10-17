@@ -84,15 +84,20 @@ people who built it.
   the pages' `cargo add blazing-agents ... --rev` commands, then run
   `cargo update -p blazing-agents --manifest-path snippets-rust/Cargo.toml`.
 
-  A `go` block that contains `func main(` is a full program. Any other `go`
-  block is the body of `func snippet(ctx context.Context, client *ba.Client,
+  `npm run check:go-snippets` compiles and vets every `go` block against the
+  pinned SDK and runs as its own CI job, separate from `npm run check`.
+  A `go` block that contains a line starting with `func main()` is a full
+  program and compiles as written. Any other `go` block is the body of `func snippet(ctx context.Context, client *ba.Client,
   agentID ba.AgentID, sessionID ba.SessionID) error`, with `ba` imported from
   `github.com/blazingagents/golang-sdk`. It may use `ctx`, `client`,
   `agentID`, and `sessionID`, local type definitions, and the standard
-  library. It must end in a `return`, use every variable it declares, and
-  declare every other value with a full placeholder ID
-  (`taskID := ba.TaskID("tk_0123456789abcdef")`). Format Go blocks with
-  `gofmt`.
+  library without import lines: the check adds the standard library imports
+  a block names, as `goimports` would. It must end in a `return`, use every
+  variable it declares, and declare every other value with a full
+  placeholder ID (`taskID := ba.TaskID("tk_0123456789abcdef")`). Format Go
+  blocks with `gofmt`. To bump the pinned SDK, run
+  `go get github.com/blazingagents/golang-sdk@<commit>` in `snippets-go`
+  and put the pseudo-version it prints in the pages' `go get` commands.
 
 - No `as` type casts in snippets (for example on `await request.json()`).
   Let inference or the SDK's own types carry the shape.

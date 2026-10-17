@@ -187,10 +187,10 @@ return nil
 | `ID` | `ba.MCPConnectionID` | Connection ID (`mcp_...`) |
 | `Name` | `string` | Display name |
 | `URL` | `string` | MCP server URL |
-| `AuthType` | string enum | How Blazing Agents authenticates |
-| `Status` | string enum | `connected`, `needs_auth`, or `error` |
+| `AuthType` | `ba.MCPAuthType` | How Blazing Agents authenticates |
+| `Status` | `ba.MCPConnectionStatus` | `ba.MCPConnectionStatusConnected`, `ba.MCPConnectionStatusNeedsAuth`, or `ba.MCPConnectionStatusError` |
 | `CredentialFragment` | `*string` | Last characters of the stored credential |
-| `LastAuthErrorCode` | string enum, or nil | Why it last failed |
+| `LastAuthErrorCode` | `*ba.MCPConnectionErrorCode` | Why it last failed |
 | `OAuthIssuer`, `OAuthResource` | `*string` | Discovered OAuth metadata |
 | `TokenExpiresAt` | `*time.Time` | When the current access token expires |
 | `CreatedAt`, `UpdatedAt` | `time.Time` | Timestamps |

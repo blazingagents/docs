@@ -261,11 +261,11 @@ Reuse `IdempotencyKey` (1 to 200 characters) when retrying: a replay returns the
 
 A `ba.Message` has `ID`, `Role` (`ba.MessageRoleSystem`, `ba.MessageRoleUser`, or `ba.MessageRoleAssistant`), `Branchable`, `Parts`, and `Metadata`. Each part is the raw JSON object with a `type` such as `"text"` or `"tool-bash"`, so decode the parts you need into your own types.
 
-`ba.Session` adds `AgentConfig` (a `ba.AgentConfig`, the saved configuration) and `ForkedFrom` (the source `SessionID` and `MessageID`, nil for an ordinary session). `ba.LatestSession` adds `AgentID`, `Model`, `ThinkingLevel`, and `Status`.
+`ba.Session` adds `AgentConfig` (a `ba.AgentConfig`, the saved configuration) and `ForkedFrom` (a `*ba.SessionForkSource` with the source `SessionID` and `MessageID`, nil for an ordinary session). `ba.LatestSession` adds `AgentID`, `Model`, `ThinkingLevel`, and `Status`.
 
 ### `ToolApprovalList` [#toolapprovals]
 
-`Data` is a `[]ba.ToolApproval`. `Continuation` holds the session's unfinished continuation (`ID` and `State`: `waiting`, `running`, `succeeded`, or `failed`), or nil when there is none.
+`Data` is a `[]ba.ToolApproval`. `Continuation` is a `*ba.ToolApprovalContinuation` holding the session's unfinished continuation (`ID` and a `ba.ToolApprovalContinuationState`: `waiting`, `running`, `succeeded`, or `failed`), or nil when there is none.
 
 | `ToolApproval` field | Type | Description |
 | --- | --- | --- |
@@ -274,7 +274,7 @@ A `ba.Message` has `ID`, `Role` (`ba.MessageRoleSystem`, `ba.MessageRoleUser`, o
 | `ToolName` | `string` | Tool name |
 | `Tool` | `ba.ToolReference` | Built-in, MCP, or function tool, or nil |
 | `Input` | `ba.Metadata` | Exact arguments the agent proposed |
-| `Decision` | string enum | `pending`, `approved`, or `denied` |
+| `Decision` | `ba.ToolApprovalStatus` | `ba.ToolApprovalStatusPending`, `ba.ToolApprovalStatusApproved`, or `ba.ToolApprovalStatusDenied` |
 | `Reason` | `*string` | Reason given with the decision |
 | `AssistantMessageID` | `*string` | Message that proposed the call |
 | `CreatedAt`, `DecidedAt` | `*time.Time` | Timestamps |
@@ -288,14 +288,14 @@ A `ba.Message` has `ID`, `Role` (`ba.MessageRoleSystem`, `ba.MessageRoleUser`, o
 | `RequestID` | `string` | Your ID for the steer |
 | `Sequence` | `int64` | Place in the arrival order; never changes |
 | `Message` | `ba.UserMessage` | The message you sent |
-| `State` | string enum | `accepted`, `delivered`, `committed`, `not_placed`, or `uncertain` |
+| `State` | `ba.SessionInputState` | `accepted`, `delivered`, `committed`, `not_placed`, or `uncertain`, as `ba.SessionInputStateAccepted` and so on |
 | `TurnID` | `ba.TurnID` | The turn the steer was bound to |
-| `Reason` | string enum, or nil | `stopped`, `failed`, `owner_lost`, or `turn_finished` |
+| `Reason` | `*ba.SessionInputReason` | `stopped`, `failed`, `owner_lost`, or `turn_finished`, or nil |
 | `CreatedAt`, `UpdatedAt` | `time.Time` | Timestamps |
 
 | `SessionActivity` field | Type | Description |
 | --- | --- | --- |
-| `State` | string enum | `idle`, `running`, `stopping`, or `approval` |
+| `State` | `ba.SessionActivityState` | `idle`, `running`, `stopping`, or `approval`, as `ba.SessionActivityStateIdle` and so on |
 | `TurnID` | `*ba.TurnID` | The running turn, when there is one |
 
 A `committed` input is saved in the history; a `not_placed` input is safe to send as an ordinary `Chat.Send` message; an `uncertain` input means the agent may have read it, so never resend it automatically.

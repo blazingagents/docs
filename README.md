@@ -54,6 +54,7 @@ The development server runs at <http://localhost:3761>.
 | `npm run check` | Run the required type-check, test, style, and REST reference freshness gate |
 | `npm run lint:docs` | Check `content/docs/` against the style guide's mechanical rules |
 | `npm run check:rust-snippets` | Compile every Rust snippet against the pinned Rust SDK |
+| `npm run check:go-snippets` | Compile every Go snippet against the pinned Go SDK |
 | `npm run sync:openapi` | Copy the platform's API contract into `openapi/openapi.json` |
 
 ## Smoke-testing the examples against a live API

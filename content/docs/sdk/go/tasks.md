@@ -268,7 +268,7 @@ It succeeds whenever the task exists, even if the run is missing or already fini
 | `DeletedAt` | `*time.Time` | When it was deleted |
 | `CreatedAt`, `UpdatedAt` | `time.Time` | Timestamps |
 
-`ba.TaskListItem` is the same plus `LatestRun`, which is nil before the first run and otherwise holds its `ID`, `Status`, and `FinishedAt`.
+`ba.TaskListItem` is the same plus `LatestRun`, a `*ba.TaskLatestRun` that is nil before the first run and otherwise holds its `ID`, `Status`, and `FinishedAt`.
 
 ### `TaskRun` [#taskrun]
 
