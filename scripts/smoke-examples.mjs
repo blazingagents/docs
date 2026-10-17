@@ -7,11 +7,11 @@
  * calls the model provider and exits with status 2.
  * Optional: SMOKE_PYTHON, a Python 3.11+ interpreter (default python3).
  * Optional: SMOKE_PYTHON_SDK, a pip requirement (for example a path to a local
- * python-sdk checkout) used instead of the pinned wheel.
+ * python-sdk checkout) used instead of the pinned PyPI release.
  * Optional: SMOKE_RUST, a cargo binary (default cargo). The Rust steps are
  * skipped when `cargo --version` fails.
  * Optional: SMOKE_RUST_SDK, a path to a local rust-sdk checkout used instead of
- * the pinned git rev (`cargo add blazing-agents --path ...`).
+ * the pinned crates.io release (`cargo add blazing-agents --path ...`).
  */
 import { spawn } from "node:child_process";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -24,7 +24,7 @@ const SYSTEM_PYTHON = process.env.SMOKE_PYTHON ?? "python3";
 const CARGO = process.env.SMOKE_RUST ?? "cargo";
 const RUST_SDK = process.env.SMOKE_RUST_SDK;
 const PYTHON_SDK =
-  process.env.SMOKE_PYTHON_SDK ?? join(root, "vendor/blazing_agents-0.24.0-py3-none-any.whl");
+  process.env.SMOKE_PYTHON_SDK ?? "blazing-agents==0.24.0";
 const PYTHON_SERVER_DEPS = ["fastapi==0.141.1", "uvicorn==0.53.0"];
 const PLACEHOLDER_OPENROUTER_KEY = "sk-or-smoke-placeholder";
 const TIMEOUT_MS = 180_000;
