@@ -273,7 +273,7 @@ const { period } = await client.agents.getSpendingLimit({ agentId: "ag_012345678
 console.log(period?.spentUsd);
 ```
 
-Returns [`SpendingLimitResponse`](/sdk/typescript/tenant#spendinglimitresponse). Errors: `validation_failed`, `not_found`, and `forbidden` from a user-scoped client, where this method is deprecated.
+Returns [`SpendingLimitResponse`](/sdk/typescript/tenant#spendinglimitresponse). Errors: `validation_failed` and `not_found`. Tenant client only: a [`forUser()`](/sdk/typescript/client#for-user) client has no spending limit methods.
 
 ### `updateSpendingLimit()` [#update-spending-limit]
 
@@ -288,7 +288,7 @@ await client.agents.updateSpendingLimit({
 });
 ```
 
-`SpendingLimit` has the same fields as on the [tenant](/sdk/typescript/tenant#update-spending-limit). See [model spending limits](/platform/usage-and-quotas#model-spending-limits). Returns [`SpendingLimitResponse`](/sdk/typescript/tenant#spendinglimitresponse). Errors: `validation_failed`, `not_found`, and `forbidden` from a user-scoped client, where this method is deprecated.
+`SpendingLimit` has the same fields as on the [tenant](/sdk/typescript/tenant#update-spending-limit). See [model spending limits](/platform/usage-and-quotas#model-spending-limits). Returns [`SpendingLimitResponse`](/sdk/typescript/tenant#spendinglimitresponse). Errors: `validation_failed` and `not_found`. Tenant client only: a [`forUser()`](/sdk/typescript/client#for-user) client has no spending limit methods.
 
 ## Response types [#response-types]
 

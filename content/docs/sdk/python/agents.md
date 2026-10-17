@@ -257,7 +257,7 @@ budget = client.agents.get_spending_limit("ag_0123456789abcdef")
 
 **Signature:** `get_spending_limit(agent_id: str) -> SpendingLimitResponse`
 
-Returns the same [`SpendingLimitResponse`](/sdk/python/tenant#get-spending-limit) as the tenant method. Raises `validation_failed`, `not_found`, or [`forbidden`](/api-reference/protocols/errors#forbidden) from a user-scoped client, where it is deprecated and emits a `DeprecationWarning`.
+Returns the same [`SpendingLimitResponse`](/sdk/python/tenant#get-spending-limit) as the tenant method. Raises `validation_failed` or `not_found`. Tenant client only: a [`for_user()`](/sdk/python/client#for-user) client has no spending limit methods.
 
 ### `update_spending_limit()` [#update-spending-limit]
 
@@ -276,7 +276,7 @@ client.agents.update_spending_limit(
 
 **Signature:** `update_spending_limit(agent_id: str, *, spending_limit: SpendingLimitInput | None) -> SpendingLimitResponse`
 
-See [model spending limits](/platform/usage-and-quotas#model-spending-limits). Raises `validation_failed`, `not_found`, or `forbidden` from a user-scoped client, where it is deprecated and emits a `DeprecationWarning`.
+See [model spending limits](/platform/usage-and-quotas#model-spending-limits). Raises `validation_failed` or `not_found`. Tenant client only.
 
 ## Response models [#response-models]
 
