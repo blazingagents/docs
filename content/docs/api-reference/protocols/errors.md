@@ -104,13 +104,13 @@ starts with the bracketed code, and `error.code` holds the bare code.
 Once a stream starts, its status and headers are already sent, so a later
 failure cannot change them. A chat stream reports the failure as an AI SDK
 error chunk. Completion and object results raise `stream_error` when you await
-the final value. Ordinary stream errors carry no specific code. A handled
-model spending stop in a chat stream first sends a structured `data-model-spending-limit` event
-with `code: "model_spending_limit_exceeded"`, scope, balances, and reset time.
-See [spending-stop events](/api-reference/protocols/streaming#spending-stop-events).
-A chat stream that is cut after it starts sends a `data-turn-interrupted` event
-with `code: "turn_interrupted"`, then the error chunk. That code is not an HTTP error code.
-See [interruption events](/api-reference/protocols/streaming#interruption-events).
+the final value. When the failure has a code, a chat stream first sends a
+transient `data-ba-error` event whose `data` has the shape of this page's
+`error` object, with the same `code`, `message`, and `details`. A model
+spending stop sends `model_spending_limit_exceeded` with its scope, balances,
+and reset time in `details`. A stream that is cut after it starts sends
+`turn_interrupted`, which no HTTP error returns. Model and tool failures carry
+no code. See [error events](/api-reference/protocols/streaming#error-events).
 Relay responses built by the SDK keep the original request ID.
 
 Each entry on this page says whether retrying the same request can succeed.

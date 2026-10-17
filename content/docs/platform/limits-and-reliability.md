@@ -117,7 +117,7 @@ Reads are safe to repeat. Creates and tool calls can take effect even when you n
 
 An error before the stream starts arrives as a normal API error with a code. Once a chat stream has started, errors arrive as `error` events inside the stream, and some output may already have been shown. For interactive chat, keep the user's draft and let them resend. See [stop and resend](/platform/sessions-and-turns#stop-and-resend).
 
-A stream that is cut after it starts ends with a `data-turn-interrupted` event and an `error` chunk instead of ending as if it finished. See [interruption events](/api-reference/protocols/streaming#interruption-events).
+A failure with a code first sends a `data-ba-error` event with the same `code`, `message`, and `details` an HTTP error would carry. A stream that is cut after it starts ends with that event, code `turn_interrupted`, and an `error` chunk instead of ending as if it finished. See [interruption events](/api-reference/protocols/streaming#interruption-events).
 
 In TypeScript, a broken connection after streaming starts raises `stream_error`, an abort before the request is sent raises `request_aborted`, and other network failures raise `network_error`. In Python, these are `StreamError` and `APIConnectionError`.
 
