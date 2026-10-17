@@ -29,7 +29,7 @@ Every method takes one input object and accepts an optional `abortSignal`. Crede
 | `"none"` | none | Blazing Agents connects to the server to check it |
 | `"bearer"` | `bearerToken` | Checks the server with the token |
 | `"oauth_client_credentials"` | `clientId`, `clientSecret`, optional `scope` | Gets a token and checks the server |
-| `"oauth_authorization_code"` | optional `clientId` and `clientSecret` together, optional `scope` | Saves with `status: "needs_auth"` until a person signs in |
+| `"oauth_authorization_code"` | optional `clientId` and `clientSecret` together, optional `scope` | Saves with `status: "needs_auth"` until a person signs in from the [dashboard](https://www.blazingagents.com/app) |
 
 If the check fails, nothing is saved and the call throws. The `url` must be `http` or `https` without credentials, a query string, or a fragment. Servers must speak Streamable HTTP.
 
@@ -43,7 +43,6 @@ If the check fails, nothing is saved and the call throws. The `url` must be `htt
 | [`update()`](#update) | Rename a connection | `McpConnectionResponse` |
 | [`delete()`](#delete) | Delete a connection | `void` |
 | [`test()`](#test) | Check the server and list its tools | `McpConnectionTestResponse` |
-| [`connect()`](#connect) | Start an OAuth sign-in | `McpConnectionOauthConnectResponse` |
 | [`reconnect()`](#reconnect) | Replace the URL and credentials | `McpConnectionReconnectResult` |
 
 ## Methods [#methods]
@@ -144,21 +143,6 @@ if (result.ok) {
 
 A failed check returns `ok: false` instead of throwing, and updates the connection's `status`: `"connected"` on success, `"needs_auth"` when the credentials are rejected, `"error"` otherwise. Testing an OAuth connection may refresh its token. Returns [`McpConnectionTestResponse`](#mcpconnectiontestresponse). Errors: `validation_failed`, `not_found`.
 
-### `connect()` [#connect]
-
-Starts the sign-in for an authorization-code OAuth connection and returns a URL to open in a browser.
-
-**Signature:** `connect(input: { mcpConnectionId: string } & ResourceRequestOptions): Promise<McpConnectionOauthConnectResponse>`
-
-```typescript
-const dashboardClient = new BlazingAgents({ apiKey: dashboardUserAccessToken });
-const { authorizationUrl } = await dashboardClient.mcpConnections.connect({ mcpConnectionId });
-```
-
-The URL opens the connection's page in the Blazing Agents dashboard, where the person signs in to the MCP server's provider and approves access. The connection then turns `"connected"`. This call needs a signed-in dashboard user's access token in place of the API key; a client built with an API key gets [`unauthorized`](/api-reference/protocols/errors#unauthorized). Most apps send the person to the [dashboard](https://www.blazingagents.com/app) to finish OAuth instead.
-
-Returns [`McpConnectionOauthConnectResponse`](#mcpconnectionoauthconnectresponse). Errors: `unauthorized`, `validation_failed`, and `not_found` when the connection is missing or does not need authorization.
-
 ### `reconnect()` [#reconnect]
 
 Replaces a connection's URL, authentication type, and credentials, and keeps its name and ID.
@@ -227,14 +211,6 @@ type McpConnectionTestErrorCode =
 interface McpConnectionReconnectResult {
   status: "connected" | "needs_auth";
   connection: McpConnectionResponse;
-}
-```
-
-### `McpConnectionOauthConnectResponse` [#mcpconnectionoauthconnectresponse]
-
-```typescript
-interface McpConnectionOauthConnectResponse {
-  authorizationUrl: string;
 }
 ```
 

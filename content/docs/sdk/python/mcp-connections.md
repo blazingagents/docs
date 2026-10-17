@@ -32,13 +32,12 @@ client.agents.update("ag_0123456789abcdef", mcp_connection_ids=[connection.id])
 | `"oauth_client_credentials"` | `client_id` and `client_secret`, optional `scope` |
 | `"oauth_authorization_code"` | Optional `client_id` and `client_secret` together, optional `scope` |
 
-The `url` must be an HTTP or HTTPS Streamable HTTP endpoint without credentials, a query string, or a fragment. For every type except `"oauth_authorization_code"`, Blazing Agents connects to the server before saving and saves nothing if that fails. An authorization-code connection is saved with `status == "needs_auth"` until an administrator signs in to the upstream service; see [`connect()`](#connect).
+The `url` must be an HTTP or HTTPS Streamable HTTP endpoint without credentials, a query string, or a fragment. For every type except `"oauth_authorization_code"`, Blazing Agents connects to the server before saving and saves nothing if that fails. An authorization-code connection is saved with `status == "needs_auth"` until an administrator signs in to the upstream service from the [dashboard](https://www.blazingagents.com/app).
 
 ## Available operations [#available-operations]
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`connect()`](#connect) | Start OAuth sign-in for an authorization-code connection | `McpConnectionAuthorization` |
 | [`create()`](#create) | Save and check a connection | `McpConnection` |
 | [`list()`](#list) | List connections | `McpConnections` |
 | [`get()`](#get) | Get one connection | `McpConnection` |
@@ -48,22 +47,6 @@ The `url` must be an HTTP or HTTPS Streamable HTTP endpoint without credentials,
 | [`reconnect()`](#reconnect) | Replace the URL and credentials | `McpConnectionReconnectResult` |
 
 ## Methods [#methods]
-
-### `connect()` [#connect]
-
-Starts OAuth sign-in for an `"oauth_authorization_code"` connection and returns a Blazing Agents dashboard URL to open.
-
-```python
-admin_client = BlazingAgents(api_key=dashboard_session_token)
-authorization = admin_client.mcp_connections.connect(connection.id)
-print(authorization.authorization_url)
-```
-
-**Signature:** `connect(mcp_connection_id: str) -> McpConnectionAuthorization`
-
-This call needs a signed-in dashboard administrator's session token in place of the API key; a tenant API key raises [`unauthorized`](/api-reference/protocols/errors#unauthorized). Most teams finish this step in the [dashboard](https://www.blazingagents.com/app) instead. Open the returned `authorization_url` in the administrator's signed-in browser. It is a short-lived dashboard link, not the upstream provider's sign-in page.
-
-Raises [`validation_failed`](/api-reference/protocols/errors#validation_failed) for a malformed ID. A missing connection, or one that does not need authorization, raises [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `create()` [#create]
 
@@ -192,17 +175,13 @@ Raises `validation_failed`, `not_found`, a [live check error](#errors-and-secret
 
 When `ok` is `True`, it has `latency_ms`, `server` (with `name` and `version`), `tool_count`, and `tool_names`. When `ok` is `False`, only `error` is set, with a `code` and a `message`.
 
-### `McpConnectionAuthorization` [#mcpconnectionauthorization]
-
-Has one field, `authorization_url`: a dashboard link under `/app/mcp-connections` that finishes OAuth sign-in.
-
 ### `McpConnectionReconnectResult` [#mcpconnectionreconnectresult]
 
 Has `status` (`"connected"` or `"needs_auth"`) and the updated `connection`.
 
 ## Errors and secrets [#errors-and-secrets]
 
-Live checks in `create()` and `reconnect()` can raise [`mcp_connection_authentication_failed`](/api-reference/protocols/errors#mcp_connection_authentication_failed), [`mcp_connection_invalid`](/api-reference/protocols/errors#mcp_connection_invalid), [`mcp_connection_unreachable`](/api-reference/protocols/errors#mcp_connection_unreachable), or [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed). Never log bearer tokens, client secrets, or authorization URLs.
+Live checks in `create()` and `reconnect()` can raise [`mcp_connection_authentication_failed`](/api-reference/protocols/errors#mcp_connection_authentication_failed), [`mcp_connection_invalid`](/api-reference/protocols/errors#mcp_connection_invalid), [`mcp_connection_unreachable`](/api-reference/protocols/errors#mcp_connection_unreachable), or [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed). Never log bearer tokens or client secrets.
 
 ## Next [#next]
 
