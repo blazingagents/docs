@@ -124,9 +124,9 @@ Connects with the stored credentials, lists the server's tools, and saves the re
 
 ```python
 result = client.mcp_connections.test(connection.id)
-if result.ok:
+if result.server is not None:
     print(result.server.name, result.tool_names)
-else:
+elif result.error is not None:
     print(result.error.code, result.error.message)
 ```
 

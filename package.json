@@ -7,6 +7,7 @@
     "build": "npm run generate && vite build --config vite.docs.config.mts && rm -rf .output/server .output/nitro.json && npm run verify-output",
     "check": "npm run typecheck && npm run test && npm run lint:docs && node scripts/rest-api.mjs --check",
     "check:go-snippets": "node scripts/check-go-snippets.mjs content/docs snippets-go",
+    "check:python-snippets": "node scripts/check-python-snippets.mjs content/docs snippets-python",
     "check:rust-snippets": "node scripts/check-rust-snippets.mjs content/docs snippets-rust",
     "dev": "npm run generate && vite --config vite.docs.config.mts",
     "generate": "node scripts/error-catalog.mjs && fumadocs-mdx source.config.ts .source && node scripts/generate-docs-manifest.mjs",

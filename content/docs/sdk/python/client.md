@@ -11,7 +11,7 @@ description: Configure the Python client, handle errors, and generate chat, text
 
 **Signatures:**
 
-```python
+```pyi
 BlazingAgents(
     *,
     api_key: str | None = None,

@@ -16,6 +16,7 @@ created = client.tasks.create(
     prompt="Summarize yesterday's open support cases.",
     submit=True,
 )
+assert created.run_id is not None
 run = client.tasks.get_run(created.task.id, created.run_id)
 print(run.status)
 ```

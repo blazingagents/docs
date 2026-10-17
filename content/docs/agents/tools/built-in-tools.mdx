@@ -18,9 +18,11 @@ await client.agents.update({ agentId, tools: [...tools] });
 ```
 
 ```python tab="Python"
+from blazing_agents import AgentTool
+
 agent = client.agents.get(agent_id)
-wanted = ["read", "grep", "glob"]
-tools = [*agent.tools, *(tool for tool in wanted if tool not in agent.tools)]
+wanted: list[AgentTool] = ["read", "grep", "glob"]
+tools: list[AgentTool] = [*agent.tools, *(tool for tool in wanted if tool not in agent.tools)]
 client.agents.update(agent_id, tools=tools)
 ```
 
@@ -78,9 +80,9 @@ await client.agents.update({ agentId, tools: readOnly });
 ```
 
 ```python tab="Python"
-from blazing_agents import AGENT_TOOLS
+from blazing_agents import AGENT_TOOLS, AgentTool
 
-read_only = [tool.name for tool in AGENT_TOOLS if "file_read" in tool.tags]
+read_only: list[AgentTool] = [tool.name for tool in AGENT_TOOLS if "file_read" in tool.tags]
 client.agents.update(agent_id, tools=read_only)
 ```
 
