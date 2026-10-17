@@ -112,7 +112,7 @@ const usage = await client.usage.getForAgent({
 });
 ```
 
-An agent with no usage, including one you deleted, returns empty buckets and zero totals. Returns [`UsageResponse`](#usageresponse). Errors: `validation_failed`.
+An agent with no usage, including one you deleted, returns empty buckets and zero totals. It is also available on a [`forUser()`](/sdk/typescript/client#for-user) client. Returns [`UsageResponse`](#usageresponse). Errors: `validation_failed`.
 
 ## Response types [#response-types]
 
