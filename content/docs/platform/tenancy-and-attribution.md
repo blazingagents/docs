@@ -108,6 +108,62 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	agentID := ba.AgentID(os.Getenv("AGENT_ID"))
+	userID := "app:user-42"
+
+	stream, err := client.Chat.Send(ctx, agentID, ba.Messages(ba.TextMessage("Summarize my open items.")), ba.ChatParams{
+		UserID:   &userID,
+		Metadata: ba.Metadata{"plan": "pro"},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	sessionID := stream.SessionID()
+	for _, err := range stream.Events() {
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	stream.Close()
+
+	sessions, err := client.Sessions.List(ctx, agentID, ba.ListSessionsParams{UserID: &userID})
+	if err != nil {
+		log.Fatal(err)
+	}
+	found := false
+	for _, session := range sessions.Data {
+		if session.ID == sessionID {
+			found = true
+		}
+	}
+	fmt.Println(found)
+
+	usage, err := client.Usage.Get(ctx, ba.UsageParams{UserID: &userID, GroupBy: new(ba.UsageGroupByDay)})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(usage.Totals.InputTokens + usage.Totals.OutputTokens)
+}
+```
+
 The first line prints `true`: the new session carries the user's label. The second prints the tokens this user used over the last 30 days, the default usage window.
 
 ## What carries a user label [#what-carries-a-user-label]
@@ -136,7 +192,7 @@ If you forget to pass `userId`, the activity is recorded with the empty label. D
 
 ## User labels and user scope [#user-labels-and-user-scope]
 
-A `userId` in a request body or list filter labels or selects data. It does not change the API key's authority. Derive the user ID from a session your backend verified, then call [`forUser()`](/sdk/typescript/client#for-user) in TypeScript, [`for_user()`](/sdk/python/client#for-user) in Python, or [`for_user()`](/sdk/rust/client#for-user) in Rust. The scoped client sends `X-BA-User-Id`, and the API checks that resources belong to that user. A scoped request cannot administer tenant-wide settings.
+A `userId` in a request body or list filter labels or selects data. It does not change the API key's authority. Derive the user ID from a session your backend verified, then call [`forUser()`](/sdk/typescript/client#for-user) in TypeScript, [`for_user()`](/sdk/python/client#for-user) in Python, [`for_user()`](/sdk/rust/client#for-user) in Rust, or [`ForUser()`](/sdk/go/client#for-user) in Go. The scoped client sends `X-BA-User-Id`, and the API checks that resources belong to that user. A scoped request cannot administer tenant-wide settings.
 
 Blazing Agents does not authenticate your product's users. Your backend still decides whether the signed-in person may use a feature or reach an application record.
 
@@ -290,7 +346,66 @@ async fn run_authorized_turn(
 }
 ```
 
-`app` is your own code. `resolveAuthorizedChat` throws unless the signed-in principal owns the chat, and it returns the agent and session IDs from your database. The TypeScript and Rust clients also scope the Blazing Agents request to that principal. Test that one user cannot reach another user's chat ID.
+```go tab="Go"
+type Principal struct {
+	Subject        string
+	OrganizationID string
+}
+
+type AuthorizedChat struct {
+	AgentID   ba.AgentID
+	SessionID ba.SessionID
+}
+
+type App interface {
+	ResolveAuthorizedChat(ctx context.Context, principal Principal, appChatID string) (AuthorizedChat, error)
+	SaveAuthorizedSession(ctx context.Context, appChatID string, sessionID ba.SessionID) error
+}
+
+runAuthorizedTurn := func(app App, w http.ResponseWriter, r *http.Request, principal Principal, appChatID string, message ba.UserMessage) {
+	chat, err := app.ResolveAuthorizedChat(r.Context(), principal, appChatID)
+	if err != nil {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+	userClient, err := client.ForUser("app:" + principal.Subject)
+	if err != nil {
+		http.Error(w, "invalid user", http.StatusInternalServerError)
+		return
+	}
+	stream, err := userClient.Chat.Send(r.Context(), chat.AgentID, ba.Messages(message), ba.ChatParams{
+		SessionID: chat.SessionID,
+		Metadata:  ba.Metadata{"organizationId": principal.OrganizationID},
+	})
+	if err != nil {
+		status := http.StatusInternalServerError
+		var apiErr *ba.APIError
+		if errors.As(err, &apiErr) {
+			status = apiErr.Status
+		}
+		http.Error(w, http.StatusText(status), status)
+		return
+	}
+	if chat.SessionID == "" {
+		if err := app.SaveAuthorizedSession(r.Context(), appChatID, stream.SessionID()); err != nil {
+			stream.Close()
+			http.Error(w, "storage error", http.StatusInternalServerError)
+			return
+		}
+	}
+	defer stream.Close()
+
+	stream.SetRelayHeaders(w.Header())
+	if location := stream.Meta().Header.Get("Location"); location != "" {
+		w.Header().Set("Location", location)
+	}
+	stream.WriteTo(w)
+}
+_ = runAuthorizedTurn
+return nil
+```
+
+`app` is your own code. `resolveAuthorizedChat` throws unless the signed-in principal owns the chat, and it returns the agent and session IDs from your database. The TypeScript, Rust, and Go clients also scope the Blazing Agents request to that principal. Test that one user cannot reach another user's chat ID.
 
 ## Production notes [#production-notes]
 

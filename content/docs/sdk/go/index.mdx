@@ -1,0 +1,90 @@
+---
+title: Go SDK
+description: Install the typed Go client and call every Blazing Agents API from your backend.
+---
+
+# Go SDK
+
+Call Blazing Agents from Go with typed responses, lazy pagination, and streaming. The module is `github.com/blazingagents/golang-sdk`, and its one package is conventionally imported as `ba`. It uses only the standard library and supports Go 1.26 and newer.
+
+<Callout type="warn" title="Server-side only">
+  A tenant API key can reach everything in your tenant. Keep it in backend code and never ship it to a browser or mobile app.
+</Callout>
+
+## Install [#install]
+
+The module installs from the GitHub repository. It has no dependencies of its own.
+
+```bash
+go get github.com/blazingagents/golang-sdk@main
+```
+
+Import it as `ba "github.com/blazingagents/golang-sdk"`, as every example on these pages does.
+
+## Create a client [#create-a-client]
+
+Set `BLAZING_AGENTS_API_KEY` in your environment, or pass `ba.WithAPIKey`. The client talks to `https://api.blazingagents.com` by default.
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	tenant, err := client.Tenant.Get(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(tenant.Name)
+}
+```
+
+## Client services [#client-objects]
+
+| Field | What you manage |
+| --- | --- |
+| [`Client`](/sdk/go/client) | Client options, errors, and the `Chat` and `Generation` services |
+| [`Agents`](/sdk/go/agents) | Agent configuration, avatars, and MCP settings |
+| [`Workspaces`](/sdk/go/workspaces) | Private file systems your agents share |
+| [`Skills`](/sdk/go/skills) | Skills owned by one agent |
+| [`Sessions`](/sdk/go/sessions) | Conversations, transcripts, and tool approvals |
+| [`Providers`](/sdk/go/providers) | Model provider keys and model lists |
+| [`MCPConnections`](/sdk/go/mcp-connections) | Remote MCP servers your agents can call |
+| [`Memories`](/sdk/go/memories) | Notes an agent remembers across sessions |
+| [`Artifacts`](/sdk/go/artifacts) | Files your agents publish |
+| [`Tasks`](/sdk/go/tasks) | Background and scheduled agent work |
+| [`Prompts`](/sdk/go/prompts) | Reusable message templates |
+| [`Usage`](/sdk/go/usage) | Token and request usage |
+| [`Tenant`](/sdk/go/tenant) | Tenant name and quota |
+| [`SpendingLimits`](/sdk/go/tenant#get-spending-limit) | Model spending limits for the account and for each agent |
+| [`ChatConnections`](/sdk/go/chat-integrations) | Slack and Telegram bots |
+| [`ChatDeliveries`](/sdk/go/chat-integrations#list-deliveries) | Failed and ambiguous deliveries across your Slack and Telegram bots |
+| `MerchantConnection`, `MerchantBindings`, `MerchantUsageEvents` | [Billing your users](/platform/monetization) |
+
+## Conventions [#conventions]
+
+- Every method takes a `context.Context` first and per-call options last, sends one request, and returns `(*Model, error)`, `error`, or a stream. On error the model is always `nil`. Cancel the context to abandon a call.
+- Required inputs are positional arguments. Every other input is a field of one `<Operation>Params` struct, such as `ba.ListAgentsParams{UserID: new("user_123"), Limit: new(50)}`. A field you leave unset sends nothing, so the server keeps its default or current value.
+- An optional field is a pointer you set with `new(value)`. An optional list or map is sent when it is non-nil, so `[]ba.AgentTool{}` sends an empty list. A nullable field is a `ba.Nullable[T]`: leave it zero to omit it, set `ba.Value(v)` to send a value, or `ba.Null[T]()` to send `null`.
+- Every method also takes the per-call options `ba.WithRequestTimeout`, `ba.WithRequestHeader`, `ba.WithClientRequestID`, and `ba.CaptureResponse`, which fills a `ba.ResponseMeta` with the response status, headers, and server request ID.
+- A `List` method returns one `*ba.Page[T]` with `Data` and `NextCursor` fields. Its `All` partner returns an `iter.Seq2[T, error]` that walks every page lazily when you range over it, and a `Cursor` in the params resumes from a saved cursor.
+- IDs are distinct string types (`ba.AgentID`, `ba.SessionID`, and so on). A string literal works anywhere an ID goes, while an ID from one resource cannot be passed where another kind belongs without a conversion.
+- Response models are structs with exported fields named after the API's JSON fields, using Go initialisms such as `ID`, `URL`, and `MCP`. Unknown server fields are ignored. Enums such as `ba.AgentStatus` are string types with constants, and a value this version does not know keeps its text, so a newer API does not break your code.
+- Timestamps are `time.Time`, and `ba.Metadata` is a JSON object of your own data the API returns unchanged.
+
+## Next [#next]
+
+- [Run your first agent](/getting-started/quickstart)
+- [Client options, errors, and generation](/sdk/go/client)
+- [Agents](/sdk/go/agents)

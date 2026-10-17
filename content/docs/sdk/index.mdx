@@ -1,6 +1,6 @@
 ---
 title: SDK
-description: Call Blazing Agents from your backend with a typed TypeScript, Python, or Rust client.
+description: Call Blazing Agents from your backend with a typed TypeScript, Python, Rust, or Go client.
 ---
 
 # SDK
@@ -33,6 +33,21 @@ let client = Client::from_env()?;
 let agents = client.agents().list().await?.data;
 ```
 
+```go tab="Go"
+client, err := ba.NewClient()
+if err != nil {
+	return err
+}
+
+page, err := client.Agents.List(ctx, ba.ListAgentsParams{})
+if err != nil {
+	return err
+}
+agents := page.Data
+fmt.Println(len(agents))
+return nil
+```
+
 Keep your API key on the server. It can reach every resource in your tenant, so never ship it to a browser or mobile app.
 
 <Cards>
@@ -50,5 +65,10 @@ Keep your API key on the server. It can reach every resource in your tenant, so 
     title="Rust SDK"
     href="/sdk/rust"
     description="Install blazing-agents for async Rust on Tokio, Rust 1.85 and newer."
+  />
+  <Card
+    title="Go SDK"
+    href="/sdk/go"
+    description="Install github.com/blazingagents/golang-sdk for Go 1.26 and newer, with only the standard library."
   />
 </Cards>

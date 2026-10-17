@@ -62,6 +62,27 @@ for agent_id in [writer_agent_id, reviewer_agent_id] {
 }
 ```
 
+```go tab="Go"
+writerAgentID := ba.AgentID("ag_0123456789abcdef")
+reviewerAgentID := ba.AgentID("ag_fedcba9876543210")
+workspace, err := client.Workspaces.Create(ctx, ba.CreateWorkspaceParams{
+	Name:          new("Release files"),
+	Tier:          new(ba.WorkspaceTierPlus),
+	NetworkPolicy: ba.NetworkPolicyAllowlist{AllowedHosts: []string{"registry.npmjs.org"}},
+})
+if err != nil {
+	return err
+}
+
+for _, id := range []ba.AgentID{writerAgentID, reviewerAgentID} {
+	_, err := client.Agents.Update(ctx, id, ba.UpdateAgentParams{WorkspaceID: &workspace.ID})
+	if err != nil {
+		return err
+	}
+}
+return nil
+```
+
 Both agents now read and write the same files. Each agent can touch those files only through the file tools you turn on for it, such as `read` and `write`; see [built-in tools](/agents/tools/built-in-tools#file-operations).
 
 ## How a workspace behaves [#how-a-workspace-behaves]
@@ -95,7 +116,7 @@ Switching between unrestricted access and a restricted mode restarts the workspa
 | Core | 1 GiB | Lost when the workspace stops |
 | Plus | 4 GiB | Kept when the workspace stops while idle |
 
-Create a workspace with `tier: "plus"`, or create an agent with `workspaceTier: "plus"` (`workspace_tier="plus"` in Python, `.workspace_tier(WorkspaceTier::Plus)` in Rust). Omit the tier to use Core. Do not combine `workspaceId` with `workspaceTier`, even when you request Core. An existing workspace keeps its own tier.
+Create a workspace with `tier: "plus"`, or create an agent with `workspaceTier: "plus"` (`workspace_tier="plus"` in Python, `.workspace_tier(WorkspaceTier::Plus)` in Rust, `WorkspaceTier: new(ba.WorkspaceTierPlus)` in Go). Omit the tier to use Core. Do not combine `workspaceId` with `workspaceTier`, even when you request Core. An existing workspace keeps its own tier.
 
 A workspace's tier cannot change. To change tiers, create another workspace and attach your agent to it. Files are not copied automatically.
 
@@ -124,4 +145,4 @@ Files in a workspace are private to your agents. To hand a finished file to your
 
 - [Built-in tools](/agents/tools/built-in-tools) to let an agent read, write, and run commands.
 - [Artifacts](/agents/artifacts) to deliver finished files to your users.
-- Workspace methods in the [TypeScript SDK](/sdk/typescript/workspaces), [Python SDK](/sdk/python/workspaces), and [Rust SDK](/sdk/rust/workspaces).
+- Workspace methods in the [TypeScript SDK](/sdk/typescript/workspaces), [Python SDK](/sdk/python/workspaces), [Rust SDK](/sdk/rust/workspaces), and [Go SDK](/sdk/go/workspaces).

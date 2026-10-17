@@ -73,6 +73,21 @@ while let Some(delta) = stream.try_next().await? {
 }
 ```
 
+```go tab="Go"
+stream, err := client.Generation.CompletionStream(ctx, agentID, ba.Text("Summarize this."), ba.GenerateParams{})
+if err != nil {
+	return err
+}
+defer stream.Close()
+for delta, err := range stream.Deltas() {
+	if err != nil {
+		return err
+	}
+	fmt.Print(delta)
+}
+return nil
+```
+
 Listing sessions over REST uses IDs, pagination, objects, errors, and limits
 together:
 
@@ -84,5 +99,5 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/$AGENT_ID/sessions?limit=50" \
 ## Next [#next]
 
 - [REST API](/api-reference/rest-api) for every endpoint.
-- [TypeScript SDK](/sdk/typescript), [Python SDK](/sdk/python), or [Rust SDK](/sdk/rust) for language-native clients.
+- [TypeScript SDK](/sdk/typescript), [Python SDK](/sdk/python), [Rust SDK](/sdk/rust), or [Go SDK](/sdk/go) for language-native clients.
 - [Generation and streaming](/agents/output/generation-and-streaming) to put streams to work.

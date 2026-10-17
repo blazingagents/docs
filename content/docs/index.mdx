@@ -90,9 +90,51 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provider, err := client.Providers.Create(ctx, ba.CreateProviderParams{
+		Name:         "OpenRouter",
+		ProviderType: ba.ProviderTypeOpenRouter,
+		APIKey:       ba.NewSecret(os.Getenv("OPENROUTER_API_KEY")),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	agent, err := client.Agents.Create(ctx, ba.CreateAgentParams{
+		Name:         "Support agent",
+		Instructions: new("Answer clearly and briefly."),
+		ProviderID:   ba.Value(provider.ID),
+		Model:        ba.Value("openai/gpt-6-luna"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("BLAZING_AGENTS_AGENT_ID=%s\n", agent.ID)
+}
+```
+
 ### Add the chat route [#add-the-chat-route]
 
-Set `BLAZING_AGENTS_AGENT_ID` to the printed ID, then use the complete [TypeScript, Python, or Rust chat endpoint](/getting-started/connect-your-app). That guide includes authentication, session ownership checks, and streaming responses. The endpoint starts a new conversation when the request has no `sessionId`, and continues an owned conversation when it does.
+Set `BLAZING_AGENTS_AGENT_ID` to the printed ID, then use the complete [TypeScript, Python, Rust, or Go chat endpoint](/getting-started/connect-your-app). That guide includes authentication, session ownership checks, and streaming responses. The endpoint starts a new conversation when the request has no `sessionId`, and continues an owned conversation when it does.
 
 On the frontend, `useChat` with `BlazingAgentsChatTransport` renders the streamed reply and sends the session ID back on the next message. See [Build a chatbot](/getting-started/chatbot).
 
@@ -157,4 +199,5 @@ New to Blazing Agents:
 | [TypeScript SDK](/sdk/typescript) | Your backend runs TypeScript and you want AI SDK streaming. |
 | [Python SDK](/sdk/python) | Your backend runs Python, sync or async. |
 | [Rust SDK](/sdk/rust) | Your backend runs Rust, async on Tokio. |
+| [Go SDK](/sdk/go) | Your backend runs Go, with only the standard library. |
 | [REST API](/api-reference/rest-api) | You work in another language or want direct HTTP control. |

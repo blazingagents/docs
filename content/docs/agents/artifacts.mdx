@@ -101,6 +101,47 @@ let download = client
 println!("{}", reqwest::get(&download.url).await?.text().await?);
 ```
 
+```go tab="Go"
+message := ba.TextMessage("Write a short release summary to release.md, then publish it with publish_artifacts.")
+stream, err := client.Chat.Send(ctx, agentID, ba.Messages(message), ba.ChatParams{})
+if err != nil {
+	return err
+}
+defer stream.Close()
+turnSessionID := stream.SessionID()
+for _, err := range stream.Events() {
+	if err != nil {
+		return err
+	}
+}
+
+page, err := client.Artifacts.List(ctx, ba.ListArtifactsParams{AgentID: &agentID, SessionID: &turnSessionID})
+if err != nil {
+	return err
+}
+var artifactID ba.ArtifactID
+for _, item := range page.Data {
+	if item.Filename == "release.md" {
+		artifactID = item.ArtifactID
+	}
+}
+if artifactID == "" {
+	return errors.New("release.md was not published")
+}
+
+link, err := client.Artifacts.CreateDownloadURL(ctx, artifactID)
+if err != nil {
+	return err
+}
+response, err := http.Get(link.URL.Reveal())
+if err != nil {
+	return err
+}
+defer response.Body.Close()
+_, err = io.Copy(os.Stdout, response.Body)
+return err
+```
+
 Read the whole stream before you list artifacts. The turn finishes saving its results only when the stream ends.
 
 ## What you get [#what-you-get]
@@ -129,5 +170,5 @@ Deleting an artifact is permanent. When you delete an agent or a session, you ch
 ## Next [#next]
 
 - [Workspaces](/agents/workspaces) for the files an agent keeps privately.
-- Artifact methods in the [TypeScript SDK](/sdk/typescript/artifacts), [Python SDK](/sdk/python/artifacts), and [Rust SDK](/sdk/rust/artifacts).
+- Artifact methods in the [TypeScript SDK](/sdk/typescript/artifacts), [Python SDK](/sdk/python/artifacts), [Rust SDK](/sdk/rust/artifacts), and [Go SDK](/sdk/go/artifacts).
 - [Service limits](/api-reference/protocols/service-limits#artifacts) for every artifact bound.

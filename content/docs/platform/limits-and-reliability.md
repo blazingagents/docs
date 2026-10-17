@@ -63,6 +63,39 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	taskID := ba.TaskID(os.Getenv("TASK_ID"))
+	params := ba.SubmitTaskParams{IdempotencyKey: new("daily-report:2026-07-20")}
+
+	first, err := client.Tasks.Submit(ctx, taskID, params)
+	if err != nil {
+		log.Fatal(err)
+	}
+	retry, err := client.Tasks.Submit(ctx, taskID, params)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(first.RunID == retry.RunID)
+}
+```
+
 This prints `true`. Build the key from a stable business fact, such as the report date, and save it before you submit. A task runs one job at a time, so a submission with a different key while a run is active returns [`task_active_run_exists`](/api-reference/protocols/errors#task_active_run_exists) (HTTP `409`).
 
 ## Decide whether to retry [#decide-whether-to-retry]
@@ -174,6 +207,22 @@ match client.tasks().get(task_id).await {
     Err(error) => return Err(error.into()),
     Ok(_) => {}
 }
+```
+
+```go tab="Go"
+taskID := ba.TaskID("tk_0123456789abcdef")
+_, err := client.Tasks.Get(ctx, taskID)
+var apiErr *ba.APIError
+if errors.As(err, &apiErr) {
+	slog.Error("task lookup failed",
+		"code", apiErr.Code,
+		"requestId", apiErr.Meta.RequestID,
+		"status", apiErr.Status,
+		"taskId", taskID,
+	)
+	return nil
+}
+return err
 ```
 
 Error messages and a task run's `error` field can contain sensitive text. Redact them before you log or share them.

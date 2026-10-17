@@ -210,6 +210,27 @@ while let Some(delta) = stream.try_next().await? {
 let final_text = stream.final_text().await?;
 ```
 
+```go tab="Go"
+stream, err := client.Generation.CompletionStream(ctx, agentID,
+	ba.Text("Write a two-sentence release note."), ba.GenerateParams{})
+if err != nil {
+	return err
+}
+defer stream.Close()
+for delta, err := range stream.Deltas() {
+	if err != nil {
+		return err
+	}
+	os.Stdout.WriteString(delta)
+}
+finalText, err := stream.Text()
+if err != nil {
+	return err
+}
+_ = finalText
+return nil
+```
+
 Cancel a turn from the caller in TypeScript:
 
 ```typescript

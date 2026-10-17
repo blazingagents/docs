@@ -101,6 +101,60 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	agentID := ba.AgentID(os.Getenv("AGENT_ID"))
+
+	stream, err := client.Chat.Send(ctx, agentID, ba.Messages(ba.TextMessage("Plan a weekend in Lisbon.")), ba.ChatParams{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	sessionID := stream.SessionID()
+	for _, err := range stream.Events() {
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	stream.Close()
+
+	followUp := ba.TextMessage("Make it suitable for children.")
+	stream, err = client.Chat.Send(ctx, agentID, ba.Messages(followUp), ba.ChatParams{SessionID: sessionID})
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, err := range stream.Events() {
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	stream.Close()
+
+	history, err := client.Sessions.ListMessages(ctx, agentID, sessionID, ba.ListSessionMessagesParams{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, message := range history.Data {
+		fmt.Println(message.Role, message.ID)
+	}
+}
+```
+
 You see four lines: `user`, `assistant`, `user`, `assistant`. Reading the stream to the end lets each turn finish before the next one starts. In a real app you return the stream to your frontend instead of reading it yourself.
 
 ## How sessions behave [#how-sessions-behave]
@@ -155,6 +209,32 @@ let child = client
     .fork(agent_id, session_id, &selected.id, idempotency_key)
     .await?;
 println!("{}", child.id);
+```
+
+```go tab="Go"
+history, err := client.Sessions.ListMessages(ctx, agentID, sessionID, ba.ListSessionMessagesParams{})
+if err != nil {
+	return err
+}
+var selected *ba.Message
+for i := range history.Data {
+	if history.Data[i].Branchable {
+		selected = &history.Data[i]
+		break
+	}
+}
+if selected == nil {
+	return errors.New("choose a saved assistant reply first")
+}
+child, err := client.Sessions.Fork(ctx, agentID, sessionID, ba.ForkSessionParams{
+	MessageID:      selected.ID,
+	IdempotencyKey: "fork-" + selected.ID,
+})
+if err != nil {
+	return err
+}
+fmt.Println(child.ID)
+return nil
 ```
 
 If the response is lost, retry the same source, message ID, and key. A successful replay returns the same child, even after the source is deleted. Changing the selected message under the same key returns `idempotency_conflict`; retrying a deleted child returns `session_fork_deleted`. Reload history if the selected reply was removed or became ineligible (`session_fork_unavailable`).
@@ -334,6 +414,45 @@ async fn flush_waiting(
 }
 ```
 
+```go tab="Go"
+var waiting []ba.UserMessage
+
+sendOrSteer := func(text string) error {
+	message := ba.TextMessage(text)
+	_, err := client.Sessions.SubmitInput(ctx, agentID, sessionID, ba.SubmitSessionInputParams{
+		RequestID: "steer-" + message.ID,
+		Message:   message,
+	})
+	var apiErr *ba.APIError
+	if errors.As(err, &apiErr) && apiErr.Code == ba.ErrorCodeSteerNotAvailable {
+		waiting = append(waiting, message)
+		return nil
+	}
+	return err
+}
+
+flushWaiting := func() error {
+	// Take the messages out before sending; see below.
+	messages := waiting
+	waiting = nil
+	if len(messages) == 0 {
+		return nil
+	}
+	stream, err := client.Chat.Send(ctx, agentID, ba.Messages(messages[0], messages[1:]...),
+		ba.ChatParams{SessionID: sessionID})
+	if err != nil {
+		return err
+	}
+	defer stream.Close()
+	// Raw AI SDK stream chunks; relay them to your frontend instead.
+	_, err = stream.WriteTo(os.Stdout)
+	return err
+}
+
+_, _ = sendOrSteer, flushWaiting
+return nil
+```
+
 Call the flush once the turn's stream ends and the session is `idle` again. Remove the messages from the queue *before* you send so a later flush cannot send the same items again.
 
 If any submitted message ID is already saved in this session's history, ordinary chat returns HTTP `409` with [`message_id_conflict`](/api-reference/protocols/errors#message_id_conflict). The whole batch is rejected before any model or tool work, even when it mixes known and new IDs or changes the content of a known message. The same ID is allowed in another session. Explicit regeneration can still reference an existing message.
@@ -364,7 +483,7 @@ A finished receipt also carries a `reason`: `stopped` (you stopped the turn), `f
 
 ### Stop a turn [#stop-a-turn]
 
-Stopping needs the ID of the turn you mean. The response that started the turn names it in its `X-BA-Turn-Id` header. The SDKs expose that header as `await result.turnId` in TypeScript, `stream.turn_id` in Python, and `stream.turn_id()` in Rust, and both chat transports pass it to `onTurnId`. Any other client, such as a second tab, reads the ID from the session's activity, as below. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to end. Keep reading your existing stream until it ends, then check the history.
+Stopping needs the ID of the turn you mean. The response that started the turn names it in its `X-BA-Turn-Id` header. The SDKs expose that header as `await result.turnId` in TypeScript, `stream.turn_id` in Python, `stream.turn_id()` in Rust, and `stream.TurnID()` in Go, and both chat transports pass it to `onTurnId`. Any other client, such as a second tab, reads the ID from the session's activity, as below. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to end. Keep reading your existing stream until it ends, then check the history.
 
 ```typescript tab="TypeScript"
 const { activity } = await client.sessions.inputs({ agentId, sessionId });
@@ -400,6 +519,24 @@ if activity.state == ActivityState::Running {
         println!("{} {}", stopped.stopped_turn_id, stopped.activity.state);
     }
 }
+```
+
+```go tab="Go"
+inputs, err := client.Sessions.ListInputs(ctx, agentID, sessionID, ba.ListSessionInputsParams{})
+if err != nil {
+	return err
+}
+activity := inputs.Activity
+if activity.State == "running" && activity.TurnID != nil {
+	stopped, err := client.Sessions.Stop(ctx, agentID, sessionID, ba.StopSessionTurnParams{
+		TurnID: *activity.TurnID,
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Println(stopped.StoppedTurnID, stopped.Activity.State)
+}
+return nil
 ```
 
 A retry with the same `turnId` never stops a later turn, and a turn you cannot see returns [`not_found`](/api-reference/protocols/errors#not_found). A stopped turn leaves the history as it was before the turn. Steering messages the agent already read may still have had effects, such as a tool call, even though they are not saved.
@@ -537,6 +674,64 @@ async fn handle_chat(
 }
 ```
 
+```go tab="Go"
+type Authorized struct {
+	ChatID   string
+	UserID   string
+	Messages []ba.UserMessage
+}
+
+type App interface {
+	Authorize(r *http.Request) (Authorized, error)
+	LoadSessionID(ctx context.Context, userID, chatID string) (ba.SessionID, error)
+	SaveSessionID(ctx context.Context, userID, chatID string, sessionID ba.SessionID) error
+}
+
+handleChat := func(app App, w http.ResponseWriter, r *http.Request) {
+	auth, err := app.Authorize(r)
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	if len(auth.Messages) == 0 {
+		http.Error(w, "no messages", http.StatusBadRequest)
+		return
+	}
+	existingSessionID, err := app.LoadSessionID(r.Context(), auth.UserID, auth.ChatID)
+	if err != nil {
+		http.Error(w, "storage error", http.StatusInternalServerError)
+		return
+	}
+	stream, err := client.Chat.Send(r.Context(), agentID, ba.Messages(auth.Messages[0], auth.Messages[1:]...),
+		ba.ChatParams{SessionID: existingSessionID, UserID: &auth.UserID})
+	if err != nil {
+		status := http.StatusInternalServerError
+		var apiErr *ba.APIError
+		if errors.As(err, &apiErr) {
+			status = apiErr.Status
+		}
+		http.Error(w, http.StatusText(status), status)
+		return
+	}
+	if existingSessionID == "" {
+		if err := app.SaveSessionID(r.Context(), auth.UserID, auth.ChatID, stream.SessionID()); err != nil {
+			stream.Close()
+			http.Error(w, "storage error", http.StatusInternalServerError)
+			return
+		}
+	}
+	defer stream.Close()
+
+	stream.SetRelayHeaders(w.Header())
+	if location := stream.Meta().Header.Get("Location"); location != "" {
+		w.Header().Set("Location", location)
+	}
+	stream.WriteTo(w)
+}
+_ = handleChat
+return nil
+```
+
 Keep these rules in your handler:
 
 - Take the agent ID, session ID, and `userId` from your own server-side state, never from the request body.
@@ -596,10 +791,53 @@ let mut stream = client.regenerate(agent_id, session_id, resent).await?;
 while stream.try_next().await?.is_some() {}
 ```
 
-The new answer replaces the old one only if the turn succeeds. If it fails or you stop it, the previous answer stays. To replace an earlier answer instead, pass its ID as `messageId` (`message_id` in Python, `.message_id()` on the Rust regenerate call).
+```go tab="Go"
+history, err := client.Sessions.ListMessages(ctx, agentID, sessionID, ba.ListSessionMessagesParams{})
+if err != nil {
+	return err
+}
+var original *ba.Message
+for i := range history.Data {
+	if history.Data[i].Role == ba.MessageRoleUser {
+		original = &history.Data[i]
+	}
+}
+if original == nil {
+	return errors.New("the session has no user message to resend")
+}
+text := ""
+for _, raw := range original.Parts {
+	var part struct {
+		Type string `json:"type"`
+		Text string `json:"text"`
+	}
+	if json.Unmarshal(raw, &part) == nil && part.Type == "text" {
+		text = part.Text
+		break
+	}
+}
+if text == "" {
+	return errors.New("the last user message has no text part")
+}
+
+resent := ba.NewUserMessage(original.ID, ba.TextPart{Text: text})
+stream, err := client.Chat.Regenerate(ctx, agentID, sessionID, resent, ba.RegenerateParams{})
+if err != nil {
+	return err
+}
+defer stream.Close()
+for _, err := range stream.Events() {
+	if err != nil {
+		return err
+	}
+}
+return nil
+```
+
+The new answer replaces the old one only if the turn succeeds. If it fails or you stop it, the previous answer stays. To replace an earlier answer instead, pass its ID as `messageId` (`message_id` in Python, `.message_id()` on the Rust regenerate call, `RegenerateParams.MessageID` in Go).
 
 ## Next [#next]
 
 - [Build a chatbot](/getting-started/chatbot) that sends messages, then add stop, edit, and regenerate.
 - [Stream answers to your frontend](/agents/output/generation-and-streaming).
-- [`client.chat()` reference](/sdk/typescript/client#chat), [Python](/sdk/python/client#chat), and [Rust](/sdk/rust/client#chat).
+- [`client.chat()` reference](/sdk/typescript/client#chat), [Python](/sdk/python/client#chat), [Rust](/sdk/rust/client#chat), and [Go](/sdk/go/client#chat).

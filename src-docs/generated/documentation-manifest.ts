@@ -258,6 +258,66 @@ export const documentationPages = [
     "url": "/sdk"
   },
   {
+    "path": "sdk/go/index.mdx",
+    "url": "/sdk/go"
+  },
+  {
+    "path": "sdk/go/agents.md",
+    "url": "/sdk/go/agents"
+  },
+  {
+    "path": "sdk/go/artifacts.md",
+    "url": "/sdk/go/artifacts"
+  },
+  {
+    "path": "sdk/go/chat-integrations.md",
+    "url": "/sdk/go/chat-integrations"
+  },
+  {
+    "path": "sdk/go/client.md",
+    "url": "/sdk/go/client"
+  },
+  {
+    "path": "sdk/go/mcp-connections.md",
+    "url": "/sdk/go/mcp-connections"
+  },
+  {
+    "path": "sdk/go/memories.md",
+    "url": "/sdk/go/memories"
+  },
+  {
+    "path": "sdk/go/prompts.md",
+    "url": "/sdk/go/prompts"
+  },
+  {
+    "path": "sdk/go/providers.md",
+    "url": "/sdk/go/providers"
+  },
+  {
+    "path": "sdk/go/sessions.md",
+    "url": "/sdk/go/sessions"
+  },
+  {
+    "path": "sdk/go/skills.md",
+    "url": "/sdk/go/skills"
+  },
+  {
+    "path": "sdk/go/tasks.md",
+    "url": "/sdk/go/tasks"
+  },
+  {
+    "path": "sdk/go/tenant.md",
+    "url": "/sdk/go/tenant"
+  },
+  {
+    "path": "sdk/go/usage.md",
+    "url": "/sdk/go/usage"
+  },
+  {
+    "path": "sdk/go/workspaces.md",
+    "url": "/sdk/go/workspaces"
+  },
+  {
     "path": "sdk/python/index.mdx",
     "url": "/sdk/python"
   },
@@ -12442,7 +12502,7 @@ export const documentationTree: SerializedPageTree = {
             "$id": "sdk/index.mdx",
             "type": "page",
             "name": "SDK",
-            "description": "Call Blazing Agents from your backend with a typed TypeScript, Python, or Rust client.",
+            "description": "Call Blazing Agents from your backend with a typed TypeScript, Python, Rust, or Go client.",
             "url": "/sdk",
             "$ref": "sdk/index.mdx"
           },
@@ -12837,6 +12897,137 @@ export const documentationTree: SerializedPageTree = {
             "$ref": {
               "folder": "sdk/rust",
               "meta": "sdk/rust/meta.json"
+            }
+          },
+          {
+            "type": "folder",
+            "name": "Go SDK",
+            "children": [
+              {
+                "$id": "sdk/go/index.mdx",
+                "type": "page",
+                "name": "Go SDK",
+                "description": "Install the typed Go client and call every Blazing Agents API from your backend.",
+                "url": "/sdk/go",
+                "$ref": "sdk/go/index.mdx"
+              },
+              {
+                "$id": "sdk/go/client.md",
+                "type": "page",
+                "name": "Client",
+                "description": "Configure the Go client, handle errors, and generate chat, text, and structured output.",
+                "url": "/sdk/go/client",
+                "$ref": "sdk/go/client.md"
+              },
+              {
+                "$id": "sdk/go/agents.md",
+                "type": "page",
+                "name": "Agents",
+                "description": "Create, configure, pause, and delete agents with the Go SDK.",
+                "url": "/sdk/go/agents",
+                "$ref": "sdk/go/agents.md"
+              },
+              {
+                "$id": "sdk/go/workspaces.md",
+                "type": "page",
+                "name": "Workspaces",
+                "description": "Create, list, update, and delete the private file systems your agents use with the Go SDK.",
+                "url": "/sdk/go/workspaces",
+                "$ref": "sdk/go/workspaces.md"
+              },
+              {
+                "$id": "sdk/go/skills.md",
+                "type": "page",
+                "name": "Skills",
+                "description": "Create, upload, edit, copy, and delete an agent's skills with the Go SDK.",
+                "url": "/sdk/go/skills",
+                "$ref": "sdk/go/skills.md"
+              },
+              {
+                "$id": "sdk/go/sessions.md",
+                "type": "page",
+                "name": "Sessions",
+                "description": "List conversations, read transcripts, approve tool calls, and delete sessions with the Go SDK.",
+                "url": "/sdk/go/sessions",
+                "$ref": "sdk/go/sessions.md"
+              },
+              {
+                "$id": "sdk/go/providers.md",
+                "type": "page",
+                "name": "Providers",
+                "description": "Store model provider keys, list their models, and check reasoning levels with the Go SDK.",
+                "url": "/sdk/go/providers",
+                "$ref": "sdk/go/providers.md"
+              },
+              {
+                "$id": "sdk/go/mcp-connections.md",
+                "type": "page",
+                "name": "MCP connections",
+                "description": "Connect remote MCP servers, test them, and rotate their credentials with the Go SDK.",
+                "url": "/sdk/go/mcp-connections",
+                "$ref": "sdk/go/mcp-connections.md"
+              },
+              {
+                "$id": "sdk/go/memories.md",
+                "type": "page",
+                "name": "Memories",
+                "description": "Create, search, update, and delete the notes an agent remembers, with the Go SDK.",
+                "url": "/sdk/go/memories",
+                "$ref": "sdk/go/memories.md"
+              },
+              {
+                "$id": "sdk/go/artifacts.md",
+                "type": "page",
+                "name": "Artifacts",
+                "description": "List, inspect, download, and delete the files your agents publish, with the Go SDK.",
+                "url": "/sdk/go/artifacts",
+                "$ref": "sdk/go/artifacts.md"
+              },
+              {
+                "$id": "sdk/go/tasks.md",
+                "type": "page",
+                "name": "Tasks",
+                "description": "Run agents in the background, on demand or on a schedule, and follow each run with the Go SDK.",
+                "url": "/sdk/go/tasks",
+                "$ref": "sdk/go/tasks.md"
+              },
+              {
+                "$id": "sdk/go/prompts.md",
+                "type": "page",
+                "name": "Prompts",
+                "description": "Save reusable message templates and run them with variables, using the Go SDK.",
+                "url": "/sdk/go/prompts",
+                "$ref": "sdk/go/prompts.md"
+              },
+              {
+                "$id": "sdk/go/usage.md",
+                "type": "page",
+                "name": "Usage",
+                "description": "Read token, request, and duration totals for your tenant or one agent with the Go SDK.",
+                "url": "/sdk/go/usage",
+                "$ref": "sdk/go/usage.md"
+              },
+              {
+                "$id": "sdk/go/tenant.md",
+                "type": "page",
+                "name": "Tenant",
+                "description": "Read and change your tenant's name, monthly usage quota, and model spending limit with the Go SDK.",
+                "url": "/sdk/go/tenant",
+                "$ref": "sdk/go/tenant.md"
+              },
+              {
+                "$id": "sdk/go/chat-integrations.md",
+                "type": "page",
+                "name": "Chat integrations",
+                "description": "Connect an agent to your own Slack app or Telegram bot with the Go SDK.",
+                "url": "/sdk/go/chat-integrations",
+                "$ref": "sdk/go/chat-integrations.md"
+              }
+            ],
+            "$id": "sdk/go",
+            "$ref": {
+              "folder": "sdk/go",
+              "meta": "sdk/go/meta.json"
             }
           }
         ],
