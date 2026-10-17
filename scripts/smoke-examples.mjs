@@ -24,7 +24,7 @@ const SYSTEM_PYTHON = process.env.SMOKE_PYTHON ?? "python3";
 const CARGO = process.env.SMOKE_RUST ?? "cargo";
 const RUST_SDK = process.env.SMOKE_RUST_SDK;
 const PYTHON_SDK =
-  process.env.SMOKE_PYTHON_SDK ?? join(root, "vendor/blazing_agents-0.23.0-py3-none-any.whl");
+  process.env.SMOKE_PYTHON_SDK ?? join(root, "vendor/blazing_agents-0.24.0-py3-none-any.whl");
 const PYTHON_SERVER_DEPS = ["fastapi==0.141.1", "uvicorn==0.53.0"];
 const PLACEHOLDER_OPENROUTER_KEY = "sk-or-smoke-placeholder";
 const TIMEOUT_MS = 180_000;
