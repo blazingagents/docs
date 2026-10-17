@@ -43,7 +43,7 @@ The tables below sort the tools into groups so they are easier to scan. A group 
 
 ## Read tool tags [#read-tool-tags]
 
-Each tool in the SDK's tool list carries tags that describe it. Its first tag is its group: `files`, `planning`, `memory`, or `web`. A file tool also has one access tag that says what it can do to the workspace:
+Each tool in the SDK's tool list carries tags that describe it. Its first tag is its group: `files`, `planning`, `memory`, or `web`. A file tool also has one access tag that says what it can do to the workspace. The Rust SDK keeps the two apart, as `group` and `file_access`:
 
 - `file_read` tools (`read`, `grep`, `glob`) never change workspace files.
 - `file_write` tools (`write`, `edit`) change files.
@@ -70,11 +70,11 @@ client.agents.update(agent_id, tools=read_only)
 ```
 
 ```rust tab="Rust"
-use blazing_agents::agents::{AGENT_TOOLS, AgentToolTag};
+use blazing_agents::agents::{AGENT_TOOLS, AgentToolFileAccessTag};
 
 let read_only = AGENT_TOOLS
     .iter()
-    .filter(|tool| tool.tags.contains(&AgentToolTag::FileRead))
+    .filter(|tool| tool.file_access == Some(AgentToolFileAccessTag::FileRead))
     .map(|tool| tool.name.clone());
 client.agents().update(agent_id).tools(read_only).await?;
 ```

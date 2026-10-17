@@ -29,7 +29,7 @@ println!("{}", workspace.id);
 | [`list()`](#list) | List workspaces | [`Page<Workspace>`](#workspace) |
 | [`get()`](#get) | Get one workspace | [`Workspace`](#workspace) |
 | [`update()`](#update) | Change name, metadata, or network policy | [`Workspace`](#workspace) |
-| [`delete()`](#delete) | Permanently delete a workspace | [`WorkspaceDeletion`](#workspacedeletion) |
+| [`delete()`](#delete) | Permanently delete a workspace | `()` |
 
 ## Methods [#methods]
 
@@ -119,18 +119,12 @@ Awaiting returns [`Workspace`](#workspace). Fails with `validation_failed` or `w
 Permanently deletes a workspace and all its files.
 
 ```rust
-use blazing_agents::workspaces::WorkspaceDeletion;
-
-match client.workspaces().delete("ws_0123456789abcdef").await? {
-    WorkspaceDeletion::Completed => println!("gone"),
-    WorkspaceDeletion::Pending => println!("cleanup running"),
-    _ => {}
-}
+client.workspaces().delete("ws_0123456789abcdef").await?;
 ```
 
 **Signature:** `delete(workspace_id: impl Into<WorkspaceId>) -> Call<DeleteWorkspace>`
 
-Move attached agents to another workspace first. Awaiting returns `WorkspaceDeletion::Completed` when deletion finished right away, or `WorkspaceDeletion::Pending` when it was accepted and cleanup continues in the background.
+Move attached agents to another workspace first. Awaiting returns `()` once the deletion is accepted; the files are removed in the background.
 
 | Code | Meaning |
 | --- | --- |
@@ -153,13 +147,6 @@ Move attached agents to another workspace first. Awaiting returns `WorkspaceDele
 | `metadata` | `Metadata` | Your own data |
 | `network_policy` | `NetworkPolicy` | Which hosts the workspace can reach |
 | `created_at`, `updated_at` | `Timestamp` | Timestamps |
-
-### `WorkspaceDeletion` [#workspacedeletion]
-
-| Variant | Meaning |
-| --- | --- |
-| `Completed` | The workspace and its files are gone |
-| `Pending` | Deletion was accepted; cleanup continues in the background |
 
 ## Next [#next]
 
