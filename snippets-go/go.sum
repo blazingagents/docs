@@ -1,2 +1,4 @@
 github.com/blazingagents/golang-sdk v0.0.0-20261017085307-18ebb29eb768 h1:M2gOwW6NGSCdyc8Dzhegnvlz1bo2IzOzmWAq+PY0Vkc=
 github.com/blazingagents/golang-sdk v0.0.0-20261017085307-18ebb29eb768/go.mod h1:RPP/G23wb8FTIyYXdosDFRIki2WqtASKXuMYXh1oat0=
+github.com/blazingagents/golang-sdk v0.0.0-20261017095851-5c762cba38a4 h1:xFJ9wIavzuiU+rWNxi8PcrDik95ouhX5FhEhjGMAfD8=
+github.com/blazingagents/golang-sdk v0.0.0-20261017095851-5c762cba38a4/go.mod h1:RPP/G23wb8FTIyYXdosDFRIki2WqtASKXuMYXh1oat0=
