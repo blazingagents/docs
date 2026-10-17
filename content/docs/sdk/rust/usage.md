@@ -5,7 +5,7 @@ description: Read token, request, and duration totals for your tenant or one age
 
 # Usage
 
-`client.usage()` reads token, request, and duration usage. The overview and per-agent reports are tenant only: a `UserClient` has `get()` and `sessions()` but not `overview()` or `get_for_agent()`.
+`client.usage()` reads token, request, and duration usage. The overview is tenant only: a `UserClient` has `get()`, `sessions()`, and `get_for_agent()` but not `overview()`.
 
 Examples receive a `client: blazing_agents::Client`. Every call also takes the `with_timeout`, `without_timeout`, `with_header`, and `with_client_request_id` transport options.
 
@@ -96,7 +96,7 @@ The `range` setter limits the period. Awaiting returns [`SessionUsage`](#session
 
 ### `get_for_agent()` [#get-for-agent]
 
-Gets one agent's usage over a period. Tenant only.
+Gets one agent's usage over a period.
 
 ```rust
 let usage = client
