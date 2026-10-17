@@ -8,3 +8,5 @@ coverage/
 snippets-rust/target/
 snippets-rust/examples/
 snippets-go/blocks/
+snippets-python/blocks/
+snippets-python/.venv/

@@ -17,6 +17,7 @@ export const documentationCodeLanguageAliases = {
   env: "dotenv",
   md: "markdown",
   ps1: "powershell",
+  pyi: "python",
   rs: "rust",
   text: "plaintext",
   yml: "yaml",

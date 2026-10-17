@@ -1,0 +1,11 @@
+[project]
+name = "docs-python-snippets"
+version = "0.0.0"
+requires-python = ">=3.11"
+dependencies = [
+  "blazing_agents==0.25.0",
+  "pyright==1.1.414",
+]
+
+[tool.uv]
+package = false
