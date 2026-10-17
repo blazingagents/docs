@@ -13,10 +13,10 @@ Call Blazing Agents from Rust with typed responses, lazy pagination, and streami
 
 ## Install [#install]
 
-The crate installs from the GitHub repository, pinned to the commit these docs describe. Your project also needs Tokio and `futures-util`, which provides the `TryStreamExt` the stream examples use. `serde`, `serde_json`, and `schemars` are for backend functions and structured output.
+The crate installs from crates.io. Your project also needs Tokio and `futures-util`, which provides the `TryStreamExt` the stream examples use. `serde`, `serde_json`, and `schemars` are for backend functions and structured output.
 
 ```bash
-cargo add blazing-agents --git https://github.com/blazingagents/rust-sdk --rev 43b14ef
+cargo add blazing-agents
 cargo add tokio --features macros,rt-multi-thread
 cargo add futures-util
 cargo add serde --features derive
@@ -26,7 +26,7 @@ cargo add schemars@1
 
 ```toml
 [dependencies]
-blazing-agents = { git = "https://github.com/blazingagents/rust-sdk", rev = "43b14efeec93214cbb644b3a04a35898a7e39282" }
+blazing-agents = "0.1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 futures-util = "0.3"
 serde = { version = "1", features = ["derive"] }
