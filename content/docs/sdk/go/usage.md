@@ -5,7 +5,7 @@ description: Read token, request, and duration totals for your tenant or one age
 
 # Usage
 
-`client.Usage` reads token, request, and duration usage. The overview and per-agent reports are tenant only: a `*ba.UserClient` has `Usage.Get` and `Usage.Sessions` but not `Overview` or `ForAgent`.
+`client.Usage` reads token, request, and duration usage. The overview is tenant only: a `*ba.UserClient` has `Usage.Get`, `Usage.Sessions`, and `Usage.ForAgent` but not `Overview`.
 
 Examples are function bodies that receive `ctx context.Context`, `client *ba.Client`, `agentID ba.AgentID`, and `sessionID ba.SessionID`, and return an `error`. Every method also takes the per-call options `ba.WithRequestTimeout`, `ba.WithRequestHeader`, `ba.WithClientRequestID`, and `ba.CaptureResponse`.
 
