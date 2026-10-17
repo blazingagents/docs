@@ -65,7 +65,7 @@ async def show_tenant() -> None:
 - Arguments use snake case and are keyword-only, except leading resource IDs such as `agent_id` in `client.agents.get(agent_id)`.
 - Omitting an argument sends nothing, so the server keeps its default or current value. Passing `None` sends JSON `null`, which clears a nullable field.
 - Responses are Pydantic v2 models with snake-case fields. Unknown server fields stay in `model_extra`, so a newer API does not break your code.
-- Every response model carries the server request ID in `_request_id`. Keep it when you contact support.
+- `response_meta(model)` returns the status, server request ID, and headers of the response behind a model. Keep the request ID when you contact support. See [request IDs](/sdk/python/client#response-observation-and-request-ids).
 
 ## Next [#next]
 
