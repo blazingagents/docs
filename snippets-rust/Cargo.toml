@@ -8,7 +8,7 @@ publish = false
 anyhow = "1"
 axum = "0.8"
 base64 = "0.23"
-blazing-agents = { git = "https://github.com/blazingagents/rust-sdk", rev = "43b14efeec93214cbb644b3a04a35898a7e39282" }
+blazing-agents = "0.1"
 futures-util = "0.3"
 reqwest = "0.13"
 schemars = "1"
