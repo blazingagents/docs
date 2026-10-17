@@ -80,8 +80,8 @@ people who built it.
   `agent_id`, `session_id`, `?`, `.await`, `use` lines and item definitions,
   and it must declare every other value with a full placeholder ID
   (`let task_id = "tk_0123456789abcdef";`, never `"ag_..."`).
-  To bump the pinned SDK, change `rev` in `snippets-rust/Cargo.toml` and in
-  the pages' `cargo add blazing-agents ... --rev` commands, then run
+  To bump the pinned SDK, change the `blazing-agents` version in
+  `snippets-rust/Cargo.toml` and in the pages' `Cargo.toml` examples, then run
   `cargo update -p blazing-agents --manifest-path snippets-rust/Cargo.toml`.
 
   `npm run check:go-snippets` compiles and vets every `go` block against the
@@ -96,8 +96,8 @@ people who built it.
   variable it declares, and declare every other value with a full
   placeholder ID (`taskID := ba.TaskID("tk_0123456789abcdef")`). Format Go
   blocks with `gofmt`. To bump the pinned SDK, run
-  `go get github.com/blazingagents/golang-sdk@<commit>` in `snippets-go`
-  and put the pseudo-version it prints in the pages' `go get` commands.
+  `go get github.com/blazingagents/golang-sdk@<version>` and `go mod tidy`
+  in `snippets-go`, and put the same version in the pages' `go get` commands.
 
 - No `as` type casts in snippets (for example on `await request.json()`).
   Let inference or the SDK's own types carry the shape.
