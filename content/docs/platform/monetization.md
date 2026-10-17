@@ -104,7 +104,7 @@ client.merchant_bindings.put("app:user-42", customer_id="cus_from_polar_or_dodo"
 ```rust tab="Rust"
 client
     .merchant_bindings()
-    .set("app:user-42", "cus_from_polar_or_dodo")
+    .put("app:user-42", "cus_from_polar_or_dodo")
     .await?;
 ```
 
