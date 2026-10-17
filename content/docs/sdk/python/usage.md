@@ -99,7 +99,7 @@ usage = client.usage.get_for_agent("ag_0123456789abcdef", group_by="session", li
 
 **Signature:** `get_for_agent(agent_id: str, *, from_=..., to=..., session_id=..., user_id=..., group_by=..., limit=...) -> Usage`
 
-Takes the same parameters as [`get()`](#get), except `agent_id`, which is the first argument. The agent does not need to still exist: a deleted agent's history is still reported, and an ID with no usage returns empty buckets and zero totals. Raises `validation_failed` for a malformed ID or query.
+Takes the same parameters as [`get()`](#get), except `agent_id`, which is the first argument. The agent does not need to still exist: a deleted agent's history is still reported, and an ID with no usage returns empty buckets and zero totals. It is also available on a [`for_user()`](/sdk/python/client#for-user) client. Raises `validation_failed` for a malformed ID or query.
 
 ## Response models [#response-models]
 
