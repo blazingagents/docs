@@ -40,4 +40,4 @@ the full history of one bot, use the per-connection list.
 ## Next [#next]
 
 - [Chat integrations](/platform/chat-integrations) to set up Slack or Telegram.
-- [TypeScript](/sdk/typescript/chat-integrations), [Python](/sdk/python/chat-integrations), or [Rust](/sdk/rust/chat-integrations) chat integration methods.
+- [TypeScript](/sdk/typescript/chat-integrations), [Python](/sdk/python/chat-integrations), [Rust](/sdk/rust/chat-integrations), or [Go](/sdk/go/chat-integrations) chat integration methods.

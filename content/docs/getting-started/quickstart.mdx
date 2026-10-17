@@ -21,7 +21,7 @@ The program is safe to run again and again. It looks up the provider and agent b
   <Step>
     ## Connect a model provider [#connect-a-model-provider]
 
-    A provider holds the model key your agents use. Blazing Agents stores the key for you, so your program sends it only once. Create `quickstart.ts`, `quickstart.py`, or `src/bin/quickstart.rs` with this code:
+    A provider holds the model key your agents use. Blazing Agents stores the key for you, so your program sends it only once. Create `quickstart.ts`, `quickstart.py`, `src/bin/quickstart.rs`, or `quickstart/main.go` with this code:
 
     ```typescript tab="TypeScript" tab-group="sdk-language" title="quickstart.ts"
     import { BlazingAgents } from "@blazingagents/sdk";
@@ -93,13 +93,58 @@ The program is safe to run again and again. It looks up the provider and agent b
     }
     ```
 
-    Run it with `node quickstart.ts`, `python quickstart.py`, or `cargo run --bin quickstart`. You see `Provider: prv_...`, and the same ID on every later run.
+    ```go tab="Go" title="quickstart/main.go"
+    package main
+
+    import (
+    	"context"
+    	"fmt"
+    	"log"
+    	"os"
+
+    	ba "github.com/blazingagents/golang-sdk"
+    )
+
+    func main() {
+    	ctx := context.Background()
+    	client, err := ba.NewClient()
+    	if err != nil {
+    		log.Fatal(err)
+    	}
+
+    	providerName := "Quickstart OpenRouter"
+    	providers, err := client.Providers.List(ctx)
+    	if err != nil {
+    		log.Fatal(err)
+    	}
+    	var providerID ba.ProviderID
+    	for _, p := range providers {
+    		if p.Name == providerName {
+    			providerID = p.ID
+    		}
+    	}
+    	if providerID == "" {
+    		provider, err := client.Providers.Create(ctx, ba.CreateProviderParams{
+    			Name:         providerName,
+    			ProviderType: ba.ProviderTypeOpenRouter,
+    			APIKey:       ba.NewSecret(os.Getenv("OPENROUTER_API_KEY")),
+    		})
+    		if err != nil {
+    			log.Fatal(err)
+    		}
+    		providerID = provider.ID
+    	}
+    	fmt.Printf("Provider: %s\n", providerID)
+    }
+    ```
+
+    Run it with `node quickstart.ts`, `python quickstart.py`, `cargo run --bin quickstart`, or `go run ./quickstart`. You see `Provider: prv_...`, and the same ID on every later run.
 
   </Step>
   <Step>
     ## Create an agent [#create-an-agent]
 
-    An agent pairs a provider with a model. Add this to the end of the file. The Rust tab shows the whole file so far.
+    An agent pairs a provider with a model. Add this to the end of the file. The Rust and Go tabs show the whole file so far.
 
     ```typescript tab="TypeScript" tab-group="sdk-language" title="quickstart.ts"
     const agentName = "Quickstart agent";
@@ -179,15 +224,83 @@ The program is safe to run again and again. It looks up the provider and agent b
     }
     ```
 
+    ```go tab="Go" title="quickstart/main.go"
+    package main
+
+    import (
+    	"context"
+    	"fmt"
+    	"log"
+    	"os"
+
+    	ba "github.com/blazingagents/golang-sdk"
+    )
+
+    func main() {
+    	ctx := context.Background()
+    	client, err := ba.NewClient()
+    	if err != nil {
+    		log.Fatal(err)
+    	}
+
+    	providerName := "Quickstart OpenRouter"
+    	providers, err := client.Providers.List(ctx)
+    	if err != nil {
+    		log.Fatal(err)
+    	}
+    	var providerID ba.ProviderID
+    	for _, p := range providers {
+    		if p.Name == providerName {
+    			providerID = p.ID
+    		}
+    	}
+    	if providerID == "" {
+    		provider, err := client.Providers.Create(ctx, ba.CreateProviderParams{
+    			Name:         providerName,
+    			ProviderType: ba.ProviderTypeOpenRouter,
+    			APIKey:       ba.NewSecret(os.Getenv("OPENROUTER_API_KEY")),
+    		})
+    		if err != nil {
+    			log.Fatal(err)
+    		}
+    		providerID = provider.ID
+    	}
+    	fmt.Printf("Provider: %s\n", providerID)
+
+    	agentName := "Quickstart agent"
+    	var agentID ba.AgentID
+    	for agent, err := range client.Agents.All(ctx, ba.ListAgentsParams{}) {
+    		if err != nil {
+    			log.Fatal(err)
+    		}
+    		if agent.Name == agentName {
+    			agentID = agent.ID
+    		}
+    	}
+    	if agentID == "" {
+    		agent, err := client.Agents.Create(ctx, ba.CreateAgentParams{
+    			Name:       agentName,
+    			ProviderID: ba.Value(providerID),
+    			Model:      ba.Value("openai/gpt-6-luna"),
+    		})
+    		if err != nil {
+    			log.Fatal(err)
+    		}
+    		agentID = agent.ID
+    	}
+    	fmt.Printf("Agent: %s\n", agentID)
+    }
+    ```
+
     Run the file again. You see the same `Provider: prv_...` line, then `Agent: ag_...`.
 
-    Blazing Agents checks the model against your provider when you create the agent. If you get [`model_not_found`](/api-reference/protocols/errors#model_not_found), pick another ID from `client.providers.listModels({ providerId })` in TypeScript, `client.providers.list_models(provider_id=...)` in Python, or `client.providers().list_models(provider_id)` in Rust. The first step stores your OpenRouter key without checking it, so a wrong or invalid key shows up here as [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable). Fix `OPENROUTER_API_KEY`, delete the "Quickstart OpenRouter" provider with `client.providers.delete({ providerId })` in TypeScript, `client.providers.delete(provider_id)` in Python, `client.providers().delete(provider_id)` in Rust, or the **Delete** action on the dashboard's [providers page](https://www.blazingagents.com/app/providers), then run the file again to recreate it with the new key.
+    Blazing Agents checks the model against your provider when you create the agent. If you get [`model_not_found`](/api-reference/protocols/errors#model_not_found), pick another ID from `client.providers.listModels({ providerId })` in TypeScript, `client.providers.list_models(provider_id=...)` in Python, `client.providers().list_models(provider_id)` in Rust, or `client.Providers.ListModels(ctx, providerID)` in Go. The first step stores your OpenRouter key without checking it, so a wrong or invalid key shows up here as [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable). Fix `OPENROUTER_API_KEY`, delete the "Quickstart OpenRouter" provider with `client.providers.delete({ providerId })` in TypeScript, `client.providers.delete(provider_id)` in Python, `client.providers().delete(provider_id)` in Rust, `client.Providers.Delete(ctx, providerID, ba.DeleteProviderParams{})` in Go, or the **Delete** action on the dashboard's [providers page](https://www.blazingagents.com/app/providers), then run the file again to recreate it with the new key.
 
   </Step>
   <Step>
     ## Stream the first answer [#stream-the-first-answer]
 
-    Send the agent a message and print the answer as it arrives. Add this to the end of the file. The Rust tab shows the whole file so far.
+    Send the agent a message and print the answer as it arrives. Add this to the end of the file. The Rust and Go tabs show the whole file so far.
 
     ```typescript tab="TypeScript" tab-group="sdk-language" title="quickstart.ts"
     const result = await client.chat({
@@ -277,6 +390,87 @@ The program is safe to run again and again. It looks up the provider and agent b
     }
     ```
 
+    ```go tab="Go" title="quickstart/main.go"
+    package main
+
+    import (
+    	"context"
+    	"fmt"
+    	"log"
+    	"os"
+
+    	ba "github.com/blazingagents/golang-sdk"
+    )
+
+    func main() {
+    	ctx := context.Background()
+    	client, err := ba.NewClient()
+    	if err != nil {
+    		log.Fatal(err)
+    	}
+
+    	providerName := "Quickstart OpenRouter"
+    	providers, err := client.Providers.List(ctx)
+    	if err != nil {
+    		log.Fatal(err)
+    	}
+    	var providerID ba.ProviderID
+    	for _, p := range providers {
+    		if p.Name == providerName {
+    			providerID = p.ID
+    		}
+    	}
+    	if providerID == "" {
+    		provider, err := client.Providers.Create(ctx, ba.CreateProviderParams{
+    			Name:         providerName,
+    			ProviderType: ba.ProviderTypeOpenRouter,
+    			APIKey:       ba.NewSecret(os.Getenv("OPENROUTER_API_KEY")),
+    		})
+    		if err != nil {
+    			log.Fatal(err)
+    		}
+    		providerID = provider.ID
+    	}
+    	fmt.Printf("Provider: %s\n", providerID)
+
+    	agentName := "Quickstart agent"
+    	var agentID ba.AgentID
+    	for agent, err := range client.Agents.All(ctx, ba.ListAgentsParams{}) {
+    		if err != nil {
+    			log.Fatal(err)
+    		}
+    		if agent.Name == agentName {
+    			agentID = agent.ID
+    		}
+    	}
+    	if agentID == "" {
+    		agent, err := client.Agents.Create(ctx, ba.CreateAgentParams{
+    			Name:       agentName,
+    			ProviderID: ba.Value(providerID),
+    			Model:      ba.Value("openai/gpt-6-luna"),
+    		})
+    		if err != nil {
+    			log.Fatal(err)
+    		}
+    		agentID = agent.ID
+    	}
+    	fmt.Printf("Agent: %s\n", agentID)
+
+    	message := ba.TextMessage("Say hello in one short sentence.")
+    	stream, err := client.Chat.Send(ctx, agentID, ba.Messages(message), ba.ChatParams{})
+    	if err != nil {
+    		log.Fatal(err)
+    	}
+    	defer stream.Close()
+    	fmt.Printf("Session: %s\n", stream.SessionID())
+
+    	if _, err := stream.WriteTo(os.Stdout); err != nil {
+    		log.Fatal(err)
+    	}
+    	// The stream is yours now: relay it to your app, parse it, or store it.
+    }
+    ```
+
     Run the file once more. After the IDs, the raw stream prints as it arrives:
 
     ```text
@@ -301,7 +495,7 @@ The program is safe to run again and again. It looks up the provider and agent b
 
 ## What happened [#what-happened]
 
-`client.chat()` without a `sessionId` starts a new session, a conversation that Blazing Agents keeps for you. You get the session ID before the answer finishes streaming, so you can save it right away. Pass it back as `sessionId` (`session_id` in Python, `.session()` on the chat call in Rust) on the next call and the agent sees the whole conversation so far.
+`client.chat()` without a `sessionId` starts a new session, a conversation that Blazing Agents keeps for you. You get the session ID before the answer finishes streaming, so you can save it right away. Pass it back as `sessionId` (`session_id` in Python, `.session()` on the chat call in Rust, `ChatParams.SessionID` in Go) on the next call and the agent sees the whole conversation so far.
 
 The answer arrives as a stream of server-sent events in the AI SDK UI message format, and the program prints them untouched. The stream is yours: relay it to your app, parse it, or store it. In a web app, return `result.toResponse()` from your backend and the AI SDK `useChat` hook renders it for you.
 

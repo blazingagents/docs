@@ -94,6 +94,49 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	agentID := ba.AgentID(os.Getenv("AGENT_ID"))
+	userID := "app-user-42"
+
+	_, err = client.Agents.Update(ctx, agentID, ba.UpdateAgentParams{MemoryInjectionEnabled: new(true)})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = client.Memories.Create(ctx, agentID, ba.CreateMemoryParams{
+		Text:   "Prefers concise status updates.",
+		UserID: &userID,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	answer, err := client.Generation.Completion(ctx, agentID, ba.Text("How should you format my status updates?"),
+		ba.GenerateParams{UserID: &userID})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(answer)
+}
+```
+
 The answer mentions keeping updates concise, even though the question never said so. The same note reaches every later turn, in any session, that passes `userId: "app-user-42"`.
 
 ## Who sees which notes [#who-sees-which-notes]
@@ -144,6 +187,21 @@ for memory in &memories.data {
 }
 ```
 
+```go tab="Go"
+memories, err := client.Memories.List(ctx, agentID, ba.ListMemoriesParams{
+	UserID: new("app-user-42"),
+	Search: new("status updates"),
+	Limit:  new(10),
+})
+if err != nil {
+	return err
+}
+for _, memory := range memories.Data {
+	fmt.Println(memory.ID, memory.Text)
+}
+return nil
+```
+
 Search matches words, not meaning, so "status updates" finds notes containing those words but not "progress reports".
 
 Each agent holds up to 500 notes across all its users. Saving a note at that limit removes the one used least recently. Notes never expire on their own, so delete stale or sensitive notes yourself. Deleting the agent deletes its notes.
@@ -152,4 +210,4 @@ Each agent holds up to 500 notes across all its users. Saving a note at that lim
 
 - [Tenancy and attribution](/platform/tenancy-and-attribution) to pass the right `userId` for each end user.
 - [Built-in tools](/agents/tools/built-in-tools#memory) for what each memory tool does.
-- Memories SDK reference for [TypeScript](/sdk/typescript/memories), [Python](/sdk/python/memories), or [Rust](/sdk/rust/memories).
+- Memories SDK reference for [TypeScript](/sdk/typescript/memories), [Python](/sdk/python/memories), [Rust](/sdk/rust/memories), or [Go](/sdk/go/memories).

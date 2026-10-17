@@ -64,6 +64,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	connection, err := client.ChatConnections.Create(ctx, ba.TelegramConnection{
+		AgentID:     ba.AgentID(os.Getenv("AGENT_ID")),
+		Name:        "Support bot",
+		Credentials: ba.TelegramCredentials{BotToken: ba.NewSecret(os.Getenv("TELEGRAM_BOT_TOKEN"))},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(connection.ID, connection.WebhookURL)
+}
+```
+
 The connection is enabled by default, and Blazing Agents registers its `webhookUrl` with Telegram for you. Message the bot and the agent replies. For Slack, pass `platform: "slack"` with a `botToken` and `signingSecret`, then paste the returned `webhookUrl` into your Slack app as described below.
 
 Creating a connection for the admin agent fails with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`). The dashboard also leaves the admin agent out of the agent list when you add a bot.
@@ -124,5 +155,5 @@ If you already run your own bot, you can call `client.completion()` from its mes
 
 ## Next [#next]
 
-- [TypeScript chat connections](/sdk/typescript/chat-integrations), [Python chat connections](/sdk/python/chat-integrations), or [Rust chat connections](/sdk/rust/chat-integrations) for every method.
+- [TypeScript chat connections](/sdk/typescript/chat-integrations), [Python chat connections](/sdk/python/chat-integrations), [Rust chat connections](/sdk/rust/chat-integrations), or [Go chat connections](/sdk/go/chat-integrations) for every method.
 - [Tool approvals](/agents/tools/tool-approvals) to control which tool calls need a person.

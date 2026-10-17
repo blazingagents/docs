@@ -81,6 +81,53 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	report, err := client.Usage.Get(ctx, ba.UsageParams{
+		DateRange: &ba.DateRange{
+			From: ba.Date{Year: 2026, Month: time.July, Day: 1},
+			To:   ba.Date{Year: 2026, Month: time.July, Day: 31},
+		},
+		GroupBy: new(ba.UsageGroupByAgent),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, bucket := range report.Buckets {
+		if bucket.AgentID != nil {
+			fmt.Println(*bucket.AgentID, bucket.InputTokens+bucket.OutputTokens)
+		}
+	}
+
+	settings, err := client.Tenant.Update(ctx, ba.UpdateTenantParams{
+		Quota: ba.Value(ba.QuotaInput{ResetDay: 1, MonthlyTokenLimit: new(1_000_000)}),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	if quota := settings.Quota; quota != nil && quota.MonthlyTokenLimit != nil {
+		fmt.Println(*quota.MonthlyTokenLimit, quota.ResetDay)
+	}
+}
+```
+
 You see one line per agent that ran in July, then the saved quota: a token ceiling of `1000000`, no request ceiling, and a window that resets on the 1st of each month.
 
 ## Set a model spending limit [#model-spending-limits]
@@ -148,7 +195,42 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-For one agent, use `client.agents.updateSpendingLimit({ agentId, spendingLimit })` in TypeScript, `client.agents.update_spending_limit(agent_id=agent_id, spending_limit=...)` in Python, or `client.agents().update_spending_limit(agent_id, Some(limit))` in Rust. Read account settings with `client.tenant.getSpendingLimit()`, `client.tenant.get_spending_limit()`, or `client.tenant().get_spending_limit()`. For an agent, use `client.agents.getSpendingLimit({ agentId })`, `client.agents.get_spending_limit(agent_id=agent_id)`, or `client.agents().get_spending_limit(agent_id)`. Pass `spendingLimit: null`, `spending_limit=None`, or `None` in Rust to disable that limit. Disabling one scope does not disable the other.
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	budget, err := client.SpendingLimits.UpdateTenant(ctx, ba.UpdateSpendingLimitParams{
+		SpendingLimit: &ba.ModelSpendingLimit{
+			AmountUSD:      25,
+			ResetStartDate: ba.Date{Year: 2026, Month: time.October, Day: 1},
+			ResetInterval:  ba.ResetIntervalMonthly,
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	if budget.Period != nil && budget.NextResetAt != nil {
+		fmt.Println(budget.Period.SpentUSD, *budget.NextResetAt)
+	}
+}
+```
+
+For one agent, use `client.agents.updateSpendingLimit({ agentId, spendingLimit })` in TypeScript, `client.agents.update_spending_limit(agent_id=agent_id, spending_limit=...)` in Python, `client.agents().update_spending_limit(agent_id, Some(limit))` in Rust, or `client.SpendingLimits.UpdateAgent(ctx, agentID, params)` in Go. Read account settings with `client.tenant.getSpendingLimit()`, `client.tenant.get_spending_limit()`, `client.tenant().get_spending_limit()`, or `client.SpendingLimits.GetTenant(ctx)`. For an agent, use `client.agents.getSpendingLimit({ agentId })`, `client.agents.get_spending_limit(agent_id=agent_id)`, `client.agents().get_spending_limit(agent_id)`, or `client.SpendingLimits.GetAgent(ctx, agentID)`. Pass `spendingLimit: null`, `spending_limit=None`, `None` in Rust, or a nil `SpendingLimit` in Go to disable that limit. Disabling one scope does not disable the other.
 
 ### Choose when the allowance resets [#spending-limit-resets]
 
@@ -204,7 +286,7 @@ Dates are UTC and inclusive. Pass both `from` and `to`, or neither for the last 
 
 ## How quotas work [#how-quotas-work]
 
-A quota sets a monthly token ceiling, a request ceiling, or both, plus the day of the month (1 to 28) when the window resets. Update it with `client.tenant.patch()` in TypeScript, `client.tenant.update()` in Python, or `client.tenant().update().quota(QuotaInput::new(reset_day)...)` in Rust; remove it with `quota: null` (`quota=None` in Python, `.clear_quota()` in Rust). With no quota, usage is unlimited.
+A quota sets a monthly token ceiling, a request ceiling, or both, plus the day of the month (1 to 28) when the window resets. Update it with `client.tenant.patch()` in TypeScript, `client.tenant.update()` in Python, `client.tenant().update().quota(QuotaInput::new(reset_day)...)` in Rust, or `client.Tenant.Update()` with a `Quota` in Go; remove it with `quota: null` (`quota=None` in Python, `.clear_quota()` in Rust, `ba.Null[ba.QuotaInput]()` in Go). With no quota, usage is unlimited.
 
 Blazing Agents checks the current window before each turn starts. It does not stop a turn that crosses the ceiling while running, and several turns running at once can overshoot before their usage lands. Leave headroom.
 

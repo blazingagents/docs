@@ -17,6 +17,7 @@ const REQUIRED_FENCE_LABELS = [
   "yaml",
   "powershell",
   "rust",
+  "go",
   "yml",
   "ps1",
   "rs",
@@ -51,6 +52,9 @@ describe("documentation source configuration", () => {
         }),
         expect.objectContaining({
           default: [expect.objectContaining({ name: "rust" })],
+        }),
+        expect.objectContaining({
+          default: [expect.objectContaining({ name: "go" })],
         }),
         expect.objectContaining({
           default: [expect.objectContaining({ name: "tsx" })],

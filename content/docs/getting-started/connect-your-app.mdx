@@ -41,13 +41,17 @@ export DEMO_USER_TOKEN="demo-token"
     cargo add tokio --features net
     ```
 
+    ```bash tab="Go"
+    # The endpoint uses net/http from the standard library, so there is nothing to install.
+    ```
+
     Your backend does three things on every request: it signs the user in, checks that they own the conversation they ask for, and calls Blazing Agents with your API key.
 
   </Step>
   <Step>
     ## Add a chat endpoint [#add-a-chat-endpoint]
 
-    Save this as `server.ts`, `server.py`, or `src/bin/server.rs`. The `users` and `owners` dictionaries stand in for your sign-in and your database.
+    Save this as `server.ts`, `server.py`, `src/bin/server.rs`, or `server/main.go`. The `users` and `owners` dictionaries stand in for your sign-in and your database.
 
     ```typescript tab="TypeScript" tab-group="sdk-language" title="server.ts"
     import { serve } from "@hono/node-server";
@@ -245,7 +249,115 @@ export DEMO_USER_TOKEN="demo-token"
     }
     ```
 
-    Start it with `node server.ts`, `uvicorn server:app --port 8787`, or `cargo run --bin server`.
+    ```go tab="Go" title="server/main.go"
+    package main
+
+    import (
+    	"encoding/json"
+    	"errors"
+    	"log"
+    	"net/http"
+    	"os"
+    	"strings"
+    	"sync"
+
+    	ba "github.com/blazingagents/golang-sdk"
+    )
+
+    type chatRequest struct {
+    	Message   ba.UserMessage `json:"message"`
+    	SessionID ba.SessionID   `json:"sessionId"`
+    	Trigger   string         `json:"trigger"`
+    }
+
+    type app struct {
+    	client  *ba.Client
+    	agentID ba.AgentID
+    	// Replace these with your own sign-in check and database.
+    	users  map[string]string
+    	mu     sync.Mutex
+    	owners map[ba.SessionID]string
+    }
+
+    func writeError(w http.ResponseWriter, status int, message string) {
+    	w.Header().Set("Content-Type", "application/json")
+    	w.WriteHeader(status)
+    	json.NewEncoder(w).Encode(map[string]string{"error": message})
+    }
+
+    func (a *app) chat(w http.ResponseWriter, r *http.Request) {
+    	token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+    	userID, ok := a.users[token]
+    	if !ok {
+    		writeError(w, http.StatusUnauthorized, "unauthorized")
+    		return
+    	}
+
+    	var body chatRequest
+    	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+    		writeError(w, http.StatusBadRequest, "invalid request")
+    		return
+    	}
+    	if body.SessionID != "" {
+    		a.mu.Lock()
+    		owner := a.owners[body.SessionID]
+    		a.mu.Unlock()
+    		if owner != userID {
+    			writeError(w, http.StatusForbidden, "forbidden")
+    			return
+    		}
+    	}
+
+    	var stream *ba.ChatStream
+    	var err error
+    	if body.Trigger == "regenerate-message" && body.SessionID != "" {
+    		stream, err = a.client.Chat.Regenerate(r.Context(), a.agentID, body.SessionID, body.Message,
+    			ba.RegenerateParams{UserID: &userID})
+    	} else {
+    		stream, err = a.client.Chat.Send(r.Context(), a.agentID, ba.Messages(body.Message),
+    			ba.ChatParams{SessionID: body.SessionID, UserID: &userID})
+    	}
+    	if err != nil {
+    		status := http.StatusInternalServerError
+    		var apiErr *ba.APIError
+    		if errors.As(err, &apiErr) {
+    			status = apiErr.Status
+    		}
+    		writeError(w, status, http.StatusText(status))
+    		return
+    	}
+    	defer stream.Close()
+
+    	a.mu.Lock()
+    	a.owners[stream.SessionID()] = userID
+    	a.mu.Unlock()
+
+    	stream.SetRelayHeaders(w.Header())
+    	if location := stream.Meta().Header.Get("Location"); location != "" {
+    		w.Header().Set("Location", location)
+    	}
+    	if _, err := stream.WriteTo(w); err != nil {
+    		log.Printf("relay ended: %v", err)
+    	}
+    }
+
+    func main() {
+    	client, err := ba.NewClient()
+    	if err != nil {
+    		log.Fatal(err)
+    	}
+    	a := &app{
+    		client:  client,
+    		agentID: ba.AgentID(os.Getenv("BLAZING_AGENTS_AGENT_ID")),
+    		users:   map[string]string{os.Getenv("DEMO_USER_TOKEN"): "user-1"},
+    		owners:  map[ba.SessionID]string{},
+    	}
+    	http.HandleFunc("POST /api/chat", a.chat)
+    	log.Fatal(http.ListenAndServe(":8787", nil))
+    }
+    ```
+
+    Start it with `node server.ts`, `uvicorn server:app --port 8787`, `cargo run --bin server`, or `go run ./server`.
 
   </Step>
   <Step>
@@ -278,7 +390,7 @@ export DEMO_USER_TOKEN="demo-token"
 
 The first request has no `sessionId`, so Blazing Agents starts a new session and returns its ID before the answer finishes streaming. Your endpoint records the owner right away, then relays the stream. Later requests send the `sessionId`, your endpoint checks the owner, and the agent sees the whole conversation. Your frontend sends only the newest message each time.
 
-In TypeScript, `createChatRelay` does this for you. It also passes the request's abort signal along, so a user who closes the tab stops the turn. The Python and Rust endpoints do the same steps by hand with one chat call: they pass `session_id` only when the request has one, and `stream.session_id` (`stream.session_id()` in Rust) holds the ID either way. The Rust endpoint also routes a `regenerate-message` trigger to `client.regenerate()`.
+In TypeScript, `createChatRelay` does this for you. It also passes the request's abort signal along, so a user who closes the tab stops the turn. The Python, Rust, and Go endpoints do the same steps by hand with one chat call: they pass `session_id` only when the request has one, and `stream.session_id` (`stream.session_id()` in Rust, `stream.SessionID()` in Go) holds the ID either way. The Rust and Go endpoints also route a `regenerate-message` trigger to `client.regenerate()` and `client.Chat.Regenerate()`.
 
 This relay uses a tenant-wide client. The `userId` it passes labels usage and resources, while the `owners` check protects conversations. For other resource calls, derive a [user-scoped client](/sdk/typescript/client#for-user) from your verified user ID so the API checks ownership as well.
 

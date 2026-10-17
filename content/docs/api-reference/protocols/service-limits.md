@@ -143,6 +143,31 @@ if let Some(quota) = &settings.quota {
 }
 ```
 
+```go tab="Go"
+usage, err := client.Usage.Get(ctx, ba.UsageParams{
+	DateRange: &ba.DateRange{
+		From: ba.Date{Year: 2026, Month: time.July, Day: 1},
+		To:   ba.Date{Year: 2026, Month: time.July, Day: 20},
+	},
+})
+if err != nil {
+	return err
+}
+settings, err := client.Tenant.Get(ctx)
+if err != nil {
+	return err
+}
+
+if settings.Quota != nil && settings.Quota.MonthlyRequestLimit != nil {
+	ceiling := *settings.Quota.MonthlyRequestLimit
+	remaining := ceiling - usage.Totals.RequestCount
+	if remaining*10 < ceiling {
+		fmt.Println("Request quota is nearly used")
+	}
+}
+return nil
+```
+
 ## Next [#next]
 
 - [Errors](/api-reference/protocols/errors) for the codes these limits return.

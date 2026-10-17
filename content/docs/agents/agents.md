@@ -74,9 +74,47 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	agent, err := client.Agents.Create(ctx, ba.CreateAgentParams{
+		Name:         "Support writer",
+		ProviderID:   ba.Value(ba.ProviderID(os.Getenv("PROVIDER_ID"))),
+		Model:        ba.Value("openai/gpt-6-luna"),
+		Instructions: new("Answer clearly and briefly."),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Agent: %s\n", agent.ID)
+
+	answer, err := client.Generation.Completion(ctx, agent.ID, ba.Text("How do I reset my password?"), ba.GenerateParams{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(answer)
+}
+```
+
 You see `Agent: ag_...` followed by the answer. Each run creates a new agent, even when its name matches an existing one. Save the ID to reuse the same agent.
 
-The new agent starts with status `active`, and it comes with its own [workspace](/agents/workspaces) for files. The workspace defaults to Core and starts compute only when the agent first reads, writes, or runs something in it. Choose Plus with `workspaceTier: "plus"` in TypeScript, `workspace_tier="plus"` in Python, or `.workspace_tier(WorkspaceTier::Plus)` in Rust to keep its files when the workspace stops. Its tier cannot change later.
+The new agent starts with status `active`, and it comes with its own [workspace](/agents/workspaces) for files. The workspace defaults to Core and starts compute only when the agent first reads, writes, or runs something in it. Choose Plus with `workspaceTier: "plus"` in TypeScript, `workspace_tier="plus"` in Python, `.workspace_tier(WorkspaceTier::Plus)` in Rust, or `WorkspaceTier: new(ba.WorkspaceTierPlus)` in Go to keep its files when the workspace stops. Its tier cannot change later.
 
 ## What an agent controls [#what-an-agent-controls]
 
@@ -91,9 +129,9 @@ The new agent starts with status `active`, and it comes with its own [workspace]
 
 The agent stores references, not copies. It points to its provider, MCP connections, and workspace, and every turn uses their current state.
 
-A tenant-wide API key can access every agent in the tenant. For an agent owned by one end user, derive a client with `client.forUser(verifiedUserId)` (`client.for_user(verified_user_id)` in Rust) in your backend. Blazing Agents then checks that the agent belongs to that user. Passing `userId` alone only labels the agent. See [tenancy and attribution](/platform/tenancy-and-attribution).
+A tenant-wide API key can access every agent in the tenant. For an agent owned by one end user, derive a client with `client.forUser(verifiedUserId)` (`client.for_user(verified_user_id)` in Rust, `client.ForUser(verifiedUserID)` in Go) in your backend. Blazing Agents then checks that the agent belongs to that user. Passing `userId` alone only labels the agent. See [tenancy and attribution](/platform/tenancy-and-attribution).
 
-For every field, its default, and its limits, see `create()` in the [TypeScript](/sdk/typescript/agents#create), [Python](/sdk/python/agents#create), or [Rust](/sdk/rust/agents#create) SDK.
+For every field, its default, and its limits, see `create()` in the [TypeScript](/sdk/typescript/agents#create), [Python](/sdk/python/agents#create), [Rust](/sdk/rust/agents#create), or [Go](/sdk/go/agents#create) SDK.
 
 ## Change an agent [#change-an-agent]
 
@@ -126,6 +164,19 @@ client
     .await?;
 ```
 
+```go tab="Go"
+_, err := client.Agents.Update(ctx, agentID, ba.UpdateAgentParams{
+	Tools: []ba.AgentTool{
+		ba.AgentToolRead,
+		ba.AgentToolGrep,
+		ba.AgentToolGlob,
+		ba.AgentToolSaveMemory,
+		ba.AgentToolSearchMemories,
+	},
+})
+return err
+```
+
 Lists such as `tools` replace the old list rather than adding to it. To switch models, send `providerId` and `model` together. New sessions and task runs save the updated configuration when they start. To stop an agent without deleting it, [disable it](/agents/configuration-snapshots#enable-and-disable).
 
 ## Automatic context compaction [#automatic-context-compaction]
@@ -152,6 +203,10 @@ client.agents.delete(agent.id, include_artifacts=False)
 
 ```rust tab="Rust"
 client.agents().delete(agent_id, false).await?;
+```
+
+```go tab="Go"
+return client.Agents.Delete(ctx, agentID, ba.DeleteAgentParams{IncludeArtifacts: false})
 ```
 
 This removes the agent's sessions, tasks, memories, skills, linked prompts, and avatar. Its workspace, provider, and MCP connections stay, so you can attach them to another agent. Artifacts you keep and past usage records still show the deleted agent's ID.

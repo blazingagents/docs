@@ -45,13 +45,15 @@ people who built it.
   examples omit `baseUrl`), dashboard `https://www.blazingagents.com/app`,
   API keys at `https://www.blazingagents.com/app/keys`.
 - Examples use OpenRouter: `providerType: "openrouter"` (Python
-  `provider_type="openrouter"`, Rust `ProviderType::OpenRouter`), `baseUrl:
-  null` (Python and Rust leave the endpoint override unset), the key from
-  `OPENROUTER_API_KEY` (Rust `std::env::var("OPENROUTER_API_KEY")?`), and
+  `provider_type="openrouter"`, Rust `ProviderType::OpenRouter`, Go
+  `ba.ProviderTypeOpenRouter`), `baseUrl: null` (Python, Rust, and Go leave
+  the endpoint override unset), the key from `OPENROUTER_API_KEY` (Rust
+  `std::env::var("OPENROUTER_API_KEY")?`, Go
+  `ba.NewSecret(os.Getenv("OPENROUTER_API_KEY"))`), and
   model `openai/gpt-6-luna`. Always write the model with its `openai/`
   prefix, and never pair `gpt-6-luna` with the `openai` provider type.
-- Code comes in TypeScript, Python and Rust tabs when the SDKs support the
-  operation:
+- Code comes in TypeScript, Python, Rust, and Go tabs when the SDKs support
+  the operation:
 
   ````md
   ```typescript tab="TypeScript"
@@ -61,6 +63,9 @@ people who built it.
   ...
   ```
   ```rust tab="Rust"
+  ...
+  ```
+  ```go tab="Go"
   ...
   ```
   ````
@@ -78,6 +83,21 @@ people who built it.
   To bump the pinned SDK, change `rev` in `snippets-rust/Cargo.toml` and in
   the pages' `cargo add blazing-agents ... --rev` commands, then run
   `cargo update -p blazing-agents --manifest-path snippets-rust/Cargo.toml`.
+
+  `npm run check:go-snippets` compiles and vets every `go` block against the
+  pinned SDK and runs as its own CI job, separate from `npm run check`.
+  A `go` block that contains a line starting with `func main()` is a full
+  program and compiles as written. Any other `go` block is the body of `func snippet(ctx context.Context, client *ba.Client,
+  agentID ba.AgentID, sessionID ba.SessionID) error`, with `ba` imported from
+  `github.com/blazingagents/golang-sdk`. It may use `ctx`, `client`,
+  `agentID`, and `sessionID`, local type definitions, and the standard
+  library without import lines: the check adds the standard library imports
+  a block names, as `goimports` would. It must end in a `return`, use every
+  variable it declares, and declare every other value with a full
+  placeholder ID (`taskID := ba.TaskID("tk_0123456789abcdef")`). Format Go
+  blocks with `gofmt`. To bump the pinned SDK, run
+  `go get github.com/blazingagents/golang-sdk@<commit>` in `snippets-go`
+  and put the pseudo-version it prints in the pages' `go get` commands.
 
 - No `as` type casts in snippets (for example on `await request.json()`).
   Let inference or the SDK's own types carry the shape.

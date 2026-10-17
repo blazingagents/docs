@@ -71,7 +71,47 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-You see the task ID and the saved schedule. At each scheduled time a new run appears in `client.tasks.listRuns({ taskId })` (`client.tasks.list_runs(task_id)` in Python, `client.tasks().list_runs(task_id)` in Rust). Read its result the same way as any [task run](/automation/task-runs#check-on-it-later).
+```go tab="Go"
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	ba "github.com/blazingagents/golang-sdk"
+)
+
+func main() {
+	ctx := context.Background()
+	client, err := ba.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	created, err := client.Tasks.Create(ctx, ba.CreateTaskParams{
+		AgentID: ba.AgentID(os.Getenv("AGENT_ID")),
+		Name:    "Morning summary",
+		Prompt:  "Summarize yesterday's support tickets.",
+		Schedule: ba.Value[ba.Schedule](ba.ScheduleCron{
+			Expression: "0 9 * * 1-5",
+			Timezone:   new("Europe/London"),
+		}),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	schedule, err := json.Marshal(created.Task.Schedule)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(created.Task.ID, string(schedule))
+}
+```
+
+You see the task ID and the saved schedule. At each scheduled time a new run appears in `client.tasks.listRuns({ taskId })` (`client.tasks.list_runs(task_id)` in Python, `client.tasks().list_runs(task_id)` in Rust, `client.Tasks.ListRuns(ctx, taskID, params)` in Go). Read its result the same way as any [task run](/automation/task-runs#check-on-it-later).
 
 ## Choose a schedule [#choose-a-schedule]
 
@@ -81,13 +121,13 @@ You see the task ID and the saved schedule. At each scheduled time a new run app
 | `interval` | `everyMs`: milliseconds, at least `60000` | The work should repeat every so often, counted from when you created the schedule. |
 | `cron` | `expression`: five numeric fields. Optional `timezone` (an IANA name, default `UTC`) and `staggerMs` | The work should follow the calendar, such as weekdays at 9:00. |
 
-For example, `{ kind: "interval", config: { everyMs: 15 * 60_000 } }` runs every 15 minutes. In Python and Rust, use `every_ms` and `stagger_ms`.
+For example, `{ kind: "interval", config: { everyMs: 15 * 60_000 } }` runs every 15 minutes. In Python and Rust, use `every_ms` and `stagger_ms`. In Go, `ba.ScheduleInterval` and `ba.ScheduleCron` take `time.Duration` values in `Every` and `Stagger`.
 
 `staggerMs` delays each cron run by up to that many milliseconds. Each task gets its own fixed delay within that limit, so many tasks that share a cron time do not all start at once.
 
 ## Change or pause a schedule [#change-or-pause-a-schedule]
 
-- Replace the schedule with `client.tasks.update({ taskId, schedule })`, or pass `schedule: null` (`.clear_schedule()` in Rust) to make the task on-demand only.
+- Replace the schedule with `client.tasks.update({ taskId, schedule })`, or pass `schedule: null` (`.clear_schedule()` in Rust, `ba.Null[ba.Schedule]()` in Go) to make the task on-demand only.
 - Pass `enabled: false` to pause scheduled runs and keep the schedule. Pass `enabled: true` to resume it.
 
 After a change, runs that were due under the old schedule no longer start.
