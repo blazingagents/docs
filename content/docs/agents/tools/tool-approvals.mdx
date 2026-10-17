@@ -89,7 +89,7 @@ _, err := client.Agents.Update(ctx, agentID, ba.UpdateAgentParams{
 return err
 ```
 
-To target an MCP tool, use `{ type: "mcp", connectionId, name }` with the tool's original name and a connection attached to the agent (`connection_id` in Python). Each tool can appear once per policy, and it must be available to the agent. A built-in tool is available when it is in the agent's `tools`. An agent with [skills](/agents/skills) can also have rules for `activate_skill` and `read` without selecting them, but only while it has a skill. In Rust, name `activate_skill` with `ToolReference::builtin(BuiltinToolName::ActivateSkill)`. Update your rules before you remove a tool, a connection, or the agent's last skill.
+To target an MCP tool, use `{ type: "mcp", connectionId, name }` with the tool's original name and a connection attached to the agent (`connection_id` in Python). Each tool can appear once per policy, and it must be available to the agent. A built-in tool is available when it is in the agent's `tools`. An agent with [skills](/agents/skills) can also have rules for `activate_skill` and `read` without selecting them, but only while it has a skill. In Rust, name `activate_skill` with `ToolReference::builtin(BuiltinToolName::ActivateSkill)`, and in Go with `ba.ToolReferenceBuiltin{Name: ba.AgentToolActivateSkill}`. Update your rules before you remove a tool, a connection, or the agent's last skill.
 
 Sending a policy replaces it, and leaving one out keeps it as it is. Each session and task run saves its approval policy in [agent configuration](/agents/configuration-snapshots). Later policy edits apply to new work.
 

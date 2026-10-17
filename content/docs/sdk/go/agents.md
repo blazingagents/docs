@@ -101,7 +101,7 @@ Returns [`*ba.Agent`](#agent).
 
 Without a model, the agent is saved unconfigured. `WorkspaceTier` chooses Core or Plus for a new workspace and defaults to Core. A workspace created for the agent stays independent afterwards: renaming the agent does not rename it.
 
-The SDK checks a few combinations before it sends anything, and returns a `*ba.ArgumentError` when `ProviderID` and `Model` are not both set or both left out, when `ThinkingLevel` is set without a provider, or when both `WorkspaceTier` and `WorkspaceID` are set.
+The SDK checks a few combinations before it sends anything, and returns a `*ba.ArgumentError` when `ProviderID` and `Model` are not both set or both left out, when `ThinkingLevel` is set while `ProviderID` is `ba.Null`, or when both `WorkspaceTier` and `WorkspaceID` are set.
 
 The Go SDK has no tool catalog. To build a tool picker, use the names, descriptions, and tags on the [built-in tools](/agents/tools/built-in-tools#read-tool-tags) page. `ba.AgentTool` is a string type with a constant per tool, so a tool this version does not know can still be sent as `ba.AgentTool("new_tool")`.
 

@@ -76,6 +76,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -102,7 +103,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(created.Task.ID, created.Task.Schedule)
+	schedule, err := json.Marshal(created.Task.Schedule)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(created.Task.ID, string(schedule))
 }
 ```
 

@@ -49,10 +49,10 @@ return nil
 | `ba.ErrMissingAPIKey` | No key came from `WithAPIKey` or the environment |
 | `ba.ErrInvalidAPIKey` | The key is not `ba_read_` or `ba_full_` followed by 40 letters and digits. The message names where the key came from |
 | `ba.ErrInvalidBaseURL` | The base URL is not an absolute `http` or `https` URL, or it has a query or fragment |
-| `ba.ErrInvalidHeader` | A `WithHeader` name or value is invalid, or the name is one the SDK owns |
+| `ba.ErrInvalidHeader` | A `WithHeader` name or value is invalid, the name is one the SDK owns, or a `WithUserAgent` value is invalid |
 | `ba.ErrConflictingOptions` | Both `WithConnectTimeout` and `WithTransport` were passed. Set dial timeouts on your own transport instead |
 
-`WithHeader` headers go on every request, and `ba.WithRequestHeader` on a single call replaces them for that call.
+`WithHeader` headers go on every request, and `ba.WithRequestHeader` on a single call replaces a `WithHeader` header of the same name for that call.
 
 The SDK owns eight headers: `Authorization`, `X-BA-User-Id`, `X-Request-Id`, `X-Client-Request-Id`, `Content-Type`, `Content-Length`, `Idempotency-Key`, and `Host`. It sets `Authorization` from your tenant API key and `Content-Type` from the request body. Passing an owned header to `WithHeader` fails `ba.NewClient`, and passing one to `ba.WithRequestHeader` fails that call before anything is sent. Names are compared without regard to case. To correlate requests with your own IDs, use `WithClientRequestID` instead.
 
@@ -64,7 +64,7 @@ The timeout covers the request and reading the response body. For a streaming re
 
 **Signature:** `func (c *Client) WithClientRequestID(id string) (*Client, error)`
 
-Returns a copy of the client that sends `X-Client-Request-Id` on every call, and `""` clears it. The original is unchanged, and `(*UserClient).WithClientRequestID` keeps the user scope. An ID that is not a valid header value returns an error. The per-call option `ba.WithClientRequestID(id)` sets it for one call and overrides the client's value.
+Returns a copy of the client that sends `X-Client-Request-Id` on every call, and `""` clears it. The original is unchanged, and `(*UserClient).WithClientRequestID` keeps the user scope. The ID must be printable ASCII without a leading or trailing space, or the call returns an error that wraps `ba.ErrInvalidHeader`. The per-call option `ba.WithClientRequestID(id)` sets it for one call and overrides the client's value.
 
 ```go
 correlated, err := client.WithClientRequestID("checkout-attempt-42")
@@ -357,7 +357,7 @@ return nil
 
 **Signature:** `func Object[T any](ctx context.Context, g *GenerationService, agentID AgentID, prompt PromptInput, params ObjectParams[T], opts ...RequestOption) (T, error)`
 
-Returns structured output decoded into `T`. With a zero `Schema`, `ba.SchemaFor[T]()` builds the JSON Schema from `T` by reflection: exported fields with `json` tags, required unless the field is a pointer or tagged `omitempty` or `omitzero`, no extra properties, and an optional `jsonschema:"..."` tag for each field's description. It covers strings, booleans, numbers, slices, arrays, string-keyed maps, `time.Time`, pointers, and `json.RawMessage` or `any`, and returns an error for recursive types, nesting deeper than 32, or any other kind. `ba.RawSchema[T](schema)` takes a hand-written schema instead, such as one with an `enum`; with `T` set to `map[string]any` you get the decoded JSON without further checks.
+Returns structured output decoded into `T`. With a zero `Schema`, `ba.SchemaFor[T]()` builds the JSON Schema from `T` by reflection: exported fields, named by their `json` tags, required unless the field is a pointer or tagged `omitempty` or `omitzero`, no extra properties, and an optional `jsonschema:"..."` tag for each field's description. It covers strings, booleans, numbers, slices, arrays, string-keyed maps, `time.Time`, pointers, and `json.RawMessage` or `any`, and returns an error for embedded fields, recursive types, nesting deeper than 32, or any other kind. `ba.RawSchema[T](schema)` takes a hand-written schema instead, such as one with an `enum`; with `T` set to `map[string]any` you get the decoded JSON without further checks.
 
 ```go
 type Summary struct {
