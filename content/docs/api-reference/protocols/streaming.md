@@ -96,32 +96,44 @@ is saved. Render it and deduplicate by `message.id`, then confirm from the histo
 the turn ends. The receipt in `GET /inputs` turns `committed` once the message
 is saved in the history.
 
-## Spending-stop events [#spending-stop-events]
+## Error events [#error-events]
 
-A model spending stop in a chat or approval-continuation stream sends a
-transient event before the error chunk:
+A chat or approval-continuation stream that fails after it starts cannot change its HTTP status, which is already `200`. When the failure has a code, the stream sends one transient `data-ba-error` event, then the AI SDK error chunk, which carries only `errorText`:
+
+```text
+data: {"type":"data-ba-error","transient":true,"data":{"code":"session_version_mismatch","message":"Session version mismatch"}}
+
+data: {"type":"error","errorText":"Session version mismatch"}
+```
+
+The event's `data` has the shape of the [error envelope](/api-reference/protocols/errors)'s `error` object: `code`, `message`, and optional `details`. It has no `param`. The code is one of the [error codes](/api-reference/protocols/errors) or `turn_interrupted`, which only a stream sends. Treat a code you do not know as you would an unknown HTTP error code. The schema is `TurnStreamErrorEvent` in the OpenAPI document. With the TypeScript SDK, read it through the AI SDK's `onData` callback as the `ba-error` data part. In Python, validate it with `TurnStreamErrorEvent`. A model or tool failure with no code sends only the error chunk.
+
+### Spending stops [#spending-stop-events]
+
+A model spending stop sends the event with `code: "model_spending_limit_exceeded"`. Its `details` are the same as in the HTTP `429` body:
 
 ```json
 {
-  "type": "data-model-spending-limit",
+  "type": "data-ba-error",
   "transient": true,
   "data": {
     "code": "model_spending_limit_exceeded",
-    "scope": "agent",
-    "reason": "reserved",
-    "spentUsd": 4,
-    "reservedUsd": 1,
-    "availableUsd": 0,
-    "nextResetAt": "2026-11-01T00:00:00Z"
+    "message": "Agent funds are reserved by unfinished work.",
+    "details": {
+      "scope": "agent",
+      "reason": "reserved",
+      "spentUsd": 4,
+      "reservedUsd": 1,
+      "availableUsd": 0,
+      "nextResetAt": "2026-11-01T00:00:00Z"
+    }
   }
 }
 ```
 
-Read this event through the AI SDK's `onData` callback or from the raw stream.
 The scope is `agent`, `tenant`, or `both`. The reason is `exhausted`, `reserved`,
 `unpriced`, or `unknown_usage`; [handle a spending stop](/platform/usage-and-quotas#spending-limit-stops)
-says what each one means and what to do. The event does not change the HTTP
-status. The following error ends the turn.
+says what each one means and what to do. The following error ends the turn.
 
 Completion and object streams use plain text and do not carry this event.
 A spending stop after their headers are sent fails the stream; awaiting the
@@ -133,19 +145,19 @@ Read the [current allowance and reset](/platform/usage-and-quotas#model-spending
 before deciding what to do next. The same cost may count against both scopes;
 the two limits are not separate charges.
 
-## Interruption events [#interruption-events]
+### Interruptions [#interruption-events]
 
-A chat or approval-continuation stream can be cut after it starts, for example when the platform restarts or loses its connection to the running turn. Instead of ending as if the answer were complete, the stream sends a transient event, then an error chunk, then `data: [DONE]`:
+A stream can be cut after it starts, for example when the platform restarts or loses its connection to the running turn. Instead of ending as if the answer were complete, the stream sends the event with `code: "turn_interrupted"`, then an error chunk, then `data: [DONE]`:
 
 ```text
-data: {"type":"data-turn-interrupted","transient":true,"data":{"code":"turn_interrupted"}}
+data: {"type":"data-ba-error","transient":true,"data":{"code":"turn_interrupted","message":"The turn was interrupted before it finished. Read the session's messages to see what was saved. The session may stay busy for up to a minute."}}
 
 data: {"type":"error","errorText":"The turn was interrupted before it finished. Read the session's messages to see what was saved. The session may stay busy for up to a minute."}
 
 data: [DONE]
 ```
 
-Read the event through the AI SDK's `onData` callback or from the raw stream. The HTTP status stays `200`. `turn_interrupted` is the code of this event only. No HTTP error returns it, and the error chunk carries no code.
+`turn_interrupted` is a stream code only. No HTTP error returns it.
 
 The turn may have saved its work before the cut. Read the session's messages to see what was saved, and keep the output you already showed. The session can stay busy for up to a minute. A new turn sent in that time returns [`session_busy`](/api-reference/protocols/errors#session_busy) and then [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive). Wait for the seconds in its `Retry-After` header, then send again under a new message ID.
 
