@@ -726,8 +726,7 @@
                 },
                 "required": [
                   "platform"
-                ],
-                "additionalProperties": false
+                ]
               },
               {
                 "type": "object",
@@ -754,8 +753,7 @@
                 },
                 "required": [
                   "platform"
-                ],
-                "additionalProperties": false
+                ]
               }
             ]
           },
@@ -786,8 +784,7 @@
               "botUserId",
               "teamId",
               "appId"
-            ],
-            "additionalProperties": false
+            ]
           },
           "health": {
             "type": "object",
@@ -824,8 +821,7 @@
                   "required": [
                     "code",
                     "status"
-                  ],
-                  "additionalProperties": false
+                  ]
                 }
               }
             },
@@ -834,8 +830,7 @@
               "tokenValid",
               "identityVerified",
               "checks"
-            ],
-            "additionalProperties": false
+            ]
           },
           "credentialFragment": {
             "type": "string",
@@ -871,8 +866,7 @@
           "createdAt",
           "updatedAt",
           "webhookUrl"
-        ],
-        "additionalProperties": false
+        ]
       },
       "ChatConnectionList": {
         "type": "object",
@@ -886,8 +880,7 @@
         },
         "required": [
           "chatConnections"
-        ],
-        "additionalProperties": false
+        ]
       },
       "ChatDeliveryList": {
         "type": "object",
@@ -908,8 +901,7 @@
         "required": [
           "data",
           "nextCursor"
-        ],
-        "additionalProperties": false
+        ]
       },
       "ChatDelivery": {
         "type": "object",
@@ -991,8 +983,7 @@
           "threadId",
           "createdAt",
           "updatedAt"
-        ],
-        "additionalProperties": false
+        ]
       },
       "TenantChatDeliveryList": {
         "type": "object",
@@ -1013,8 +1004,7 @@
         "required": [
           "data",
           "nextCursor"
-        ],
-        "additionalProperties": false
+        ]
       },
       "TenantChatDelivery": {
         "type": "object",
@@ -1162,8 +1152,7 @@
           "kind",
           "status",
           "attempt"
-        ],
-        "additionalProperties": false
+        ]
       },
       "TenantSettings": {
         "type": "object",
@@ -1830,8 +1819,7 @@
         },
         "required": [
           "authorizationUrl"
-        ],
-        "additionalProperties": false
+        ]
       },
       "McpConnectionList": {
         "type": "object",
@@ -2060,8 +2048,7 @@
             "required": [
               "status",
               "connection"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -2079,8 +2066,7 @@
             "required": [
               "status",
               "connection"
-            ],
-            "additionalProperties": false
+            ]
           }
         ]
       },
@@ -2461,8 +2447,7 @@
         "required": [
           "data",
           "nextCursor"
-        ],
-        "additionalProperties": false
+        ]
       },
       "McpAttachmentList": {
         "type": "object",
@@ -3339,8 +3324,7 @@
             "required": [
               "sessionId",
               "messageId"
-            ],
-            "additionalProperties": false
+            ]
           }
         },
         "required": [
@@ -3353,8 +3337,7 @@
           "updatedAt",
           "agentConfig",
           "forkedFrom"
-        ],
-        "additionalProperties": false
+        ]
       },
       "SessionMessageList": {
         "type": "object",
@@ -3600,8 +3583,7 @@
             "required": [
               "id",
               "state"
-            ],
-            "additionalProperties": false
+            ]
           }
         },
         "required": [
@@ -4951,8 +4933,7 @@
           "metadata",
           "createdAt",
           "updatedAt"
-        ],
-        "additionalProperties": false
+        ]
       },
       "PromptList": {
         "type": "object",
@@ -4973,8 +4954,7 @@
         "required": [
           "data",
           "nextCursor"
-        ],
-        "additionalProperties": false
+        ]
       },
       "MerchantConnectionResponse": {
         "type": "object",
@@ -5072,14 +5052,12 @@
               "configVersion",
               "createdAt",
               "updatedAt"
-            ],
-            "additionalProperties": false
+            ]
           }
         },
         "required": [
           "connection"
-        ],
-        "additionalProperties": false
+        ]
       },
       "MerchantConnectionCreate": {
         "type": "object",
@@ -5222,8 +5200,7 @@
                 "customerId",
                 "createdAt",
                 "updatedAt"
-              ],
-              "additionalProperties": false
+              ]
             }
           },
           "nextCursor": {
@@ -5236,8 +5213,7 @@
         "required": [
           "bindings",
           "nextCursor"
-        ],
-        "additionalProperties": false
+        ]
       },
       "MerchantBindingResponse": {
         "type": "object",
@@ -5267,14 +5243,12 @@
               "customerId",
               "createdAt",
               "updatedAt"
-            ],
-            "additionalProperties": false
+            ]
           }
         },
         "required": [
           "binding"
-        ],
-        "additionalProperties": false
+        ]
       },
       "MerchantBindingUpsert": {
         "type": "object",
@@ -5479,8 +5453,7 @@
                 "acceptedAt",
                 "workflowIssue",
                 "nextAction"
-              ],
-              "additionalProperties": false
+              ]
             }
           },
           "nextCursor": {
@@ -5493,8 +5466,7 @@
         "required": [
           "events",
           "nextCursor"
-        ],
-        "additionalProperties": false
+        ]
       },
       "MerchantUsageSummary": {
         "type": "object",
@@ -5607,8 +5579,7 @@
         },
         "required": [
           "summary"
-        ],
-        "additionalProperties": false
+        ]
       },
       "MerchantUsageEventResponse": {
         "type": "object",
@@ -5797,14 +5768,12 @@
               "acceptedAt",
               "workflowIssue",
               "nextAction"
-            ],
-            "additionalProperties": false
+            ]
           }
         },
         "required": [
           "event"
-        ],
-        "additionalProperties": false
+        ]
       },
       "Usage": {
         "type": "object",
@@ -7000,431 +6969,7 @@
           "data": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "pattern": "^tr_[0-9A-Za-z]{16}$"
-                },
-                "taskId": {
-                  "type": "string",
-                  "pattern": "^tk_[0-9A-Za-z]{16}$"
-                },
-                "tenantId": {
-                  "type": "string",
-                  "pattern": "^ten_[0-9A-Za-z]{16}$"
-                },
-                "agentId": {
-                  "type": "string",
-                  "pattern": "^ag_[0-9A-Za-z]{16}$"
-                },
-                "agentConfig": {
-                  "type": "object",
-                  "properties": {
-                    "approvalInChat": {
-                      "type": "object",
-                      "properties": {
-                        "default": {
-                          "type": "string",
-                          "enum": [
-                            "full",
-                            "deny",
-                            "manual",
-                            "auto"
-                          ]
-                        },
-                        "overrides": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "tool": {
-                                "oneOf": [
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "type": {
-                                        "type": "string",
-                                        "enum": [
-                                          "builtin"
-                                        ]
-                                      },
-                                      "name": {
-                                        "type": "string",
-                                        "enum": [
-                                          "read",
-                                          "write",
-                                          "edit",
-                                          "grep",
-                                          "glob",
-                                          "bash",
-                                          "publish_artifacts",
-                                          "write_todos",
-                                          "save_memory",
-                                          "get_memory",
-                                          "search_memories",
-                                          "update_memory",
-                                          "delete_memory",
-                                          "web_search",
-                                          "activate_skill"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "type",
-                                      "name"
-                                    ],
-                                    "additionalProperties": false
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "type": {
-                                        "type": "string",
-                                        "enum": [
-                                          "mcp"
-                                        ]
-                                      },
-                                      "connectionId": {
-                                        "type": "string",
-                                        "pattern": "^mcp_[0-9A-Za-z]{16}$"
-                                      },
-                                      "name": {
-                                        "type": "string",
-                                        "minLength": 1
-                                      }
-                                    },
-                                    "required": [
-                                      "type",
-                                      "connectionId",
-                                      "name"
-                                    ],
-                                    "additionalProperties": false
-                                  }
-                                ]
-                              },
-                              "decision": {
-                                "type": "string",
-                                "enum": [
-                                  "full",
-                                  "deny",
-                                  "manual",
-                                  "auto"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "tool",
-                              "decision"
-                            ],
-                            "additionalProperties": false
-                          },
-                          "default": []
-                        }
-                      },
-                      "default": {
-                        "default": "full",
-                        "overrides": []
-                      },
-                      "required": [
-                        "default"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "approvalInTasks": {
-                      "type": "object",
-                      "properties": {
-                        "default": {
-                          "type": "string",
-                          "enum": [
-                            "full",
-                            "deny",
-                            "manual",
-                            "auto"
-                          ]
-                        },
-                        "overrides": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "tool": {
-                                "oneOf": [
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "type": {
-                                        "type": "string",
-                                        "enum": [
-                                          "builtin"
-                                        ]
-                                      },
-                                      "name": {
-                                        "type": "string",
-                                        "enum": [
-                                          "read",
-                                          "write",
-                                          "edit",
-                                          "grep",
-                                          "glob",
-                                          "bash",
-                                          "publish_artifacts",
-                                          "write_todos",
-                                          "save_memory",
-                                          "get_memory",
-                                          "search_memories",
-                                          "update_memory",
-                                          "delete_memory",
-                                          "web_search",
-                                          "activate_skill"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "type",
-                                      "name"
-                                    ],
-                                    "additionalProperties": false
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "type": {
-                                        "type": "string",
-                                        "enum": [
-                                          "mcp"
-                                        ]
-                                      },
-                                      "connectionId": {
-                                        "type": "string",
-                                        "pattern": "^mcp_[0-9A-Za-z]{16}$"
-                                      },
-                                      "name": {
-                                        "type": "string",
-                                        "minLength": 1
-                                      }
-                                    },
-                                    "required": [
-                                      "type",
-                                      "connectionId",
-                                      "name"
-                                    ],
-                                    "additionalProperties": false
-                                  }
-                                ]
-                              },
-                              "decision": {
-                                "type": "string",
-                                "enum": [
-                                  "full",
-                                  "deny",
-                                  "manual",
-                                  "auto"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "tool",
-                              "decision"
-                            ],
-                            "additionalProperties": false
-                          },
-                          "default": []
-                        }
-                      },
-                      "default": {
-                        "default": "full",
-                        "overrides": []
-                      },
-                      "required": [
-                        "default"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "name": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 80
-                    },
-                    "model": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "minLength": 1
-                    },
-                    "thinkingLevel": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "minLength": 1
-                    },
-                    "providerId": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "pattern": "^prv_[0-9A-Za-z]{16}$"
-                    },
-                    "autoCompaction": {
-                      "type": "boolean"
-                    },
-                    "compactionReserveTokens": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 9007199254740991
-                    },
-                    "memoryInjectionEnabled": {
-                      "type": "boolean"
-                    },
-                    "tools": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": [
-                          "read",
-                          "write",
-                          "edit",
-                          "grep",
-                          "glob",
-                          "bash",
-                          "publish_artifacts",
-                          "write_todos",
-                          "save_memory",
-                          "get_memory",
-                          "search_memories",
-                          "update_memory",
-                          "delete_memory",
-                          "web_search"
-                        ]
-                      }
-                    },
-                    "instructions": {
-                      "type": "string",
-                      "maxLength": 3000
-                    },
-                    "metadata": {
-                      "type": "object",
-                      "additionalProperties": {}
-                    },
-                    "mcpConnectionIds": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "pattern": "^mcp_[0-9A-Za-z]{16}$"
-                      },
-                      "maxItems": 10
-                    }
-                  },
-                  "required": [
-                    "name",
-                    "model",
-                    "thinkingLevel",
-                    "providerId",
-                    "autoCompaction",
-                    "compactionReserveTokens",
-                    "memoryInjectionEnabled",
-                    "tools",
-                    "instructions",
-                    "metadata",
-                    "mcpConnectionIds"
-                  ]
-                },
-                "sessionId": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "pattern": "^ss_[0-9A-Za-z]{16}$"
-                },
-                "turnId": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "pattern": "^turn_[0-9A-Za-z]{16}$"
-                },
-                "status": {
-                  "type": "string",
-                  "enum": [
-                    "queued",
-                    "running",
-                    "blocked",
-                    "succeeded",
-                    "failed",
-                    "canceled"
-                  ]
-                },
-                "error": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "userId": {
-                  "type": "string"
-                },
-                "metadata": {
-                  "type": "object",
-                  "additionalProperties": {}
-                },
-                "startedAt": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "format": "date-time"
-                },
-                "finishedAt": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "format": "date-time"
-                },
-                "cancelRequestedAt": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "format": "date-time"
-                },
-                "canceledAt": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "format": "date-time"
-                },
-                "createdAt": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "updatedAt": {
-                  "type": "string",
-                  "format": "date-time"
-                }
-              },
-              "required": [
-                "id",
-                "taskId",
-                "tenantId",
-                "agentId",
-                "agentConfig",
-                "sessionId",
-                "turnId",
-                "status",
-                "error",
-                "userId",
-                "metadata",
-                "startedAt",
-                "finishedAt",
-                "cancelRequestedAt",
-                "canceledAt",
-                "createdAt",
-                "updatedAt"
-              ]
+              "$ref": "#/components/schemas/TaskRun"
             }
           },
           "nextCursor": {
@@ -7844,6 +7389,99 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "errorCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "invalid_request",
+              "idempotency_conflict",
+              "input_idempotency_conflict",
+              "steer_not_available",
+              "validation_failed",
+              "unauthorized",
+              "not_found",
+              "quota_exceeded",
+              "model_spending_limit_exceeded",
+              "subscription_required",
+              "usage_credit_required",
+              "rate_limited",
+              "internal",
+              "service_unavailable",
+              "checkout_evidence_mismatch",
+              "agent_disabled",
+              "admin_agent_managed",
+              "agent_mcp_connection_not_found",
+              "agent_mcp_connections_invalid",
+              "provider_required",
+              "api_key_limit_reached",
+              "artifact_session_cap_reached",
+              "invalid_cursor",
+              "message_not_found",
+              "prompt_variable_missing",
+              "prompt_variable_unknown",
+              "provider_in_use",
+              "provider_historical_use",
+              "provider_limit_reached",
+              "provider_name_conflict",
+              "provider_not_found",
+              "model_discovery_unsupported",
+              "model_not_found",
+              "model_validation_unavailable",
+              "mcp_connection_limit_reached",
+              "mcp_connection_name_conflict",
+              "mcp_connection_stale_credential_version",
+              "mcp_connection_invalid",
+              "mcp_connection_authentication_failed",
+              "mcp_connection_in_use",
+              "mcp_connection_unreachable",
+              "mcp_connection_discovery_failed",
+              "workspace_not_found",
+              "workspace_in_use",
+              "workspace_busy",
+              "session_busy",
+              "session_turn_unresponsive",
+              "session_fork_unavailable",
+              "session_fork_deleted",
+              "message_id_conflict",
+              "session_version_mismatch",
+              "tool_approval_continuation_settled",
+              "tool_approval_decision_conflict",
+              "function_call_conflict",
+              "skill_invalid_archive",
+              "skill_invalid_markdown",
+              "skill_limit_reached",
+              "skill_name_conflict",
+              "skill_not_found",
+              "skill_too_many_files",
+              "skill_uncompressed_too_large",
+              "task_active_run_exists",
+              "chat_webhook_conflict",
+              "chat_webhook_registration_failed",
+              "merchant_connection_not_found",
+              "merchant_credential_invalid",
+              "merchant_provider_unavailable",
+              "merchant_customer_not_found",
+              "merchant_binding_not_found",
+              "merchant_binding_required",
+              "merchant_account_mismatch",
+              "merchant_event_not_found",
+              "merchant_event_state_conflict",
+              "merchant_customer_unmapped",
+              "forbidden",
+              "insufficient_scope",
+              "merchant_subscription_required",
+              "merchant_balance_required",
+              "merchant_eligibility_unavailable",
+              "tenant_deleting",
+              "tenant_deletion_in_progress",
+              "tenant_deletion_not_ready",
+              "tenant_not_deleting",
+              null
+            ],
+            "description": "Machine-readable reason a run ended `blocked` or `failed`: one of the API error codes, such as `usage_credit_required`, `quota_exceeded` or `provider_required`. `null` for every other run, and for a failure without a code; `error` carries the message."
           }
         },
         "required": [
@@ -7863,7 +7501,8 @@
           "cancelRequestedAt",
           "canceledAt",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "errorCode"
         ]
       },
       "TaskRunMessageList": {
@@ -9037,6 +8676,7 @@
       "post": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "createChatConnection",
         "tags": [
           "chat-connections"
@@ -9344,6 +8984,7 @@
       "get": {
         "x-access": "read",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "listChatConnections",
         "tags": [
           "chat-connections"
@@ -9467,6 +9108,7 @@
       "get": {
         "x-access": "read",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "listChatDeliveries",
         "tags": [
           "chat-connections"
@@ -9621,6 +9263,7 @@
       "get": {
         "x-access": "read",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "listTenantChatDeliveries",
         "tags": [
           "chat-connections"
@@ -9778,6 +9421,7 @@
       "post": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "repairChatDelivery",
         "tags": [
           "chat-connections"
@@ -9945,6 +9589,7 @@
       "get": {
         "x-access": "read",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "getChatConnection",
         "tags": [
           "chat-connections"
@@ -10089,6 +9734,7 @@
       "patch": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "renameChatConnection",
         "tags": [
           "chat-connections"
@@ -10308,6 +9954,7 @@
       "delete": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "deleteChatConnection",
         "tags": [
           "chat-connections"
@@ -10405,6 +10052,7 @@
       "post": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "rotateChatCredentials",
         "tags": [
           "chat-connections"
@@ -10645,6 +10293,7 @@
       "post": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "checkChatHealth",
         "tags": [
           "chat-connections"
@@ -10792,6 +10441,7 @@
       "post": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "disableChatConnection",
         "tags": [
           "chat-connections"
@@ -10939,6 +10589,7 @@
       "post": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "enableChatConnection",
         "tags": [
           "chat-connections"
@@ -11597,6 +11248,7 @@
       "post": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "createProvider",
         "tags": [
           "providers"
@@ -11763,6 +11415,7 @@
       "get": {
         "x-access": "read",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "listProviders",
         "tags": [
           "providers"
@@ -11850,6 +11503,7 @@
       "get": {
         "x-access": "read",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "listProviderModels",
         "tags": [
           "providers"
@@ -11986,6 +11640,7 @@
       "get": {
         "x-access": "read",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "listThinkingLevels",
         "tags": [
           "providers"
@@ -12110,6 +11765,7 @@
       "get": {
         "x-access": "read",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "getProvider",
         "tags": [
           "providers"
@@ -12220,6 +11876,7 @@
       "patch": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "updateProvider",
         "tags": [
           "providers"
@@ -12369,6 +12026,7 @@
       "delete": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "deleteProvider",
         "tags": [
           "providers"
@@ -13355,6 +13013,7 @@
       "post": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "createMcpConnection",
         "tags": [
           "mcp-connections"
@@ -13652,6 +13311,7 @@
       "get": {
         "x-access": "read",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "listMcpConnections",
         "tags": [
           "mcp-connections"
@@ -13816,6 +13476,7 @@
       "post": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "testMcpConnection",
         "tags": [
           "mcp-connections"
@@ -13933,6 +13594,7 @@
       "post": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "reconnectMcpConnection",
         "tags": [
           "mcp-connections"
@@ -14231,6 +13893,7 @@
       "get": {
         "x-access": "read",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "getMcpConnection",
         "tags": [
           "mcp-connections"
@@ -14346,6 +14009,7 @@
       "patch": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "updateMcpConnection",
         "tags": [
           "mcp-connections"
@@ -14497,6 +14161,7 @@
       "delete": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "deleteMcpConnection",
         "tags": [
           "mcp-connections"
@@ -23814,6 +23479,7 @@
       "get": {
         "x-access": "read",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "getMerchantConnection",
         "tags": [
           "merchant"
@@ -23906,6 +23572,7 @@
       "post": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "createMerchantConnection",
         "tags": [
           "merchant"
@@ -24041,6 +23708,7 @@
       "patch": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "updateMerchantConnection",
         "tags": [
           "merchant"
@@ -24208,6 +23876,7 @@
       "delete": {
         "x-access": "write",
         "x-scope": "tenant",
+        "x-credential-bearing": true,
         "operationId": "retireMerchantConnection",
         "tags": [
           "merchant"
@@ -27648,6 +27317,7 @@
                       "turnId": "turn_3Xp6Mv9QdB1sKe4H",
                       "status": "succeeded",
                       "error": null,
+                      "errorCode": null,
                       "userId": "",
                       "metadata": {
                         "team": "support"
@@ -27747,7 +27417,7 @@
           "task-runs"
         ],
         "summary": "Get a task run",
-        "description": "Returns a task run's current state and the agent configuration captured when it was queued. `status` moves from `queued` to `running` and ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota was reached or usage credit ran out; `error` says why. `error` also describes a failed run. `sessionId` and `turnId` stay `null` until the run starts its session, and a run that fails before starting, such as one whose saved agent configuration has no provider and model, never gets them. Every final status sets `finishedAt` and lets the task start another run.",
+        "description": "Returns a task run's current state and the agent configuration captured when it was queued. `status` moves from `queued` to `running` and ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota was reached or usage credit ran out; `error` says why and `errorCode` names the reason as an API error code. `error` also describes a failed run, and `errorCode` is set when the failure has a code, such as `provider_required`. `sessionId` and `turnId` stay `null` until the run is admitted and starts its session, so a blocked run never gets them, nor does a run that fails before starting, such as one whose saved agent configuration has no provider and model. Every final status sets `finishedAt` and lets the task start another run.",
         "parameters": [
           {
             "schema": {
@@ -27814,6 +27484,7 @@
                   "turnId": "turn_3Xp6Mv9QdB1sKe4H",
                   "status": "succeeded",
                   "error": null,
+                  "errorCode": null,
                   "userId": "",
                   "metadata": {
                     "team": "support"
@@ -28345,5 +28016,158 @@
         }
       }
     }
+  },
+  "x-agent-tools": {
+    "tags": [
+      "files",
+      "planning",
+      "memory",
+      "web",
+      "file_read",
+      "file_write",
+      "execute"
+    ],
+    "groups": [
+      {
+        "tag": "files",
+        "name": "File operations",
+        "description": "Read, write, edit, search, and run shell commands in the attached Workspace."
+      },
+      {
+        "tag": "planning",
+        "name": "Task planning",
+        "description": "Create and manage a structured todo list to plan and track multi-step work."
+      },
+      {
+        "tag": "memory",
+        "name": "Memory",
+        "description": "Save, recall, search, update, and delete durable notes owned by this Agent."
+      },
+      {
+        "tag": "web",
+        "name": "Web",
+        "description": "Search the public web for current information."
+      }
+    ],
+    "tools": [
+      {
+        "name": "read",
+        "description": "Read a file from the Workspace.",
+        "requiresWorkspace": true,
+        "tags": [
+          "files",
+          "file_read"
+        ]
+      },
+      {
+        "name": "write",
+        "description": "Create or overwrite a file in the Workspace.",
+        "requiresWorkspace": true,
+        "tags": [
+          "files",
+          "file_write"
+        ]
+      },
+      {
+        "name": "edit",
+        "description": "Replace exact text in a Workspace file.",
+        "requiresWorkspace": true,
+        "tags": [
+          "files",
+          "file_write"
+        ]
+      },
+      {
+        "name": "grep",
+        "description": "Search Workspace file contents with a regular expression.",
+        "requiresWorkspace": true,
+        "tags": [
+          "files",
+          "file_read"
+        ]
+      },
+      {
+        "name": "glob",
+        "description": "Find Workspace files by path pattern.",
+        "requiresWorkspace": true,
+        "tags": [
+          "files",
+          "file_read"
+        ]
+      },
+      {
+        "name": "bash",
+        "description": "Run shell commands in the Workspace.",
+        "requiresWorkspace": true,
+        "tags": [
+          "files",
+          "execute"
+        ]
+      },
+      {
+        "name": "publish_artifacts",
+        "description": "Publish Workspace files as downloadable Artifacts.",
+        "requiresWorkspace": true,
+        "tags": [
+          "files"
+        ]
+      },
+      {
+        "name": "write_todos",
+        "description": "Plan and track multi-step work with a todo list.",
+        "requiresWorkspace": false,
+        "tags": [
+          "planning"
+        ]
+      },
+      {
+        "name": "save_memory",
+        "description": "Save a durable note.",
+        "requiresWorkspace": false,
+        "tags": [
+          "memory"
+        ]
+      },
+      {
+        "name": "get_memory",
+        "description": "Read one saved note.",
+        "requiresWorkspace": false,
+        "tags": [
+          "memory"
+        ]
+      },
+      {
+        "name": "search_memories",
+        "description": "Search saved notes.",
+        "requiresWorkspace": false,
+        "tags": [
+          "memory"
+        ]
+      },
+      {
+        "name": "update_memory",
+        "description": "Update a saved note.",
+        "requiresWorkspace": false,
+        "tags": [
+          "memory"
+        ]
+      },
+      {
+        "name": "delete_memory",
+        "description": "Delete a saved note.",
+        "requiresWorkspace": false,
+        "tags": [
+          "memory"
+        ]
+      },
+      {
+        "name": "web_search",
+        "description": "Search the public web for current results. Each search consumes Usage credit.",
+        "requiresWorkspace": false,
+        "tags": [
+          "web"
+        ]
+      }
+    ]
   }
 }
