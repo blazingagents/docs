@@ -23,7 +23,7 @@ client.agents.update("ag_0123456789abcdef", mcp_connection_ids=[connection.id])
 
 ## Authentication types [#authentication-types]
 
-`auth_type` decides which credential arguments you pass. Any other combination raises `ValueError` before any request.
+`auth_type` decides which credential arguments you pass. The API rejects any other combination with `validation_failed`.
 
 | `auth_type` | Credential arguments |
 | --- | --- |
@@ -104,7 +104,7 @@ connection = client.mcp_connections.update(connection.id, name="Issue tracker (p
 
 **Signature:** `update(mcp_connection_id: str, *, name=...) -> McpConnection`
 
-Calling `update()` without `name` raises `ValueError` before any request. Raises `validation_failed`, `mcp_connection_name_conflict`, or `not_found`.
+Calling `update()` without `name` raises `validation_failed`. Also raises `mcp_connection_name_conflict`, or `not_found`.
 
 ### `delete()` [#delete]
 

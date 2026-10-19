@@ -106,7 +106,7 @@ prompt = client.prompts.update(
 
 **Signature:** `update(*, prompt_id: str, agent_id=..., name=..., template=..., metadata=...) -> Prompt`
 
-Omitted parameters keep their current value. A new `template` recomputes `variables`. `agent_id=None` removes the agent link. `metadata` replaces the current value completely. Calling `update()` with nothing to change raises `ValueError` before any request.
+Omitted parameters keep their current value. A new `template` recomputes `variables`. `agent_id=None` removes the agent link. `metadata` replaces the current value completely. Calling `update()` with nothing to change raises `validation_failed`.
 
 Returns [`Prompt`](#prompt). Raises `validation_failed` or `not_found`.
 

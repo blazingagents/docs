@@ -60,7 +60,7 @@ The tables below sort the tools into groups so they are easier to scan. A group 
 
 ## Read tool tags [#read-tool-tags]
 
-Each tool in the SDK's tool list carries tags that describe it. Its first tag is its group: `files`, `planning`, `memory`, or `web`. A file tool also has one access tag that says what it can do to the workspace. The Rust SDK keeps the two apart, as `group` and `file_access`:
+Each tool in the SDK's tool list carries tags that describe it. Its first tag is its group: `files`, `planning`, `memory`, or `web`. A file tool also has one access tag that says what it can do to the workspace. The Rust and Go SDKs keep the two apart, as `group` and `file_access` (Go `Group` and `FileAccess`):
 
 - `file_read` tools (`read`, `grep`, `glob`) never change workspace files.
 - `file_write` tools (`write`, `edit`) change files.
@@ -87,7 +87,7 @@ client.agents.update(agent_id, tools=read_only)
 ```
 
 ```rust tab="Rust"
-use blazing_agents::agents::{AGENT_TOOLS, AgentToolFileAccessTag};
+use blazing_agents::agent_tools::{AGENT_TOOLS, AgentToolFileAccessTag};
 
 let read_only = AGENT_TOOLS
     .iter()
@@ -97,8 +97,12 @@ client.agents().update(agent_id).tools(read_only).await?;
 ```
 
 ```go tab="Go"
-// The Go SDK has no tool catalog, so list the file_read tools from the table below.
-readOnly := []ba.AgentTool{ba.AgentToolRead, ba.AgentToolGrep, ba.AgentToolGlob}
+var readOnly []ba.AgentTool
+for _, tool := range ba.AgentTools {
+	if tool.FileAccess == ba.AgentToolFileAccessTagFileRead {
+		readOnly = append(readOnly, tool.Name)
+	}
+}
 _, err := client.Agents.Update(ctx, agentID, ba.UpdateAgentParams{Tools: readOnly})
 return err
 ```

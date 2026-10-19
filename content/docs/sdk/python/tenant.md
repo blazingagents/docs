@@ -64,7 +64,7 @@ settings = client.tenant.update(quota=None)
 | `quota` | `QuotaUpdate \| None` | The complete new quota, or `None` to remove it |
 | `monetization_enabled` | `bool` | Bill usage to your end users through your merchant account |
 
-Omitted parameters keep their current value. Calling `update()` with none of them raises `ValueError` before any request. A `quota` replaces the old one and must have exactly these three keys, or the SDK raises pydantic's `ValidationError`, a `ValueError`:
+Omitted parameters keep their current value. Calling `update()` with none of them raises `validation_failed`. A `quota` replaces the old one and must have exactly these three keys:
 
 | Key | Type | Meaning |
 | --- | --- | --- |

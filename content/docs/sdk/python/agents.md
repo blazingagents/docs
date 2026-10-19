@@ -84,7 +84,7 @@ agent = client.agents.create(
 | `metadata` | `dict[str, object]` | `{}` | Your own data |
 | `mcp_connection_ids` | `list[str]` | `[]` | Up to 10 unique MCP connection IDs |
 
-Without `provider_id` and `model`, the agent is saved unconfigured. Passing only one of them raises `ValueError` before any request. `workspace_tier` chooses Core or Plus for a new workspace and defaults to `core`. It cannot combine with `workspace_id`. A workspace created for the agent stays independent afterwards: renaming the agent does not rename it.
+Without `provider_id` and `model`, the agent is saved unconfigured. Passing only one of them raises `validation_failed`. `workspace_tier` chooses Core or Plus for a new workspace and defaults to `core`. Combining it with `workspace_id` raises `validation_failed`. A workspace created for the agent stays independent afterwards: renaming the agent does not rename it.
 
 To build a tool picker, import `AGENT_TOOLS` from `blazing_agents`. Each `AgentToolDefinition` has the tool's `name`, `description`, `requires_workspace`, and `tags`. The first tag is the tool's group, and `AGENT_TOOL_GROUPS` holds a display name and description for each group tag. A file tool also has an access tag: `"file_read"`, `"file_write"`, or `"execute"`, so `[tool.name for tool in AGENT_TOOLS if "file_read" in tool.tags]` gives the read-only file tools. Tags only describe tools; `tools` accepts tool names. See [tool tags](/agents/tools/built-in-tools#read-tool-tags).
 
@@ -142,12 +142,12 @@ agent = client.agents.update(
 
 Accepts every [`create()`](#create) parameter except `user_id`, which never changes. Omitted parameters keep their current value. Supplied values replace the old ones completely: `tools`, `mcp_connection_ids`, `metadata`, and each approval policy are full replacements, not patches.
 
-- To change the model on the current provider, pass `model` alone. To switch providers, pass `provider_id` and `model` together; `provider_id` alone raises `ValueError`.
-- To unconfigure the agent, pass `provider_id=None` and `model=None`. Clearing only one raises `ValueError`.
+- To change the model on the current provider, pass `model` alone. To switch providers, pass `provider_id` and `model` together; `provider_id` alone raises `validation_failed`.
+- To unconfigure the agent, pass `provider_id=None` and `model=None`. Clearing only one raises `validation_failed`.
 - `thinking_level=None` resets to the provider default.
 - `workspace_id` moves the agent to another workspace. It cannot be cleared.
 
-Calling `update()` with no parameters raises `ValueError` before any request. Returns [`Agent`](#agent). Raises `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `model_validation_unavailable`, `workspace_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, `mcp_connection_discovery_failed`, or [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
+Calling `update()` with no parameters raises `validation_failed`. Returns [`Agent`](#agent). Also raises `not_found`, `provider_not_found`, `model_not_found`, `model_validation_unavailable`, `workspace_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, `mcp_connection_discovery_failed`, or [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
 
 ### `delete()` [#delete]
 
@@ -245,7 +245,7 @@ attachment = client.agents.update_mcp_attachment(
 | `forward_user_id` | `bool` | Send the turn's `user_id` to the MCP server |
 | `forwarded_metadata_keys` | `Sequence[str]` | Up to 32 unique turn metadata keys to send |
 
-Pass at least one; omitting both raises `ValueError`. Returns [`McpAttachment`](#mcpattachment). Raises `validation_failed` or `not_found`.
+Pass at least one; omitting both raises `validation_failed`. Returns [`McpAttachment`](#mcpattachment). Also raises `not_found`.
 
 ### `get_spending_limit()` [#get-spending-limit]
 

@@ -44,7 +44,7 @@ it. See [Attribution](#attribution).
 | [TaskRun](#taskrun)                                                   | queued-to-terminal execution state                       | cooperative cancel only                            | `startedAt`, `finishedAt`, `cancelRequestedAt`, `canceledAt`, `createdAt`, `updatedAt`                                 | Session, error, and lifecycle times follow state                           |
 | [Prompt](#prompt)                                                     | template and inferred variables                          | name, template, metadata                           | `createdAt`, `updatedAt`                                                                                               | omitted updates are unchanged                                              |
 | [UsageResponse](#usageresponse)                                       | buckets and totals                                       | none                                               | none                                                                                                                   | grouping keys may be `null`                                                |
-| [Tenant](#tenant)                                                     | identity plus separate settings                          | settings only                                      | `createdAt`, `updatedAt`                                                                                               | Quota may be `null` or omitted on update                                   |
+| [Tenant](#tenant) | settings and deletion state | name, quota, and `monetizationEnabled` | none | Quota and deletion may be `null`; omitted updates are unchanged |
 | [Quota](#quota)                                                       | monthly request/token ceilings                           | Tenant settings update                             | none                                                                                                                   | each ceiling may be `null`; absent Quota is unlimited                      |
 | [Attribution](#attribution)                                           | `userId` and metadata                                    | resource-specific metadata                         | none                                                                                                                   | `userId: ""` means tenant-level                                            |
 
@@ -60,7 +60,6 @@ it. See [Attribution](#attribution).
 | `mcpConnectionStatusSchema` | `connected`, `needs_auth`, `error` |
 | `mcpConnectionTestErrorCodeSchema` | `MCP_CONNECTION_AUTHENTICATION_FAILED`, `MCP_CONNECTION_INVALID`, `MCP_CONNECTION_UNREACHABLE`, `MCP_CONNECTION_DISCOVERY_FAILED` |
 | `providerTypeSchema` | `openai`, `anthropic`, `openrouter`, `google`, `vercel_ai_gateway`, `custom` |
-| `subscriptionStatusSchema` | `active`, `inactive` |
 | `taskRunStatusSchema` | `queued`, `running`, `blocked`, `succeeded`, `failed`, `canceled` |
 | `taskScheduleKindSchema` | `once`, `interval`, `cron` |
 | `toolApprovalContinuationStateSchema` | `waiting`, `running`, `succeeded`, `failed` |
@@ -94,7 +93,7 @@ invalid. Leaving a policy out of an update keeps it; sending one replaces it. Se
 
 <span id="agent-response"></span><span id="agents-response"></span>
 
-`agentSchema` / `Agent` is the current Agent configuration. `status` is
+`agentResponseSchema` / `Agent` is the current Agent configuration. `status` is
 `active` or `disabled`. `providerId`, `model`, and `avatarUrl` are
 nullable. Provider and model form an optional pair: both are null or both are present. `workspaceId` always identifies the current attachment. Avatar and lifecycle changes use separate operations. `userId`, IDs, and timestamps are
 read-only. Names can repeat. `agentsResponseSchema` returns
@@ -338,7 +337,7 @@ and [REST Artifact download URLs](/api-reference/rest-api/artifacts#create-artif
 
 <span id="create-task-response"></span><span id="task-response"></span><span id="tasks-list-response"></span>
 
-`taskSchema` / `Task` is the definition. A schedule is `once`, `interval`, or
+`taskResponseSchema` / `TaskResponse` is the definition. A schedule is `once`, `interval`, or
 `cron`. Update may change the name, prompt,
 schedule, `enabled`, or metadata. `agentId` and `userId` are immutable.
 Run pointers and deletion timestamps are nullable lifecycle fields.
@@ -349,7 +348,7 @@ See [SDK Tasks](/sdk/typescript/tasks),
 
 ### TaskListItem [#tasklistitem]
 
-`taskListItemSchema` / `TaskListItem` extends `taskSchema` with nullable
+`taskListItemSchema` / `TaskListItem` extends `taskResponseSchema` with nullable
 `latestRun`. That compact value follows `taskLatestRunSchema`: `{ id, status,
 finishedAt }`, where `finishedAt` is nullable.
 
@@ -361,7 +360,7 @@ and [Tasks and schedules](/automation/tasks).
 
 <span id="create-task-run-response"></span><span id="task-run"></span><span id="task-run-response"></span><span id="task-runs-list-response"></span><span id="task-run-messages-response"></span>
 
-`taskRunSchema` / `TaskRun` status is `queued`, `running`, `blocked`,
+`taskRunResponseSchema` / `TaskRunResponse` status is `queued`, `running`, `blocked`,
 `succeeded`, `failed`, or `canceled`. Session, error, start, finish, and cancel
 timestamps are nullable according to lifecycle. Attribution and required `agentConfig` are fixed when the run is queued. `turnId` is `null` until the
 run's turn starts, so a blocked run keeps `turnId: null`. Cancel is
@@ -375,7 +374,7 @@ See [SDK Task runs](/sdk/typescript/tasks#list-runs),
 
 <span id="prompt-response"></span><span id="prompts-response"></span>
 
-`promptSchema` / `Prompt` has mutable name, template, metadata, and nullable
+`promptResponseSchema` / `PromptResponse` has mutable name, template, metadata, and nullable
 `agentId`. The linked Agent must belong to the same Tenant; deleting it deletes
 the Prompt. Omit the link at creation or set it to null to leave it unlinked. `variables`
 is inferred from distinct valid `{{name}}` tokens and is read-only. Identity,
@@ -423,9 +422,10 @@ See [TypeScript Usage](/sdk/typescript/usage#overview-method),
 
 <span id="tenant-response"></span><span id="tenant-settings-response"></span>
 
-`tenantSchema` / `Tenant` is the read-only `/v1/me` identity. Editable Tenant
-settings are a separate `{ name, quota }` object. Patch may change the name or
-set `quota` to a Quota object or `null`; omitted settings remain unchanged.
+`tenantSettingsResponseSchema` / `TenantSettingsResponse` holds your Tenant's
+`name`, nullable `quota`, `monetizationEnabled`, and nullable `deletion`. Patch
+may change the name or `monetizationEnabled`, or set `quota` to a Quota object
+or `null`; omitted settings remain unchanged.
 
 See [SDK Tenant settings](/sdk/typescript/tenant),
 [REST Tenant endpoints](/api-reference/rest-api/tenant), and

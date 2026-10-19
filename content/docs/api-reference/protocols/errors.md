@@ -78,12 +78,13 @@ diagnosis, and `responseBodyTruncated` says whether it was cut short.
 `error.code` holds the bare code, such as `model_validation_unavailable`.
 
 `error.code` has the type `BlazingAgentsErrorCode`: every code on this page,
-plus four codes the SDK raises itself, plus any other string. The known codes
+plus five codes the SDK raises itself, plus any other string. The known codes
 alone are `KnownBlazingAgentsErrorCode`. Treat the code as an open string so a
 code added after you wrote your client still reaches your handler.
 
 | Code | `status` | What happened |
 | --- | ---: | --- |
+| `credential_echo` | response status | A provider, MCP connection, chat connection, chat delivery, or merchant connection response contains a credential field. `details.field` names it, and the body is discarded. |
 | `invalid_response` | response status | The response body is not a valid error or result. |
 | `network_error` | `undefined` | The request failed before any response arrived, and you did not cancel it. |
 | `request_aborted` | `undefined` | Your `AbortSignal` cancelled the request. |
@@ -95,7 +96,9 @@ know, and never guesses a code from the status.
 In Python, an error response raises `APIStatusError` with `code`,
 `status_code`, `details`, `param`, `request_id`, `headers`, and `retry_after`.
 A network failure raises `APIConnectionError` (or `APITimeoutError`), and a
-failure after a stream starts raises `StreamError`. All of them extend
+failure after a stream starts raises `StreamError`. A provider, MCP connection,
+chat connection, chat delivery, or merchant connection response that contains a
+credential raises `CredentialEchoError`, without the body. All of them extend
 `BlazingAgentsError`. As in TypeScript, `str(error)` for an `APIStatusError`
 starts with the bracketed code, and `error.code` holds the bare code.
 

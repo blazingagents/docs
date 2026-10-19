@@ -15,7 +15,7 @@ const { data: messages } = await client.sessions.messages({
 });
 ```
 
-Every method takes one input object and accepts an optional `abortSignal`. The session input methods check the format of `agentId`, `sessionId`, and `turnId`, and throw before any request is sent if one is malformed.
+Every method takes one input object and accepts an optional `abortSignal`. An ID that is empty, `.`, or `..` throws `invalid_request` before any request is sent; the API checks every other ID.
 
 ## Available operations [#available-operations]
 
