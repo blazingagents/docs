@@ -274,6 +274,12 @@ Pass `userId` and `metadata` on the first turn to label the session with your en
 
 `client.chat()` on an existing session returns [`session_busy`](/api-reference/protocols/errors#session_busy) (HTTP `409`) while a turn is running, a [tool approval](/agents/tools/tool-approvals) is waiting for a decision, or an approval continuation is already running. Deleting a session also returns `session_busy` while a turn runs or an approval continuation is still open.
 
+The error's `details.reason` says what holds the session, so your app can tell the user what to do:
+
+- `turn_running`: another turn is running. Wait for it to finish, or [stop it](#stop-a-turn).
+- `approval_pending`: a tool approval waits for a decision. [Decide it](/agents/tools/tool-approvals#list-and-decide-an-approval).
+- `continuation_waiting`: an approval round is decided, but its continuation has not run. [Continue the round](/agents/tools/tool-approvals#human-approval-flow).
+
 A turn that stops responding, for example because the platform restarted, keeps the session busy for up to a minute. Once the platform sees that the turn stopped, chat, regeneration, approval continuation, and deletion return [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) with a `Retry-After` header. Wait that many seconds, read the session's messages to see what was saved, and send again under a new message ID.
 
 To let users keep typing while the agent works, steer their message into the running turn, or hold it in your app until the turn ends. See [send while the agent is working](#send-while-the-agent-is-working).
