@@ -113,7 +113,7 @@ workspace = client.workspaces.update(
 
 **Signature:** `update(*, workspace_id: str, name=..., metadata=..., network_policy=...) -> Workspace`
 
-Omitted parameters keep their current value. `name=None` clears the name. `metadata` and `network_policy` replace the current values completely. `user_id` cannot change. Calling `update()` with nothing to change raises `ValueError` before any request.
+Omitted parameters keep their current value. `name=None` clears the name. `metadata` and `network_policy` replace the current values completely. `user_id` cannot change. Calling `update()` with nothing to change raises `validation_failed`.
 
 Returns [`Workspace`](#workspace). Raises `validation_failed`, `workspace_not_found`, or [`workspace_busy`](/api-reference/protocols/errors#workspace_busy).
 

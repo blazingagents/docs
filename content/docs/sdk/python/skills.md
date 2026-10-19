@@ -55,7 +55,7 @@ skill = client.agent(agent.id).skills.create(
 
 **Signature:** `create(*, path: Literal["SKILL.md"], content: str) -> SkillDetail`
 
-`path` must be `"SKILL.md"`; any other value raises `ValueError` before any request. The frontmatter needs a `name` (lowercase letters, digits, and hyphens, up to 64 characters, not `anthropic` or `claude`) and a `description` (up to 1,024 characters). The name must be unique among the agent's skills.
+`path` must be `"SKILL.md"`; the API rejects any other value with `validation_failed`. The frontmatter needs a `name` (lowercase letters, digits, and hyphens, up to 64 characters, not `anthropic` or `claude`) and a `description` (up to 1,024 characters). The name must be unique among the agent's skills.
 
 Returns [`SkillDetail`](#skill-and-skilldetail). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict), [`skill_limit_reached`](/api-reference/protocols/errors#skill_limit_reached), or [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large), and [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
 
@@ -74,7 +74,7 @@ skill = client.agent(agent.id).skills.upload(
 
 **Signature:** `upload(*, archive_type: SkillArchiveType, file: UploadFile, filename: str | None = None) -> SkillDetail`
 
-`file` is bytes, a file path, or an open binary file. The SDK opens and closes paths itself and never closes a file object you pass. `filename` overrides the name taken from a path or file object; otherwise bytes are sent as `skill.<archive_type>`. An unsupported `archive_type` raises `ValueError`.
+`file` is bytes, a file path, or an open binary file. The SDK opens and closes paths itself and never closes a file object you pass. `filename` overrides the name taken from a path or file object; otherwise bytes are sent as `skill.<archive_type>`. An unsupported `archive_type` raises `validation_failed`.
 
 Returns [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed`, [`skill_invalid_archive`](/api-reference/protocols/errors#skill_invalid_archive), `skill_invalid_markdown`, `skill_name_conflict`, `skill_limit_reached`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), or `skill_uncompressed_too_large`, and `not_found` when the agent does not exist.
 

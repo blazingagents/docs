@@ -76,7 +76,7 @@ export async function listMyAgents(verifiedSession: { user: { id: string } }) {
 }
 ```
 
-Pass the session your backend has verified. Do not take the user ID from a request body or query parameter. The ID must contain 1 to 256 printable ASCII characters without a leading or trailing space. `withOptions()` on a `UserClient` keeps the user scope.
+Pass the session your backend has verified. Do not take the user ID from a request body or query parameter. The ID must contain 1 to 256 printable ASCII characters without a leading or trailing space, or `forUser()` throws `BlazingAgentsError` with code `invalid_request`. `withOptions()` on a `UserClient` keeps the user scope.
 
 A request body's `userId` labels the resource or turn. It does not grant access. On a scoped request, the API fills in a missing `userId` with the scoped ID and rejects a different one. Without `forUser()`, your API key retains tenant-wide authority, even when a request body contains `userId`. The scoped client omits tenant administration, usage overview, and Agent spending limits; use the tenant client for those operations.
 
@@ -154,7 +154,7 @@ Use `BlazingAgentsError.isInstance(error)` rather than `instanceof`, which fails
 | `responseBodyTruncated` | `boolean \| undefined` | Whether `responseBody` was cut short |
 | `cause` | `unknown` | The underlying transport, parsing, or stream error |
 
-Besides API codes, the SDK raises four codes of its own. `code` stays an open string type, so a code added to the API later reaches you unchanged.
+Besides API codes, the SDK raises five codes of its own. `code` stays an open string type, so a code added to the API later reaches you unchanged.
 
 | SDK code | Meaning |
 | --- | --- |
@@ -162,6 +162,9 @@ Besides API codes, the SDK raises four codes of its own. `code` stays an open st
 | `request_aborted` | Your abort signal stopped the request |
 | `invalid_response` | A response or error body could not be read |
 | `stream_error` | A stream was missing, malformed, read twice, or broke while reading |
+| `credential_echo` | A provider, MCP connection, chat connection, chat delivery, or merchant connection response contained a credential field. `details.field` names it, and the body is discarded |
+
+The SDK also throws the API code `invalid_request` before any request when an ID in the URL path is `""`, `.`, or `..`, or when [`forUser()`](#for-user) gets an invalid user ID.
 
 The [error reference](/api-reference/protocols/errors#find-a-code) lists every API code, and [SDK error classes](/api-reference/protocols/errors#sdk-error-classes) covers the codes the SDK raises itself.
 

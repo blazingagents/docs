@@ -57,7 +57,7 @@ provider = client.providers.create(
 | `api_key` | `str` | The provider's API key. Never returned |
 | `base_url` | `str \| None` | Required for `"custom"`; not accepted for `"vercel_ai_gateway"` |
 
-A missing `base_url` for `"custom"` or a non-`None` `base_url` for `"vercel_ai_gateway"` raises `ValueError` before any request. Never log `api_key`.
+A missing `base_url` for `"custom"` or a non-`None` `base_url` for `"vercel_ai_gateway"` raises `validation_failed`. Never log `api_key`.
 
 Returns [`Provider`](#provider). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_name_conflict`](/api-reference/protocols/errors#provider_name_conflict), or [`provider_limit_reached`](/api-reference/protocols/errors#provider_limit_reached).
 
@@ -124,7 +124,7 @@ provider = client.providers.update(provider.id, name="OpenRouter production")
 
 **Signature:** `update(provider_id: str, *, name=...) -> Provider`
 
-Only the name can change. To change the type, key, or base URL, create a new provider and move your agents to it. Calling `update()` without `name` raises `ValueError` before any request. Returns [`Provider`](#provider). Raises `validation_failed`, `provider_not_found`, or `provider_name_conflict`.
+Only the name can change. To change the type, key, or base URL, create a new provider and move your agents to it. Calling `update()` without `name` raises `validation_failed`. Returns [`Provider`](#provider). Also raises `provider_not_found`, or `provider_name_conflict`.
 
 ### `delete()` [#delete]
 

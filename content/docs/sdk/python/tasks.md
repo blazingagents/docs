@@ -87,7 +87,7 @@ A schedule is one of:
 | `"interval"` | `{"every_ms": 3_600_000}`, at least `60000` |
 | `"cron"` | `{"expression": "0 9 * * 1-5"}`, a five-field expression, with optional `"timezone"` (default `"UTC"`) and `"stagger_ms"` |
 
-The SDK checks the schedule shape before sending and raises pydantic's `ValidationError`, a `ValueError`, for a malformed one. `submit=True` does not make creation safe to retry: retrying creates another task.
+The API checks the schedule and raises `validation_failed` for a malformed one. `submit=True` does not make creation safe to retry: retrying creates another task.
 
 Without `idempotency_key`, calling `create()` twice creates two tasks. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID. Reusing a key with different task fields, or after deleting the task, raises `idempotency_conflict`. The key must not be blank.
 
@@ -140,7 +140,7 @@ task = client.tasks.update(task.id, enabled=False, metadata={"paused_by": "ops"}
 
 **Signature:** `update(task_id: str, *, name=..., prompt=..., schedule=..., enabled=..., metadata=...) -> Task`
 
-Omitted parameters keep their current value. `schedule=None` makes it on demand only. `agent_id` and `user_id` cannot change, and queued runs keep their saved agent configuration. Calling `update()` with nothing to change raises `ValueError` before any request.
+Omitted parameters keep their current value. `schedule=None` makes it on demand only. `agent_id` and `user_id` cannot change, and queued runs keep their saved agent configuration. Calling `update()` with nothing to change raises `validation_failed`.
 
 Returns [`Task`](#task). Raises `validation_failed` or `not_found`.
 
