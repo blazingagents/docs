@@ -641,15 +641,15 @@ Running turns, regenerating answers, and tool approvals.
 
 **The session is busy with another operation.**
 
-A turn is running, a tool approval is waiting for a decision, or an approval continuation is already running, so the session cannot start new work. New chat turns, regeneration, and deletion are refused until that work ends. Retrying an approval continuation that is already running also returns this code. A turn that stopped responding looks busy for a short time, then the session returns [`session_turn_unresponsive`](#session_turn_unresponsive).
+A turn is running, a tool approval is waiting for a decision, or an approval continuation is already running, so the session cannot start new work. New chat turns, regeneration, and deletion are refused until that work ends. Retrying an approval continuation that is already running also returns this code. `details.reason` names the cause: `turn_running` when another turn holds the session, `approval_pending` when a tool approval waits for a decision, or `continuation_waiting` when an approval round is decided but its continuation has not run. A turn that stopped responding looks busy for a short time, then the session returns [`session_turn_unresponsive`](#session_turn_unresponsive).
 
 HTTP `409`. Retrying the same request can succeed.
 
 To fix it:
 
-- Decide any pending tool approvals. See [tool approvals](/agents/tools/tool-approvals).
-- To send while a turn runs, steer the message into it. See [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
-- Otherwise wait for the running work to finish, then send again. See [busy and concurrent sessions](/platform/sessions-and-turns#busy-and-concurrent-sessions).
+- `turn_running`: wait for the running turn to finish, then send again, or [stop it](/platform/sessions-and-turns#stop-a-turn). To send while it runs, steer the message into it. See [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
+- `approval_pending`: decide the pending tool approvals. See [tool approvals](/agents/tools/tool-approvals).
+- `continuation_waiting`: continue the decided round by sending its decisions again in one `continueChat()` call. See [retries and busy sessions](/agents/tools/tool-approvals#retries-and-busy-sessions).
 
 ### `session_turn_unresponsive` [#session_turn_unresponsive]
 
