@@ -128,5 +128,15 @@ export function renderErrorPage(page, catalog) {
 
 if (import.meta.url === pathToFileURL(resolve(process.argv[1] ?? "")).href) {
   const page = readFileSync(ERROR_CATALOG_PAGE, "utf8");
-  writeFileSync(ERROR_CATALOG_PAGE, renderErrorPage(page, loadErrorCatalog()));
+  const rendered = renderErrorPage(page, loadErrorCatalog());
+  if (process.argv.includes("--check")) {
+    if (rendered !== page) {
+      console.error(
+        `${ERROR_CATALOG_PAGE} is out of date with ${ERROR_CATALOG_DATA}; run node scripts/error-catalog.mjs and commit it.`
+      );
+      process.exit(1);
+    }
+  } else {
+    writeFileSync(ERROR_CATALOG_PAGE, rendered);
+  }
 }
