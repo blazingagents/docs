@@ -745,6 +745,18 @@
       "retryable": false
     },
     {
+      "code": "subscription_already_paid",
+      "group": "quotas-and-billing",
+      "statuses": [409],
+      "title": "Your account already pays for a plan.",
+      "whatHappened": "Your account has an active plan, or an earlier checkout has already been paid, so no new checkout was opened and you were not charged again. Checkout never changes a plan.",
+      "howToFix": [
+        "Reload the dashboard. A payment that is still processing shows up within a minute.",
+        "Contact support to change your plan."
+      ],
+      "retryable": false
+    },
+    {
       "code": "checkout_evidence_mismatch",
       "group": "quotas-and-billing",
       "statuses": [409],
