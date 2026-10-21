@@ -791,6 +791,17 @@
       "retryable": false
     },
     {
+      "code": "merchant_connection_in_use",
+      "group": "quotas-and-billing",
+      "statuses": [409],
+      "title": "Requests admitted on your billing connection are still running.",
+      "whatHappened": "You cannot remove or replace your merchant connection while a request admitted on it is still running, because that request's usage is recorded against it.",
+      "howToFix": [
+        "Wait for the running requests to finish, then remove or replace the connection again."
+      ],
+      "retryable": true
+    },
+    {
       "code": "merchant_credential_invalid",
       "group": "quotas-and-billing",
       "statuses": [422],
