@@ -133,9 +133,9 @@ If you delete a conversation's session, you do not need `/new`. The next direct 
 
 ## Message order and interruptions [#message-order]
 
-A message sent while the agent is still answering waits, and the agent answers it next in the same conversation. If something else keeps the conversation busy for about two minutes, such as a long turn your backend started through the API, the bot says "I'm still working on your previous message. Send this again once I've replied." and does not run the message. Conversations do not wait for each other, including separate topics in one Telegram forum. If Slack or Telegram delivers the same event twice, the agent answers once.
+A message sent while the agent is still answering is steered into that answer, the same way [steering](/platform/sessions-and-turns#steer-a-running-turn) works through the API. The agent reads it at its next step, after a tool call ends or once it has written its answer, and one reply covers both messages. The person never sends it again. If the agent cannot take the message into the current answer, for example because the answer is ending or being stopped, the message waits and the agent answers it next. If something else keeps the conversation busy for longer than the longest turn Blazing Agents allows, such as back-to-back turns your backend started through the API, the bot says "This conversation stayed busy with other work, so your message was not processed. Please send it again." Conversations do not wait for each other, including separate topics in one Telegram forum. If Slack or Telegram delivers the same event twice, the agent answers once and takes the message in only once.
 
-In a Telegram private chat, the reply first appears as a draft that grows while the agent works, then becomes the final message. Slack and Telegram groups show only the final message.
+While the agent works, Telegram shows that the bot is typing. In a Telegram private chat, the reply also appears as a draft that grows while the agent writes, then becomes the final message. Slack and Telegram groups show only the final message.
 
 If Blazing Agents refuses a turn before it starts, nothing runs and the bot tells the person why in plain words. The reason follows the turn's [error code](/api-reference/protocols/errors):
 
@@ -161,7 +161,7 @@ Messages about your account or setup ask the person to contact the team that run
 
 A turn can also fail or stop after it starts, before Blazing Agents saves its reply. Causes include a model error and an interruption in Blazing Agents such as a platform update. The bot then posts "Your message was received, but the reply was interrupted before it was saved. Please send it again." Blazing Agents does not run the turn again, because tools may already have run. If an approval round is interrupted, the bot says the action was interrupted and asks the person to ask again.
 
-While a tool approval waits for its decision, the agent does not run new messages. The bot says the request must be approved or rejected first, and the person sends the message again after deciding. If the request is lost, the person can send `/new` instead.
+While a tool approval waits for its decision, the agent does not run new messages or take them into its answer, just as the API refuses to steer a turn that waits for a decision. The bot says the request must be approved or rejected first, and the person sends the message again after deciding. If the request is lost, the person can send `/new` instead. A message the agent already took in before it asked for the approval is answered after the decision.
 
 ## Manage and troubleshoot [#manage-and-troubleshoot]
 

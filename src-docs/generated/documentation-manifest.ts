@@ -5417,6 +5417,12 @@ export const restApiOperations = [
             "status": "429"
           },
           {
+            "code": "{\n  \"error\": {\n    \"code\": \"mcp_connection_discovery_failed\",\n    \"message\": \"An upstream service failed.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "502"
+          },
+          {
             "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"The service is temporarily unavailable.\"\n  }\n}",
             "contentType": "application/json",
             "language": "json",
@@ -5717,6 +5723,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "429"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"mcp_connection_discovery_failed\",\n    \"message\": \"An upstream service failed.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "502"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"The service is temporarily unavailable.\"\n  }\n}",
@@ -6244,6 +6256,12 @@ export const restApiOperations = [
             "contentType": "application/json",
             "language": "json",
             "status": "429"
+          },
+          {
+            "code": "{\n  \"error\": {\n    \"code\": \"mcp_connection_discovery_failed\",\n    \"message\": \"An upstream service failed.\"\n  }\n}",
+            "contentType": "application/json",
+            "language": "json",
+            "status": "502"
           },
           {
             "code": "{\n  \"error\": {\n    \"code\": \"service_unavailable\",\n    \"message\": \"The service is temporarily unavailable.\"\n  }\n}",
