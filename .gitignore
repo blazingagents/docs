@@ -10,3 +10,6 @@ snippets-rust/examples/
 snippets-go/blocks/
 snippets-python/blocks/
 snippets-python/.venv/
+
+# Written by scripts/generate-docs-manifest.mjs on every generate, build, typecheck and test.
+/src-docs/generated/documentation-manifest.ts
