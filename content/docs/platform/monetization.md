@@ -113,7 +113,7 @@ func main() {
 }
 ```
 
-- **Polar:** use an Organization Access Token (`polar_oat_...`) with `organizations:read`, `customers:read`, and `events:write`, and nothing else.
+- **Polar:** use an Organization Access Token (`polar_oat_...`) with `organizations:read`, `customers:read`, and `events:write`. If you turn on the guard, also grant `products:read` and `meters:read`, so Blazing Agents can check the guard's IDs. Grant nothing else.
 - **Dodo:** use an API key from your Dodo dashboard in the mode that matches the environment.
 
 Blazing Agents checks the credential with your provider before the connection goes live. After that, only a short fragment of it is shown.
@@ -236,7 +236,7 @@ Polar drops duplicates by the event's `external_id`, which holds the `mev_` ID, 
 
 Create a meter with **Event Name** `ba.model_tokens.v1` (case-sensitive) and a **Sum** **Over Property** `total_tokens`, or use `input_tokens` and `output_tokens` for split pricing. Attach it to a usage-based product, then set a per-unit price, or turn on **Bill usage in Credits** and link a **Credit Entitlement** for prepaid allowances. Meter filters can match `model` or `status`.
 
-Dodo drops duplicates by `event_id`, the `mev_` ID. Dodo rejects events older than one hour, so an event that misses that window is marked `expired` and needs a correction in Dodo.
+Dodo drops duplicates by `event_id`, the `mev_` ID. Dodo rejects events older than one hour, so an event that misses that window is marked `expired` and needs a correction in Dodo. Retrying or releasing an event keeps the time it happened, so retrying or releasing a Dodo event more than one hour old also ends it `expired`.
 
 ## Guard rules [#guard-rules]
 
@@ -247,6 +247,8 @@ Dodo drops duplicates by `event_id`, the `mev_` ID. Dodo rejects events older th
 | Both | one or more | set | Both conditions hold. |
 
 On Polar, `meterId` is the meter shown in the customer's state. On Dodo, it is the credit entitlement ID. A user with no linked customer gets [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped).
+
+When you save an enabled guard, Blazing Agents looks up each product and meter ID with your provider. An ID your provider does not know fails the request with [`validation_failed`](/api-reference/protocols/errors#validation_failed), and one issue with the code `merchant_guard_id_unknown` for each unknown ID.
 
 The guard checks only when a turn starts. A turn can still run past a balance while it runs. If your provider cannot be reached, the turn is refused with [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable).
 
@@ -259,9 +261,9 @@ The guard checks only when a turn starts. A turn can still run past a balance wh
 | `pending` | Waiting or being delivered | `wait`, or `retry` once automatic delivery gives up |
 | `accepted` | Your provider confirmed it | none |
 | `uncertain` | A temporary failure, and the event may have arrived | `retry`, which is safe because duplicates are dropped |
-| `failed` | Your provider rejected it, for example because of a revoked credential | `retry` after you fix the cause |
+| `failed` | Your provider rejected it, for example because of a revoked credential, or Polar answered with a receipt that does not account for the event | `retry` after you fix the cause |
 | `unmapped` | No customer linked to the `userId` | `bind_and_release`: link the user, then call `release` |
-| `incomplete` | The event could not be built | `investigate` |
+| `incomplete` | The turn's usage was not fully measured, for example because Blazing Agents lost the turn | `investigate` |
 | `expired` | Dodo's one-hour window passed | `discard`, then correct it in Dodo |
 | `discarded` | You discarded it, or monetization was off | none |
 
@@ -272,6 +274,8 @@ Events never change after they are created. For an `uncertain` event, you can ch
 - Turning monetization off discards every event your provider has not accepted yet. Your connection and customer links stay, but turning it back on does not recover discarded events or backfill usage.
 - An accepted event means your provider received it. It is not proof of an invoice, so settle billing disputes in your provider.
 - `unmapped` and `incomplete` events wait in the list until you link, retry, or discard them.
+- Do not delete or replace a customer in Polar or Dodo while that user's usage is still being delivered. If you do, the events that fail because of it can only be discarded.
+- Removing your connection stops recording new usage against it. Events already recorded keep being delivered, and Blazing Agents deletes the connection's credential once none of them can still be delivered or retried.
 - Deleting your account is scheduled 24 hours ahead and can be cancelled until then. Unresolved events are deleted with the account, and usage still arriving at that point is not billed.
 
 ## Next [#next]
