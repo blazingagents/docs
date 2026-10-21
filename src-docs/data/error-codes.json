@@ -102,7 +102,7 @@
       "title": "Your account is scheduled for deletion.",
       "whatHappened": "While a deletion is scheduled, you cannot start turns or task runs, and some billing actions are refused. Work that was already running finishes.",
       "howToFix": [
-        "Cancel the deletion from the dashboard before its scheduled time if you want to keep the account.",
+        "Cancel the deletion from the dashboard before its scheduled time if you want to keep the account. Your subscription stays cancelled until you resume it in **Settings → Subscription**.",
         "Otherwise, stop sending new work."
       ],
       "retryable": false
@@ -753,6 +753,17 @@
       "howToFix": [
         "Reload the dashboard. A payment that is still processing shows up within a minute.",
         "Contact support to change your plan."
+      ],
+      "retryable": false
+    },
+    {
+      "code": "subscription_not_cancelled",
+      "group": "quotas-and-billing",
+      "statuses": [409],
+      "title": "Cancel your subscription before you delete your account.",
+      "whatHappened": "You asked to delete your account while its subscription still renews. No deletion was scheduled.",
+      "howToFix": [
+        "Cancel the subscription in **Settings → Subscription** in the [dashboard](https://www.blazingagents.com/app). Your plan stays active until your next billing date, and the current period is not refunded. Then request the deletion again."
       ],
       "retryable": false
     },

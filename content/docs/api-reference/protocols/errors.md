@@ -25,7 +25,7 @@ Each code links to its own entry. You can link straight to one, for example
 | [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`session_turn_unresponsive`](#session_turn_unresponsive), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`input_idempotency_conflict`](#input_idempotency_conflict), [`steer_not_available`](#steer_not_available), [`message_id_conflict`](#message_id_conflict), [`message_not_found`](#message_not_found), [`tool_approval_continuation_settled`](#tool_approval_continuation_settled), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict), [`session_fork_unavailable`](#session_fork_unavailable), [`session_fork_deleted`](#session_fork_deleted) |
 | [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
 | [Tasks](#tasks) | [`task_active_run_exists`](#task_active_run_exists) |
-| [Quotas and billing](#quotas-and-billing) | [`quota_exceeded`](#quota_exceeded), [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`subscription_already_paid`](#subscription_already_paid), [`checkout_evidence_mismatch`](#checkout_evidence_mismatch), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_binding_required`](#merchant_binding_required), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable), [`model_spending_limit_exceeded`](#model_spending_limit_exceeded) |
+| [Quotas and billing](#quotas-and-billing) | [`quota_exceeded`](#quota_exceeded), [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`subscription_already_paid`](#subscription_already_paid), [`subscription_not_cancelled`](#subscription_not_cancelled), [`checkout_evidence_mismatch`](#checkout_evidence_mismatch), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_binding_required`](#merchant_binding_required), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable), [`model_spending_limit_exceeded`](#model_spending_limit_exceeded) |
 | [Workspaces and artifacts](#workspaces-and-artifacts) | [`workspace_not_found`](#workspace_not_found), [`workspace_in_use`](#workspace_in_use), [`workspace_busy`](#workspace_busy), [`artifact_session_cap_reached`](#artifact_session_cap_reached) |
 | [Service](#service) | [`internal`](#internal), [`service_unavailable`](#service_unavailable) |
 
@@ -358,7 +358,7 @@ HTTP `409`. Retrying the same request fails the same way until you fix the cause
 
 To fix it:
 
-- Cancel the deletion from the dashboard before its scheduled time if you want to keep the account.
+- Cancel the deletion from the dashboard before its scheduled time if you want to keep the account. Your subscription stays cancelled until you resume it in **Settings → Subscription**.
 - Otherwise, stop sending new work.
 
 ### `tenant_deletion_in_progress` [#tenant_deletion_in_progress]
@@ -1113,6 +1113,18 @@ To fix it:
 
 - Reload the dashboard. A payment that is still processing shows up within a minute.
 - Contact support to change your plan.
+
+### `subscription_not_cancelled` [#subscription_not_cancelled]
+
+**Cancel your subscription before you delete your account.**
+
+You asked to delete your account while its subscription still renews. No deletion was scheduled.
+
+HTTP `409`. Retrying the same request fails the same way until you fix the cause.
+
+To fix it:
+
+- Cancel the subscription in **Settings → Subscription** in the [dashboard](https://www.blazingagents.com/app). Your plan stays active until your next billing date, and the current period is not refunded. Then request the deletion again.
 
 ### `checkout_evidence_mismatch` [#checkout_evidence_mismatch]
 
