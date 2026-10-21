@@ -275,7 +275,7 @@ Events never change after they are created. For an `uncertain` event, you can ch
 - An accepted event means your provider received it. It is not proof of an invoice, so settle billing disputes in your provider.
 - `unmapped` and `incomplete` events wait in the list until you link, retry, or discard them.
 - Do not delete or replace a customer in Polar or Dodo while that user's usage is still being delivered. If you do, the events that fail because of it can only be discarded.
-- Removing your connection stops recording new usage against it. Events already recorded keep being delivered, and Blazing Agents deletes the connection's credential once none of them can still be delivered or retried.
+- You cannot remove or replace your connection while a request admitted on it is still running; the call fails with `merchant_connection_in_use`, so try again once those requests finish. Removing your connection stops recording new usage against it. Events already recorded keep being delivered, and Blazing Agents deletes the connection's credential once none of them can still be delivered or retried. `unmapped` events of a removed connection can no longer be sent, only discarded.
 - Deleting your account is scheduled 24 hours ahead and can be cancelled until then. Unresolved events are deleted with the account, and usage still arriving at that point is not billed.
 
 ## Next [#next]
