@@ -102,9 +102,9 @@ Creating a connection for the admin agent fails with [`admin_agent_managed`](/ap
 ## Connect Slack [#connect-slack]
 
 1. Create a Slack app and install it in your workspace. Copy its bot token and signing secret.
-2. Add the bot scopes `app_mentions:read`, `chat:write`, `channels:history`, `groups:history`, `im:history`, `mpim:history`, `users:read`, `channels:read`, `groups:read`, `im:read`, and `mpim:read`. Reinstall the app after you change scopes.
+2. Add the bot scopes `chat:write`, `channels:history`, `groups:history`, `im:history`, `mpim:history`, `users:read`, `channels:read`, `groups:read`, `im:read`, and `mpim:read`. Reinstall the app after you change scopes.
 3. Create a connection with `platform: "slack"` and copy the returned `webhookUrl`.
-4. In the Slack app, set **both** the Event Subscriptions and the Interactivity Request URLs to that URL, and turn both features on. Subscribe to `app_mention`, `message.channels`, `message.groups`, `message.im`, and `message.mpim`. Slack's URL check succeeds even while the connection is disabled, so you can save the URLs before you enable it.
+4. In the Slack app, set **both** the Event Subscriptions and the Interactivity Request URLs to that URL, and turn both features on. Subscribe to `message.channels`, `message.groups`, `message.im`, and `message.mpim`. A mention reaches the bot as a message event, so you do not need `app_mention` or its `app_mentions:read` scope; if you subscribe to it anyway, those events are ignored. Slack's URL check succeeds even while the connection is disabled, so you can save the URLs before you enable it.
 5. Invite the bot to each channel it should serve. Mention it in a thread, send a follow-up, and try a direct message. If your agent uses tool approvals, test an approval button too.
 
 ## Connect Telegram [#connect-telegram]
@@ -119,7 +119,9 @@ You never build the webhook URL yourself. Blazing Agents re-registers it with Te
 
 ## Conversations and approvals [#conversations-and-approvals]
 
-Each direct message keeps its own history. Each shared thread and each Telegram forum topic keeps its own session too. Mention the bot to start a shared conversation, then keep replying in that thread. A channel or group message that does not mention the bot gets an answer only in a thread the bot is already part of. A message with no text, such as a photo without a caption, is ignored.
+Each direct message keeps its own history. Each shared thread and each Telegram forum topic keeps its own session too. Mention the bot to start a shared conversation, then keep replying in that thread. A channel or group message that does not mention the bot gets an answer only in a thread the bot is already part of. A message with no text, such as a photo without a caption, is ignored. So is every message a bot sends, including your own bot's, even when it mentions your bot, so two bots in one thread cannot answer each other forever. Telegram shows anonymous group admins, and members who post as a channel, as bot accounts, so the bot ignores their messages too.
+
+The bot posts the agent's replies exactly as the agent writes them. In Slack, a mention, a link, or Slack formatting in a reply takes effect, including a mention such as `<!channel>` that notifies everyone in the channel. Tell your agent how to format replies, and keep in mind that text the agent reads, such as a web page or a file, can steer what it writes. Approval cards always show a tool's input as plain text, so it cannot disguise what you approve.
 
 Anyone who can reach the bot can talk to it, and anyone who can see an approval card can approve or deny it. Choose where you add the bot, and which tools the agent has, with that in mind. `channelIds` and `chatIds` only choose where health checks look. They are not allowlists.
 
@@ -131,11 +133,33 @@ If you delete a conversation's session, you do not need `/new`. The next direct 
 
 ## Message order and interruptions [#message-order]
 
-A message sent while the agent is still answering waits, and the agent answers it next in the same conversation. No message is dropped. Conversations do not wait for each other, including separate topics in one Telegram forum. If Slack or Telegram delivers the same event twice, the agent answers once.
+A message sent while the agent is still answering waits, and the agent answers it next in the same conversation. If something else keeps the conversation busy for about two minutes, such as a long turn your backend started through the API, the bot says "I'm still working on your previous message. Send this again once I've replied." and does not run the message. Conversations do not wait for each other, including separate topics in one Telegram forum. If Slack or Telegram delivers the same event twice, the agent answers once.
 
 In a Telegram private chat, the reply first appears as a draft that grows while the agent works, then becomes the final message. Slack and Telegram groups show only the final message.
 
-A turn can fail or stop before Blazing Agents saves its reply. Causes include a model error, a refused turn, and an interruption in Blazing Agents such as a platform update. The bot then posts "Your message was received, but the reply was interrupted before it was saved. Please send it again." Blazing Agents does not run the turn again, because tools may already have run. If an approval round is interrupted, the bot says the action was interrupted and asks the person to ask again.
+If Blazing Agents refuses a turn before it starts, nothing runs and the bot tells the person why in plain words. The reason follows the turn's [error code](/api-reference/protocols/errors):
+
+| Error code | What the bot says |
+| --- | --- |
+| `agent_disabled` | The agent has been turned off. |
+| `tenant_deleting` | The agent is being shut down. |
+| `provider_required`, `provider_not_found` | No AI model is set up for the agent. |
+| `mcp_connection_discovery_failed` | One of the agent's connected tools is unavailable. |
+| `workspace_not_found` | The agent's workspace is missing. |
+| `subscription_required` | Your account has no active subscription. |
+| `usage_credit_required` | Your account is out of usage credit. |
+| `model_spending_limit_exceeded` | The agent reached its spending limit; try again once it resets. |
+| `quota_exceeded` | The agent reached its usage limit for now; try again later. |
+| `rate_limited` | The agent is handling too many conversations; try again in a few minutes. |
+| `merchant_subscription_required` | The person needs an active subscription to talk to the agent. |
+| `merchant_balance_required` | The person's balance has run out. |
+| `merchant_customer_unmapped` | The person's chat account is not linked to a subscription. |
+| `service_unavailable`, `merchant_eligibility_unavailable` | A service the agent depends on is unavailable; try again in a few minutes. |
+| `validation_failed`, `invalid_request`, `unauthorized`, `forbidden` | Something went wrong on the agent's side; try again later. |
+
+Messages about your account or setup ask the person to contact the team that runs the agent, or to try again if the problem may pass, and none of them show internal details. An approval round that is refused this way is cancelled, so the conversation takes new messages.
+
+A turn can also fail or stop after it starts, before Blazing Agents saves its reply. Causes include a model error and an interruption in Blazing Agents such as a platform update. The bot then posts "Your message was received, but the reply was interrupted before it was saved. Please send it again." Blazing Agents does not run the turn again, because tools may already have run. If an approval round is interrupted, the bot says the action was interrupted and asks the person to ask again.
 
 While a tool approval waits for its decision, the agent does not run new messages. The bot says the request must be approved or rejected first, and the person sends the message again after deciding. If the request is lost, the person can send `/new` instead.
 
