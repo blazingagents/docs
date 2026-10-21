@@ -76,7 +76,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/merchant-connection" \
 
 Create a merchant connection.
 
-Connects your Polar or Dodo account so your end users' model-token usage is sent to it. Blazing Agents checks the credential with your provider first, and afterwards shows only its last few characters. Creating a connection replaces your current one; events already recorded against the old connection keep being delivered. Customer bindings belong to a connection, so link your users again after you replace it. An enabled `guard` needs at least one entry in `productIds` or a `meterId`, and each of them must exist at your provider, or the request fails with `validation_failed` and an issue coded `merchant_guard_id_unknown` for each unknown ID. Monetization stays off until you set `monetizationEnabled` on your tenant.
+Connects your Polar or Dodo account so your end users' model-token usage is sent to it. Blazing Agents checks the credential with your provider first, and afterwards shows only its last few characters. Creating a connection replaces your current one; events already recorded against the old connection keep being delivered. While a request admitted on the current connection is still running, it cannot be replaced and the request fails with `merchant_connection_in_use`. Customer bindings belong to a connection, so link your users again after you replace it. An enabled `guard` needs at least one entry in `productIds` or a `meterId`, and each of them must exist at your provider, or the request fails with `validation_failed` and an issue coded `merchant_guard_id_unknown` for each unknown ID. Monetization stays off until you set `monetizationEnabled` on your tenant.
 
 #### Request
 
@@ -124,6 +124,7 @@ Response schema: `MerchantConnectionResponse`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
+| `409` | [`merchant_connection_in_use`](/api-reference/protocols/errors#merchant_connection_in_use) | The request conflicts with the resource's current state |
 | `422` | [`merchant_credential_invalid`](/api-reference/protocols/errors#merchant_credential_invalid) | The request was understood but rejected |
 | `503` | [`merchant_provider_unavailable`](/api-reference/protocols/errors#merchant_provider_unavailable) | The service is temporarily unavailable |
 
@@ -211,7 +212,7 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/merchant-connection" \
 
 Retire the merchant connection.
 
-Retires your current merchant connection. New usage is no longer recorded against it, but events already recorded keep being delivered with its credential. Blazing Agents deletes the credential once none of those events is `pending`, `failed` or `uncertain` and no request admitted on the connection is still running. Create a new connection to start again.
+Retires your current merchant connection. While a request admitted on the connection is still running, the connection cannot be retired and the request fails with `merchant_connection_in_use`; try again once those requests finish. New usage is no longer recorded against a retired connection, but events already recorded keep being delivered with its credential. Blazing Agents deletes the credential once none of those events is `pending`, `failed` or `uncertain`. Create a new connection to start again.
 
 #### Request
 
@@ -232,6 +233,7 @@ Returns `204 No Content`. The connection was retired.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
+| `409` | [`merchant_connection_in_use`](/api-reference/protocols/errors#merchant_connection_in_use) | The request conflicts with the resource's current state |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
