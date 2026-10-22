@@ -81,7 +81,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `name` | string | body | required | Display name of the connection, unique within your tenant. 1–80 characters. |
-| `url` | string | body | required | Streamable HTTP URL of the MCP server. Use `http` or `https`, with no credentials, query, or fragment. Up to 2048 characters. |
+| `url` | string | body | required | Streamable HTTP URL of the MCP server. Use `https`, with no credentials, query, or fragment. Up to 2048 characters. |
 | `authType` | string | body | required | How Blazing Agents authenticates to the MCP server: `none`, `bearer`, `oauth_client_credentials`, or `oauth_authorization_code`. The other fields you send depend on it. |
 | `bearerToken` | string | body | required | Only when `authType` is `bearer`. Token sent as `Authorization: Bearer <token>` to the MCP server. Required when `authType` is `bearer`. Never returned. 1–8192 characters. |
 | `clientId` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client ID. Required with `clientSecret` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientSecret`. 1–2048 characters. |
@@ -203,7 +203,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | --- | --- | --- | --- | --- |
 | `id` | string | path | required | ID of the MCP connection. |
 | `authType` | string | body | required | How Blazing Agents authenticates to the MCP server: `none`, `bearer`, `oauth_client_credentials`, or `oauth_authorization_code`. The other fields you send depend on it. |
-| `url` | string | body | required | Streamable HTTP URL of the MCP server. Use `http` or `https`, with no credentials, query, or fragment. Up to 2048 characters. |
+| `url` | string | body | required | Streamable HTTP URL of the MCP server. Use `https`, with no credentials, query, or fragment. Up to 2048 characters. |
 | `bearerToken` | string | body | required | Only when `authType` is `bearer`. Token sent as `Authorization: Bearer <token>` to the MCP server. Required when `authType` is `bearer`. Never returned. 1–8192 characters. |
 | `clientId` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client ID. Required with `clientSecret` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientSecret`. 1–2048 characters. |
 | `clientId` | string | body | required | Only when `authType` is `oauth_client_credentials`. OAuth client ID. Required with `clientSecret` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientSecret`. 1–2048 characters. |
