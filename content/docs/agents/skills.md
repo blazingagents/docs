@@ -160,7 +160,9 @@ under Added, Changed, and Fixed.
 
 The answer starts with `RELEASE NOTES READY`, which shows the agent loaded the skill. Skill names are unique per agent, so delete the skill or change its name before you run this again.
 
-`SKILL.md` needs frontmatter with a `name` and a `description`. The name uses lowercase letters, digits, and hyphens, up to 64 characters. Write the description for the model: it is all the agent sees when deciding whether to load the skill. You can also add `license`, `compatibility`, string `metadata`, and the experimental `allowed-tools`.
+`SKILL.md` needs frontmatter with a `name` and a `description`. The name uses lowercase letters and digits, with single hyphens between words, such as `release-notes`. Write the description for the model, because it is all the agent sees when it decides whether to load the skill. You can also add `license`, `compatibility`, string `metadata`, and the experimental `allowed-tools`.
+
+Any other frontmatter key fails the upload with [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown). Skills copied from other tools often carry extra keys, so remove them before you upload. Length limits for each field are in [service limits](/api-reference/protocols/service-limits#skill-frontmatter).
 
 ## Add reference files [#add-reference-files]
 
@@ -222,7 +224,7 @@ Skill files are read-only to the agent and are not part of its [workspace](/agen
 - **Copy.** Copy a skill to other agents. Each copy is independent, and if one destination fails the others still succeed.
 - **Delete.** Deleting a skill removes all its files. Deleting the agent deletes its skills.
 
-Each agent can have up to 100 skills. Treat skill content like code: review changes, and keep secrets out of it. For every method, see the [TypeScript](/sdk/typescript/skills), [Python](/sdk/python/skills), [Rust](/sdk/rust/skills), or [Go](/sdk/go/skills) SDK.
+Each agent can have a [limited number of skills](/api-reference/protocols/service-limits#skills-per-agent). Treat skill content like code: review changes, and keep secrets out of it. For every method, see the [TypeScript](/sdk/typescript/skills), [Python](/sdk/python/skills), [Rust](/sdk/rust/skills), or [Go](/sdk/go/skills) SDK.
 
 ## Skills for your coding assistant [#skills-for-your-coding-assistant]
 

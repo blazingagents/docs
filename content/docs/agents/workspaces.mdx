@@ -7,6 +7,10 @@ description: Give your agent a private file system and shell, and choose whether
 
 Give your agent a private file system and shell. Every agent gets a workspace. On the default Core tier, files last while the workspace runs and are lost when it stops after about 10 idle minutes. Choose Plus when the next session or task run must find the files again.
 
+<Callout type="warn" title="All users of an agent share its files">
+  A workspace has no per-user or per-session folders. If one agent serves many end users through your tenant-wide client, a turn for one user can read and change the files another user's turn left there. To keep users apart, give each user their own agent and call it with a client scoped by `forUser()`. See [keep end users' files apart](#keep-end-users-files-apart).
+</Callout>
+
 ## Share a workspace between agents [#share-a-workspace-between-agents]
 
 Each new agent gets its own workspace, so you only create one yourself when you want to choose its settings up front or let several agents work on the same files. This example creates a workspace that can reach only the npm registry, then attaches two agents you already created:
@@ -87,13 +91,26 @@ Both agents now read and write the same files. Each agent can touch those files 
 
 ## How a workspace behaves [#how-a-workspace-behaves]
 
-- **Files belong to the workspace.** Sessions, task runs, and stateless generation that share a workspace see the same files. On Plus they also survive the workspace stopping; see [what survives a stop](#snapshot-resume). [Verify it yourself](/agents/tools/built-in-tools#verify-durable-file-operations).
+- **Files belong to the workspace.** Sessions, task runs, and stateless generation that share a workspace see the same files. On Plus they also survive the workspace stopping; see [what survives a stop](#snapshot-resume). [Verify it yourself](#verify-durable-file-operations).
 - **The agent works under `/workspace`.** Relative paths resolve there, and `bash` starts there.
 - **Compute starts on use.** Creating a workspace or agent starts no compute. The first file or shell operation does, and the workspace stops after about 10 minutes without one.
 - **Your model keys never enter it.** The agent reasons outside the workspace. Only file and shell calls run inside, and they receive no provider credentials or application environment variables.
 - **It stands on its own.** Renaming an agent does not rename its workspace, and deleting an agent keeps the workspace and its files. Moving an agent to another workspace does not copy files across.
 
 You can delete a workspace only after every agent has moved off it.
+
+## Keep end users' files apart [#keep-end-users-files-apart]
+
+Every turn of every agent attached to a workspace works in the same `/workspace`. A turn's `userId` labels the turn for reporting. It does not change which files the turn sees. So when one agent serves several end users through your tenant-wide client, any of their turns can read, change, or delete what another user's turn wrote. On Plus those files also last across sessions and days.
+
+To give each end user files of their own:
+
+1. Create an agent for the user with a client scoped by [`forUser()`](/platform/tenancy-and-attribution#user-labels-and-user-scope). The agent and the workspace created with it belong to that user.
+2. Run the user's sessions, task runs, and generation through a client scoped to the same user.
+
+A scoped turn runs only when both its agent and the agent's workspace belong to the scoped user. Otherwise it fails with `not_found` for the agent or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) for the workspace. Turns scoped to two different users therefore never reach the same workspace. All sessions of one user still share that user's workspace.
+
+Attaching a workspace to another agent shares it with that agent. If you attach a user's workspace to an agent you call with your tenant-wide client, that agent's turns reach the user's files too.
 
 ## Control network access [#control-network-access]
 
@@ -134,6 +151,236 @@ A workspace's tier cannot change. To change tiers, create another workspace and 
 Running processes and memory never come back, on either tier, so restart any server or background job the agent needs. Plus saves when the workspace stops, not after every turn. If a save fails, the next start is empty. Treat Plus as a way to keep work in progress, and have the agent publish anything your users must keep as an [artifact](/agents/artifacts).
 
 Deleting a workspace removes access to its files at once. Saved copies of a Plus workspace are erased within 30 days.
+
+## Verify that files survive a stop [#verify-durable-file-operations]
+
+Check that files survive between sessions: write a value in one session, then read it back in a new one. Check the saved tool result rather than the agent's reply, because the model can paraphrase.
+
+Use an agent with `write` and `read` turned on and attached to a Plus workspace for this check, and wait at least 15 minutes between the two steps, so the workspace stops and saves in between. A Core workspace would pass the check only while it is still running.
+
+First, ask the agent to write the file:
+
+```typescript tab="TypeScript"
+const sentinel = "BA_DURABLE_42";
+const writeTurn = await client.chat({
+  agentId,
+  message: {
+    id: crypto.randomUUID(),
+    role: "user",
+    parts: [
+      {
+        type: "text",
+        text: `Use write to create durable.txt containing exactly ${sentinel}.`,
+      },
+    ],
+  },
+});
+await writeTurn.toResponse().text();
+```
+
+```python tab="Python"
+import uuid
+
+sentinel = "BA_DURABLE_42"
+
+
+def ask(text: str) -> str:
+    message = {
+        "id": str(uuid.uuid4()),
+        "role": "user",
+        "parts": [{"type": "text", "text": text}],
+    }
+    with client.chat(agent_id=agent_id, message=message) as stream:
+        for _ in stream:
+            pass
+        return stream.session_id
+
+
+ask(f"Use write to create durable.txt containing exactly {sentinel}.")
+```
+
+```rust tab="Rust"
+use blazing_agents::messages::UserMessage;
+use blazing_agents::Client;
+use futures_util::TryStreamExt;
+
+let sentinel = "BA_DURABLE_42";
+
+async fn ask(
+    client: &Client,
+    agent_id: &str,
+    text: &str,
+) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    let mut stream = client.chat(agent_id, UserMessage::text(text)).await?;
+    let session_id = stream.session_id().to_string();
+    while stream.try_next().await?.is_some() {}
+    Ok(session_id)
+}
+
+ask(
+    &client,
+    agent_id,
+    &format!("Use write to create durable.txt containing exactly {sentinel}."),
+)
+.await?;
+```
+
+```go tab="Go"
+sentinel := "BA_DURABLE_42"
+
+ask := func(text string) (ba.SessionID, error) {
+	stream, err := client.Chat.Send(ctx, agentID, ba.Messages(ba.TextMessage(text)), ba.ChatParams{})
+	if err != nil {
+		return "", err
+	}
+	defer stream.Close()
+	for _, err := range stream.Events() {
+		if err != nil {
+			return "", err
+		}
+	}
+	return stream.SessionID(), nil
+}
+
+_, err := ask(fmt.Sprintf("Use write to create durable.txt containing exactly %s.", sentinel))
+return err
+```
+
+Then read it from a new session and check the `read` result:
+
+```typescript tab="TypeScript"
+const readTurn = await client.chat({
+  agentId,
+  message: {
+    id: crypto.randomUUID(),
+    role: "user",
+    parts: [{ type: "text", text: "Use read to read durable.txt." }],
+  },
+});
+const sessionId = await readTurn.sessionId;
+await readTurn.toResponse().text();
+
+const { data } = await client.sessions.messages({ agentId, sessionId });
+const output = data
+  .flatMap((message) => message.parts)
+  .find((part) => part.type === "tool-read" && part.state === "output-available")?.output;
+if (
+  typeof output !== "object" ||
+  output === null ||
+  !("content" in output) ||
+  output.content !== sentinel
+) {
+  throw new Error("Persistence check failed");
+}
+```
+
+```python tab="Python"
+session_id = ask("Use read to read durable.txt.")
+
+page = client.sessions.messages(agent_id=agent_id, session_id=session_id)
+outputs = [
+    part.model_dump().get("output")
+    for message in page.data
+    for part in message.parts
+    if part.type == "tool-read"
+]
+if not any(isinstance(o, dict) and o.get("content") == sentinel for o in outputs):
+    raise RuntimeError("Persistence check failed")
+```
+
+```rust tab="Rust"
+use blazing_agents::messages::UserMessage;
+use blazing_agents::Client;
+use futures_util::TryStreamExt;
+
+let sentinel = "BA_DURABLE_42";
+
+async fn ask(
+    client: &Client,
+    agent_id: &str,
+    text: &str,
+) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    let mut stream = client.chat(agent_id, UserMessage::text(text)).await?;
+    let session_id = stream.session_id().to_string();
+    while stream.try_next().await?.is_some() {}
+    Ok(session_id)
+}
+
+let session_id = ask(&client, agent_id, "Use read to read durable.txt.").await?;
+
+let page = client
+    .sessions()
+    .messages(agent_id, &session_id)
+    .await?;
+let found = page
+    .data
+    .iter()
+    .flat_map(|message| &message.parts)
+    .any(|part| {
+        part.kind == "tool-read"
+            && part.fields.get("state").and_then(|state| state.as_str())
+                == Some("output-available")
+            && part
+                .fields
+                .get("output")
+                .and_then(|output| output.get("content"))
+                .and_then(|content| content.as_str())
+                == Some(sentinel)
+    });
+if !found {
+    return Err("Persistence check failed".into());
+}
+```
+
+```go tab="Go"
+sentinel := "BA_DURABLE_42"
+
+ask := func(text string) (ba.SessionID, error) {
+	stream, err := client.Chat.Send(ctx, agentID, ba.Messages(ba.TextMessage(text)), ba.ChatParams{})
+	if err != nil {
+		return "", err
+	}
+	defer stream.Close()
+	for _, err := range stream.Events() {
+		if err != nil {
+			return "", err
+		}
+	}
+	return stream.SessionID(), nil
+}
+
+readSessionID, err := ask("Use read to read durable.txt.")
+if err != nil {
+	return err
+}
+
+page, err := client.Sessions.ListMessages(ctx, agentID, readSessionID, ba.ListSessionMessagesParams{})
+if err != nil {
+	return err
+}
+found := false
+for _, message := range page.Data {
+	for _, raw := range message.Parts {
+		var part struct {
+			Type   string `json:"type"`
+			State  string `json:"state"`
+			Output struct {
+				Content string `json:"content"`
+			} `json:"output"`
+		}
+		if json.Unmarshal(raw, &part) == nil && part.Type == "tool-read" &&
+			part.State == "output-available" && part.Output.Content == sentinel {
+			found = true
+		}
+	}
+}
+if !found {
+	return errors.New("persistence check failed")
+}
+return nil
+```
+
+Always read the whole stream, as these examples do. The turn finishes its tool work and saves the session only when the stream ends.
 
 ## Shared files and failed turns [#shared-files-and-failed-turns]
 

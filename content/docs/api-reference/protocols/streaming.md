@@ -14,11 +14,11 @@ cancellation and failures.
 
 | Surface                           | HTTP response                                                                                           | Body                          | SDK result                                              |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------- |
-| New Session Turn                  | `201`; `Location` contains the new Session ID; `text/event-stream`; `x-vercel-ai-ui-message-stream: v1` | AI SDK `UIMessageChunk` SSE   | `sessionId`, `toResponse()`                             |
-| Resumed Session Turn              | `200`; no `Location`; same stream headers                                                               | AI SDK `UIMessageChunk` SSE   | same, using the supplied Session ID                     |
+| New Session Turn                  | `201`; `Location` contains the new Session ID; `X-BA-Turn-Id`; `text/event-stream`; `x-vercel-ai-ui-message-stream: v1` | AI SDK `UIMessageChunk` SSE   | `sessionId`, `turnId`, `toResponse()`                   |
+| Resumed Session Turn              | `200`; no `Location`; `X-BA-Turn-Id`; same stream headers                                               | AI SDK `UIMessageChunk` SSE   | same, using the supplied Session ID                     |
 | Text generation                   | `200`; `text/plain; charset=utf-8`                                                                      | chunked text                  | `textStream`, awaited `text`, `toResponse()`            |
 | Object generation                 | `200`; `text/plain; charset=utf-8`                                                                      | chunked partial JSON text     | `partialObjectStream`, awaited `object`, `toResponse()` |
-| Tool approval continuation        | `200`; UI-message SSE headers                                                                           | AI SDK `UIMessageChunk` SSE   | `continueChat()` result                                 |
+| Tool approval continuation        | `200`; `X-BA-Turn-Id`; UI-message SSE headers                                                           | AI SDK `UIMessageChunk` SSE   | `continueChat()` result                                 |
 | Session steer submission          | `202`; `application/json`                                                                               | steer receipt and activity    | `submitInput()` resolved value                          |
 | Session turn stop                 | `200`; `application/json`                                                                               | stopped turn ID and activity  | `sessions.stop()` resolved value                        |
 
@@ -64,11 +64,15 @@ An ordinary failed or canceled chat turn leaves the transcript as it was,
 including the previous answer when you regenerate. A model spending stop
 instead keeps the messages and tool results that finished before the stop.
 Both still count toward usage, and tool
-side effects already performed are not undone. Tasks behave differently: each
-run starts a fresh session and saves the user message before generation, then
-saves the final assistant message, including any failure, when the run ends.
-Failed or canceled task runs therefore keep their transcript and failure
-details.
+side effects already performed are not undone. A turn that reaches the
+[turn deadline](/api-reference/protocols/service-limits#turn-deadline) is
+stopped like a canceled turn and leaves the transcript as it was.
+
+Tasks behave differently. Each run starts a fresh session and saves the user
+message when the run starts. The agent's messages, including any failure, are
+saved only when the run ends, so the transcript does not grow while the run
+works. Failed or canceled task runs therefore keep their transcript and
+failure details.
 
 Deciding a tool approval round and continuing the turn are one call:
 `POST /tool-approvals/continue` records the round's decisions, then streams

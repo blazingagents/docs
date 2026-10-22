@@ -5,7 +5,7 @@ description: Let an agent remember facts about each user across sessions.
 
 # Memory
 
-Memory lets an agent keep short notes that outlast a single conversation, such as "prefers concise status updates" or "works in the Berlin office". A note can belong to the whole agent or to one of your end users. The agent can save and look up notes itself, or you can have every turn start with the relevant notes already in context.
+Memory lets an agent keep short notes that outlast a single conversation, such as "prefers concise status updates" or "works in the Berlin office". A note can belong to the whole agent or to one of your end users. The agent can save and look up notes itself, or you can have every turn start with the newest notes already in context.
 
 Memory is for facts that change over time. A [session's messages](/platform/sessions-and-turns) cover one conversation, and [skills](/agents/skills) hold reusable instructions.
 
@@ -141,9 +141,13 @@ The answer mentions keeping updates concise, even though the question never said
 
 ## Who sees which notes [#who-sees-which-notes]
 
-Each note belongs to one agent. A note saved with `userId: ""` is general and every turn of that agent sees it. A note saved with a user ID is visible only to turns that pass the same `userId`. A turn with no `userId` sees only general notes.
+Each note belongs to one agent. A note saved with `userId: ""` is general. A note saved with a user ID belongs to that end user. Which notes a turn sees depends on how your backend calls Blazing Agents:
 
-A `userId` sorts notes. It is not a security boundary: a tenant-wide API key can read and change every note in your account, so your backend decides which user is which. See [tenancy and attribution](/platform/tenancy-and-attribution).
+- A turn with no `userId` sees only general notes.
+- A turn with a `userId`, made with your tenant-wide client, sees the general notes and that user's notes.
+- A turn made with a client scoped to one user with `forUser(userId)` sees only that user's notes. It never sees general notes, either at the start of the turn or through the memory tools.
+
+So if you scope requests with `forUser()`, save every note your agent needs with that user's ID. With a tenant-wide client, a `userId` only sorts notes. It is not a security boundary, so your backend decides which user is which. See [user labels and user scope](/platform/tenancy-and-attribution#user-labels-and-user-scope).
 
 ## Choose how the agent recalls notes [#choose-how-the-agent-recalls-notes]
 
@@ -204,7 +208,7 @@ return nil
 
 Search matches words, not meaning, so "status updates" finds notes containing those words but not "progress reports".
 
-Each agent holds up to 500 notes across all its users. Saving a note at that limit removes the one used least recently. Notes never expire on their own, so delete stale or sensitive notes yourself. Deleting the agent deletes its notes.
+An agent holds a [fixed number of notes](/api-reference/protocols/service-limits#memories-per-agent) across all its users. Saving a note at that limit removes the one used least recently. Notes never expire on their own, so delete stale or sensitive notes yourself. Deleting the agent deletes its notes.
 
 ## Next [#next]
 
