@@ -171,7 +171,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs"
 
 Get a task run.
 
-Returns a task run's current state and the agent configuration captured when it was queued. `status` moves from `queued` to `running` and ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota was reached or usage credit ran out; `error` says why and `errorCode` names the reason as an API error code. `error` also describes a failed run, and `errorCode` is set when the failure has a code, such as `provider_required`. `sessionId` and `turnId` stay `null` until the run is admitted and starts its session, so a blocked run never gets them, nor does a run that fails before starting, such as one whose saved agent configuration has no provider and model. Every final status sets `finishedAt` and lets the task start another run.
+Returns a task run's current state and the agent configuration captured when it was queued. `status` moves from `queued` to `running` and ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota was reached or usage credit ran out; `error` says why and `errorCode` names the reason as an API error code. `error` also describes a failed run, and `errorCode` is set when the failure has a code, such as `provider_required`. `sessionId` and `turnId` stay `null` until the run starts its session, so a blocked run never gets them, nor does a run that fails before starting, such as one whose saved agent configuration has no provider and model. Every final status sets `finishedAt` and lets the task start another run.
 
 #### Request
 
@@ -263,7 +263,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs/tr_1234567890AB
 
 List a task run's messages.
 
-Returns a task run's transcript with the run's `status`, `error`, and `finishedAt`, so one request tells you both what the agent said and whether the run is done. Pages come newest first, with messages in chronological order inside each page, the same as session messages. To follow a run as it works, save `latestCursor` and pass it as `after` to get only newer messages. Send `cursor` or `after`, not both. The page is empty until the run starts its session; while the run is still going, an empty page does not mean it is done.
+Returns a task run's transcript with the run's `status`, `error`, and `finishedAt`, so one request tells you both what the agent said and whether the run is done. Pages come newest first, with messages in chronological order inside each page, the same as session messages. While the run works, the transcript holds only its prompt; the agent's messages appear all at once when the run ends, so poll `status` to follow progress. Save `latestCursor` and pass it as `after` to get only messages newer than an earlier page. Send `cursor` or `after`, not both. The page is empty until the run starts its session.
 
 #### Request
 
