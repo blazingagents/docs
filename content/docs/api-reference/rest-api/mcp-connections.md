@@ -19,7 +19,7 @@ Lists your tenant's MCP connections, sorted by name. Credentials are never retur
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 There are no parameters and no request body.
 
@@ -76,11 +76,19 @@ Creates an MCP connection you can attach to any agent in your tenant. Names are 
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `(body)` | object | body | required | Raw `application/json` request body. |
+| `name` | string | body | required | Display name of the connection, unique within your tenant. 1–80 characters. |
+| `url` | string | body | required | Streamable HTTP URL of the MCP server. Use `https`, with no credentials, query, or fragment. Up to 2048 characters. |
+| `authType` | string | body | required | How Blazing Agents authenticates to the MCP server: `none`, `bearer`, `oauth_client_credentials`, or `oauth_authorization_code`. The other fields you send depend on it. |
+| `bearerToken` | string | body | required | Only when `authType` is `bearer`. Token sent as `Authorization: Bearer <token>` to the MCP server. Required when `authType` is `bearer`. Never returned. 1–8192 characters. |
+| `clientId` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client ID. Required with `clientSecret` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientSecret`. 1–2048 characters. |
+| `clientId` | string | body | required | Only when `authType` is `oauth_client_credentials`. OAuth client ID. Required with `clientSecret` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientSecret`. 1–2048 characters. |
+| `clientSecret` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client secret. Required with `clientId` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientId`. Never returned. 1–8192 characters. |
+| `clientSecret` | string | body | required | Only when `authType` is `oauth_client_credentials`. OAuth client secret. Required with `clientId` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientId`. Never returned. 1–8192 characters. |
+| `scope` | string | body |  | Only when `authType` is `oauth_authorization_code` or `oauth_client_credentials`. OAuth scope to request. Optional for either OAuth type. 1–2048 characters. |
 
 #### Response
 
@@ -134,7 +142,7 @@ Connects to the MCP server with the stored credentials and returns its server de
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -189,12 +197,19 @@ Replaces an MCP connection's server URL and credentials. The fields you send dep
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `id` | string | path | required | ID of the MCP connection. |
-| `(body)` | object | body | required | Raw `application/json` request body. |
+| `authType` | string | body | required | How Blazing Agents authenticates to the MCP server: `none`, `bearer`, `oauth_client_credentials`, or `oauth_authorization_code`. The other fields you send depend on it. |
+| `url` | string | body | required | Streamable HTTP URL of the MCP server. Use `https`, with no credentials, query, or fragment. Up to 2048 characters. |
+| `bearerToken` | string | body | required | Only when `authType` is `bearer`. Token sent as `Authorization: Bearer <token>` to the MCP server. Required when `authType` is `bearer`. Never returned. 1–8192 characters. |
+| `clientId` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client ID. Required with `clientSecret` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientSecret`. 1–2048 characters. |
+| `clientId` | string | body | required | Only when `authType` is `oauth_client_credentials`. OAuth client ID. Required with `clientSecret` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientSecret`. 1–2048 characters. |
+| `clientSecret` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client secret. Required with `clientId` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientId`. Never returned. 1–8192 characters. |
+| `clientSecret` | string | body | required | Only when `authType` is `oauth_client_credentials`. OAuth client secret. Required with `clientId` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientId`. Never returned. 1–8192 characters. |
+| `scope` | string | body |  | Only when `authType` is `oauth_authorization_code` or `oauth_client_credentials`. OAuth scope to request. Optional for either OAuth type. 1–2048 characters. |
 
 #### Response
 
@@ -252,7 +267,7 @@ Retrieves one MCP connection, including its current `status`. Credentials are ne
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -308,7 +323,7 @@ Renames an MCP connection. Send at least one field. The URL and credentials stay
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -368,7 +383,7 @@ Deletes an MCP connection and revokes its stored OAuth credentials. Detach the c
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |

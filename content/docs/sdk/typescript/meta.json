@@ -3,6 +3,7 @@
   "pages": [
     "index",
     "client",
+    "chat-transport",
     "agents",
     "workspaces",
     "skills",
@@ -15,6 +16,7 @@
     "prompts",
     "usage",
     "tenant",
-    "chat-integrations"
+    "chat-integrations",
+    "merchant"
   ]
 }

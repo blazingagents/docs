@@ -5,7 +5,9 @@ description: Read token, request, and duration totals for your tenant or one age
 
 # Usage
 
-`client.Usage` reads token, request, and duration usage. The overview is tenant only: a `*ba.UserClient` has `Usage.Get`, `Usage.Sessions`, and `Usage.ForAgent` but not `Overview`.
+`client.Usage` reads token, request, and duration usage.
+
+In a route that serves a signed-in end user, call `Get`, `Sessions`, and `ForAgent` on the [scoped client](/sdk/go/client#for-user) from `client.ForUser(userID)`, which counts only that user's usage. The tenant client counts every user's usage and is for your backend's administration. `Overview` is tenant only, so a `*ba.UserClient` does not have it.
 
 Examples are function bodies that receive `ctx context.Context`, `client *ba.Client`, `agentID ba.AgentID`, and `sessionID ba.SessionID`, and return an `error`. Every method also takes the per-call options `ba.WithRequestTimeout`, `ba.WithRequestHeader`, `ba.WithClientRequestID`, and `ba.CaptureResponse`.
 
@@ -25,7 +27,7 @@ return nil
 
 ## Date ranges [#date-ranges]
 
-Every usage params struct embeds a `*ba.DateRange`, whose `From` and `To` are the UTC `ba.Date` days to cover; `To` can be at most 31 days after `From`. Left nil, the period is the last 30 days ending today.
+Every usage params struct embeds a `*ba.DateRange`, whose `From` and `To` are the UTC `ba.Date` days to cover. Left nil, the period ends today. The [query window limit](/api-reference/protocols/service-limits#usage-query-window) sets the default length and how far apart `From` and `To` can be.
 
 ## Available operations [#available-operations]
 
@@ -53,7 +55,7 @@ return nil
 
 **Signature:** `func (s *UsageService) Overview(ctx context.Context, params UsageOverviewParams, opts ...RequestOption) (*UsageOverview, error)`
 
-The embedded `DateRange` limits the period, and `Limit` (1 to 20, default 5) sets rows per ranked breakdown. Returns [`*ba.UsageOverview`](#usageoverview) with `Totals`, `Daily`, `ByAgent`, `ByUser`, `ByModel`, and `ActiveAgentCount`. Fails with `*ba.APIError` whose `Code` is [`validation_failed`](/api-reference/protocols/errors#validation_failed).
+The embedded `DateRange` limits the period, and `Limit` sets rows per ranked breakdown, within the [overview limit](/api-reference/protocols/service-limits#usage-overview-top-n). Returns [`*ba.UsageOverview`](#usageoverview) with `Totals`, `Daily`, `ByAgent`, `ByUser`, `ByModel`, and `ActiveAgentCount`. Fails with `*ba.APIError` whose `Code` is [`validation_failed`](/api-reference/protocols/errors#validation_failed).
 
 ### `Get` [#get]
 
@@ -72,25 +74,29 @@ for _, bucket := range usage.Buckets {
 return nil
 ```
 
-**Signature:** `func (s *UsageService) Get(ctx context.Context, params UsageParams, opts ...RequestOption) (*Usage, error)`
+**Signature:** `func (s *UserUsageService) Get(ctx context.Context, params UsageParams, opts ...RequestOption) (*Usage, error)`
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `DateRange` | `*ba.DateRange` | The UTC days to cover |
 | `AgentID` | `*ba.AgentID` | Only usage by this agent |
 | `SessionID` | `*string` | Only usage in this session; `new("")` selects calls made without a session |
-| `UserID` | `*string` | Only usage for this end user; `new("")` selects tenant-level usage |
+| `UserID` | `*string` | For a tenant-wide view on the tenant client: only usage for this end user; `new("")` selects tenant-level usage. Leave it unset on a scoped client |
 | `GroupBy` | `*ba.UsageGroupBy` | `ba.UsageGroupByDay`, `ba.UsageGroupByAgent`, `ba.UsageGroupByModel`, `ba.UsageGroupBySession`, or `ba.UsageGroupByUser`. Session grouping returns the top sessions by total tokens |
-| `Limit` | `*int` | Sessions returned with session grouping, 1 to 200; other groupings ignore it. Defaults to 50 |
+| `Limit` | `*int` | Sessions returned with session grouping, within the [session ranking limit](/api-reference/protocols/service-limits#usage-session-top-n); other groupings ignore it |
 
 Returns [`*ba.Usage`](#usage). Fails with `validation_failed`.
 
 ### `Sessions` [#sessions]
 
-Gets the usage of specific sessions, 1 to 100 of them.
+Gets the usage of specific sessions, within the [batch limit](/api-reference/protocols/service-limits#usage-exact-session-batch). On a scoped client, name only that user's sessions.
 
 ```go
-usage, err := client.Usage.Sessions(ctx, ba.SessionUsageParams{
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+usage, err := user.Usage.Sessions(ctx, ba.SessionUsageParams{
 	SessionIDs: []ba.SessionID{sessionID},
 })
 if err != nil {
@@ -102,16 +108,20 @@ for _, entry := range usage.Data {
 return nil
 ```
 
-**Signature:** `func (s *UsageService) Sessions(ctx context.Context, params SessionUsageParams, opts ...RequestOption) (*SessionUsage, error)`
+**Signature:** `func (s *UserUsageService) Sessions(ctx context.Context, params SessionUsageParams, opts ...RequestOption) (*SessionUsage, error)`
 
 The embedded `DateRange` limits the period. An empty `SessionIDs` fails client-side with `*ba.ArgumentError`. Returns [`*ba.SessionUsage`](#sessionusagelist) with one `Data` entry per requested session, each with `SessionID` and `Totals`. Fails with `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `ForAgent` [#get-for-agent]
 
-Gets one agent's usage over a period. Tenant only.
+Gets one agent's usage over a period. On a `*ba.UserClient`, it counts only that user's usage of the agent.
 
 ```go
-usage, err := client.Usage.ForAgent(ctx, agentID, ba.AgentUsageParams{})
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+usage, err := user.Usage.ForAgent(ctx, agentID, ba.AgentUsageParams{})
 if err != nil {
 	return err
 }
@@ -119,9 +129,9 @@ fmt.Println(usage.Totals.OutputTokens)
 return nil
 ```
 
-**Signature:** `func (s *UsageService) ForAgent(ctx context.Context, agentID AgentID, params AgentUsageParams, opts ...RequestOption) (*Usage, error)`
+**Signature:** `func (s *UserUsageService) ForAgent(ctx context.Context, agentID AgentID, params AgentUsageParams, opts ...RequestOption) (*Usage, error)`
 
-Takes the same fields as [`Get`](#get) except `AgentID`. Returns [`*ba.Usage`](#usage). Fails with `validation_failed`.
+Takes the same fields as [`Get`](#get) except `AgentID`. Returns [`*ba.Usage`](#usage). An agent without usage, including one that does not exist, has zero totals and no buckets. Fails with `validation_failed`.
 
 ## Response models [#response-models]
 

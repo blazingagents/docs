@@ -9,8 +9,11 @@ description: List conversations, read transcripts, approve tool calls, and delet
 
 Examples assume `client = BlazingAgents()` with `agent_id` and `session_id` from an earlier chat. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names and use `async for` with `iter()`.
 
+In a route that serves a signed-in end user, call these methods on [`client.for_user(verified_user_id)`](/sdk/python/client#for-user), which returns only that user's records. The tenant client sees every user's records and is for your backend's administration. A session ID from a browser is safe to use only on the scoped client, which answers `not_found` for another user's session.
+
 ```python
-page = client.sessions.list(agent_id=agent_id, limit=10)
+user = client.for_user(verified_user_id)
+page = user.sessions.list(agent_id=agent_id, limit=10)
 for session in page.data:
     print(session.id, session.message_count, session.last_message_preview)
 ```
@@ -38,14 +41,15 @@ for session in page.data:
 Gets one page of an agent's sessions, most recently updated first.
 
 ```python
-page = client.sessions.list(agent_id=agent_id, user_id="customer_123", limit=25)
+user = client.for_user(verified_user_id)
+page = user.sessions.list(agent_id=agent_id, limit=25)
 if page.next_cursor is not None:
-    page = client.sessions.list(agent_id=agent_id, cursor=page.next_cursor, limit=25)
+    page = user.sessions.list(agent_id=agent_id, cursor=page.next_cursor, limit=25)
 ```
 
 **Signature:** `list(*, agent_id: str, user_id=..., cursor=..., limit=...) -> SessionsPage`
 
-`user_id` keeps only one end user's sessions, and `""` keeps tenant-level ones; omit it to include all. `limit` is 1 to 200 and defaults to 50. An unknown agent returns an empty page.
+A scoped client returns only its user's sessions. On the tenant client, for an administration view, `user_id` keeps only one end user's sessions, and `""` keeps tenant-level ones; omit it to include all. `limit` follows the [session page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages). An unknown agent returns an empty page.
 
 Returns `SessionsPage` with `data: list[Session]` and `next_cursor: str | None`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
@@ -67,14 +71,14 @@ Takes the same parameters as [`list()`](#list); `cursor` resumes from a saved pa
 Gets the most recently updated sessions across all your agents. Use it to build an inbox.
 
 ```python
-inbox = client.sessions.list_latest(user_id="customer_123", by_agent=True, limit=25)
+inbox = client.for_user(verified_user_id).sessions.list_latest(by_agent=True, limit=25)
 for session in inbox.data:
     print(session.agent_id, session.last_message_preview)
 ```
 
 **Signature:** `list_latest(*, user_id=..., cursor=..., limit=..., by_agent: bool | None = None) -> LatestSessionsPage`
 
-By default one agent can appear several times. `by_agent=True` returns at most one session per agent, its latest. `user_id` limits the result to one end user's sessions.
+By default one agent can appear several times. `by_agent=True` returns at most one session per agent, its latest. A scoped client returns only its user's sessions. On the tenant client, `user_id` limits the result to one end user's sessions.
 
 Returns `LatestSessionsPage`. Each item has the [`Session`](#session) fields plus the agent's `agent_id`, current `model`, `thinking_level`, and `status` (`"active"` or `"disabled"`). Disabled agents are included. Raises `validation_failed` or `invalid_cursor`.
 
@@ -96,12 +100,13 @@ print(session.agent_config.model)
 Reads a session's transcript, or polls it for new messages.
 
 ```python
-page = client.sessions.messages(agent_id=agent_id, session_id=session_id, limit=50)
+user = client.for_user(verified_user_id)
+page = user.sessions.messages(agent_id=agent_id, session_id=session_id, limit=50)
 for message in page.data:
     print(message.role, [part.type for part in message.parts])
 
 if page.latest_cursor is not None:
-    newer = client.sessions.messages(
+    newer = user.sessions.messages(
         agent_id=agent_id,
         session_id=session_id,
         after=page.latest_cursor,
@@ -110,7 +115,7 @@ if page.latest_cursor is not None:
 
 **Signature:** `messages(*, agent_id: str, session_id: str, cursor=..., after=..., limit=...) -> SessionMessagesPage`
 
-Without a cursor you get the newest messages, in chronological order. To page further back, pass `next_cursor` as `cursor`. To poll for new messages, save `latest_cursor` and pass it as `after`; when a forward page has more, pass its `next_cursor` as the next `after`. Do not pass both `cursor` and `after`. `limit` is 1 to 200 and defaults to 50. `after` does not return the assistant message that a tool approval decision or continuation updated in place. While a tool part is `approval-requested` or `approval-responded`, reload the newest page without a cursor.
+Without a cursor you get the newest messages, in chronological order. To page further back, pass `next_cursor` as `cursor`. To poll for new messages, save `latest_cursor` and pass it as `after`; when a forward page has more, pass its `next_cursor` as the next `after`. Do not pass both `cursor` and `after`. `limit` follows the [message page limit](/api-reference/protocols/service-limits#session-or-task-run-message-page). `after` does not return the assistant message that a tool approval decision or continuation updated in place. While a tool part is `approval-requested` or `approval-responded`, reload the newest page without a cursor.
 
 Returns `SessionMessagesPage` with `data: list[SessionMessage]`, `next_cursor`, and `latest_cursor`. Raises `validation_failed` when you combine `cursor` and `after`, `invalid_cursor`, or [`not_found`](/api-reference/protocols/errors#not_found).
 
@@ -166,7 +171,7 @@ print(result.data.state, result.activity.state)
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `request_id` | `str` | Your ID for this steer, 1 to 128 characters, other than `.` or `..` |
+| `request_id` | `str` | Your ID for this steer, within the [steer request ID limit](/api-reference/protocols/service-limits#steer-request-id) |
 | `message` | `Mapping[str, object]` | A user message with text and image parts |
 
 Resending the same `request_id` with the same message returns the same receipt, so retry with the original values after a timeout. A call that cannot steer, because no turn is running or can take one, raises [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and saves nothing; keep the message in your app's own queue and send it later as an ordinary `chat()` message. Raises `validation_failed`, `not_found`, or [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `request_id` or message ID was already used for different content.
@@ -187,7 +192,7 @@ print(page.activity.state, len(pending))
 | --- | --- | --- | --- |
 | `include_completed` | `bool` | `False` | Also return `committed` and `not_placed` receipts |
 | `cursor` | `str` | none | `next_cursor` from the previous page |
-| `limit` | `int` | `100` | 1 to 200 per page |
+| `limit` | `int` | Per [service limits](/api-reference/protocols/service-limits#session-input-page) | Page size |
 
 Without `include_completed`, you get only the `accepted` receipts the running turn has not saved yet, so your app can show them to the user. To watch for changes, call it again without a cursor; the cursor only pages through a long list. `activity` reports `idle`, `running`, `stopping`, or `approval`, with the running `turn_id`. Raises `validation_failed`, `invalid_cursor`, or `not_found`.
 
@@ -233,7 +238,7 @@ The async client has the same parameters; await `client.sessions.fork(...)`. `ex
 
 Select a message whose top-level `branchable` is `true`. Streaming replies and pending approvals are ineligible. Pick the reply from `sessions.messages()`, not from the live stream. Stream chunks don't include `branchable`. A reply that is not in the history yet is not eligible. An earlier accepted reply remains eligible while the source runs. The child inherits the source's saved configuration, user label, and metadata; workspace files and memories stay shared and live.
 
-Use a nonblank idempotency key of at most 200 characters. Save it before sending and reuse the exact source, message, and key after a lost response. Creation returns HTTP `201`; identical replay returns HTTP `200` and the same child, even if the source was deleted. Forking runs no model or tool and creates no usage. Continue through `chat()` with the child's ID; later turns have normal usage.
+Use a nonblank idempotency key within the [fork key limit](/api-reference/protocols/service-limits#fork-idempotency-key). Save it before sending and reuse the exact source, message, and key after a lost response. Creation returns HTTP `201`; identical replay returns HTTP `200` and the same child, even if the source was deleted. Forking runs no model or tool and creates no usage. Continue through `chat()` with the child's ID; later turns have normal usage.
 
 Errors: `validation_failed` (`400`) for a malformed ID or body, `idempotency_conflict` (`409`) for the same key with another message, `session_fork_unavailable` (`409`) for a removed or ineligible reply, `session_fork_deleted` (`410`) for a replay whose child was deleted, and `not_found` (`404`) for a missing or inaccessible source or agent.
 
@@ -254,14 +259,14 @@ A `SessionMessage` has `id`, `role` (`"system"`, `"user"`, or `"assistant"`), `p
 
 ### `ToolApprovals` [#toolapprovals]
 
-`data` is a list of `ToolApproval`. `continuation` holds the session's unfinished continuation (`id` and `state`), or `None` when there is none.
+`data` is a list of `ToolApproval`. Code that branches on `tool.type` must handle `"builtin"`, `"mcp"`, and `"function"`. `continuation` holds the session's unfinished continuation (`id` and `state`), or `None` when there is none.
 
 | `ToolApproval` field | Type | Description |
 | --- | --- | --- |
 | `approval_id` | `str` | ID to pass in a decision to `continue_chat()` |
 | `tool_call_id` | `str` | The model's tool call ID |
 | `tool_name` | `str` | Tool name |
-| `tool` | `ToolReference \| None` | Built-in tool, or MCP tool with its `connection_id` |
+| `tool` | `ToolExecutionReference \| None` | Built-in tool, MCP tool with its `connection_id`, or backend function with its `name` (`type == "function"`) |
 | `input` | `object` | Exact arguments the agent proposed |
 | `decision` | `str` | `"pending"`, `"approved"`, or `"denied"` |
 | `reason` | `str \| None` | Reason given with the decision |

@@ -246,7 +246,7 @@ If you turn a limit off and on again within one period, its spending count picks
 
 ### Understand the reported dollars [#spending-limit-costs]
 
-The limit counts model tokens, including cache tokens, priced from the model price list built into Blazing Agents. It excludes Blazing Agents platform, workspace, storage, and network charges. This cost can differ from your provider's invoice or negotiated prices.
+The limit counts model tokens, including cache tokens, priced from the model price list built into Blazing Agents. It excludes Blazing Agents platform, workspace, storage, network, and web search charges. This cost can differ from your provider's invoice or negotiated prices.
 
 Models from a `custom` provider, and models missing from that price list, cannot be priced. While a limit applies, turns that use them are refused. If a model response arrives without a cost Blazing Agents can determine, its cost is not counted and the turn stops after that response with `unpriced`.
 
@@ -273,7 +273,7 @@ Each turn adds one usage record with input tokens, output tokens, one request, d
 
 Failed and cancelled turns are recorded too. A turn that fails before the model responds records zero tokens but still counts the request and duration. If it fails after some model steps finished, the tokens from those steps stay in usage.
 
-These reports show model usage, not the compute and network charges on your Blazing Agents bill. Those charges can reach your bill some time after the work runs, once they are measured.
+These reports show model usage, not the compute, network, and web search charges on your Blazing Agents bill. Those charges can reach your bill some time after the work runs, once they are measured.
 
 - **Compute:** if a later measurement is lower, Blazing Agents adds a separate correction in your favor and leaves the original charge as it was. A higher later measurement is never charged to you.
 - **Network egress:** Blazing Agents charges it every hour against the billing period's running total. A later measurement inside the period, higher or lower, changes the next hourly charge. About an hour after the period ends, Blazing Agents settles it once more, and later measurements no longer change it. That last settlement can draw on the next period's usage credit.
@@ -283,11 +283,11 @@ These reports show model usage, not the compute and network charges on your Blaz
 - `client.usage.get()` covers your whole account, and `client.usage.getForAgent()` covers one agent. Group results by `day`, `agent`, `model`, `session`, or `user`, and filter by date range, agent, session, or `userId`.
 - `client.usage.overview()` returns what a dashboard needs in one call: totals, every day in the range, your top agents and users, the model mix, and how many agents were active.
 
-Dates are UTC and inclusive. Pass both `from` and `to`, or neither for the last 30 days. Usage includes finished turns, not one still running. See [`usage.get()`](/sdk/typescript/usage#get) for ranges and limits.
+Dates are UTC and inclusive. Pass both `from` and `to`, or neither for the [default window](/api-reference/protocols/service-limits#usage-query-window). Usage includes finished turns, not one still running. See [`usage.get()`](/sdk/typescript/usage#get) for ranges and limits.
 
 ## How quotas work [#how-quotas-work]
 
-A quota sets a monthly token ceiling, a request ceiling, or both, plus the day of the month (1 to 28) when the window resets. Update it with `client.tenant.patch()` in TypeScript, `client.tenant.update()` in Python, `client.tenant().update().quota(QuotaInput::new(reset_day)...)` in Rust, or `client.Tenant.Update()` with a `Quota` in Go; remove it with `quota: null` (`quota=None` in Python, `.clear_quota()` in Rust, `ba.Null[ba.QuotaInput]()` in Go). With no quota, usage is unlimited.
+A quota sets a monthly token ceiling, a request ceiling, or both, plus the [day of the month](/api-reference/protocols/service-limits#quota-reset-day) when the window resets. Update it with `client.tenant.patch()` in TypeScript, `client.tenant.update()` in Python, `client.tenant().update().quota(QuotaInput::new(reset_day)...)` in Rust, or `client.Tenant.Update()` with a `Quota` in Go; remove it with `quota: null` (`quota=None` in Python, `.clear_quota()` in Rust, `ba.Null[ba.QuotaInput]()` in Go). With no quota, usage is unlimited.
 
 Blazing Agents checks the current window before each turn starts. It does not stop a turn that crosses the ceiling while running, and several turns running at once can overshoot before their usage lands. Leave headroom.
 
@@ -296,15 +296,19 @@ Blazing Agents checks the current window before each turn starts. It does not st
 | Situation | What you see |
 | --- | --- |
 | A chat or generation call starts while usage is over the ceiling | HTTP `429` with [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded) |
-| A chat or generation call starts without an active plan or usage credit | HTTP `402` with [`subscription_required`](/api-reference/protocols/errors#subscription_required) or [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required) |
+| Any call without an active plan, reads included | HTTP `402` with [`subscription_required`](/api-reference/protocols/errors#subscription_required). Tenant settings, chat connections, stopping a turn, and cancelling a task run still work |
+| A chat or generation call starts without usage credit | HTTP `402` with [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required) |
 | A task run starts while usage is over the ceiling | The run ends as `blocked`, not `failed`, without running |
 | A task run lacks a required subscription or usage credit | The run ends as `blocked` |
 | A task run starts while a model spending limit has nothing left | The run ends as `blocked`, without running |
+| A task run starts while your [monetization guard](/platform/monetization) refuses the end user | The run ends as `blocked`, without running |
+| A task run starts after you requested account deletion | The run ends as `blocked`, without running |
 | Billing status cannot be checked | The run ends as `failed` |
-| Too many interactive turns run at once | HTTP `429` with [`rate_limited`](/api-reference/protocols/errors#rate_limited) |
-| Too many task runs are active at once | Extra runs wait as `queued` until a slot frees up |
+| More turns run at once than your plan's [concurrent turn limit](/api-reference/protocols/service-limits#concurrent-turns) | HTTP `429` with [`rate_limited`](/api-reference/protocols/errors#rate_limited) |
+| You create agents, tasks, or workspaces faster than the [creation rate](/api-reference/protocols/service-limits#tenant-resource-creation-rate) | HTTP `429` with `rate_limited` and a `Retry-After` header |
+| More task runs are active than your plan's [concurrent task run limit](/api-reference/protocols/service-limits#concurrent-task-runs) | Extra runs wait as `queued` until a slot frees up |
 
-Developer accounts can run 25 interactive turns and 50 task runs at the same time. Pro accounts can run 50 interactive turns and 100 task runs. A blocked task run frees the task for its next scheduled time, which runs normally once the quota allows.
+A `blocked` run's `errorCode` names the check that stopped it, such as `quota_exceeded`, `usage_credit_required`, `model_spending_limit_exceeded`, `merchant_balance_required`, or `tenant_deleting`. A blocked task run frees the task for its next scheduled time, which runs normally once the quota allows.
 
 ## Production notes [#production-notes]
 

@@ -21,11 +21,13 @@ const result = await client.completion({
 console.log(await result.text);
 ```
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/typescript/client#for-user) from `client.forUser(verifiedUserId)`. It creates prompts that belong to that end user, returns only theirs, and answers `not_found` for anyone else's. The tenant client sees every user's prompts and is for your backend's administration.
+
 Every method takes one input object and accepts an optional `abortSignal`.
 
 ## Templates [#templates]
 
-- Variable names match `[A-Za-z_][A-Za-z0-9_]*`. A template has up to 10 different variables and 10,240 characters.
+- Variable names match `[A-Za-z_][A-Za-z0-9_]*`. A template stays within the [prompt field limits](/api-reference/protocols/service-limits#prompt-fields) for length and distinct variables.
 - Blazing Agents reads the variables from the template and returns them in `variables`.
 - When you run a prompt, pass every variable and no others, or the turn fails with [`prompt_variable_missing`](/api-reference/protocols/errors#prompt_variable_missing) or [`prompt_variable_unknown`](/api-reference/protocols/errors#prompt_variable_unknown).
 - Only the filled-in text is saved in the session, so editing or deleting a prompt later does not change past conversations.
@@ -58,34 +60,35 @@ const prompt = await client.prompts.create({
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `name` | `string` | yes | none | Display name, 1 to 80 characters. Prompts can share a name |
+| `name` | `string` | yes | none | Display name within the [prompt field limits](/api-reference/protocols/service-limits#prompt-fields). Prompts can share a name |
 | `template` | `string` | yes | none | The template text |
 | `agentId` | `string \| null` | no | `null` | Agent to link it to, for your own grouping |
-| `userId` | `string` | no | `""` | The end user it belongs to; cannot change later |
+| `userId` | `string` | no | `""` | The end user it belongs to; cannot change later. A scoped client fills it in |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your labels |
 
 Deleting the linked agent also deletes the prompt. Returns [`PromptResponse`](#promptresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed) and [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
 
 ### `list()` [#list]
 
-Lists your prompts, most recently updated first.
+Lists your prompts, newest first.
 
 **Signature:** `list(input?: { userId?: string; agentId?: string; cursor?: string; limit?: number } & ResourceRequestOptions): Promise<PromptsResponse>`
 
 ```typescript
-const page = await client.prompts.list({ agentId, limit: 50 });
+const user = client.forUser(verifiedUserId);
+const page = await user.prompts.list({ agentId, limit: 50 });
 for (const prompt of page.data) console.log(prompt.id, prompt.name);
 const next = page.nextCursor
-  ? await client.prompts.list({ agentId, cursor: page.nextCursor, limit: 50 })
+  ? await user.prompts.list({ agentId, cursor: page.nextCursor, limit: 50 })
   : null;
 ```
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `userId` | `string` | no | Only this end user's prompts; `""` for tenant-level ones |
+| `userId` | `string` | no | Tenant client only: this end user's prompts; `""` for tenant-level ones |
 | `agentId` | `string` | no | Only prompts linked to this agent |
 | `cursor` | `string` | no | `nextCursor` from the previous page |
-| `limit` | `number` | no | Page size, 1 to 100; defaults to 50 |
+| `limit` | `number` | no | Page size; defaults to 50. See the [prompt page limit](/api-reference/protocols/service-limits#prompt-page) |
 
 Returns `{ data: PromptResponse[], nextCursor: string | null }`. Keep the same filters when paging. Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), and `not_found` when a user-scoped client filters by an agent it does not own.
 

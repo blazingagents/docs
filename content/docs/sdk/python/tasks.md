@@ -9,6 +9,8 @@ description: Run agents in the background, on demand or on a schedule, and follo
 
 Examples assume `client = BlazingAgents()` and an `agent_id`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names and use `async for` with `iter()` and `iter_runs()`.
 
+In a route that serves a signed-in end user, call these methods on [`client.for_user(verified_user_id)`](/sdk/python/client#for-user), which returns only that user's records. The tenant client sees every user's records and is for your backend's administration. A scoped task runs only on an agent that belongs to the user, attached to a workspace that also belongs to the user.
+
 ```python
 created = client.tasks.create(
     agent_id=agent_id,
@@ -23,7 +25,7 @@ print(run.status)
 
 ## Runs and their status [#runs-and-their-status]
 
-A run moves from `"queued"` to `"running"`, then ends as `"succeeded"`, `"failed"`, `"canceled"`, or `"blocked"`. `"blocked"` means the run was not allowed to start, for example because your tenant's quota or a model spending limit ran out; it is not an execution failure. A task has at most one active run at a time, and a scheduled run that would overlap an active one is skipped.
+A run moves from `"queued"` to `"running"`, then ends as `"succeeded"`, `"failed"`, `"canceled"`, or `"blocked"`. `"blocked"` means the run was not allowed to start, for example because your tenant's quota or a model spending limit ran out; it is not an execution failure. A task has [one active run](/api-reference/protocols/service-limits#active-task-run) at a time, and a scheduled run that would overlap an active one is skipped.
 
 Each run gets a fresh session. `session_id` stays `None` until that session exists, and `turn_id` identifies the run's metered turn.
 
@@ -70,13 +72,13 @@ task = created.task
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
 | `agent_id` | `str` | required | Agent that runs the task |
-| `name` | `str` | required | 1 to 80 characters |
-| `prompt` | `str` | required | Message sent to the agent, up to 6,000 characters |
+| `name` | `str` | required | Name, within the [task field limits](/api-reference/protocols/service-limits#task-fields) |
+| `prompt` | `str` | required | Message sent to the agent, within the [task field limits](/api-reference/protocols/service-limits#task-fields) |
 | `schedule` | `TaskScheduleInput \| None` | `None` | When to run; `None` means on demand only |
 | `enabled` | `bool` | `True` | Whether the schedule fires |
 | `submit` | `bool` | `False` | Also start the first run now |
 | `idempotency_key` | `str` | none | Reuse the same task and initial run when a create request is retried |
-| `user_id` | `str` | `""` | End user; fixed after creation and copied to every run |
+| `user_id` | `str` | `""` | End user; fixed after creation and copied to every run. A scoped client fills it in |
 | `metadata` | `dict[str, object]` | `{}` | Your own data, copied to every run |
 
 A schedule is one of:
@@ -84,12 +86,12 @@ A schedule is one of:
 | `kind` | `config` |
 | --- | --- |
 | `"once"` | `{"at": "2026-10-01T09:00:00+01:00"}`, an ISO datetime with an offset |
-| `"interval"` | `{"every_ms": 3_600_000}`, at least `60000` |
+| `"interval"` | `{"every_ms": 3_600_000}`, no shorter than the [minimum interval](/api-reference/protocols/service-limits#task-interval) |
 | `"cron"` | `{"expression": "0 9 * * 1-5"}`, a five-field expression, with optional `"timezone"` (default `"UTC"`) and `"stagger_ms"` |
 
-The API checks the schedule and raises `validation_failed` for a malformed one. `submit=True` does not make creation safe to retry: retrying creates another task.
+The API checks the schedule and raises `validation_failed` for a malformed one.
 
-Without `idempotency_key`, calling `create()` twice creates two tasks. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID. Reusing a key with different task fields, or after deleting the task, raises `idempotency_conflict`. The key must not be blank.
+To retry `create()` safely, pass an `idempotency_key`. Without a key, each call creates another task, with or without `submit=True`. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID, and starts no second run. Reusing a key with different task fields, or after deleting the task, raises `idempotency_conflict`. The key must not be blank.
 
 Returns `TaskCreateResponse` with `task` and `run_id`, which is set only when `submit=True`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found) for an unknown agent, `idempotency_conflict`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) for the admin agent, or [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit=True` and the agent is disabled.
 
@@ -98,12 +100,13 @@ Returns `TaskCreateResponse` with `task` and `run_id`, which is set only when `s
 Gets one page of tasks, newest first.
 
 ```python
-page = client.tasks.list(agent_id=agent_id, limit=25)
+user = client.for_user(verified_user_id)
+page = user.tasks.list(agent_id=agent_id, limit=25)
 ```
 
 **Signature:** `list(*, agent_id=..., user_id=..., cursor=..., limit=...) -> TasksPage`
 
-Both filters are optional; `user_id=""` returns tenant-level tasks. `limit` is 1 to 200 and defaults to 50. Returns `TasksPage` with `data: list[TaskListItem]` and `next_cursor`. Raises `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
+Both filters are optional. A scoped client returns only its user's tasks. On the tenant client, `user_id` filters by end user, and `user_id=""` returns tenant-level tasks. `limit` follows the [task page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages). Returns `TasksPage` with `data: list[TaskListItem]` and `next_cursor`. Raises `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `iter()` [#iter]
 
@@ -215,9 +218,10 @@ Returns [`TaskRun`](#taskrun). Poll it until `status` is final. Raises `validati
 Reads a run's transcript, or polls it for new messages.
 
 ```python
-page = client.tasks.run_messages(task.id, run_id, limit=50)
+user = client.for_user(verified_user_id)
+page = user.tasks.run_messages(task.id, run_id, limit=50)
 if page.latest_cursor is not None:
-    newer = client.tasks.run_messages(task.id, run_id, after=page.latest_cursor)
+    newer = user.tasks.run_messages(task.id, run_id, after=page.latest_cursor)
 ```
 
 **Signature:** `run_messages(task_id: str, run_id: str, *, cursor=..., after=..., limit=...) -> TaskRunMessagesPage`

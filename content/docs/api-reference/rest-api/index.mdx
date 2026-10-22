@@ -14,8 +14,9 @@ streams. Set `BLAZING_AGENTS_BASE_URL` to that origin to run the cURL examples
 on these pages.
 
 <Callout type="warn" title="Keep bearer credentials on the backend">
-  A Blazing Agents API key grants access to your whole tenant. Never put it in
-  browser or mobile code; route end-user requests through your backend.
+  A Blazing Agents API key acts for your whole tenant unless your backend
+  scopes the request to one end user. Never put it in browser or mobile code;
+  route end-user requests through your backend.
 </Callout>
 
 ```bash
@@ -25,13 +26,16 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents" \
 
 ## Conventions [#conventions]
 
-Requests and responses use JSON, except avatar uploads, which use multipart
-form data. Generation and session turns stream their output. Every request is
-scoped to the tenant that owns the credential.
+Requests and responses use JSON, with a few exceptions. Avatar and skill
+archive uploads use multipart form data, and skill files are read and written
+as raw bytes. Generation and session turns stream their output. Every request is scoped to the tenant that owns the credential.
 
-Every endpoint in this reference accepts a `ba_` API key. The pages are
-generated from the platform's OpenAPI contract, which is also served at
-`/openapi.json`. Endpoints that only the dashboard can call, such as API key
+Every endpoint in this reference accepts an API key and says which
+[access level](/api-reference/rest-api/authentication#access-levels) it needs
+and whether it accepts an
+[end-user scope](/api-reference/rest-api/authentication#end-user-scope). The
+pages are generated from the platform's OpenAPI contract, which is also served
+at `/openapi.json`. Endpoints that only the dashboard can call, such as API key
 management, are not listed here.
 
 Every response carries an `X-Request-Id` header in `req_…` format. Log it with

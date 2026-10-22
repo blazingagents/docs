@@ -82,15 +82,23 @@ Both run the same agent with the same tools, skills, MCP connections, memory, an
 
 ## Relay chat to your frontend [#relay-chat-to-your-frontend]
 
-Your backend holds the API key and passes the stream through unchanged:
+Your backend holds the API key, signs the user in, and passes the stream through unchanged. It calls the user's own agent through a client scoped to that user, so Blazing Agents refuses another user's session. Here `accounts` stands in for your sign-in and storage: it maps a session token to the user and the agent you [created for them](/platform/tenancy-and-attribution#scoped-turn-requirements).
 
 ```typescript tab="TypeScript"
+const accounts = new Map<string, { userId: string; agentId: string }>();
+
 export async function POST(request: Request) {
+  const token = request.headers.get("authorization")?.replace("Bearer ", "");
+  const account = token ? accounts.get(token) : undefined;
+  if (!account) {
+    return new Response("unauthorized", { status: 401 });
+  }
   const { message, sessionId } = await request.json();
-  const result = await client.chat({
-    agentId,
+  const result = await client.forUser(account.userId).chat({
+    agentId: account.agentId,
     message,
     ...(sessionId ? { sessionId } : {}),
+    abortSignal: request.signal,
   });
   return result.toResponse();
 }
@@ -99,18 +107,23 @@ export async function POST(request: Request) {
 ```python tab="Python"
 from blazing_agents import AsyncBlazingAgents
 from fastapi import FastAPI, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 app = FastAPI()
 client = AsyncBlazingAgents()
+accounts: dict[str, tuple[str, str]] = {}
 
 
 @app.post("/api/chat")
-async def chat(request: Request) -> StreamingResponse:
+async def chat(request: Request) -> StreamingResponse | JSONResponse:
+    token = request.headers.get("authorization", "").removeprefix("Bearer ")
+    if token not in accounts:
+        return JSONResponse({"error": "unauthorized"}, status_code=401)
+    user_id, user_agent_id = accounts[token]
     body = await request.json()
     session_id = body.get("sessionId")
-    stream = await client.chat(
-        agent_id=agent_id,
+    stream = await client.for_user(user_id).chat(
+        agent_id=user_agent_id,
         message=body["message"],
         **({"session_id": session_id} if session_id else {}),
     )
@@ -121,15 +134,21 @@ async def chat(request: Request) -> StreamingResponse:
 ```
 
 ```rust tab="Rust"
+use std::collections::HashMap;
+use std::sync::Arc;
+
 use axum::body::Body;
 use axum::extract::State;
-use axum::http::{header, HeaderValue, StatusCode};
+use axum::http::{header, HeaderMap, HeaderValue, StatusCode};
 use axum::response::Response;
 use axum::routing::post;
 use axum::{Json, Router};
 use blazing_agents::messages::UserMessage;
 use blazing_agents::Client;
 use serde::Deserialize;
+
+/// Maps a session token to the user ID and that user's agent ID.
+type Accounts = Arc<HashMap<String, (String, String)>>;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -139,10 +158,20 @@ struct ChatRequest {
 }
 
 async fn chat(
-    State((client, agent_id)): State<(Client, String)>,
+    State((client, accounts)): State<(Client, Accounts)>,
+    headers: HeaderMap,
     Json(body): Json<ChatRequest>,
 ) -> Result<Response, StatusCode> {
-    let call = client.chat(&agent_id, body.message);
+    let (user_id, user_agent_id) = headers
+        .get(header::AUTHORIZATION)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.strip_prefix("Bearer "))
+        .and_then(|token| accounts.get(token))
+        .ok_or(StatusCode::UNAUTHORIZED)?;
+    let user_client = client
+        .for_user(user_id)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let call = user_client.chat(user_agent_id, body.message);
     let stream = match body.session_id {
         Some(session_id) => call.session(session_id).await,
         None => call.await,
@@ -171,9 +200,10 @@ async fn chat(
     Ok(response)
 }
 
+let accounts: Accounts = Arc::new(HashMap::new());
 let app: Router = Router::new()
     .route("/api/chat", post(chat))
-    .with_state((client, agent_id.to_owned()));
+    .with_state((client, accounts));
 ```
 
 ```go tab="Go"
@@ -182,13 +212,30 @@ type chatRequest struct {
 	SessionID ba.SessionID   `json:"sessionId"`
 }
 
+type account struct {
+	UserID  string
+	AgentID ba.AgentID
+}
+
+accounts := map[string]account{}
+
 http.HandleFunc("POST /api/chat", func(w http.ResponseWriter, r *http.Request) {
+	user, ok := accounts[strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")]
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
 	var body chatRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
-	stream, err := client.Chat.Send(r.Context(), agentID, ba.Messages(body.Message),
+	userClient, err := client.ForUser(user.UserID)
+	if err != nil {
+		http.Error(w, "invalid user", http.StatusInternalServerError)
+		return
+	}
+	stream, err := userClient.Chat.Send(r.Context(), user.AgentID, ba.Messages(body.Message),
 		ba.ChatParams{SessionID: body.SessionID})
 	if err != nil {
 		status := http.StatusInternalServerError
@@ -210,16 +257,15 @@ http.HandleFunc("POST /api/chat", func(w http.ResponseWriter, r *http.Request) {
 return nil
 ```
 
-Without a `sessionId`, the call starts a new session and the response carries its ID in the `location` header. On the frontend, `useChat` with `BlazingAgentsChatTransport` renders the stream, reads that header, and sends the session ID back on the next message. [Build a chatbot](/getting-started/chatbot) shows the full frontend.
+Without a `sessionId`, the call starts a new session and the response carries its ID in the `location` header. On the frontend, `useChat` with `BlazingAgentsChatTransport` renders the stream, reads that header, and sends the session ID back on the next message. A session ID that belongs to another user returns [`not_found`](/api-reference/protocols/errors#not_found). [Build a chatbot](/getting-started/chatbot) shows the full frontend.
 
 ### What to add next [#relay-what-to-add-next]
 
-Before real users reach this endpoint, add the checks below. In TypeScript, `createChatRelay` does all of them for you; [connect Blazing Agents to your app](/getting-started/connect-your-app) shows it, and the same steps by hand in Python, Rust, and Go.
+Before real users reach this endpoint, replace the demo pieces. In TypeScript, [`createChatRelay`](/sdk/typescript/chat-transport) does the relay part for you; [connect Blazing Agents to your app](/getting-started/connect-your-app) shows it, and the same endpoint in Python, Rust, and Go.
 
-- **Sign-in.** Find out who the user is before you call Blazing Agents, and reject the request if you cannot.
-- **Session ownership.** Before you continue a session, check that it belongs to the signed-in user. The session ID is ready before the answer finishes (`await result.sessionId` in TypeScript, `stream.session_id` in Python, `stream.session_id()` in Rust, `stream.SessionID()` in Go), so save its owner right away.
-- **Usage labels.** Pass the user's ID as `userId` (`user_id` in Python, `.user_id()` on the call in Rust, the `UserID` params field in Go) to label usage per end user. It does not grant access; your ownership check does.
-- **Stopping.** In TypeScript, pass `abortSignal: request.signal` so a user who closes the tab stops the turn.
+- **Sign-in.** Find out who the user is from your own sign-in, never from the request body, and reject the request if you cannot.
+- **One agent per user.** Create each user's agent once with the scoped client and store its ID with the user. A scoped turn needs an agent and workspace of that user's own, and one agent shared by every user would also share its files. See [what a scoped turn needs](/platform/tenancy-and-attribution#scoped-turn-requirements).
+- **Stopping.** In TypeScript, pass `abortSignal: request.signal`, as above, so a user who closes the tab stops the turn.
 
 A chat stream has one reader. In TypeScript, call either `toResponse()` or `toStream()` once; a second call throws `stream_error`. `sessionId` stays available either way.
 

@@ -55,7 +55,7 @@ A USD allowance for model tokens, priced from the built-in model price list or t
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -102,12 +102,15 @@ A USD allowance for model tokens, priced from the built-in model price list or t
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `spendingLimit` | object \| null | body | required | Model-only USD allowance and UTC reset schedule. Set null to disable the limit. |
+| `spendingLimit.amountUsd` | number | body | required | More than 0, up to 1000000000. |
+| `spendingLimit.resetStartDate` | string | body | required | A `YYYY-MM-DD` date. |
+| `spendingLimit.resetInterval` | string | body | required | One of `daily`, `weekly`, `biweekly`, `monthly`. |
 
 #### Response
 
@@ -152,7 +155,7 @@ Lists your agents, newest first. Filter by end user or by workspace. Pass `nextC
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -238,13 +241,29 @@ Creates an agent. `providerId` and `model` go together: send both to give the ag
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `workspaceTier` | string | body |  | Tier for a new Workspace. Defaults to Core. Cannot be combined with workspaceId. One of `core`, `plus`. |
 | `approvalInChat` | object | body |  | Which tool calls need approval in sessions and stateless generation. Defaults to `{"default":"full","overrides":[]}`. |
+| `approvalInChat.default` | string | body | required | One of `full`, `deny`, `manual`, `auto`. |
+| `approvalInChat.overrides` | object[] | body |  | Defaults to `[]`. |
+| `approvalInChat.overrides[].tool` | object | body | required |  |
+| `approvalInChat.overrides[].tool.type` | string | body | required |  |
+| `approvalInChat.overrides[].tool.name` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `builtin`. One of `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts`, `write_todos`, `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory`, `web_search`, `activate_skill`. |
+| `approvalInChat.overrides[].tool.name` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `mcp`. |
+| `approvalInChat.overrides[].tool.connectionId` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `mcp`. `mcp_…` ID. |
+| `approvalInChat.overrides[].decision` | string | body | required | One of `full`, `deny`, `manual`, `auto`. |
 | `approvalInTasks` | object | body |  | Which tool calls need approval in task runs. Defaults to `{"default":"full","overrides":[]}`. |
+| `approvalInTasks.default` | string | body | required | One of `full`, `deny`, `manual`, `auto`. |
+| `approvalInTasks.overrides` | object[] | body |  | Defaults to `[]`. |
+| `approvalInTasks.overrides[].tool` | object | body | required |  |
+| `approvalInTasks.overrides[].tool.type` | string | body | required |  |
+| `approvalInTasks.overrides[].tool.name` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `builtin`. One of `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts`, `write_todos`, `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory`, `web_search`, `activate_skill`. |
+| `approvalInTasks.overrides[].tool.name` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `mcp`. |
+| `approvalInTasks.overrides[].tool.connectionId` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `mcp`. `mcp_…` ID. |
+| `approvalInTasks.overrides[].decision` | string | body | required | One of `full`, `deny`, `manual`, `auto`. |
 | `name` | string | body | required | Display name. 1–80 characters. |
 | `model` | string \| null | body |  | The provider's own model ID, such as `openai/gpt-6-luna`. Send it together with `providerId`. Defaults to `null`. |
 | `thinkingLevel` | string \| null | body |  | How much reasoning to request from the model, such as `high`. Needs a provider and model, and must be a level the model supports. Defaults to `null`. |
@@ -257,7 +276,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `instructions` | string | body |  | Instructions the agent follows on every turn. Up to 3000 characters. Defaults to `""`. |
 | `userId` | string | body |  | Your end user's ID, used for attribution. An empty string means a tenant-level agent. It cannot change after creation. Defaults to `""`. |
 | `metadata` | object | body |  | Your own key-value data, returned unchanged. Defaults to `{}`. |
-| `mcpConnectionIds` | string[] | body |  | IDs of the MCP connections attached to the agent. Defaults to `[]`. |
+| `mcpConnectionIds` | string[] | body |  | IDs of the MCP connections attached to the agent. Up to 10 items. Defaults to `[]`. |
 
 #### Response
 
@@ -335,7 +354,7 @@ Lists the MCP connections attached to an agent and what the agent forwards to ea
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -390,14 +409,14 @@ Changes what an agent forwards to one of its attached MCP connections. Send at l
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `mcpConnectionId` | string | path | required | ID of an MCP connection attached to the agent. |
 | `forwardUserId` | boolean | body |  | Send the session's `userId` to the MCP server with every tool call. |
-| `forwardedMetadataKeys` | string[] | body |  | Session metadata keys whose values are sent to the MCP server with every tool call. Replaces the current list. |
+| `forwardedMetadataKeys` | string[] | body |  | Session metadata keys whose values are sent to the MCP server with every tool call. Replaces the current list. Up to 32 items. |
 
 #### Response
 
@@ -446,7 +465,7 @@ Returns an agent's current configuration, including a short-lived `avatarUrl` wh
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -524,13 +543,29 @@ Updates the current agent configuration. New sessions and future task runs use t
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `approvalInChat` | object | body |  | Which tool calls need approval in sessions and stateless generation. |
+| `approvalInChat.default` | string | body | required | One of `full`, `deny`, `manual`, `auto`. |
+| `approvalInChat.overrides` | object[] | body |  | Defaults to `[]`. |
+| `approvalInChat.overrides[].tool` | object | body | required |  |
+| `approvalInChat.overrides[].tool.type` | string | body | required |  |
+| `approvalInChat.overrides[].tool.name` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `builtin`. One of `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts`, `write_todos`, `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory`, `web_search`, `activate_skill`. |
+| `approvalInChat.overrides[].tool.name` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `mcp`. |
+| `approvalInChat.overrides[].tool.connectionId` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `mcp`. `mcp_…` ID. |
+| `approvalInChat.overrides[].decision` | string | body | required | One of `full`, `deny`, `manual`, `auto`. |
 | `approvalInTasks` | object | body |  | Which tool calls need approval in task runs. |
+| `approvalInTasks.default` | string | body | required | One of `full`, `deny`, `manual`, `auto`. |
+| `approvalInTasks.overrides` | object[] | body |  | Defaults to `[]`. |
+| `approvalInTasks.overrides[].tool` | object | body | required |  |
+| `approvalInTasks.overrides[].tool.type` | string | body | required |  |
+| `approvalInTasks.overrides[].tool.name` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `builtin`. One of `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts`, `write_todos`, `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory`, `web_search`, `activate_skill`. |
+| `approvalInTasks.overrides[].tool.name` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `mcp`. |
+| `approvalInTasks.overrides[].tool.connectionId` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `mcp`. `mcp_…` ID. |
+| `approvalInTasks.overrides[].decision` | string | body | required | One of `full`, `deny`, `manual`, `auto`. |
 | `name` | string | body |  | Display name. 1–80 characters. |
 | `model` | string \| null | body |  | The provider's own model ID, such as `openai/gpt-6-luna`. Send it together with `providerId`. |
 | `thinkingLevel` | string \| null | body |  | How much reasoning to request from the model, such as `high`. Needs a provider and model, and must be a level the model supports. |
@@ -542,7 +577,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `tools` | string[] | body |  | Built-in tools the agent can use. Each tool is enabled individually and is off until listed. File tools such as `read` and `bash` run in the attached workspace. |
 | `instructions` | string | body |  | Instructions the agent follows on every turn. Up to 3000 characters. |
 | `metadata` | object | body |  | Your own key-value data, returned unchanged. |
-| `mcpConnectionIds` | string[] | body |  | IDs of the MCP connections attached to the agent. |
+| `mcpConnectionIds` | string[] | body |  | IDs of the MCP connections attached to the agent. Up to 10 items. |
 
 #### Response
 
@@ -620,7 +655,7 @@ Permanently deletes an agent. Its workspace is kept. Set `includeArtifacts` to c
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -659,7 +694,7 @@ Turns an agent off. New turns for a disabled agent fail with `agent_disabled` un
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -738,7 +773,7 @@ Turns a disabled agent back on.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -817,7 +852,7 @@ Sets the agent's avatar, replacing any current one. Send the image as the `file`
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a multipart form body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a multipart form body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -899,7 +934,7 @@ Removes the agent's avatar and returns the updated agent. The platform-managed a
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |

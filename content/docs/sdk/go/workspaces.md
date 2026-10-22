@@ -7,6 +7,8 @@ description: Create, list, update, and delete the private file systems your agen
 
 `client.Workspaces` manages the private file systems your agents share. A workspace starts no compute until an agent first reads, writes, or runs something in it.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/go/client#for-user) from `client.ForUser(userID)`, which returns only that user's workspaces. The tenant client sees every user's workspaces and is for your backend's administration. Every turn of an agent runs in the agent's one workspace, so end users who share an agent share its files.
+
 Examples are function bodies that receive `ctx context.Context`, `client *ba.Client`, `agentID ba.AgentID`, and `sessionID ba.SessionID`, and return an `error`. Every method also takes the per-call options `ba.WithRequestTimeout`, `ba.WithRequestHeader`, `ba.WithClientRequestID`, and `ba.CaptureResponse`.
 
 ```go
@@ -51,8 +53,8 @@ return nil
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
 | `Tier` | `*ba.WorkspaceTier` | `ba.WorkspaceTierCore` | Tier, fixed at creation. Core loses its files when the workspace stops; Plus keeps them while it is stopped |
-| `Name` | `*string` | unnamed | Display name, up to 80 characters |
-| `UserID` | `*string` | `""` | The end user who owns the workspace. Fixed after creation |
+| `Name` | `*string` | unnamed | Display name, within the [name limit](/api-reference/protocols/service-limits#workspace-name) |
+| `UserID` | `*string` | `""` | The end user who owns the workspace. Fixed after creation. A scoped client fills it in |
 | `Metadata` | `ba.Metadata` | `{}` | Your own data |
 | `NetworkPolicy` | `ba.NetworkPolicy` | `ba.NetworkPolicyUnrestricted{}` | Which hosts the workspace can reach |
 
@@ -65,7 +67,11 @@ Returns [`*ba.Workspace`](#workspace). Fails with `*ba.APIError` whose `Code` is
 Lists workspaces, newest first. The workspace reserved for the admin agent is never listed.
 
 ```go
-page, err := client.Workspaces.List(ctx, ba.ListWorkspacesParams{UserID: new(""), Limit: new(50)})
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+page, err := user.Workspaces.List(ctx, ba.ListWorkspacesParams{Limit: new(50)})
 if err != nil {
 	return err
 }
@@ -79,9 +85,9 @@ return nil
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `UserID` | `*string` | Only workspaces of this end user; `new("")` selects tenant-level workspaces |
+| `UserID` | `*string` | For a tenant-wide view on the tenant client: only workspaces of this end user; `new("")` selects tenant-level workspaces. Leave it unset on a scoped client |
 | `Cursor` | `*string` | The `NextCursor` of the previous page |
-| `Limit` | `*int` | Page size, 1 to 200; defaults to 50 |
+| `Limit` | `*int` | Page size, within the [workspace page limit](/api-reference/protocols/service-limits#workspace-page) |
 
 Returns [`*ba.Page[Workspace]`](#workspace); range over `All` with the same params to walk every page lazily. Fails with `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
@@ -121,7 +127,7 @@ return nil
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `Name` | `ba.Nullable[string]` | `ba.Value(name)` sets a display name of up to 80 characters; `ba.Null[string]()` removes it |
+| `Name` | `ba.Nullable[string]` | `ba.Value(name)` sets a display name within the [name limit](/api-reference/protocols/service-limits#workspace-name); `ba.Null[string]()` removes it |
 | `Metadata` | `ba.Metadata` | Replaces the workspace's metadata completely |
 | `NetworkPolicy` | `ba.NetworkPolicy` | Replaces the network policy. Switching between `ba.NetworkPolicyUnrestricted{}` and a restricted policy stops a running workspace, which applies the new policy on next use |
 
@@ -145,7 +151,7 @@ Move attached agents to another workspace first. When the call returns, the work
 | Code | Meaning |
 | --- | --- |
 | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use) | Agents still use it; `APIError.Details` holds their IDs under `agentIds` |
-| `workspace_not_found` | No such workspace in your tenant |
+| `workspace_not_found` | No such workspace in your tenant, or on a scoped client, none that the user owns |
 
 ## Response models [#response-models]
 

@@ -7,6 +7,8 @@ description: Read token, request, and duration usage by day, agent, model, sessi
 
 `client.usage` tells you how many tokens and requests your agents used, and for whom. Use it to build a usage dashboard, show one end user their consumption, or find the sessions that used the most tokens. To learn how usage is counted and how quotas stop runaway spend, read [Usage and quotas](/platform/usage-and-quotas).
 
+This tenant-level report ranks every end user:
+
 ```typescript
 const { buckets, totals } = await client.usage.get({ groupBy: "user" });
 for (const bucket of buckets) {
@@ -15,11 +17,13 @@ for (const bucket of buckets) {
 console.log(totals.requestCount);
 ```
 
+To show a signed-in end user their own usage, call `get()`, `getForAgent()`, or `sessions()` on the [scoped client](/sdk/typescript/client#for-user) from `client.forUser(verifiedUserId)`. It counts only that end user's usage. The tenant client sees every user's usage and is for your backend's administration, and only it has `overview()`.
+
 Every method takes one input object and accepts an optional `abortSignal`. Usage is summed per day. Use it to monitor your agents, not as billing records.
 
 ## Date ranges [#date-ranges]
 
-`from` and `to` are UTC dates such as `"2026-09-01"`, both included. Pass both or neither. Without them you get the last 30 days ending today. A range covers at most 31 days.
+`from` and `to` are UTC dates such as `"2026-09-01"`, both included. Pass both or neither. The default range and the longest range follow the [usage query window](/api-reference/protocols/service-limits#usage-query-window).
 
 ## Available operations [#available-operations]
 
@@ -34,7 +38,7 @@ Every method takes one input object and accepts an optional `abortSignal`. Usage
 
 ### `overview()` [#overview-method]
 
-Returns everything a usage dashboard needs in one response.
+Returns everything a usage dashboard needs in one response. Tenant client only.
 
 **Signature:** `overview(input?: Partial<UsageOverviewQuery> & ResourceRequestOptions): Promise<UsageOverviewResponse>`
 
@@ -45,9 +49,9 @@ console.log(overview.totals.requestCount, overview.activeAgentCount);
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `from` | `string` | with `to` | 30 days ago | First UTC date |
+| `from` | `string` | with `to` | see [date ranges](#date-ranges) | First UTC date |
 | `to` | `string` | with `from` | today | Last UTC date |
-| `limit` | `number` | no | `5` | 1 to 20 rows in each top list |
+| `limit` | `number` | no | `5` | Rows in each top list; see the [overview top-N limit](/api-reference/protocols/service-limits#usage-overview-top-n) |
 
 Returns [`UsageOverviewResponse`](#usageoverviewresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed).
 
@@ -58,23 +62,22 @@ Returns usage across your tenant, grouped by one dimension and optionally filter
 **Signature:** `get(input?: Partial<UsageQuery> & ResourceRequestOptions): Promise<UsageResponse>`
 
 ```typescript
-const usage = await client.usage.get({
+const usage = await client.forUser(verifiedUserId).usage.get({
   from: "2026-09-01",
   to: "2026-09-26",
-  userId: "user_42",
   groupBy: "model",
 });
 ```
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `from` | `string` | with `to` | 30 days ago | First UTC date |
+| `from` | `string` | with `to` | see [date ranges](#date-ranges) | First UTC date |
 | `to` | `string` | with `from` | today | Last UTC date |
 | `groupBy` | `"day" \| "agent" \| "model" \| "session" \| "user"` | no | `"day"` | One bucket per value |
 | `agentId` | `string` | no | none | Only this agent |
 | `sessionId` | `string` | no | none | Only this session; `""` for turns without a session (`completion()` and `object()`) |
-| `userId` | `string` | no | none | Only this end user; `""` for tenant-level usage |
-| `limit` | `number` | no | `50` | 1 to 200; with `groupBy: "session"`, returns the top sessions by tokens |
+| `userId` | `string` | no | none | Tenant client only: this end user; `""` for tenant-level usage |
+| `limit` | `number` | no | `50` | With `groupBy: "session"`, returns the top sessions by tokens; see the [session top-N limit](/api-reference/protocols/service-limits#usage-session-top-n) |
 
 Returns [`UsageResponse`](#usageresponse). Errors: `validation_failed`.
 
@@ -85,7 +88,7 @@ Returns exact totals for the session IDs you provide. Use it when you already ha
 **Signature:** `sessions(input: SessionUsageQuery & ResourceRequestOptions): Promise<SessionUsageResponse>`
 
 ```typescript
-const result = await client.forUser(authenticatedUserId).usage.sessions({
+const result = await client.forUser(verifiedUserId).usage.sessions({
   sessionIds: ["ss_0123456789abcdef", "ss_abcdef0123456789"],
   from: "2026-09-01",
   to: "2026-09-26",
@@ -95,7 +98,7 @@ for (const { sessionId, totals } of result.data) {
 }
 ```
 
-Pass 1 to 100 distinct session IDs. `from` and `to` follow the [date range rules](#date-ranges). A missing session or one outside the tenant or user scope returns `not_found` for the whole request. This method does not rank or truncate sessions.
+Pass distinct session IDs, within the [exact session batch limit](/api-reference/protocols/service-limits#usage-exact-session-batch). `from` and `to` follow the [date range rules](#date-ranges). A missing session or one outside the tenant or user scope returns `not_found` for the whole request. This method does not rank or truncate sessions.
 
 ### `getForAgent()` [#get-for-agent]
 
@@ -104,15 +107,14 @@ Returns usage for one agent. It takes the same fields as [`get()`](#get), with `
 **Signature:** `getForAgent(input: Partial<UsageQuery> & { agentId: string } & ResourceRequestOptions): Promise<UsageResponse>`
 
 ```typescript
-const usage = await client.usage.getForAgent({
+const usage = await client.forUser(verifiedUserId).usage.getForAgent({
   agentId,
-  userId: "user_42",
   groupBy: "session",
   limit: 20,
 });
 ```
 
-An agent with no usage, including one you deleted, returns empty buckets and zero totals. It is also available on a [`forUser()`](/sdk/typescript/client#for-user) client. Returns [`UsageResponse`](#usageresponse). Errors: `validation_failed`.
+An agent with no usage, including one you deleted, returns empty buckets and zero totals. Returns [`UsageResponse`](#usageresponse). Errors: `validation_failed`.
 
 ## Response types [#response-types]
 

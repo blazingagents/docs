@@ -9,6 +9,8 @@ description: Create, configure, pause, and delete agents with the Rust SDK.
 
 Examples receive a `client: blazing_agents::Client`. Every call also takes the `with_timeout`, `without_timeout`, `with_header`, and `with_client_request_id` transport options.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/rust/client#for-user) from `client.for_user()`, which returns only that user's agents. The tenant client sees every user's agents and is for your backend's administration, such as adding the provider in this first example.
+
 ```rust
 use blazing_agents::providers::ProviderType;
 
@@ -57,7 +59,8 @@ Creates an agent. `name` is required; every other input is a setter on the call.
 use blazing_agents::agents::AgentTool;
 use blazing_agents::types::Metadata;
 
-let agent = client
+let user = client.for_user("user_0123456789abcdef")?;
+let agent = user
     .agents()
     .create("Support agent")
     .model("prv_0123456789abcdef", "openai/gpt-6-luna")
@@ -68,7 +71,6 @@ let agent = client
         AgentTool::SaveMemory,
         AgentTool::SearchMemories,
     ])
-    .user_id("customer_123")
     .metadata(Metadata::new().insert("team", "support"))
     .await?;
 ```
@@ -84,17 +86,17 @@ Awaiting returns [`Agent`](#agent).
 | `workspace_tier` | `WorkspaceTier` | `WorkspaceTier::Core` | Tier for a new workspace; mutually exclusive with `workspace_id`, the setter called last wins |
 | `workspace_id` | `impl Into<WorkspaceId>` | new workspace | Existing workspace to share instead of getting a new one |
 | `tools` | `impl IntoIterator<Item = AgentTool>` | `[]` | Built-in tools, each turned on by variant, such as `AgentTool::Read`, `AgentTool::WriteTodos`, `AgentTool::SaveMemory`, or `AgentTool::WebSearch`. See [built-in tools](/agents/tools/built-in-tools) |
-| `instructions` | `impl Into<String>` | `""` | System instructions, up to 3,000 characters |
+| `instructions` | `impl Into<String>` | `""` | System instructions, within the [agent field limits](/api-reference/protocols/service-limits#agent-fields) |
 | `memory_injection_enabled` | `bool` | `false` | Add the agent's memories to each turn's context automatically |
 | `auto_compaction` | `bool` | `true` | Summarize older context when it nears the model's context window |
 | `compaction_reserve_tokens` | `u64` | `16384` | Tokens to keep free below the model's context window |
 | `approval_in_chat` | `ApprovalPolicy` | `ApprovalPolicy::default()` | Tool approval policy for chat and stateless calls |
 | `approval_in_tasks` | `ApprovalPolicy` | `ApprovalPolicy::default()` | Tool approval policy for task runs |
-| `user_id` | `impl Into<String>` | `""` | End user this agent belongs to; `""` means tenant level. Fixed after creation |
+| `user_id` | `impl Into<String>` | `""`, or the scoped user on a `UserClient` | End user this agent belongs to; `""` means tenant level. Fixed after creation |
 | `metadata` | `Metadata` | `{}` | Your own data |
-| `mcp_connection_ids` | `impl IntoIterator<Item = impl Into<McpConnectionId>>` | `[]` | Up to 10 MCP connections |
+| `mcp_connection_ids` | `impl IntoIterator<Item = impl Into<McpConnectionId>>` | `[]` | MCP connections, within the [per-agent limit](/api-reference/protocols/service-limits#mcp-connections-per-agent) |
 
-Without `model`, the agent is saved unconfigured. `workspace_tier` chooses Core or Plus for a new workspace and defaults to Core. It cannot combine with `workspace_id`. A workspace created for the agent stays independent afterwards: renaming the agent does not rename it.
+Without `model`, the agent is saved unconfigured. Without `workspace_id`, the agent gets a new workspace that belongs to the same end user as the agent. `workspace_tier` chooses Core or Plus for a new workspace and defaults to Core. It cannot combine with `workspace_id`. A workspace created for the agent stays independent afterwards: renaming the agent does not rename it.
 
 To build a tool picker, read `agent_tools::AGENT_TOOLS`. Each `AgentToolDefinition` has the tool's `name`, `description`, `requires_workspace`, `group`, and `file_access`. `group` is an `AgentToolGroupTag`, and `agent_tools::AGENT_TOOL_GROUPS` holds a display name and description for each one. A file tool's `file_access` is `Some(AgentToolFileAccessTag::FileRead)`, `FileWrite`, or `Execute`, and every other tool's is `None`, so filtering on `tool.file_access == Some(AgentToolFileAccessTag::FileRead)` gives the read-only file tools. Tags only describe tools; `tools` accepts tool names. See [tool tags](/agents/tools/built-in-tools#read-tool-tags).
 
@@ -116,11 +118,11 @@ let agent = client
     .await?;
 ```
 
-Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), or [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid).
+Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) when `workspace_id` names a workspace you cannot see, such as another user's on a `UserClient`.
 
 ### `list()` [#list]
 
-Lists your agents, most recently updated first.
+Lists your agents, newest first. This tenant-admin view selects tenant-level agents; a `UserClient` returns only its user's agents.
 
 ```rust
 let page = client.agents().list().user_id("").limit(50).await?;
@@ -144,7 +146,7 @@ if let Some(cursor) = page.next_cursor.clone() {
 | --- | --- | --- |
 | `user_id` | `impl Into<String>` | Only agents for this end user; `""` selects tenant-level agents, and unset returns all agents |
 | `workspace_id` | `impl Into<WorkspaceId>` | Only agents that use this workspace |
-| `limit` | `u8` | Page size, 1 to 100; defaults to 50 |
+| `limit` | `u8` | Page size, within the [agent page limit](/api-reference/protocols/service-limits#agent-page) |
 
 Awaiting returns `Page<Agent>` with `data` and `next_cursor`. Keep the same filters when paging. To walk every page lazily, call `.pages()` or `.items()` on the call instead of awaiting it:
 
@@ -164,7 +166,8 @@ Fails with `validation_failed`, [`invalid_cursor`](/api-reference/protocols/erro
 Gets an agent's current configuration.
 
 ```rust
-let agent = client.agents().get("ag_0123456789abcdef").await?;
+let user = client.for_user("user_0123456789abcdef")?;
+let agent = user.agents().get("ag_0123456789abcdef").await?;
 ```
 
 **Signature:** `get(agent_id: impl Into<AgentId>) -> Call<GetAgent>`
@@ -185,7 +188,7 @@ let agent = client
 
 **Signature:** `update(agent_id: impl Into<AgentId>) -> Call<UpdateAgent>`
 
-Accepts every [`create()`](#create) setter except `user_id` (fixed after creation) and `workspace_tier`, plus `name` (1 to 80 characters), `model_on_current_provider`, `clear_model`, and `clear_thinking_level` for the nullable provider fields. Setters you do not call keep their current value. Supplied values replace the old ones completely: `tools`, `mcp_connection_ids`, `metadata`, and each approval policy are full replacements, not patches.
+Accepts every [`create()`](#create) setter except `user_id` (fixed after creation) and `workspace_tier`, plus `name` (within the [agent field limits](/api-reference/protocols/service-limits#agent-fields)), `model_on_current_provider`, `clear_model`, and `clear_thinking_level` for the nullable provider fields. Setters you do not call keep their current value. Supplied values replace the old ones completely: `tools`, `mcp_connection_ids`, `metadata`, and each approval policy are full replacements, not patches.
 
 - To change the model on the current provider, call `model_on_current_provider(model)` and the provider is kept. To switch providers, call `model(provider_id, model)` with both values.
 - To unconfigure the agent, `clear_model()` removes the provider, model, and thinking level together. The server rejects removing the provider while a thinking level remains.
@@ -245,7 +248,7 @@ let agent = client
 
 **Signature:** `upload_avatar(agent_id: impl Into<AgentId>, avatar: Upload) -> Call<UploadAgentAvatar>`
 
-The image is a PNG, JPEG, or WebP of at most 512 KiB. `Upload::file(path)` streams the file from disk and takes the file name from the path; `Upload::bytes(bytes)` sends an in-memory body and needs `.file_name("avatar.webp")`, since the part's Content-Type comes from the file name's extension. `Upload::content_type(mime)` overrides the guess.
+The image is a PNG, JPEG, or WebP within the [avatar upload limit](/api-reference/protocols/service-limits#agent-avatar-upload). `Upload::file(path)` streams the file from disk and takes the file name from the path; `Upload::bytes(bytes)` sends an in-memory body and needs `.file_name("avatar.webp")`, since the part's Content-Type comes from the file name's extension. `Upload::content_type(mime)` overrides the guess.
 
 Awaiting returns [`Agent`](#agent) whose `avatar_url` is a short-lived signed URL. Fails with `validation_failed` for a missing, oversized, or unsupported file, or `not_found`.
 
@@ -295,7 +298,7 @@ let attachment = client
 | Setter | Type | Description |
 | --- | --- | --- |
 | `forward_user_id` | `bool` | Send the turn's `user_id` to the MCP server with every tool call |
-| `forwarded_metadata_keys` | `impl IntoIterator<Item = impl Into<String>>` | Up to 32 unique turn metadata keys to send, of 1 to 64 characters each. Replaces the current list |
+| `forwarded_metadata_keys` | `impl IntoIterator<Item = impl Into<String>>` | Unique turn metadata keys to send, within the [forwarded metadata limit](/api-reference/protocols/service-limits#mcp-forwarded-metadata). Replaces the current list |
 
 Setters you do not call keep their values. Awaiting returns [`McpAttachment`](#mcpattachment). Fails with `validation_failed` or `not_found`.
 

@@ -9,6 +9,8 @@ description: Create, upload, edit, copy, and delete an agent's skills with the R
 
 Examples receive a `client: blazing_agents::Client`. Every call also takes the `with_timeout`, `without_timeout`, `with_header`, and `with_client_request_id` transport options.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/rust/client#for-user) from `client.for_user()`, which reaches only the skills of that user's agents; another user's agent fails with `not_found`. The tenant client reaches every agent and is for your backend's administration.
+
 ```rust
 let skill = client
     .agent("ag_0123456789abcdef")
@@ -82,7 +84,8 @@ Awaiting returns [`SkillDetail`](#skill-and-skilldetail). Fails with `validation
 Lists the agent's skills, newest first, without their files.
 
 ```rust
-let page = client.agent("ag_0123456789abcdef").skills().list().await?;
+let user = client.for_user("user_0123456789abcdef")?;
+let page = user.agent("ag_0123456789abcdef").skills().list().await?;
 for skill in &page.data {
     println!("{} {}", skill.id, skill.name);
 }
@@ -92,7 +95,7 @@ for skill in &page.data {
 
 | Setter | Type | Description |
 | --- | --- | --- |
-| `limit` | `u8` | Page size, 1 to 100; defaults to 50 |
+| `limit` | `u8` | Page size, within the [skill page limit](/api-reference/protocols/service-limits#skill-page) |
 
 Awaiting returns [`Page<Skill>`](#skill-and-skilldetail); `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `not_found` when the agent does not exist.
 
@@ -185,7 +188,7 @@ Awaiting returns [`SkillDetail`](#skill-and-skilldetail). Fails with [`invalid_r
 
 ### `copy()` [#copy]
 
-Copies the skill, with all its files, to each agent in `agent_ids`: 1 to 30 IDs, each listed once. Each copy is a new skill with its own ID.
+Copies the skill, with all its files, to each agent in `agent_ids`, each listed once, within the [copy destination limit](/api-reference/protocols/service-limits#skill-copy). Each copy is a new skill with its own ID.
 
 ```rust
 let results = client
@@ -223,8 +226,8 @@ Awaiting returns `Vec<SkillCopyResult>` in request order. A `Created` result car
 | `skill_invalid_archive` | The archive is invalid or contains unsafe paths |
 | `skill_name_conflict` | The agent already has a skill with that name |
 | `skill_limit_reached` | The agent already has 100 skills |
-| `skill_too_many_files` | The skill would have more than 100 files |
-| `skill_uncompressed_too_large` | The skill would exceed 10 MiB |
+| `skill_too_many_files` | The skill would have more files than the [skill bundle limit](/api-reference/protocols/service-limits#skill-bundle) allows |
+| `skill_uncompressed_too_large` | The skill would exceed the [skill bundle size limit](/api-reference/protocols/service-limits#skill-bundle) |
 
 ## Next [#next]
 

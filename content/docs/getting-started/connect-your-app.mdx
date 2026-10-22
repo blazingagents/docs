@@ -1,20 +1,23 @@
 ---
 title: Connect Blazing Agents to your app
-description: Add a chat endpoint to your backend that checks who the user is, streams the answer, and remembers each conversation.
+description: Add a chat endpoint to your backend that signs users in, gives each one their own agent, and streams the answer.
 ---
 
 # Connect Blazing Agents to your app
 
-Add one chat endpoint to your backend. It checks who the user is, sends their message to your agent, and streams the answer back. Blazing Agents keeps the conversation history, so your endpoint only has to remember which user owns which conversation.
+Add one chat endpoint to your backend. It checks who the user is, sends their message to that user's own agent, and streams the answer back. Blazing Agents keeps the conversation history and lets each user open only their own conversations, so your endpoint stores just one agent ID per user.
 
 ## Before you begin [#before-you-begin]
 
-Finish [Run your first agent](/getting-started/quickstart) and keep the same project folder and terminal. Set the agent ID it printed, and a demo token that stands in for your own sign-in:
+Finish [Run your first agent](/getting-started/quickstart) and keep the same project folder and terminal. Set the provider ID it printed, and two demo tokens that stand in for your own sign-in:
 
 ```bash
-export BLAZING_AGENTS_AGENT_ID="ag_..."
+export BLAZING_AGENTS_PROVIDER_ID="prv_..."
 export DEMO_USER_TOKEN="demo-token"
+export OTHER_USER_TOKEN="other-token"
 ```
+
+The endpoint creates agents, so `BLAZING_AGENTS_API_KEY` must be the full-access key from [setup](/getting-started/setup).
 
 <Callout type="warn" title="Keep credentials on the backend">
   Your browser or mobile app talks only to your backend. It never receives the Blazing Agents API key.
@@ -45,13 +48,13 @@ export DEMO_USER_TOKEN="demo-token"
     # The endpoint uses net/http from the standard library, so there is nothing to install.
     ```
 
-    Your backend does three things on every request: it signs the user in, checks that they own the conversation they ask for, and calls Blazing Agents with your API key.
+    Your backend does three things on every request: it signs the user in, finds or creates that user's agent, and calls Blazing Agents as that user.
 
   </Step>
   <Step>
     ## Add a chat endpoint [#add-a-chat-endpoint]
 
-    Save this as `server.ts`, `server.py`, `src/bin/server.rs`, or `server/main.go`. The `users` and `owners` dictionaries stand in for your sign-in and your database.
+    Save this as `server.ts`, `server.py`, `src/bin/server.rs`, or `server/main.go`. The `users` map stands in for your sign-in, and the map of agent IDs stands in for your database.
 
     ```typescript tab="TypeScript" tab-group="sdk-language" title="server.ts"
     import { serve } from "@hono/node-server";
@@ -63,25 +66,32 @@ export DEMO_USER_TOKEN="demo-token"
     });
 
     // Replace these with your own sign-in check and database.
-    const users = new Map([[process.env.DEMO_USER_TOKEN!, "user-1"]]);
-    const owners = new Map<string, string>();
+    const users = new Map([
+      [process.env.DEMO_USER_TOKEN!, "user-1"],
+      [process.env.OTHER_USER_TOKEN!, "user-2"],
+    ]);
+    const agentIds = new Map<string, string>();
+
+    async function agentFor(userId: string) {
+      let agentId = agentIds.get(userId);
+      if (!agentId) {
+        const agent = await client.forUser(userId).agents.create({
+          name: "Chat agent",
+          providerId: process.env.BLAZING_AGENTS_PROVIDER_ID!,
+          model: "openai/gpt-6-luna",
+        });
+        agentId = agent.id;
+        agentIds.set(userId, agentId);
+      }
+      return agentId;
+    }
 
     const relayChat = createChatRelay({
       client,
       async resolveContext(request) {
         const token = request.headers.get("authorization")?.replace("Bearer ", "");
         const userId = token ? users.get(token) : undefined;
-        return userId
-          ? { agentId: process.env.BLAZING_AGENTS_AGENT_ID!, userId }
-          : null;
-      },
-      sessions: {
-        async ownerOf(sessionId) {
-          return owners.get(sessionId);
-        },
-        async recordOwner(sessionId, userId) {
-          owners.set(sessionId, userId);
-        },
+        return userId ? { agentId: await agentFor(userId), userId } : null;
       },
     });
 
@@ -93,7 +103,7 @@ export DEMO_USER_TOKEN="demo-token"
     ```python tab="Python" title="server.py"
     import os
 
-    from blazing_agents import AsyncBlazingAgents
+    from blazing_agents import APIStatusError, AsyncBlazingAgents
     from fastapi import FastAPI, Request
     from fastapi.responses import JSONResponse, StreamingResponse
 
@@ -101,8 +111,22 @@ export DEMO_USER_TOKEN="demo-token"
     app = FastAPI()
 
     # Replace these with your own sign-in check and database.
-    users = {os.environ["DEMO_USER_TOKEN"]: "user-1"}
-    owners: dict[str, str] = {}
+    users = {
+        os.environ["DEMO_USER_TOKEN"]: "user-1",
+        os.environ["OTHER_USER_TOKEN"]: "user-2",
+    }
+    agent_ids: dict[str, str] = {}
+
+
+    async def agent_for(user_id: str) -> str:
+        if user_id not in agent_ids:
+            agent = await client.for_user(user_id).agents.create(
+                name="Chat agent",
+                provider_id=os.environ["BLAZING_AGENTS_PROVIDER_ID"],
+                model="openai/gpt-6-luna",
+            )
+            agent_ids[user_id] = agent.id
+        return agent_ids[user_id]
 
 
     @app.post("/api/chat")
@@ -114,17 +138,15 @@ export DEMO_USER_TOKEN="demo-token"
 
         body = await request.json()
         session_id = body.get("sessionId")
-        if session_id and owners.get(session_id) != user_id:
-            return JSONResponse({"error": "forbidden"}, status_code=403)
-
-        stream = await client.chat(
-            agent_id=os.environ["BLAZING_AGENTS_AGENT_ID"],
-            message=body["message"],
-            trigger=body.get("trigger", "submit-message"),
-            user_id=user_id,
-            **({"session_id": session_id} if session_id else {}),
-        )
-        owners[stream.session_id] = user_id
+        try:
+            stream = await client.for_user(user_id).chat(
+                agent_id=await agent_for(user_id),
+                message=body["message"],
+                trigger=body.get("trigger", "submit-message"),
+                **({"session_id": session_id} if session_id else {}),
+            )
+        except APIStatusError as error:
+            return JSONResponse({"error": error.code}, status_code=error.status_code)
         headers = {"cache-control": "no-cache", "x-vercel-ai-ui-message-stream": "v1"}
         if "location" in stream.headers:
             headers["location"] = stream.headers["location"]
@@ -138,6 +160,7 @@ export DEMO_USER_TOKEN="demo-token"
     use axum::response::{IntoResponse, Response};
     use axum::routing::post;
     use axum::{Json, Router};
+    use blazing_agents::ids::AgentId;
     use blazing_agents::messages::UserMessage;
     use blazing_agents::Client;
     use serde::Deserialize;
@@ -155,10 +178,18 @@ export DEMO_USER_TOKEN="demo-token"
 
     struct AppState {
         client: Client,
-        agent_id: String,
+        provider_id: String,
         // Replace these with your own sign-in check and database.
         users: HashMap<String, String>,
-        owners: Mutex<HashMap<String, String>>,
+        agent_ids: Mutex<HashMap<String, AgentId>>,
+    }
+
+    fn error_response(error: blazing_agents::Error) -> Response {
+        error
+            .status()
+            .and_then(|status| StatusCode::from_u16(status).ok())
+            .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+            .into_response()
     }
 
     async fn chat(
@@ -178,47 +209,38 @@ export DEMO_USER_TOKEN="demo-token"
             )
                 .into_response());
         };
+        let user = state
+            .client
+            .for_user(&user_id)
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())?;
 
-        if let Some(session_id) = &body.session_id {
-            if state.owners.lock().unwrap().get(session_id) != Some(&user_id) {
-                return Err((
-                    StatusCode::FORBIDDEN,
-                    Json(serde_json::json!({ "error": "forbidden" })),
-                )
-                    .into_response());
-            }
-        }
-
-        let result = match (body.trigger.as_deref(), body.session_id) {
-            (Some("regenerate-message"), Some(session_id)) => state
-                .client
-                .regenerate(&state.agent_id, session_id, body.message)
-                .user_id(&user_id)
-                .await,
-            (_, session_id) => {
-                let call = state
-                    .client
-                    .chat(&state.agent_id, body.message)
-                    .user_id(&user_id);
-                match session_id {
-                    Some(session_id) => call.session(session_id).await,
-                    None => call.await,
-                }
+        let stored = state.agent_ids.lock().unwrap().get(&user_id).cloned();
+        let agent_id = match stored {
+            Some(agent_id) => agent_id,
+            None => {
+                let agent = user
+                    .agents()
+                    .create("Chat agent")
+                    .model(&state.provider_id, "openai/gpt-6-luna")
+                    .await
+                    .map_err(error_response)?;
+                state
+                    .agent_ids
+                    .lock()
+                    .unwrap()
+                    .insert(user_id, agent.id.clone());
+                agent.id
             }
         };
-        let stream = result.map_err(|error| {
-            error
-                .status()
-                .and_then(|status| StatusCode::from_u16(status).ok())
-                .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
-                .into_response()
-        })?;
 
-        state
-            .owners
-            .lock()
-            .unwrap()
-            .insert(stream.session_id().to_string(), user_id);
+        let result = match (body.trigger.as_deref(), body.session_id) {
+            (Some("regenerate-message"), Some(session_id)) => {
+                user.regenerate(&agent_id, session_id, body.message).await
+            }
+            (_, Some(session_id)) => user.chat(&agent_id, body.message).session(session_id).await,
+            (_, None) => user.chat(&agent_id, body.message).await,
+        };
+        let stream = result.map_err(error_response)?;
 
         let location = stream.meta().headers().get("location").cloned();
         let mut response = Response::new(Body::from_stream(stream));
@@ -236,9 +258,12 @@ export DEMO_USER_TOKEN="demo-token"
     async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let state = Arc::new(AppState {
             client: Client::from_env()?,
-            agent_id: std::env::var("BLAZING_AGENTS_AGENT_ID")?,
-            users: HashMap::from([(std::env::var("DEMO_USER_TOKEN")?, "user-1".to_string())]),
-            owners: Mutex::new(HashMap::new()),
+            provider_id: std::env::var("BLAZING_AGENTS_PROVIDER_ID")?,
+            users: HashMap::from([
+                (std::env::var("DEMO_USER_TOKEN")?, "user-1".to_string()),
+                (std::env::var("OTHER_USER_TOKEN")?, "user-2".to_string()),
+            ]),
+            agent_ids: Mutex::new(HashMap::new()),
         });
         let app = Router::new()
             .route("/api/chat", post(chat))
@@ -253,6 +278,7 @@ export DEMO_USER_TOKEN="demo-token"
     package main
 
     import (
+    	"context"
     	"encoding/json"
     	"errors"
     	"log"
@@ -271,18 +297,48 @@ export DEMO_USER_TOKEN="demo-token"
     }
 
     type app struct {
-    	client  *ba.Client
-    	agentID ba.AgentID
+    	client     *ba.Client
+    	providerID ba.ProviderID
     	// Replace these with your own sign-in check and database.
-    	users  map[string]string
-    	mu     sync.Mutex
-    	owners map[ba.SessionID]string
+    	users    map[string]string
+    	mu       sync.Mutex
+    	agentIDs map[string]ba.AgentID
     }
 
     func writeError(w http.ResponseWriter, status int, message string) {
     	w.Header().Set("Content-Type", "application/json")
     	w.WriteHeader(status)
     	json.NewEncoder(w).Encode(map[string]string{"error": message})
+    }
+
+    func writeAPIError(w http.ResponseWriter, err error) {
+    	status := http.StatusInternalServerError
+    	var apiErr *ba.APIError
+    	if errors.As(err, &apiErr) {
+    		status = apiErr.Status
+    	}
+    	writeError(w, status, http.StatusText(status))
+    }
+
+    func (a *app) agentFor(ctx context.Context, user *ba.UserClient, userID string) (ba.AgentID, error) {
+    	a.mu.Lock()
+    	agentID, ok := a.agentIDs[userID]
+    	a.mu.Unlock()
+    	if ok {
+    		return agentID, nil
+    	}
+    	agent, err := user.Agents.Create(ctx, ba.CreateAgentParams{
+    		Name:       "Chat agent",
+    		ProviderID: ba.Value(a.providerID),
+    		Model:      ba.Value("openai/gpt-6-luna"),
+    	})
+    	if err != nil {
+    		return "", err
+    	}
+    	a.mu.Lock()
+    	a.agentIDs[userID] = agent.ID
+    	a.mu.Unlock()
+    	return agent.ID, nil
     }
 
     func (a *app) chat(w http.ResponseWriter, r *http.Request) {
@@ -292,45 +348,36 @@ export DEMO_USER_TOKEN="demo-token"
     		writeError(w, http.StatusUnauthorized, "unauthorized")
     		return
     	}
+    	user, err := a.client.ForUser(userID)
+    	if err != nil {
+    		writeAPIError(w, err)
+    		return
+    	}
 
     	var body chatRequest
     	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
     		writeError(w, http.StatusBadRequest, "invalid request")
     		return
     	}
-    	if body.SessionID != "" {
-    		a.mu.Lock()
-    		owner := a.owners[body.SessionID]
-    		a.mu.Unlock()
-    		if owner != userID {
-    			writeError(w, http.StatusForbidden, "forbidden")
-    			return
-    		}
+    	agentID, err := a.agentFor(r.Context(), user, userID)
+    	if err != nil {
+    		writeAPIError(w, err)
+    		return
     	}
 
     	var stream *ba.ChatStream
-    	var err error
     	if body.Trigger == "regenerate-message" && body.SessionID != "" {
-    		stream, err = a.client.Chat.Regenerate(r.Context(), a.agentID, body.SessionID, body.Message,
-    			ba.RegenerateParams{UserID: &userID})
+    		stream, err = user.Chat.Regenerate(r.Context(), agentID, body.SessionID, body.Message,
+    			ba.RegenerateParams{})
     	} else {
-    		stream, err = a.client.Chat.Send(r.Context(), a.agentID, ba.Messages(body.Message),
-    			ba.ChatParams{SessionID: body.SessionID, UserID: &userID})
+    		stream, err = user.Chat.Send(r.Context(), agentID, ba.Messages(body.Message),
+    			ba.ChatParams{SessionID: body.SessionID})
     	}
     	if err != nil {
-    		status := http.StatusInternalServerError
-    		var apiErr *ba.APIError
-    		if errors.As(err, &apiErr) {
-    			status = apiErr.Status
-    		}
-    		writeError(w, status, http.StatusText(status))
+    		writeAPIError(w, err)
     		return
     	}
     	defer stream.Close()
-
-    	a.mu.Lock()
-    	a.owners[stream.SessionID()] = userID
-    	a.mu.Unlock()
 
     	stream.SetRelayHeaders(w.Header())
     	if location := stream.Meta().Header.Get("Location"); location != "" {
@@ -347,10 +394,13 @@ export DEMO_USER_TOKEN="demo-token"
     		log.Fatal(err)
     	}
     	a := &app{
-    		client:  client,
-    		agentID: ba.AgentID(os.Getenv("BLAZING_AGENTS_AGENT_ID")),
-    		users:   map[string]string{os.Getenv("DEMO_USER_TOKEN"): "user-1"},
-    		owners:  map[ba.SessionID]string{},
+    		client:     client,
+    		providerID: ba.ProviderID(os.Getenv("BLAZING_AGENTS_PROVIDER_ID")),
+    		users: map[string]string{
+    			os.Getenv("DEMO_USER_TOKEN"):  "user-1",
+    			os.Getenv("OTHER_USER_TOKEN"): "user-2",
+    		},
+    		agentIDs: map[string]ba.AgentID{},
     	}
     	http.HandleFunc("POST /api/chat", a.chat)
     	log.Fatal(http.ListenAndServe(":8787", nil))
@@ -363,7 +413,7 @@ export DEMO_USER_TOKEN="demo-token"
   <Step>
     ## Verify the integration [#verify-the-integration]
 
-    In a second terminal, export `DEMO_USER_TOKEN` again and ask the agent to remember something:
+    In a second terminal, export `DEMO_USER_TOKEN` and `OTHER_USER_TOKEN` again and ask the agent to remember something:
 
     ```bash
     curl -i -N http://localhost:8787/api/chat \
@@ -381,22 +431,37 @@ export DEMO_USER_TOKEN="demo-token"
       -d '{"sessionId":"ss_...","message":{"id":"m2","role":"user","parts":[{"type":"text","text":"Which word did I ask you to remember?"}]}}'
     ```
 
-    The agent answers "cobalt", because Blazing Agents kept the first exchange. Leave out the `authorization` header and you get `401`. Send a session ID the user does not own and you get `403`.
+    The agent answers "cobalt", because Blazing Agents kept the first exchange. Now send the same session ID as the other user:
+
+    ```bash
+    curl -i http://localhost:8787/api/chat \
+      -H "authorization: Bearer $OTHER_USER_TOKEN" \
+      -H "content-type: application/json" \
+      -d '{"sessionId":"ss_...","message":{"id":"m3","role":"user","parts":[{"type":"text","text":"Which word did I ask you to remember?"}]}}'
+    ```
+
+    You get `404`, because the session belongs to the first user. Leave out the `authorization` header and you get `401`.
 
   </Step>
 </Steps>
 
 ## What happened [#persist-and-resume-the-session]
 
-The first request has no `sessionId`, so Blazing Agents starts a new session and returns its ID before the answer finishes streaming. Your endpoint records the owner right away, then relays the stream. Later requests send the `sessionId`, your endpoint checks the owner, and the agent sees the whole conversation. Your frontend sends only the newest message each time.
+The first request from each user finds no stored agent ID, so the endpoint creates an agent with a client scoped to that user: `client.forUser(userId)` in TypeScript, `client.for_user(user_id)` in Python and Rust, and `client.ForUser(userID)` in Go. The new agent and the workspace it comes with belong to that user. The endpoint then sends the message through the same scoped client.
 
-In TypeScript, `createChatRelay` does this for you. It also passes the request's abort signal along, so a user who closes the tab stops the turn. The Python, Rust, and Go endpoints do the same steps by hand with one chat call: they pass `session_id` only when the request has one, and `stream.session_id` (`stream.session_id()` in Rust, `stream.SessionID()` in Go) holds the ID either way. The Rust and Go endpoints also route a `regenerate-message` trigger to `client.regenerate()` and `client.Chat.Regenerate()`.
+A request without a `sessionId` starts a new session that belongs to the user, and Blazing Agents returns its ID before the answer finishes streaming. A later request with that `sessionId` continues the conversation, and the agent sees everything said so far. Your frontend sends only the newest message each time. The scoped client reaches only that user's agents, sessions, and workspaces, so a session ID from anyone else returns `404` and you keep no table of who owns which conversation.
 
-This relay uses a tenant-wide client. The `userId` it passes labels usage and resources, while the `owners` check protects conversations. For other resource calls, derive a [user-scoped client](/sdk/typescript/client#for-user) from your verified user ID so the API checks ownership as well.
+Each user gets their own agent because every turn of an agent runs in that agent's one workspace. If all your users chatted with one shared agent, their turns would share one workspace, and one user's files would be readable from another user's turns. See [tenancy and attribution](/platform/tenancy-and-attribution) for how agents, workspaces, and sessions belong to your users.
+
+In TypeScript, `createChatRelay` does the relay for you. It scopes each request to the `userId` that `resolveContext` returns, and it passes the request's abort signal along, so a user who closes the tab stops the turn. The Python, Rust, and Go endpoints do the same steps by hand with one chat call: they pass the session ID only when the request has one. The Rust and Go endpoints also route a `regenerate-message` trigger to `regenerate()` and `Chat.Regenerate()`.
+
+The agents this endpoint creates use the default approval policy, which runs every tool without asking, so no turn here waits for a person. If you turn on [human approval](/agents/tools/tool-approvals#human-approval-flow), `createChatRelay` already forwards the user's answers. In Python, Rust, and Go, add a branch that sends them through the same scoped client with `continue_chat()` in Python and Rust, or `Chat.Continue()` in Go.
 
 ## Production notes [#production-notes]
 
-- Replace the demo token with your real sign-in, and the `owners` map with a database table.
+- Replace the demo tokens with your real sign-in, and store each user's agent ID with the user in your database.
+- Create each user's agent once, for example when the user signs up. [Creating agents is rate-limited](/api-reference/protocols/service-limits#tenant-resource-creation-rate) per tenant, so do not create one on every request.
+- Use a full-access key for a backend that creates agents. A backend that only runs agents that already exist can use a read-only key. See [API key access levels](/platform/security-and-credentials#api-key-access-levels).
 - Keep the session ID even when the first turn fails or the user stops it. The conversation exists; it is empty until a turn succeeds.
 - Streams must reach the browser unbuffered. The response already sets `Cache-Control: no-cache`; make sure every proxy in front of your backend passes the stream through as it arrives.
 

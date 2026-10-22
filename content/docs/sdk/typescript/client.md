@@ -61,24 +61,39 @@ The ID uses 1 to 128 ASCII letters, digits, `.`, `_`, `:`, or `-`. Generation in
 
 ### `forUser()` [#for-user]
 
-Use `forUser()` in your backend after you authenticate an end user. It sends `X-BA-User-Id` on every request and returns a `UserClient` with user-owned resources and generation methods. The API checks ownership for reads and writes. Tenant administration methods, such as `providers` and `tenant`, are absent from this client.
+Use `forUser()` in your backend after you authenticate an end user. It returns a `UserClient` that sends `X-BA-User-Id` on every request. Reads and lists on it return only that end user's records, and another user's record answers `not_found` (HTTP `404`). Creates on it record that end user's ID.
 
 **Signature:** `forUser(userId: string): UserClient`
 
 ```typescript
 import { BlazingAgents } from "@blazingagents/sdk";
 
-const tenantClient = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
+const client = new BlazingAgents({ apiKey: process.env.BLAZING_AGENTS_API_KEY! });
 
-export async function listMyAgents(verifiedSession: { user: { id: string } }) {
-  const userClient = tenantClient.forUser(verifiedSession.user.id);
-  return await userClient.agents.list({ limit: 50 });
+export async function startChat(verifiedUserId: string, text: string) {
+  const user = client.forUser(verifiedUserId);
+  const agent = await user.agents.create({
+    name: "Assistant",
+    providerId: "prv_0123456789abcdef",
+    model: "openai/gpt-6-luna",
+  });
+  const result = await user.chat({
+    agentId: agent.id,
+    message: { id: crypto.randomUUID(), role: "user", parts: [{ type: "text", text }] },
+  });
+  return result.toResponse();
 }
 ```
 
-Pass the session your backend has verified. Do not take the user ID from a request body or query parameter. The ID must contain 1 to 256 printable ASCII characters without a leading or trailing space, or `forUser()` throws `BlazingAgentsError` with code `invalid_request`. `withOptions()` on a `UserClient` keeps the user scope.
+Pass the user ID from the sign-in your backend has verified. Do not take it from a request body or query parameter. The ID must contain 1 to 256 printable ASCII characters without a leading or trailing space, or `forUser()` throws `BlazingAgentsError` with code `invalid_request`. `withOptions()` on a `UserClient` keeps the user scope.
 
-A request body's `userId` labels the resource or turn. It does not grant access. On a scoped request, the API fills in a missing `userId` with the scoped ID and rejects a different one. Without `forUser()`, your API key retains tenant-wide authority, even when a request body contains `userId`. The scoped client omits tenant administration, usage overview, and Agent spending limits; use the tenant client for those operations.
+A scoped turn (`chat()`, `continueChat()`, `completion()`, `object()`, or a task run) needs an agent that belongs to the same end user, and that agent's workspace must belong to that end user too. Otherwise the turn fails with `not_found` for the agent or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) for the workspace, both HTTP `404`. A session you continue must also belong to that end user. An agent created on the scoped client without `workspaceId`, as above, gets a new workspace that belongs to the same end user. A scoped client sees only that end user's memories, never the agent's shared ones with `userId: ""`.
+
+A request body's `userId` labels the resource or turn. It does not grant access. On a scoped request, the API fills in a missing `userId` with the scoped ID and rejects a different one. Without `forUser()`, your API key keeps tenant-wide authority, even when a request body contains `userId`.
+
+Every turn of an agent runs in that agent's one workspace. If several end users chat with one agent through the tenant client, their turns share that workspace, so one user's files are visible to another user's turns. Give each end user their own agent and workspace on the scoped client when their files must stay apart.
+
+Keep the tenant client for your backend's administration, such as providers, tenant settings, MCP connections, chat connections, merchant resources, the usage overview, agent spending limits, and reports across users. The `UserClient` does not have these methods.
 
 ## Custom fetch [#custom-fetch]
 
@@ -179,7 +194,7 @@ Four methods run an agent. `chat()` and `continueChat()` keep a session, a conve
 | [`completion()`](#completion) | None | Text stream and final text | `CompletionResult` |
 | [`object()`](#object) | None | Partial objects and final JSON value | `ObjectResult` |
 
-Every input needs `agentId` and exactly one source: `message` or `messages` for `chat()`, `decisions` for `continueChat()`, or `prompt` for the others, or a saved prompt's `promptId` with optional `variables`. Add `userId` and `metadata` to label the turn for one of your users; leave them out for tenant-level usage. `abortSignal` and `clientRequestId` work as described above.
+Every input needs `agentId` and exactly one source: `message` or `messages` for `chat()`, `decisions` for `continueChat()`, or `prompt` for the others, or a saved prompt's `promptId` with optional `variables`. `metadata` labels the turn. The `UserClient` from [`forUser()`](#for-user) has the same four methods and runs the turn as that end user. On the tenant client, `userId` only labels a turn for usage and reporting; leave it out for tenant-level usage. `abortSignal` and `clientRequestId` work as described above.
 
 ### `chat()` [#chat]
 
@@ -187,21 +202,24 @@ Starts a session, or continues one when you pass `sessionId`.
 
 **Signature:** `chat(input: ChatInput): Promise<ChatResult>`
 
+In a route that serves a signed-in end user, call `chat()` on the scoped client:
+
 ```typescript
-const first = await client.chat({
+const user = client.forUser(verifiedUserId);
+
+const first = await user.chat({
   agentId: "ag_0123456789abcdef",
   message: {
     id: crypto.randomUUID(),
     role: "user",
     parts: [{ type: "text", text: "Remember that my project is Atlas." }],
   },
-  userId: "user_123",
 });
 
 const sessionId = await first.sessionId;
 await first.toResponse().text();
 
-const next = await client.chat({
+const next = await user.chat({
   agentId: "ag_0123456789abcdef",
   sessionId,
   message: {
@@ -209,7 +227,6 @@ const next = await client.chat({
     role: "user",
     parts: [{ type: "text", text: "What is my project called?" }],
   },
-  userId: "user_123",
 });
 
 const response = next.toResponse(); // return this from your route
@@ -225,7 +242,7 @@ const response = next.toResponse(); // return this from your route
 | `sessionId` | `string` | no | Session to continue (`ss_…`); omit to start one |
 | `trigger` | `"submit-message" \| "regenerate-message"` | no | Defaults to `submit-message`; `regenerate-message` needs `sessionId` |
 | `messageId` | `string` | no | Message to regenerate from |
-| `userId` | `string` | no | Your end user's ID, for usage and reporting |
+| `userId` | `string` | no | Your end user's ID, for usage and reporting; a scoped client fills it in |
 | `metadata` | `Record<string, unknown>` | no | Your labels for the turn |
 | `clientRequestId` | `string` | no | Your correlation ID |
 | `abortSignal` | `AbortSignal` | no | Cancels the request |
@@ -367,5 +384,6 @@ Input types are unions, so TypeScript rejects a call that passes both `prompt` a
 ## Next [#next]
 
 - [Generation and streaming](/agents/output/generation-and-streaming)
+- [Chat transport and relays](/sdk/typescript/chat-transport)
 - [Sessions and turns](/platform/sessions-and-turns)
 - [Streaming protocol](/api-reference/protocols/streaming)

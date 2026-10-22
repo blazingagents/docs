@@ -20,11 +20,13 @@ const run = await client.tasks.getRun({ taskId: task.id, runId: runId! });
 console.log(run.status);
 ```
 
+When a task works for one end user, create and read it on the [scoped client](/sdk/typescript/client#for-user) from `client.forUser(verifiedUserId)`. Its agent and that agent's workspace must belong to the same end user, as for any [scoped turn](/sdk/typescript/client#for-user). The scoped client returns only that end user's tasks and runs and answers `not_found` for anyone else's. The tenant client sees every task and is for your backend's administration.
+
 Every method takes one input object and accepts an optional `abortSignal`.
 
 ## Runs [#runs]
 
-A task has at most one active run at a time. A run moves from `queued` to `running`, then ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota or a model spending limit ran out; `error` says why.
+A task has at most [one active run](/api-reference/protocols/service-limits#active-task-run) at a time. A run moves from `queued` to `running`, then ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota or a model spending limit ran out; `error` says why.
 
 Runs use the agent's `approvalInTasks` policy. Nobody is there to approve a call, so tool calls that would need a person are denied and the agent is told so. See [tool approvals](/agents/tools/tool-approvals).
 
@@ -66,13 +68,13 @@ const { task } = await client.tasks.create({
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | `string` | yes | none | The agent that runs it; cannot change later |
-| `name` | `string` | yes | none | 1 to 80 characters |
-| `prompt` | `string` | yes | none | The instruction each run sends, up to 6,000 characters |
+| `name` | `string` | yes | none | Task name within the [task field limits](/api-reference/protocols/service-limits#task-fields) |
+| `prompt` | `string` | yes | none | The instruction each run sends, within the [task field limits](/api-reference/protocols/service-limits#task-fields) |
 | `schedule` | `TaskScheduleInput \| null` | no | `null` | When to run; `null` runs only on demand. See [schedule types](#schedule-types) |
 | `enabled` | `boolean` | no | `true` | Whether the schedule fires |
 | `submit` | `boolean` | no | `false` | Also start a run right away |
 | `idempotencyKey` | `string` | no | none | Reuse the same task and initial run when a create request is retried |
-| `userId` | `string` | no | `""` | The end user it runs for; cannot change later |
+| `userId` | `string` | no | `""` | The end user it runs for; cannot change later. A scoped client fills it in |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your labels, copied onto each run |
 
 Without `idempotencyKey`, calling `create()` twice creates two tasks. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID. Reusing a key with different task fields or after deleting the task returns `idempotency_conflict`. Returns [`CreateTaskResponse`](#createtaskresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found), `idempotency_conflict`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), and [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit` is `true`.
@@ -84,15 +86,15 @@ Lists your tasks with each one's latest run.
 **Signature:** `list(input?: TasksListOptions): Promise<TasksListResponse>`
 
 ```typescript
-const { data } = await client.tasks.list({ agentId });
-for (const task of data) console.log(task.name, task.latestRun?.status);
+const { data } = await client.forUser(verifiedUserId).tasks.list({ agentId });
+for (const task of data) console.log(task.name, task.latestRun?.status, task.nextFireAt);
 ```
 
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | `string` | no | none | Only this agent's tasks |
-| `userId` | `string` | no | none | Only this end user's tasks; `""` for tenant-level ones |
-| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `userId` | `string` | no | none | Tenant client only: this end user's tasks; `""` for tenant-level ones |
+| `limit` | `number` | no | `50` | Page size; see the [page size limit](/api-reference/protocols/service-limits#other-cursored-resource-pages) |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Returns [`TasksListResponse`](#taskslistresponse). Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
@@ -167,7 +169,7 @@ const { data } = await client.tasks.listRuns({ taskId, limit: 10 });
 
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `limit` | `number` | no | `50` | Page size; see the [page size limit](/api-reference/protocols/service-limits#other-cursored-resource-pages) |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Returns [`TaskRunsListResponse`](#taskrunresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
@@ -191,20 +193,22 @@ Returns [`TaskRunResponse`](#taskrunresponse). `sessionId` is `null` until the r
 
 ### `runMessages()` [#run-messages]
 
-Reads the messages from a run's session, the same way [`sessions.messages()`](/sdk/typescript/sessions#messages) does.
+Reads the messages from a run's session, the same way [`sessions.messages()`](/sdk/typescript/sessions#messages) does, with the run's `status`, `error`, and `finishedAt`, so one poll loop can follow the run. While the run is running, the page holds only the prompt message. The agent's messages appear when the run ends.
 
 **Signature:** `runMessages(input: { taskId: string; runId: string } & TaskRunMessagesOptions): Promise<TaskRunMessagesResponse>`
 
 ```typescript
-const page = await client.tasks.runMessages({ taskId, runId });
-const newer = page.latestCursor
-  ? await client.tasks.runMessages({ taskId, runId, after: page.latestCursor })
-  : null;
+const page = await client.forUser(verifiedUserId).tasks.runMessages({ taskId, runId });
+if (page.status === "queued" || page.status === "running") {
+  console.log("Still working; check again later.");
+} else {
+  console.log(page.status, page.error, page.data.length);
+}
 ```
 
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `limit` | `number` | no | `50` | Page size; see the [message page limit](/api-reference/protocols/service-limits#session-or-task-run-message-page) |
 | `cursor` | `string` | no | none | Go back to older messages |
 | `after` | `string` | no | none | Fetch messages added since an earlier `latestCursor` |
 
@@ -241,6 +245,7 @@ The run stops at its next safe point; poll [`getRun()`](#get-run) until its stat
 | `metadata` | `Record<string, unknown>` | Your labels |
 | `deletedAt` | `string \| null` | When it was deleted |
 | `createdAt`, `updatedAt` | `string` | ISO 8601 timestamps |
+| `nextFireAt` | `string \| null` | When the schedule fires next, or `null` when no fire is pending |
 
 ### `CreateTaskResponse` [#createtaskresponse]
 
@@ -300,6 +305,9 @@ interface TaskRunMessagesResponse {
   data: SessionMessage[];
   nextCursor: string | null;
   latestCursor: string | null;
+  status: TaskRunStatus;
+  error: string | null;
+  finishedAt: string | null;
 }
 ```
 
@@ -315,7 +323,7 @@ type TaskScheduleInput =
 ```
 
 - `once`: runs at `at`, an ISO 8601 timestamp with an offset.
-- `interval`: runs every `everyMs` milliseconds, at least 60,000.
+- `interval`: runs every `everyMs` milliseconds, no more often than the [task interval limit](/api-reference/protocols/service-limits#task-interval).
 - `cron`: a five-field numeric cron expression, such as `"0 9 * * 1-5"`. `timezone` is an IANA name and defaults to `"UTC"`. `staggerMs` adds a delay of up to that many milliseconds.
 
 A scheduled fire is skipped while another run of the task is active or the agent is disabled. See [Schedules](/automation/schedules).

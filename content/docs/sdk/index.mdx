@@ -48,7 +48,9 @@ fmt.Println(len(agents))
 return nil
 ```
 
-Keep your API key on the server. It can reach every resource in your tenant, so never ship it to a browser or mobile app.
+Keep your API key on the server, and never ship it to a browser or mobile app. Use a full key (`ba_full_…`) for the code that creates and changes agents, providers, and other setup. A read-only key (`ba_read_…`) can read your setup and run your agents but cannot change your setup, which suits a backend that only serves your users. See [access levels](/platform/security-and-credentials#api-key-access-levels).
+
+Either key reaches every resource in your tenant. In a route that serves one signed-in user, call the SDK through a user-scoped client, so it reads and runs only that user's records: [`forUser()`](/sdk/typescript/client#for-user) in TypeScript, [`for_user()`](/sdk/python/client#for-user) in Python and [Rust](/sdk/rust/client#for-user), and [`ForUser()`](/sdk/go/client#for-user) in Go.
 
 <Cards>
   <Card

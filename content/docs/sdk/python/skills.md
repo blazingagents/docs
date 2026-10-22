@@ -9,6 +9,8 @@ description: Create, upload, edit, copy, and delete an agent's skills with the P
 
 Examples assume `client = BlazingAgents()` and an existing `agent`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, `client.agent(agent_id).skills` has the same method names; await them and use `async for` with `iter()`.
 
+In a route that serves a signed-in end user, use `client.for_user(verified_user_id).agent(agent_id).skills` from [`for_user()`](/sdk/python/client#for-user), which reaches only the skills of that user's agents. The tenant client reaches every agent's skills and is for your backend's administration.
+
 ```python
 skills = client.agent(agent.id).skills
 skill = skills.create(
@@ -55,7 +57,7 @@ skill = client.agent(agent.id).skills.create(
 
 **Signature:** `create(*, path: Literal["SKILL.md"], content: str) -> SkillDetail`
 
-`path` must be `"SKILL.md"`; the API rejects any other value with `validation_failed`. The frontmatter needs a `name` (lowercase letters, digits, and hyphens, up to 64 characters, not `anthropic` or `claude`) and a `description` (up to 1,024 characters). The name must be unique among the agent's skills.
+`path` must be `"SKILL.md"`; the API rejects any other value with `validation_failed`. The frontmatter needs a `name` (lowercase letters, digits, and hyphens, not `anthropic` or `claude`) and a `description`, both within the [frontmatter limits](/api-reference/protocols/service-limits#skill-frontmatter). The name must be unique among the agent's skills.
 
 Returns [`SkillDetail`](#skill-and-skilldetail). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict), [`skill_limit_reached`](/api-reference/protocols/errors#skill_limit_reached), or [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large), and [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
 
@@ -88,7 +90,7 @@ page = client.agent(agent.id).skills.list(limit=50)
 
 **Signature:** `list(*, cursor=..., limit=...) -> SkillsPage`
 
-`limit` is 1 to 100 and defaults to 50. Pass the previous page's `next_cursor` as `cursor`. Returns `SkillsPage` with `data: list[Skill]` and `next_cursor: str | None`. Raises `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), and `not_found` when the agent does not exist.
+`limit` follows the [skill page limit](/api-reference/protocols/service-limits#skill-page). Pass the previous page's `next_cursor` as `cursor`. Returns `SkillsPage` with `data: list[Skill]` and `next_cursor: str | None`. Raises `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), and `not_found` when the agent does not exist.
 
 ### `iter()` [#iter]
 
@@ -195,7 +197,7 @@ for result in results:
 
 **Signature:** `copy(*, skill_id: str, destination_agent_ids: Sequence[str]) -> list[SkillCopyResult]`
 
-Pass 1 to 30 unique agent IDs. Results come back in the same order. A failed destination does not undo the others; it appears as a `"failed"` result instead of raising. The whole call raises only `validation_failed`, `not_found`, or `skill_not_found`.
+Pass unique agent IDs, within the [copy destination limit](/api-reference/protocols/service-limits#skill-copy). Results come back in the same order. A failed destination does not undo the others; it appears as a `"failed"` result instead of raising. The whole call raises only `validation_failed`, `not_found`, or `skill_not_found`.
 
 ## Response types [#response-types]
 
@@ -222,9 +224,9 @@ A copy result is either `SkillCopyCreated` (`status == "created"`, with `agent_i
 | `skill_invalid_markdown` | `SKILL.md` frontmatter is missing or invalid |
 | `skill_invalid_archive` | The archive is invalid or contains unsafe paths |
 | `skill_name_conflict` | The agent already has a skill with that name |
-| `skill_limit_reached` | The agent already has 100 skills |
-| `skill_too_many_files` | The skill would have more than 100 files |
-| `skill_uncompressed_too_large` | The skill would exceed 10 MiB |
+| `skill_limit_reached` | The agent already has the [maximum number of skills](/api-reference/protocols/service-limits#skills-per-agent) |
+| `skill_too_many_files` | The skill would exceed the [file count limit](/api-reference/protocols/service-limits#skill-bundle) |
+| `skill_uncompressed_too_large` | The skill would exceed the [size limit](/api-reference/protocols/service-limits#skill-bundle) |
 
 ## Next [#next]
 

@@ -7,9 +7,12 @@ description: List sessions, load their messages, delete them, and answer tool ap
 
 `client.sessions` reads the conversations Blazing Agents stores for you. Use it to show a user their past chats, reload a transcript, delete a conversation, list the tool calls an agent is waiting on, and steer messages into a running turn. To start or continue a session, call [`client.chat()`](/sdk/typescript/client#chat); to send approval decisions and continue the turn, call [`client.continueChat()`](/sdk/typescript/client#continue-chat). To learn how sessions and turns behave, read [Sessions and turns](/platform/sessions-and-turns).
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/typescript/client#for-user) from `client.forUser(verifiedUserId)`. It returns only that end user's sessions and answers `not_found` for anyone else's. The tenant client sees every user's sessions and is for your backend's administration.
+
 ```typescript
-const { data: sessions } = await client.sessions.list({ agentId, userId: "user_123" });
-const { data: messages } = await client.sessions.messages({
+const user = client.forUser(verifiedUserId);
+const { data: sessions } = await user.sessions.list({ agentId });
+const { data: messages } = await user.sessions.messages({
   agentId,
   sessionId: sessions[0].id,
 });
@@ -41,17 +44,18 @@ Lists one agent's sessions, most recently updated first.
 **Signature:** `list(input: { agentId: string } & SessionsListOptions): Promise<SessionsListResponse>`
 
 ```typescript
-const page = await client.sessions.list({ agentId, userId: "user_123", limit: 25 });
+const user = client.forUser(verifiedUserId);
+const page = await user.sessions.list({ agentId, limit: 25 });
 const next = page.nextCursor
-  ? await client.sessions.list({ agentId, userId: "user_123", cursor: page.nextCursor })
+  ? await user.sessions.list({ agentId, cursor: page.nextCursor })
   : null;
 ```
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | `string` | yes | none | Agent ID (`ag_…`) |
-| `userId` | `string` | no | none | Only this end user's sessions; `""` for tenant-level ones |
-| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `userId` | `string` | no | none | Tenant client only: this end user's sessions; `""` for tenant-level ones |
+| `limit` | `number` | no | `50` | Page size; see the [page size limit](/api-reference/protocols/service-limits#other-cursored-resource-pages) |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 An agent ID that does not exist in your tenant returns an empty page. Returns [`SessionsListResponse`](#sessionslistresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
@@ -63,7 +67,7 @@ Lists the most recently updated sessions across all your agents.
 **Signature:** `listLatest(input?: LatestSessionsListOptions): Promise<LatestSessionsListResponse>`
 
 ```typescript
-const inbox = await client.sessions.listLatest({ userId: "user_123", byAgent: true });
+const inbox = await client.forUser(verifiedUserId).sessions.listLatest({ byAgent: true });
 for (const session of inbox.data) {
   console.log(session.agentId, session.lastMessagePreview);
 }
@@ -72,8 +76,8 @@ for (const session of inbox.data) {
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `byAgent` | `boolean` | no | `false` | Return at most one session per agent, its latest |
-| `userId` | `string` | no | none | Only this end user's sessions; `""` for tenant-level ones |
-| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `userId` | `string` | no | none | Tenant client only: this end user's sessions; `""` for tenant-level ones |
+| `limit` | `number` | no | `50` | Page size; see the [page size limit](/api-reference/protocols/service-limits#other-cursored-resource-pages) |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Use `byAgent: true` to build an inbox with one row per agent, instead of calling `list()` for each agent. Sessions of disabled agents are included. Returns [`LatestSessionsListResponse`](#latestsessionslistresponse). Errors: `validation_failed`, `invalid_cursor`.
@@ -98,22 +102,25 @@ Loads a session's stored messages in the AI SDK `UIMessage` shape, so you can pa
 **Signature:** `messages(input: { agentId: string; sessionId: string } & SessionMessagesOptions): Promise<SessionMessagesResponse>`
 
 ```typescript
-const page = await client.sessions.messages({ agentId, sessionId });
+const user = client.forUser(verifiedUserId);
+const page = await user.sessions.messages({ agentId, sessionId });
 
 const older = page.nextCursor
-  ? await client.sessions.messages({ agentId, sessionId, cursor: page.nextCursor })
+  ? await user.sessions.messages({ agentId, sessionId, cursor: page.nextCursor })
   : null;
 
 const newer = page.latestCursor
-  ? await client.sessions.messages({ agentId, sessionId, after: page.latestCursor })
+  ? await user.sessions.messages({ agentId, sessionId, after: page.latestCursor })
   : null;
 ```
+
+On the scoped client, a `sessionId` from the browser is safe to pass: another user's session answers `not_found`.
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | `string` | yes | none | Agent ID (`ag_…`) |
 | `sessionId` | `string` | yes | none | Session ID (`ss_…`) |
-| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `limit` | `number` | no | `50` | Page size; see the [message page limit](/api-reference/protocols/service-limits#session-or-task-run-message-page) |
 | `cursor` | `string` | no | none | Go back to older messages |
 | `after` | `string` | no | none | Fetch messages added since an earlier `latestCursor` |
 
@@ -128,7 +135,7 @@ Deletes a session and its messages for good. You choose whether its artifacts go
 **Signature:** `delete(input: { agentId: string; sessionId: string; deleteArtifacts: boolean } & ResourceRequestOptions): Promise<void>`
 
 ```typescript
-await client.sessions.delete({ agentId, sessionId, deleteArtifacts: false });
+await client.forUser(verifiedUserId).sessions.delete({ agentId, sessionId, deleteArtifacts: false });
 ```
 
 `deleteArtifacts: true` also deletes the files the agent published in this session; `false` keeps them. Errors: `validation_failed`, `not_found`, [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn is running or an approval continuation is still open, or [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) when the last turn stopped responding; wait for `Retry-After`.
@@ -140,7 +147,9 @@ Lists the tool calls in the session that need, or had, a decision. Listing chang
 **Signature:** `toolApprovals(input: { agentId: string; sessionId: string } & ResourceRequestOptions): Promise<ToolApprovalsResponse>`
 
 ```typescript
-const { data, continuation } = await client.sessions.toolApprovals({ agentId, sessionId });
+const { data, continuation } = await client
+  .forUser(verifiedUserId)
+  .sessions.toolApprovals({ agentId, sessionId });
 const pending = data.filter((approval) => approval.decision === "pending");
 ```
 
@@ -169,7 +178,7 @@ const { data: input, activity } = await client.sessions.submitInput({
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
 | `sessionId` | `string` | yes | Session ID (`ss_…`) |
-| `requestId` | `string` | yes | Your ID for this steer, 1 to 128 characters, other than `.` or `..` |
+| `requestId` | `string` | yes | Your ID for this steer; see the [steer `requestId` rules](/api-reference/protocols/service-limits#steer-request-id) |
 | `message` | `UIMessage` | yes | A user message with text and image parts |
 
 Resending the same `requestId` with the same message returns the same receipt, so retry with the original values after a timeout. A call that cannot steer, because no turn is running or can take one, fails with [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and saves nothing; keep the message in your app's own queue and send it later as an ordinary `chat()` message. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `validation_failed`, `not_found`, [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `requestId` or `message.id` was already used for different content.
@@ -190,7 +199,7 @@ const pending = data.filter((input) => input.state === "accepted");
 | `agentId` | `string` | yes | none | Agent ID (`ag_…`) |
 | `sessionId` | `string` | yes | none | Session ID (`ss_…`) |
 | `includeCompleted` | `boolean` | no | `false` | Also return `committed` and `not_placed` receipts |
-| `limit` | `number` | no | `100` | 1 to 200 per page |
+| `limit` | `number` | no | `100` | Page size; see the [input page limit](/api-reference/protocols/service-limits#session-input-page) |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Without `includeCompleted`, you get only the `accepted` receipts, which are still waiting, so your app can show them to the user. To watch for changes, call it again without a cursor; the cursor only pages through a long list. `activity` reports `idle`, `running`, `stopping`, or `approval`, with the running `turnId`. Returns [`SessionInputsResponse`](#sessioninputsresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
@@ -230,7 +239,7 @@ console.log(child.id, child.forkedFrom);
 
 Select a message whose top-level `branchable` is `true`. Streaming replies and pending approvals are ineligible. Pick the reply from `sessions.messages()`, not from the live stream. Stream chunks don't include `branchable`. A reply that is not in the history yet is not eligible. Earlier saved replies can still be forked while the source session runs a turn. The child inherits the source's saved configuration, user label, and metadata; workspace files and memories stay shared and live.
 
-Use a nonblank idempotency key of at most 200 characters. Save it before sending and reuse the exact source, message, and key after a lost response. Creation returns HTTP `201`; identical replay returns HTTP `200` and the same child, even if the source was deleted. Forking runs no model or tool and creates no usage. Continue through `chat()` with the child's ID; later turns have normal usage.
+Use a nonblank idempotency key within the [fork key limit](/api-reference/protocols/service-limits#fork-idempotency-key). Save it before sending and reuse the exact source, message, and key after a lost response. Creation returns HTTP `201`; identical replay returns HTTP `200` and the same child, even if the source was deleted. Forking runs no model or tool and creates no usage. Continue through `chat()` with the child's ID; later turns have normal usage.
 
 Errors: `validation_failed` (`400`) for a malformed ID or body, `idempotency_conflict` (`409`) for the same key with another message, `session_fork_unavailable` (`409`) for a removed or ineligible reply, `session_fork_deleted` (`410`) for a replay whose child was deleted, and `not_found` (`404`) for a missing or inaccessible source or agent.
 
@@ -308,7 +317,7 @@ interface ToolApprovalState {
   input: JSONValue;
   decision: "pending" | "approved" | "denied";
   reason: string | null;
-  tool?: ToolReference | null;
+  tool?: ToolExecutionReference | null;
   assistantMessageId?: string;
   createdAt?: string;
   decidedAt?: string | null;
@@ -317,7 +326,7 @@ interface ToolApprovalState {
 type ToolApprovalContinuationState = "waiting" | "running" | "succeeded" | "failed";
 ```
 
-`input` is the exact JSON the agent wants to pass to the tool. `tool` identifies it as a built-in or MCP tool when known. The package exports `ToolApprovalState`, `ToolApprovalsResponse`, `ToolApprovalDecision`, and `ToolReference`.
+`input` is the exact JSON the agent wants to pass to the tool. `tool` identifies it when known: `{ type: "builtin", name }`, `{ type: "mcp", connectionId, name }`, or `{ type: "function", name }` for a [backend function](/agents/tools/backend-functions). Code that switches on `tool.type` must handle all three. The package exports `ToolApprovalState`, `ToolApprovalsResponse`, `ToolApprovalDecision`, and `ToolExecutionReference`.
 
 ### `SessionInputResponse` [#sessioninputresponse]
 
@@ -382,7 +391,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | Code | Meaning |
 | --- | --- |
 | `invalid_cursor` | Start paging again without the cursor |
-| `not_found` | No such session or turn for this agent |
+| `not_found` | No such session or turn for this agent, or a scoped client asked for another end user's session |
 | `steer_not_available` | No turn can take the message now; keep it in your own queue |
 | `tool_approval_decision_conflict` | The call was already decided differently; reload the approvals |
 | `tool_approval_continuation_settled` | The approval round already finished; read the history |

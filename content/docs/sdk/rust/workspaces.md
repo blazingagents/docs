@@ -9,10 +9,13 @@ description: Create, list, update, and delete the private file systems your agen
 
 Examples receive a `client: blazing_agents::Client`. Every call also takes the `with_timeout`, `without_timeout`, `with_header`, and `with_client_request_id` transport options.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/rust/client#for-user) from `client.for_user()`, which returns only that user's workspaces. The tenant client sees every user's workspaces and is for your backend's administration. A turn on a `UserClient` runs only in a workspace that belongs to its user, and every turn of an agent shares the agent's one workspace.
+
 ```rust
 use blazing_agents::workspaces::NetworkPolicy;
 
-let workspace = client
+let user = client.for_user("user_0123456789abcdef")?;
+let workspace = user
     .workspaces()
     .create()
     .name("Release files")
@@ -50,8 +53,8 @@ let workspace = client
 | Setter | Type | Default | Description |
 | --- | --- | --- | --- |
 | `tier` | `WorkspaceTier` | `WorkspaceTier::Core` | Tier, fixed at creation. `Core` loses its files when the workspace stops; `Plus` keeps them while it is stopped |
-| `name` | `impl Into<String>` | unnamed | Display name, up to 80 characters |
-| `user_id` | `impl Into<String>` | `""` | The end user who owns the workspace. Fixed after creation |
+| `name` | `impl Into<String>` | unnamed | Display name, within the [name limit](/api-reference/protocols/service-limits#workspace-name) |
+| `user_id` | `impl Into<String>` | `""`, or the scoped user on a `UserClient` | The end user who owns the workspace. Fixed after creation |
 | `metadata` | `Metadata` | `{}` | Your own data |
 | `network_policy` | `NetworkPolicy` | `NetworkPolicy::Unrestricted` | Which hosts the workspace can reach |
 
@@ -61,7 +64,7 @@ Awaiting returns [`Workspace`](#workspace). Fails with `Error::Api` whose code i
 
 ### `list()` [#list]
 
-Lists workspaces, newest first. The workspace reserved for the admin agent is never listed.
+Lists workspaces, newest first. The workspace reserved for the admin agent is never listed. This tenant-admin view selects tenant-level workspaces; a `UserClient` returns only its user's workspaces.
 
 ```rust
 let page = client.workspaces().list().user_id("").limit(50).await?;
@@ -75,7 +78,7 @@ for workspace in &page.data {
 | Setter | Type | Description |
 | --- | --- | --- |
 | `user_id` | `impl Into<String>` | Only workspaces of this end user; `""` selects tenant-level workspaces |
-| `limit` | `u8` | Page size, 1 to 200; defaults to 50 |
+| `limit` | `u8` | Page size, within the [workspace page limit](/api-reference/protocols/service-limits#workspace-page) |
 
 Awaiting returns [`Page<Workspace>`](#workspace); call `.items()` or `.pages()` on the call to walk every page lazily. Fails with `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
@@ -107,12 +110,12 @@ let workspace = client
 
 | Setter | Description |
 | --- | --- |
-| `name(name)` | A new display name, up to 80 characters |
+| `name(name)` | A new display name, within the [name limit](/api-reference/protocols/service-limits#workspace-name) |
 | `clear_name()` | Removes the display name |
 | `metadata(metadata)` | Replaces the workspace's metadata completely |
 | `network_policy(network_policy)` | Replaces the network policy. Switching between `NetworkPolicy::Unrestricted` and a restricted policy stops a running workspace, which applies the new policy on next use |
 
-Awaiting returns [`Workspace`](#workspace). Fails with `validation_failed` or `workspace_not_found`.
+Awaiting returns [`Workspace`](#workspace). Fails with `validation_failed`, `workspace_not_found`, or [`workspace_busy`](/api-reference/protocols/errors#workspace_busy) when another change to the workspace is still in progress; retry once it finishes.
 
 ### `delete()` [#delete]
 
@@ -129,7 +132,7 @@ Move attached agents to another workspace first. Awaiting returns `()`, and by t
 | Code | Meaning |
 | --- | --- |
 | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use) | Agents still use it; `ApiError::details()` holds their IDs under `agentIds` |
-| `workspace_not_found` | No such workspace in your tenant |
+| `workspace_not_found` | No such workspace in your tenant, or, on a `UserClient`, none that belongs to its user |
 
 ## Response models [#response-models]
 

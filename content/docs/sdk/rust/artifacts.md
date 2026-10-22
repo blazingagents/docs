@@ -9,8 +9,11 @@ description: List, inspect, download, and delete the files your agents publish, 
 
 Examples receive a `client: blazing_agents::Client`. Every call also takes the `with_timeout`, `without_timeout`, `with_header`, and `with_client_request_id` transport options.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/rust/client#for-user) from `client.for_user()`, which returns only that user's artifacts. The tenant client sees every user's artifacts and is for your backend's administration.
+
 ```rust
-let page = client.artifacts().list().await?;
+let user = client.for_user("user_0123456789abcdef")?;
+let page = user.artifacts().list().await?;
 for artifact in &page.data {
     println!("{} {}", artifact.artifact_id, artifact.filename);
 }
@@ -29,10 +32,11 @@ for artifact in &page.data {
 
 ### `list()` [#list]
 
-Lists artifacts, newest first, 50 per page.
+Lists artifacts, newest first, with a fixed [page size](/api-reference/protocols/service-limits#other-cursored-resource-pages).
 
 ```rust
-let page = client
+let user = client.for_user("user_0123456789abcdef")?;
+let page = user
     .artifacts()
     .list()
     .agent_id("ag_0123456789abcdef")
@@ -62,10 +66,11 @@ Awaiting returns [`Artifact`](#artifact). Fails with `validation_failed` or [`no
 
 ### `create_download_url()` [#create-download-url]
 
-Creates a link that downloads the artifact's file for five minutes. Fetch it without an API key; anyone with the link can download the file, so keep it out of logs.
+Creates a link that downloads the artifact's file for five minutes. Fetch it without an API key; anyone with the link can download the file, so keep it out of logs. On a `UserClient`, another user's artifact fails with `not_found`, so you do not need your own ownership check.
 
 ```rust
-let link = client
+let user = client.for_user("user_0123456789abcdef")?;
+let link = user
     .artifacts()
     .create_download_url("at_0123456789abcdef")
     .await?;

@@ -751,7 +751,7 @@ return nil
 
 `loadChat` returns the user's own agent and the chat's saved session ID, if it has one. A scoped client runs only an agent that belongs to the same user, and only while that agent's workspace belongs to the user too. Otherwise the call fails with [`not_found`](/api-reference/protocols/errors#not_found) or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found). Create each user's agent once with the scoped client, and the workspace created with it belongs to that user as well. You do not pass `userId`, because the scoped client sets it.
 
-If all your users talk to one shared agent, you cannot scope the call, because that agent belongs to no single user. Call it with your tenant-wide client, pass `userId` to label each turn, and check that the signed-in user owns the session on every sessions call. Every user's turns then share that agent's workspace, so one user's turns can read, change, or delete files that another user's turns wrote. See [keep end users' files apart](/agents/workspaces#keep-end-users-files-apart).
+Give each user their own agent. One agent shared by all your users belongs to no single user, so a scoped client cannot call it. You would have to call it with your tenant-wide client, pass `userId` to label each turn, and check yourself that the signed-in user owns the session on every sessions call. Every user's turns would also share that agent's workspace, so one user's turns could read, change, or delete files that another user's turns wrote. A shared agent fits only work with no per-user files or sessions. See [keep end users' files apart](/agents/workspaces#keep-end-users-files-apart).
 
 Keep these rules in your handler:
 

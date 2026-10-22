@@ -7,6 +7,8 @@ description: Create, configure, pause, and delete agents with the Go SDK.
 
 `client.Agents` creates and configures your agents. You can pause an agent without losing its setup. Sessions and task runs save the configuration they start with.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/go/client#for-user) from `client.ForUser(userID)`, which returns only that user's agents. The tenant client sees every user's agents and is for your backend's administration. A user's turns on the scoped client need an agent that belongs to that user.
+
 Examples are function bodies that receive `ctx context.Context`, `client *ba.Client`, `agentID ba.AgentID`, and `sessionID ba.SessionID`, and return an `error`. Every method also takes the per-call options `ba.WithRequestTimeout`, `ba.WithRequestHeader`, `ba.WithClientRequestID`, and `ba.CaptureResponse`.
 
 ```go
@@ -89,17 +91,17 @@ Returns [`*ba.Agent`](#agent).
 | `WorkspaceTier` | `*ba.WorkspaceTier` | `ba.WorkspaceTierCore` | Tier for a new workspace; cannot be combined with `WorkspaceID` |
 | `WorkspaceID` | `*ba.WorkspaceID` | new workspace | Existing workspace to share instead of getting a new one |
 | `Tools` | `[]ba.AgentTool` | none | Built-in tools to turn on, such as `ba.AgentToolRead`, `ba.AgentToolWriteTodos`, `ba.AgentToolSaveMemory`, or `ba.AgentToolWebSearch`. See [built-in tools](/agents/tools/built-in-tools) |
-| `Instructions` | `*string` | `""` | System instructions, up to 3,000 characters |
+| `Instructions` | `*string` | `""` | System instructions, within the [agent field limits](/api-reference/protocols/service-limits#agent-fields) |
 | `MemoryInjectionEnabled` | `*bool` | `false` | Add the agent's memories to each turn's context automatically |
 | `AutoCompaction` | `*bool` | `true` | Summarize older context when it nears the model's context window |
 | `CompactionReserveTokens` | `*int` | `16384` | Tokens to keep free below the model's context window |
 | `ApprovalInChat` | `*ba.ApprovalPolicy` | `ba.ApprovalModeFull` | Tool approval policy for chat and stateless calls |
 | `ApprovalInTasks` | `*ba.ApprovalPolicy` | `ba.ApprovalModeFull` | Tool approval policy for task runs |
-| `UserID` | `*string` | `""` | End user this agent belongs to; `""` means tenant level. Fixed after creation |
+| `UserID` | `*string` | `""` | End user this agent belongs to; `""` means tenant level. Fixed after creation. A scoped client fills it in |
 | `Metadata` | `ba.Metadata` | `{}` | Your own data |
-| `MCPConnectionIDs` | `[]ba.MCPConnectionID` | none | Up to 10 MCP connections |
+| `MCPConnectionIDs` | `[]ba.MCPConnectionID` | none | MCP connections, within the [per-agent limit](/api-reference/protocols/service-limits#mcp-connections-per-agent) |
 
-Without a model, the agent is saved unconfigured. `WorkspaceTier` chooses Core or Plus for a new workspace and defaults to Core. A workspace created for the agent stays independent afterwards: renaming the agent does not rename it.
+Without a model, the agent is saved unconfigured. `WorkspaceTier` chooses Core or Plus for a new workspace and defaults to Core. A workspace created for the agent belongs to the agent's end user and stays independent afterwards: renaming the agent does not rename it.
 
 The SDK checks a few combinations before it sends anything, and returns a `*ba.ArgumentError` when `ProviderID` and `Model` are not both set or both left out, when `ThinkingLevel` is set while `ProviderID` is `ba.Null`, or when both `WorkspaceTier` and `WorkspaceID` are set.
 
@@ -128,14 +130,18 @@ fmt.Println(agent.ID)
 return nil
 ```
 
-Fails with `*ba.APIError` whose `Code` is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), or [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid).
+Fails with `*ba.APIError` whose `Code` is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), or [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid). On a scoped client, a `WorkspaceID` the user does not own fails with [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found), and a different `UserID` fails with [`invalid_request`](/api-reference/protocols/errors#invalid_request).
 
 ### `List` [#list]
 
-Lists your agents, most recently updated first.
+Lists your agents, newest first.
 
 ```go
-page, err := client.Agents.List(ctx, ba.ListAgentsParams{UserID: new(""), Limit: new(50)})
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+page, err := user.Agents.List(ctx, ba.ListAgentsParams{Limit: new(50)})
 if err != nil {
 	return err
 }
@@ -143,8 +149,7 @@ for _, agent := range page.Data {
 	fmt.Println(agent.ID, agent.Name)
 }
 if page.NextCursor != "" {
-	nextPage, err := client.Agents.List(ctx, ba.ListAgentsParams{
-		UserID: new(""),
+	nextPage, err := user.Agents.List(ctx, ba.ListAgentsParams{
 		Cursor: new(page.NextCursor),
 		Limit:  new(50),
 	})
@@ -160,10 +165,10 @@ return nil
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `UserID` | `*string` | Only agents for this end user; `new("")` selects tenant-level agents, and nil returns all agents |
+| `UserID` | `*string` | For a tenant-wide view on the tenant client: only agents for this end user; `new("")` selects tenant-level agents, and nil returns all agents. Leave it unset on a scoped client |
 | `WorkspaceID` | `*ba.WorkspaceID` | Only agents that use this workspace |
 | `Cursor` | `*string` | The `NextCursor` of the previous page |
-| `Limit` | `*int` | Page size, 1 to 100; defaults to 50 |
+| `Limit` | `*int` | Page size, within the [agent page limit](/api-reference/protocols/service-limits#agent-page) |
 
 Returns `*ba.Page[Agent]` with `Data` and `NextCursor`, which is `""` on the last page. Keep the same filters when paging. To walk every page lazily, range over `All` with the same params instead:
 
@@ -213,7 +218,7 @@ return nil
 
 **Signature:** `func (s *AgentsService) Update(ctx context.Context, agentID AgentID, params UpdateAgentParams, opts ...RequestOption) (*Agent, error)`
 
-`ba.UpdateAgentParams` has every [`Create`](#create) field except `UserID` (fixed after creation) and `WorkspaceTier`, and its `Name` is a `*string` of 1 to 80 characters. Fields you leave unset keep their current value. Values you set replace the old ones completely: `Tools`, `MCPConnectionIDs`, `Metadata`, and each approval policy are full replacements, not patches. To clear a list, set it to an empty slice such as `[]ba.AgentTool{}`.
+`ba.UpdateAgentParams` has every [`Create`](#create) field except `UserID` (fixed after creation) and `WorkspaceTier`, and its `Name` is a `*string` within the [agent field limits](/api-reference/protocols/service-limits#agent-fields). Fields you leave unset keep their current value. Values you set replace the old ones completely: `Tools`, `MCPConnectionIDs`, `Metadata`, and each approval policy are full replacements, not patches. To clear a list, set it to an empty slice such as `[]ba.AgentTool{}`.
 
 - To change the model on the current provider, set only `Model` and the provider is kept. To switch providers, set `ProviderID` and `Model` together. Setting `ProviderID` without `Model` fails client-side with `*ba.ArgumentError`.
 - To unconfigure the agent, set `ProviderID: ba.Null[ba.ProviderID]()` and `Model: ba.Null[string]()`. When you leave `ThinkingLevel` unset, the SDK also sends a `null` thinking level, because the server rejects removing the provider while a thinking level remains.
@@ -283,7 +288,7 @@ return nil
 
 **Signature:** `func (s *AgentsService) UploadAvatar(ctx context.Context, agentID AgentID, file Upload, opts ...RequestOption) (*Agent, error)`
 
-The image is a PNG, JPEG, or WebP of at most 512 KiB. `ba.UploadFile(path)` streams the file from disk and takes the file name from the path; a file that does not open fails with `*ba.ArgumentError` before anything is sent. `ba.UploadBytes(name, data)` and `ba.UploadReader(name, r)` send an in-memory body or a reader under the name you give. The part's Content-Type comes from the file name's extension, and `.WithContentType(mime)` overrides it.
+The image is a PNG, JPEG, or WebP within the [avatar upload limit](/api-reference/protocols/service-limits#agent-avatar-upload). `ba.UploadFile(path)` streams the file from disk and takes the file name from the path; a file that does not open fails with `*ba.ArgumentError` before anything is sent. `ba.UploadBytes(name, data)` and `ba.UploadReader(name, r)` send an in-memory body or a reader under the name you give. The part's Content-Type comes from the file name's extension, and `.WithContentType(mime)` overrides it.
 
 Returns [`*ba.Agent`](#agent) whose `AvatarURL` is a short-lived signed URL. Fails with `validation_failed` for a missing, oversized, or unsupported file, or `not_found`.
 
@@ -344,7 +349,7 @@ return nil
 | Field | Type | Description |
 | --- | --- | --- |
 | `ForwardUserID` | `*bool` | Send the turn's `userId` to the MCP server with every tool call |
-| `ForwardedMetadataKeys` | `[]string` | Up to 32 unique turn metadata keys to send, of 1 to 64 characters each. Replaces the current list |
+| `ForwardedMetadataKeys` | `[]string` | Unique turn metadata keys to send, within the [forwarded metadata limits](/api-reference/protocols/service-limits#mcp-forwarded-metadata). Replaces the current list |
 
 Fields you leave unset keep their values. Returns [`*ba.MCPAttachment`](#mcpattachment). Fails with `validation_failed` or `not_found`.
 

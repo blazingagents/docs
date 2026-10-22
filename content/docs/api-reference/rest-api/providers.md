@@ -25,7 +25,7 @@ Lists your tenant's providers, most recently updated first. Items leave out the 
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 There are no parameters and no request body.
 
@@ -75,7 +75,7 @@ Stores a model vendor API key for your agents to use. Names are unique within yo
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -131,7 +131,7 @@ Lists the model IDs the provider offers right now, trimmed, deduplicated, and so
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -182,7 +182,7 @@ Lists the thinking levels a model supports on this provider. It works for model 
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -234,7 +234,7 @@ Returns a provider, including its base URL and `keyFragment`, the last character
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -285,7 +285,7 @@ Renames a provider. Only `name` can change. To rotate a key or change the type o
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -340,7 +340,7 @@ Deletes a provider and its key. While a current agent uses the provider, deletio
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |

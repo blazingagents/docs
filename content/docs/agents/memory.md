@@ -208,7 +208,7 @@ return nil
 
 Search matches words, not meaning, so "status updates" finds notes containing those words but not "progress reports".
 
-An agent holds a [fixed number of notes](/api-reference/protocols/service-limits#memories-per-agent) across all its users. Saving a note at that limit removes the one used least recently. Notes never expire on their own, so delete stale or sensitive notes yourself. Deleting the agent deletes its notes.
+An agent holds a [fixed number of notes](/api-reference/protocols/service-limits#memories-per-agent) across all its users. Saving a note at that limit removes the one used least recently. A save through a client scoped with `forUser()` removes only that user's own notes, so when other users' notes or general notes fill the agent, it fails with [`invalid_request`](/api-reference/protocols/errors#invalid_request) (HTTP `400`) instead, and the agent's memory tool reports the same failure during a scoped turn. Give each user their own agent, or delete notes you no longer need. Notes never expire on their own, so delete stale or sensitive notes yourself. Deleting the agent deletes its notes.
 
 ## Next [#next]
 

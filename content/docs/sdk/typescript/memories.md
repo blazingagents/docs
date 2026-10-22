@@ -7,14 +7,14 @@ description: Add, search, edit, and delete an agent's memories with the TypeScri
 
 `client.memories` reads and writes the notes an agent keeps across sessions. Agents with memory tools such as `save_memory` save notes themselves; use these methods to seed facts, show a user what the agent remembers about them, or remove something. To learn how memory reaches the agent, read [Memory](/agents/memory).
 
-```typescript
-await client.memories.create({
-  agentId,
-  userId: "user_42",
-  text: "Prefers concise release notes.",
-});
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/typescript/client#for-user) from `client.forUser(verifiedUserId)`. It reads and writes only that end user's memories, never the shared ones. The tenant client sees every user's memories and is for your backend's administration.
 
-const { data } = await client.memories.list({ agentId, userId: "user_42", search: "release" });
+```typescript
+const user = client.forUser(verifiedUserId);
+
+await user.memories.create({ agentId, text: "Prefers concise release notes." });
+
+const { data } = await user.memories.list({ agentId, search: "release" });
 ```
 
 Every method takes the owning `agentId` and accepts an optional `abortSignal`.
@@ -22,9 +22,10 @@ Every method takes the owning `agentId` and accepts an optional `abortSignal`.
 ## How memories are kept [#how-memories-are-kept]
 
 - Each memory belongs to one agent and, through `userId`, to one of your end users or to no one (`""`). Neither can change later.
-- Text is up to 10 KiB of UTF-8.
-- An agent holds up to 500 memories across all users. When it is full, a new memory replaces the one used least recently.
+- Text has a [size limit](/api-reference/protocols/service-limits#memory-text).
+- An agent holds a [fixed number of memories](/api-reference/protocols/service-limits#memories-per-agent) across all users. When it is full, a new memory replaces the one used least recently.
 - `update()` counts as a use. Reading with `list()` or `get()` does not.
+- A turn on a [scoped client](/sdk/typescript/client#for-user) sees only that end user's memories, never the shared ones. An unscoped turn sees the shared memories, plus the memories of its session's end user when the session has one.
 
 ## Available operations [#available-operations]
 
@@ -44,19 +45,20 @@ Adds a memory to an agent.
 
 **Signature:** `create(input: CreateMemoryBody & { agentId: string } & ResourceRequestOptions): Promise<MemoryResponse>`
 
+To seed a shared memory that every user's unscoped turns can see, use the tenant client:
+
 ```typescript
 const { memory } = await client.memories.create({
   agentId,
-  userId: "user_42",
-  text: "Prefers concise release notes.",
+  text: "Release notes go out every Friday.",
 });
 ```
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | `string` | yes | none | Agent ID (`ag_…`) |
-| `text` | `string` | yes | none | The note, up to 10 KiB |
-| `userId` | `string` | no | `""` | The end user it is about; `""` for everyone |
+| `text` | `string` | yes | none | The note, within the [memory text limit](/api-reference/protocols/service-limits#memory-text) |
+| `userId` | `string` | no | `""` | The end user it is about, or `""` for a shared memory. A scoped client fills in its own end user |
 
 Returns [`MemoryResponse`](#memoryresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found).
 
@@ -67,15 +69,15 @@ Lists an agent's memories, or searches their text.
 **Signature:** `list(input: { agentId: string } & MemoriesListOptions): Promise<MemoriesListResponse>`
 
 ```typescript
-const page = await client.memories.list({ agentId, userId: "user_42", search: "release" });
+const page = await client.forUser(verifiedUserId).memories.list({ agentId, search: "release" });
 ```
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | `string` | yes | none | Agent ID (`ag_…`) |
-| `userId` | `string` | no | all users | Only this end user's memories; `""` for the shared ones |
+| `userId` | `string` | no | all users | Tenant client only: this end user's memories; `""` for the shared ones |
 | `search` | `string` | no | none | Full-text search terms |
-| `limit` | `number` | no | `50` | 1 to 100 per page |
+| `limit` | `number` | no | `50` | Page size; see the [memory page limit](/api-reference/protocols/service-limits#memory-page) |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Returns [`MemoriesListResponse`](#memorieslistresponse). Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), `not_found`.

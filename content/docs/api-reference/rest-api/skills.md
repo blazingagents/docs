@@ -27,7 +27,7 @@ Lists the agent's skills, newest first, without their file lists. Pass `nextCurs
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -88,7 +88,7 @@ Creates a skill on the agent from a `SKILL.md` document and returns it with its 
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -155,7 +155,7 @@ Creates a skill on the agent from a `zip`, `tar`, or `tar.gz` archive and return
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a multipart form body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a multipart form body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -226,7 +226,7 @@ Returns a skill with its current file list.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -292,7 +292,7 @@ Permanently deletes a skill and all its files. You cannot delete an agent's last
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -331,7 +331,7 @@ Returns the raw bytes of the skill file at `path` as `application/octet-stream`.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -372,7 +372,7 @@ Creates or replaces the skill file at `path` with the raw request body and retur
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a binary body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a binary body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -443,7 +443,7 @@ Deletes the skill file at `path` and returns the updated skill. Deleting a file 
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -506,13 +506,13 @@ Copies a skill, with all its files, to each agent in `agentIds`. Each copy is a 
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `skillId` | string | path | required | ID of the skill. |
-| `agentIds` | string[] | body | required | IDs of the agents to copy the skill to, each listed once. Send 1 to 30. |
+| `agentIds` | string[] | body | required | IDs of the agents to copy the skill to, each listed once. Send 1 to 30. 1–30 items. |
 
 #### Response
 

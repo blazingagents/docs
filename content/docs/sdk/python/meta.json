@@ -15,6 +15,7 @@
     "prompts",
     "usage",
     "tenant",
-    "chat-integrations"
+    "chat-integrations",
+    "merchant"
   ]
 }

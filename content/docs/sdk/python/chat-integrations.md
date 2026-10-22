@@ -89,7 +89,7 @@ print(connection.webhook_url)
 | `credentials` | `{"bot_token", "signing_secret"}` | `{"bot_token"}` |
 | `configuration` | Optional `{"channel_ids": [...]}` | Optional `{"chat_ids": [...], "business_mode": bool}` |
 
-`credentials` must have exactly the keys for the platform, and `configuration` only the platform's keys, or the API answers `validation_failed`. `channel_ids` and `chat_ids`, up to 20 each, pick where health checks look; they do not restrict who can use the bot. Set `business_mode` only for a Telegram Business bot.
+`credentials` must have exactly the keys for the platform, and `configuration` only the platform's keys, or the API answers `validation_failed`. `channel_ids` and `chat_ids`, within the [chat connection limits](/api-reference/protocols/service-limits#chat-connection-fields), pick where health checks look; they do not restrict who can use the bot. Set `business_mode` only for a Telegram Business bot.
 
 `enabled` defaults to `True`. Pass `False` to finish setup before messages arrive. For Slack, set the returned `webhook_url` as both the Event Subscriptions and the Interactivity Request URL of your Slack app ([Connect Slack](/platform/chat-integrations#connect-slack)). For Telegram, Blazing Agents registers the webhook and generates its secret when the connection is enabled, so you never supply one. To use a different agent or bot, create a new connection. If `agent_id` is the admin agent, `create()` raises [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`) and creates nothing. If creation times out, list your connections before retrying, since the first attempt may have succeeded. Raises `validation_failed`, `not_found` when the agent does not exist, or `admin_agent_managed`.
 

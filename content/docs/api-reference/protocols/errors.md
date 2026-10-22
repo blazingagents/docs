@@ -1080,7 +1080,7 @@ To fix it:
 
 **Too many requests at once.**
 
-Either too many interactive turns are running at the same time for your plan, or you created agents, tasks, or workspaces faster than the [creation rate limit](/api-reference/protocols/service-limits#tenant-resource-creation-rate) allows.
+Either more turns are running at once than your plan's [concurrent turn limit](/api-reference/protocols/service-limits#concurrent-turns) allows, or you created agents, tasks, or workspaces faster than the [creation rate limit](/api-reference/protocols/service-limits#tenant-resource-creation-rate) allows.
 
 HTTP `429`. Retrying the same request can succeed.
 
@@ -1154,13 +1154,13 @@ To fix it:
 
 **Your billing connection still has running requests or pending usage.**
 
-You cannot remove or replace your merchant connection while a request admitted on it is still running, or while one of its usage events is `pending`. Removing the connection now would lose that usage.
+You cannot remove or replace your merchant connection while a turn or task run that started on this connection is still running, or while one of its usage events is `pending`. Removing the connection now would lose that usage.
 
 HTTP `409`. Retrying the same request can succeed.
 
 To fix it:
 
-- Wait for running requests to finish and for pending events to be delivered, then try again.
+- Wait for running turns and task runs to finish and for pending events to be delivered, then try again.
 - If a `pending` event's `nextAction` is `retry`, its automatic delivery gave up. Retry it. It ends `accepted` or `failed`, and a `failed` event no longer blocks removal.
 
 ### `merchant_credential_invalid` [#merchant_credential_invalid]

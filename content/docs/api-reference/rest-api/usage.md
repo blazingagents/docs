@@ -7,9 +7,11 @@ description: See how many tokens, requests, and minutes your agents use, by day,
 
 ## Overview [#overview]
 
-See how much your agents use: tokens, requests, and run time, added up over UTC date ranges of up to 31 days. Look at your whole tenant or narrow it to one agent, session, or end user.
+See how much your agents use: tokens, requests, and run time, added up over UTC date ranges within the [usage query window](/api-reference/protocols/service-limits#usage-query-window). Look at your whole tenant or narrow it to one agent, session, or end user.
 
-`POST /v1/usage/sessions` returns exact totals for 1 to 100 session IDs. It preserves input order, includes zero totals for visible sessions without usage, and returns `not_found` if any session is missing or outside your user scope.
+With a [user-scoped request](/api-reference/rest-api/authentication#end-user-scope), `GET /v1/usage`, `GET /v1/agents/:agentId/usage`, and `POST /v1/usage/sessions` return only that user's usage, and a `userId` filter that names another user returns `400 invalid_request`. `GET /v1/usage/overview` is a tenant operation and returns `403 forbidden`.
+
+`POST /v1/usage/sessions` returns exact totals for a [batch of session IDs](/api-reference/protocols/service-limits#usage-exact-session-batch). It preserves input order, includes zero totals for visible sessions without usage, and returns `not_found` if any session is missing or outside your user scope.
 
 ## Endpoints [#endpoints]
 
@@ -21,7 +23,7 @@ Returns your tenant's token, request, and run-time totals for a UTC date range, 
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -102,7 +104,7 @@ Returns everything a usage dashboard needs in one response: totals, a daily seri
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -234,7 +236,7 @@ Returns usage for one agent, with the same range rules, filters, and grouping as
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -303,11 +305,11 @@ Returns exact usage totals for 1 to 100 visible sessions in request order. Sessi
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `sessionIds` | string[] | body | required | One to 100 distinct session IDs. Every session must be visible to the caller. |
+| `sessionIds` | string[] | body | required | One to 100 distinct session IDs. Every session must be visible to the caller. 1–100 items. |
 | `from` | string | body |  | First UTC day to include, as `YYYY-MM-DD`. Send it with `to`, or leave both out for the last 30 days ending today. |
 | `to` | string | body |  | Last UTC day to include, as `YYYY-MM-DD`. It must not be before `from` and can be at most 31 days after it. |
 
