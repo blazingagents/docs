@@ -391,7 +391,7 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/merchant-connection/bindings/
 
 List merchant usage events.
 
-Lists the usage events Blazing Agents records for your billing provider, one per turn, newest first. Each event has a delivery `status` and a suggested `nextAction`: `wait`, `retry`, `investigate`, `discard`, or `none`. `workflowIssue` is set when automatic delivery has given up on a `pending` event. Pass `nextCursor` as `cursor` to get the next page; it is `null` on the last page.
+Lists the usage events Blazing Agents records for your billing provider, one per turn, newest first. Each event has a delivery `status` and a suggested `nextAction`: `wait`, `retry`, `investigate`, `discard`, or `none`. A `pending` event whose automatic delivery has given up has `nextAction` `retry`. Pass `nextCursor` as `cursor` to get the next page; it is `null` on the last page.
 
 #### Request
 
@@ -457,7 +457,6 @@ Response schema: `MerchantUsageEventList`.
       "lastAttemptAt": "2026-07-10T10:12:10.000Z",
       "lastErrorCode": null,
       "acceptedAt": "2026-07-10T10:12:10.000Z",
-      "workflowIssue": null,
       "nextAction": "none"
     },
     {
@@ -484,7 +483,6 @@ Response schema: `MerchantUsageEventList`.
       "lastAttemptAt": null,
       "lastErrorCode": "MERCHANT_CUSTOMER_UNMAPPED",
       "acceptedAt": null,
-      "workflowIssue": null,
       "nextAction": "none"
     }
   ],
@@ -646,7 +644,6 @@ Response schema: `MerchantUsageEventResponse`.
     "lastAttemptAt": "2026-07-10T10:12:10.000Z",
     "lastErrorCode": null,
     "acceptedAt": "2026-07-10T10:12:10.000Z",
-    "workflowIssue": null,
     "nextAction": "none"
   }
 }
@@ -738,7 +735,6 @@ Response schema: `MerchantUsageEventResponse`.
     "lastAttemptAt": "2026-07-10T10:12:10.000Z",
     "lastErrorCode": null,
     "acceptedAt": null,
-    "workflowIssue": null,
     "nextAction": "wait"
   }
 }
@@ -831,7 +827,6 @@ Response schema: `MerchantUsageEventResponse`.
     "lastAttemptAt": "2026-07-10T10:12:10.000Z",
     "lastErrorCode": "MERCHANT_CREDENTIAL_REJECTED",
     "acceptedAt": null,
-    "workflowIssue": null,
     "nextAction": "none"
   }
 }
