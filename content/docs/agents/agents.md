@@ -209,9 +209,11 @@ client.agents().delete(agent_id, false).await?;
 return client.Agents.Delete(ctx, agentID, ba.DeleteAgentParams{IncludeArtifacts: false})
 ```
 
-This removes the agent's sessions, tasks, memories, skills, linked prompts, and avatar. Its workspace, provider, and MCP connections stay, so you can attach them to another agent. Artifacts you keep and past usage records still show the deleted agent's ID.
+This removes the agent's sessions, tasks, memories, skills, linked prompts, avatar, and [Slack and Telegram connections](/platform/chat-integrations). Its workspace, provider, and MCP connections stay, so you can attach them to another agent. Artifacts you keep and past usage records still show the deleted agent's ID.
 
-An agent with work still running cannot be deleted. While it has a running turn, or a task run that is queued or running, deletion fails with [`agent_busy`](/api-reference/protocols/errors#agent_busy). Stop the turn or cancel the task run, or wait for it to finish, then delete again.
+A chat connection cannot move to another agent. To keep a bot running, create a new connection for it on another agent after the delete. The Slack app and the Telegram bot themselves are not removed.
+
+An agent with work still running cannot be deleted. While a session of the agent has a turn running, or a task run is queued or running, deletion fails with [`agent_busy`](/api-reference/protocols/errors#agent_busy). Stop the turn or cancel the task run, or wait for it to finish, then delete again. Calls to `completion()` and `object()` do not block deletion.
 
 ## The admin agent [#the-admin-agent]
 

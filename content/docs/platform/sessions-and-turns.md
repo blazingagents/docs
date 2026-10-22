@@ -268,7 +268,7 @@ Files the agent deliberately published during a conversation are [artifacts](/ag
 
 A session started through chat saves the agent's current configuration on its first turn. A fork inherits the source session's saved configuration when you create it. Later turns in the same session use those saved settings, even after you edit the agent. Call `sessions.get()` to read `agentConfig`; message pages contain only the transcript. See [configuration snapshots](/agents/configuration-snapshots).
 
-Pass `userId` and `metadata` on the first turn to label the session with your end user. The `userId` is fixed once the session starts, and it labels usage for reporting. It does not control access, so your backend still decides who may open which session. See [tenancy and attribution](/platform/tenancy-and-attribution).
+Pass `userId` and `metadata` on the first turn to label the session with your end user. The `userId` is fixed once the session starts, and it labels usage for reporting. On its own, `userId` does not control access. A client scoped to the user with `forUser()` sets the `userId` for you and lets only that user reach the session, as the [chat endpoint pattern](#chat-endpoint-pattern) shows. See [tenancy and attribution](/platform/tenancy-and-attribution). Sessions from a Slack or Telegram bot get a `userId` that Blazing Agents builds. See [chat sessions and user IDs](/platform/chat-integrations#chat-sessions).
 
 ## Busy and concurrent sessions [#busy-and-concurrent-sessions]
 
@@ -469,7 +469,7 @@ If a send's outcome is unknown, such as after a dropped connection, read the his
 
 `submitInput()` (`submit_input()` in Python) hands one user message to the turn that is running now. The agent reads it at its next step, between tool calls or after the current model response, and answers in the same turn. When no turn can take a steer (the session is idle, the turn is stopping or finishing, or a tool approval waits), the call fails with [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and nothing is saved, so keep the message in your own queue.
 
-You choose a `requestId` for each steer, such as a UUID made when the user sends. It can be 1 to 128 characters, other than `.` or `..`. Resending the same `requestId` with the same message returns the same receipt, so you can retry a lost response safely. Reusing a `requestId` with a different message, or sending the same `message.id` under a new `requestId`, returns [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict). After a timeout, retry with the original `requestId`; never make a new one for a message whose outcome you do not know.
+You choose a `requestId` for each steer, such as a UUID made when the user sends. It must fit the [steer `requestId` limits](/api-reference/protocols/service-limits#steer-request-id). Resending the same `requestId` with the same message returns the same receipt, so you can retry a lost response safely. Reusing a `requestId` with a different message, or sending the same `message.id` under a new `requestId`, returns [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict). After a timeout, retry with the original `requestId`; never make a new one for a message whose outcome you do not know.
 
 A steer the agent accepts also shows up on the running turn's stream as a `data-ba-steer-consumed` chunk carrying the receipt's `requestId`, `turnId`, `sequence`, and `message`. It means the turn picked up the message, not that the message is saved: render it and deduplicate by message ID, then confirm from the history after the turn ends. See [streaming protocol](/api-reference/protocols/streaming#steer-events).
 
@@ -553,25 +553,22 @@ A dropped stream cannot be rejoined, whether it came from `client.chat()` or `co
 
 ## Chat endpoint pattern [#chat-endpoint-pattern]
 
-In a real app, your backend maps each of your own chats to one session. The handler authorizes the request, loads the saved session ID, and relays the stream. Here `app` holds your own sign-in and storage code:
+In a real app, your backend maps each of your own chats to one session. The handler authorizes the request, loads the chat's agent and saved session ID, and relays the stream through a client scoped to the signed-in user with `forUser()` (`for_user()` in Python and Rust, `ForUser()` in Go). Here `app` holds your own sign-in and storage code:
 
 ```typescript tab="TypeScript"
 import { client } from "./client.ts";
 import * as app from "./app.ts";
 
-const agentId = app.requireEnv("BLAZING_AGENTS_AGENT_ID");
-
 export async function handleChat(request: Request): Promise<Response> {
   const { chatId, userId, messages } = await app.authorize(request);
-  const existingSessionId = await app.loadSessionId(userId, chatId);
-  const result = await client.chat({
+  const { agentId, sessionId } = await app.loadChat(userId, chatId);
+  const result = await client.forUser(userId).chat({
     agentId,
-    ...(existingSessionId ? { sessionId: existingSessionId } : {}),
+    ...(sessionId ? { sessionId } : {}),
     messages,
     abortSignal: request.signal,
-    userId,
   });
-  if (!existingSessionId) {
+  if (!sessionId) {
     await app.saveSessionId(userId, chatId, await result.sessionId);
   }
   return result.toResponse();
@@ -584,18 +581,17 @@ from collections.abc import Iterator
 import app
 from client import client
 
-AGENT_ID = app.require_env("BLAZING_AGENTS_AGENT_ID")
-
 
 def handle_chat(request: app.Request) -> Iterator[bytes]:
     chat_id, user_id, messages = app.authorize(request)
-    session_id = app.load_session_id(user_id, chat_id)
+    agent_id, session_id = app.load_chat(user_id, chat_id)
+    user_client = client.for_user(user_id)
     if session_id:
-        stream = client.chat(
-            agent_id=AGENT_ID, session_id=session_id, messages=messages, user_id=user_id
+        stream = user_client.chat(
+            agent_id=agent_id, session_id=session_id, messages=messages
         )
     else:
-        stream = client.chat(agent_id=AGENT_ID, messages=messages, user_id=user_id)
+        stream = user_client.chat(agent_id=agent_id, messages=messages)
         app.save_session_id(user_id, chat_id, stream.session_id)
     with stream:
         yield from stream
@@ -617,16 +613,20 @@ struct Authorized {
     messages: Vec<UserMessage>,
 }
 
+struct UserChat {
+    agent_id: String,
+    session_id: Option<String>,
+}
+
 trait App {
     async fn authorize(&self, request: Request) -> Result<Authorized, StatusCode>;
-    async fn load_session_id(&self, user_id: &str, chat_id: &str) -> Option<String>;
+    async fn load_chat(&self, user_id: &str, chat_id: &str) -> Result<UserChat, StatusCode>;
     async fn save_session_id(&self, user_id: &str, chat_id: &str, session_id: &SessionId);
 }
 
 async fn handle_chat(
     app: &impl App,
     client: &Client,
-    agent_id: &str,
     request: Request,
 ) -> Result<Response, StatusCode> {
     let Authorized {
@@ -634,16 +634,19 @@ async fn handle_chat(
         user_id,
         messages,
     } = app.authorize(request).await?;
+    let chat = app.load_chat(&user_id, &chat_id).await?;
     let input = ChatInput::try_from(messages).map_err(|_| StatusCode::BAD_REQUEST)?;
-    let stream = match app.load_session_id(&user_id, &chat_id).await {
+    let user_client = client
+        .for_user(&user_id)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let stream = match chat.session_id {
         Some(session_id) => {
-            client
-                .chat(agent_id, input)
+            user_client
+                .chat(&chat.agent_id, input)
                 .session(session_id)
-                .user_id(&user_id)
                 .await
         }
-        None => match client.chat(agent_id, input).user_id(&user_id).await {
+        None => match user_client.chat(&chat.agent_id, input).await {
             Ok(stream) => {
                 app.save_session_id(&user_id, &chat_id, stream.session_id())
                     .await;
@@ -685,9 +688,14 @@ type Authorized struct {
 	Messages []ba.UserMessage
 }
 
+type UserChat struct {
+	AgentID   ba.AgentID
+	SessionID ba.SessionID
+}
+
 type App interface {
 	Authorize(r *http.Request) (Authorized, error)
-	LoadSessionID(ctx context.Context, userID, chatID string) (ba.SessionID, error)
+	LoadChat(ctx context.Context, userID, chatID string) (UserChat, error)
 	SaveSessionID(ctx context.Context, userID, chatID string, sessionID ba.SessionID) error
 }
 
@@ -701,13 +709,18 @@ handleChat := func(app App, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no messages", http.StatusBadRequest)
 		return
 	}
-	existingSessionID, err := app.LoadSessionID(r.Context(), auth.UserID, auth.ChatID)
+	chat, err := app.LoadChat(r.Context(), auth.UserID, auth.ChatID)
 	if err != nil {
-		http.Error(w, "storage error", http.StatusInternalServerError)
+		http.Error(w, "not found", http.StatusNotFound)
 		return
 	}
-	stream, err := client.Chat.Send(r.Context(), agentID, ba.Messages(auth.Messages[0], auth.Messages[1:]...),
-		ba.ChatParams{SessionID: existingSessionID, UserID: &auth.UserID})
+	userClient, err := client.ForUser(auth.UserID)
+	if err != nil {
+		http.Error(w, "invalid user", http.StatusInternalServerError)
+		return
+	}
+	stream, err := userClient.Chat.Send(r.Context(), chat.AgentID, ba.Messages(auth.Messages[0], auth.Messages[1:]...),
+		ba.ChatParams{SessionID: chat.SessionID})
 	if err != nil {
 		status := http.StatusInternalServerError
 		var apiErr *ba.APIError
@@ -717,7 +730,7 @@ handleChat := func(app App, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(status), status)
 		return
 	}
-	if existingSessionID == "" {
+	if chat.SessionID == "" {
 		if err := app.SaveSessionID(r.Context(), auth.UserID, auth.ChatID, stream.SessionID()); err != nil {
 			stream.Close()
 			http.Error(w, "storage error", http.StatusInternalServerError)
@@ -736,15 +749,19 @@ _ = handleChat
 return nil
 ```
 
+`loadChat` returns the user's own agent and the chat's saved session ID, if it has one. A scoped client runs only an agent that belongs to the same user, and only while that agent's workspace belongs to the user too. Otherwise the call fails with [`not_found`](/api-reference/protocols/errors#not_found) or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found). Create each user's agent once with the scoped client, and the workspace created with it belongs to that user as well. You do not pass `userId`, because the scoped client sets it.
+
+If all your users talk to one shared agent, you cannot scope the call, because that agent belongs to no single user. Call it with your tenant-wide client, pass `userId` to label each turn, and check that the signed-in user owns the session on every sessions call. Every user's turns then share that agent's workspace, so one user's turns can read, change, or delete files that another user's turns wrote. See [keep end users' files apart](/agents/workspaces#keep-end-users-files-apart).
+
 Keep these rules in your handler:
 
-- Take the agent ID, session ID, and `userId` from your own server-side state, never from the request body.
+- Take the agent ID, session ID, and user ID from your own server-side state, never from the request body.
 - Accept only new user messages per request, one per send or several from the user's waiting queue. The session already holds the rest.
-- If your UI steers messages or holds a waiting queue, give each sessions call its own backend route, and check that the signed-in user owns the session on every one, including steer, list receipts, and stop.
+- If your UI steers messages, lists receipts, stops turns, or reloads history, give each of those calls its own backend route and scope it with `forUser()` for the same user. Blazing Agents then checks that the session belongs to that user on chat, steer, receipts, and stop, and returns `not_found` for another user's session. With a tenant-wide client, check ownership yourself on every one of those routes.
 - Save the new session ID before you relay the stream. If two first requests for the same chat can arrive together, hold a lock until the ID is saved so you do not create two sessions.
 - Return `result.toResponse()` unchanged so the stream and its headers reach the browser intact, and forward the request's abort signal so a closed tab cancels the turn.
 
-[Connect Blazing Agents to your app](/getting-started/connect-your-app) walks through this endpoint step by step.
+[Connect Blazing Agents to your app](/getting-started/connect-your-app) builds a complete endpoint that you can run.
 
 ## Send images and regenerate answers [#send-images-and-regenerate-answers]
 

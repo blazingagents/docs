@@ -90,13 +90,15 @@ The server is shared with everyone in your Devin organization. Use a read-only k
 
 The BA MCP server does not ask for approval before a tool call. Every tool carries MCP annotations: read tools are marked `readOnlyHint`, and deletes are marked `destructiveHint`. Clients that honor them ask you before a write. Keep your client's approval prompts on for this server.
 
+`sessions_messages` and `taskRuns_messages` return your end users' messages as they wrote them. Treat that text as untrusted input. A message can contain instructions aimed at your coding agent, and an approval prompt is your chance to refuse a write it asks for.
+
 ## Tools [#tools]
 
 Tool names follow `<entity>_<action>`, such as `agents_list` and `agents_deleteById`. Ask your client to list the tools for the full set.
 
 - `tenant_*`: your account settings.
 - `agents_*`: agents.
-- `providers_*`: providers and their models.
+- `providers_*`: providers and their models, read only.
 - `workspaces_*`: workspaces.
 - `skills_*`: skills and their files.
 - `prompts_*`: prompts.
@@ -108,9 +110,13 @@ Tool names follow `<entity>_<action>`, such as `agents_list` and `agents_deleteB
 
 A read-only key sees fewer tools. Tools that create, change, or delete parts of your setup do not appear in its list.
 
+The tools act on your whole account. There is no end-user scope, so session and artifact tools see every end user's records. The tools cannot create or change providers, and they do not cover API keys, MCP connections, chat connections, or memories. Manage those in the [dashboard](https://www.blazingagents.com/app) or through the REST API.
+
 ## Errors [#errors]
 
-A refused or failed call returns a tool error, not a protocol error. The error carries the same code as the REST API, such as [`not_found`](/api-reference/protocols/errors#not_found) or [`validation_failed`](/api-reference/protocols/errors#validation_failed). See [errors](/api-reference/protocols/errors) for every code.
+The server checks the key before any tool runs. A missing or unknown key gets HTTP 401 with [`unauthorized`](/api-reference/protocols/errors#unauthorized), and an account without an active subscription gets HTTP 402 with [`subscription_required`](/api-reference/protocols/errors#subscription_required). Dashboard sign-in tokens are refused, because the server accepts only API keys.
+
+After that, a refused or failed call returns a tool error, not a protocol error. The error carries the same code as the REST API, such as [`not_found`](/api-reference/protocols/errors#not_found) or [`validation_failed`](/api-reference/protocols/errors#validation_failed). See [errors](/api-reference/protocols/errors) for every code.
 
 ## Next [#next]
 

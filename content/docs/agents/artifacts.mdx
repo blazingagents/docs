@@ -154,10 +154,13 @@ Only a session can own an artifact. Stateless generation with `client.completion
 
 ## Limits [#limits]
 
-- One `publish_artifacts` call publishes one to ten files.
-- Each file can be up to 10 MiB.
-- One session can publish at most 100 artifacts.
-- A download URL works for five minutes.
+Publishing has three limits, listed with their values in [service limits](/api-reference/protocols/service-limits#artifacts):
+
+- One `publish_artifacts` call takes a [limited number of files](/api-reference/protocols/service-limits#artifact-batch).
+- Each file has a [size limit](/api-reference/protocols/service-limits#artifact-file). A larger file is not published, and the agent sees an error for it.
+- One session can publish a [limited number of artifacts](/api-reference/protocols/service-limits#artifacts-per-session). After that, publishing fails with [`artifact_session_cap_reached`](/api-reference/protocols/errors#artifact_session_cap_reached).
+
+A download URL works for five minutes.
 
 ## Deliver files safely [#deliver-files-safely]
 
@@ -171,4 +174,3 @@ Deleting an artifact is permanent. When you delete an agent or a session, you ch
 
 - [Workspaces](/agents/workspaces) for the files an agent keeps privately.
 - Artifact methods in the [TypeScript SDK](/sdk/typescript/artifacts), [Python SDK](/sdk/python/artifacts), [Rust SDK](/sdk/rust/artifacts), and [Go SDK](/sdk/go/artifacts).
-- [Service limits](/api-reference/protocols/service-limits#artifacts) for every artifact bound.
