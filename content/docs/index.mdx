@@ -13,9 +13,9 @@ You write the agent logic: instructions, the model it uses, and the tools it can
 
 A typical integration is one chat route on your backend. Your frontend posts the user's message to it, and the route streams the agent's reply back. Set `BLAZING_AGENTS_API_KEY` from your [dashboard](https://www.blazingagents.com/app/keys) and `OPENROUTER_API_KEY` from OpenRouter.
 
-### Run once: create the agent [#create-the-agent]
+### Run once: save the provider [#save-the-provider]
 
-Save a model provider and an agent that uses it. Run this script once and keep the printed agent ID. Provider names must be unique; agent names are display labels and can repeat.
+Save the model provider your agents use. Run this script once and keep the printed provider ID. Provider names must be unique.
 
 ```typescript tab="TypeScript"
 import { BlazingAgents } from "@blazingagents/sdk";
@@ -31,14 +31,7 @@ const provider = await client.providers.create({
   apiKey: process.env.OPENROUTER_API_KEY!,
 });
 
-const agent = await client.agents.create({
-  name: "Support agent",
-  instructions: "Answer clearly and briefly.",
-  providerId: provider.id,
-  model: "openai/gpt-6-luna",
-});
-
-console.log(`BLAZING_AGENTS_AGENT_ID=${agent.id}`);
+console.log(`BLAZING_AGENTS_PROVIDER_ID=${provider.id}`);
 ```
 
 ```python tab="Python"
@@ -52,13 +45,7 @@ with BlazingAgents() as client:
         provider_type="openrouter",
         api_key=os.environ["OPENROUTER_API_KEY"],
     )
-    agent = client.agents.create(
-        name="Support agent",
-        instructions="Answer clearly and briefly.",
-        provider_id=provider.id,
-        model="openai/gpt-6-luna",
-    )
-    print(f"BLAZING_AGENTS_AGENT_ID={agent.id}")
+    print(f"BLAZING_AGENTS_PROVIDER_ID={provider.id}")
 ```
 
 ```rust tab="Rust"
@@ -78,14 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .await?;
 
-    let agent = client
-        .agents()
-        .create("Support agent")
-        .instructions("Answer clearly and briefly.")
-        .model(&provider.id, "openai/gpt-6-luna")
-        .await?;
-
-    println!("BLAZING_AGENTS_AGENT_ID={}", agent.id);
+    println!("BLAZING_AGENTS_PROVIDER_ID={}", provider.id);
     Ok(())
 }
 ```
@@ -118,23 +98,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	agent, err := client.Agents.Create(ctx, ba.CreateAgentParams{
-		Name:         "Support agent",
-		Instructions: new("Answer clearly and briefly."),
-		ProviderID:   ba.Value(provider.ID),
-		Model:        ba.Value("openai/gpt-6-luna"),
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("BLAZING_AGENTS_AGENT_ID=%s\n", agent.ID)
+	fmt.Printf("BLAZING_AGENTS_PROVIDER_ID=%s\n", provider.ID)
 }
 ```
 
 ### Add the chat route [#add-the-chat-route]
 
-Set `BLAZING_AGENTS_AGENT_ID` to the printed ID, then use the complete [TypeScript, Python, Rust, or Go chat endpoint](/getting-started/connect-your-app). That guide includes authentication, session ownership checks, and streaming responses. The endpoint starts a new conversation when the request has no `sessionId`, and continues an owned conversation when it does.
+Set `BLAZING_AGENTS_PROVIDER_ID` to the printed ID, then use the complete [TypeScript, Python, Rust, or Go chat endpoint](/getting-started/connect-your-app). It signs the user in, creates that user's own agent on their first message, and streams the reply. Every call runs as the signed-in user, so Blazing Agents keeps each user to their own agent, files, and conversations. The endpoint starts a new conversation when the request has no `sessionId`, and continues it when it does.
+
+The endpoint gives each user their own agent because all conversations with one agent share its workspace. With one agent shared by all your users, each user's turns could read the files of every other user. See [tenancy and attribution](/platform/tenancy-and-attribution).
 
 On the frontend, `useChat` with `BlazingAgentsChatTransport` renders the streamed reply and sends the session ID back on the next message. See [Build a chatbot](/getting-started/chatbot).
 
@@ -174,7 +146,7 @@ New to Blazing Agents:
 
 1. [Set up](/getting-started/setup) your API key and install an SDK.
 2. [Run your first agent](/getting-started/quickstart).
-3. Browse complete apps in the [examples repository](https://github.com/blazingagents/examples).
+3. Browse complete apps in the [examples repository](https://github.com/blazingagents/examples), or the Rust and Go examples in the [Rust SDK](https://github.com/blazingagents/rust-sdk/tree/main/examples) and [Go SDK](https://github.com/blazingagents/golang-sdk/tree/main/examples) repositories.
 
 ## Find a task [#find-a-task]
 
