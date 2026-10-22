@@ -89,7 +89,9 @@ _, err := client.Agents.Update(ctx, agentID, ba.UpdateAgentParams{
 return err
 ```
 
-To target an MCP tool, use `{ type: "mcp", connectionId, name }` with the tool's original name and a connection attached to the agent (`connection_id` in Python). Each tool can appear once per policy, and it must be available to the agent. A built-in tool is available when it is in the agent's `tools`. An agent with [skills](/agents/skills) can also have rules for `activate_skill` and `read` without selecting them, but only while it has a skill. In Rust, name `activate_skill` with `ToolReference::builtin(BuiltinToolName::ActivateSkill)`, and in Go with `ba.ToolReferenceBuiltin{Name: ba.AgentToolActivateSkill}`. Update your rules before you remove a tool, a connection, or the agent's last skill.
+To target an MCP tool, use `{ type: "mcp", connectionId, name }` with the tool's original name and a connection attached to the agent (`connection_id` in Python). Each tool can appear once per policy, and it must be available to the agent. A built-in tool is available when it is in the agent's `tools`. An agent with [skills](/agents/skills) can also have rules for `activate_skill` and `read` without selecting them, but only while it has a skill. In Rust, name `activate_skill` with `ToolReference::builtin(BuiltinToolName::ActivateSkill)`, and in Go with `ba.ToolReferenceBuiltin{Name: ba.AgentToolActivateSkill}`. Update your rules before you remove a tool, a connection, or the agent's last skill. An MCP server that renames or removes a tool a rule names also breaks the agent's turns, as [MCP tools](/agents/tools/mcp-tools#approval-rules-and-server-changes) explains.
+
+`approvalInChat` also applies to `completion()` and `object()`, which cannot publish artifacts. A rule for `publish_artifacts` in `approvalInChat` therefore makes every `completion()` and `object()` call fail with [`validation_failed`](/api-reference/protocols/errors#validation_failed). If an agent publishes artifacts in chat and also serves stateless generation, leave `publish_artifacts` to the policy's `default` mode.
 
 Sending a policy replaces it, and leaving one out keeps it as it is. Each session and task run saves its approval policy in [agent configuration](/agents/configuration-snapshots). Later policy edits apply to new work.
 
@@ -156,6 +158,8 @@ for _, item := range approvals.Data {
 }
 return nil
 ```
+
+`toolName` is the name the model called. For an MCP tool it is a generated `mcp__…` name, so show reviewers the `tool` field instead, which names the tool the way your [approval rules](#approval-policies) do. See [MCP tools](/agents/tools/mcp-tools#generated-tool-names).
 
 When the reviewer decides, send one decision for every pending call and stream the resumed answer back. Check that the reviewer may access this session before you call this:
 
@@ -286,6 +290,7 @@ This is the smallest client that works. Add the pieces your UI needs next, by ha
 - Sending the same decisions again is safe; the first recorded reason wins. Reversing a decision returns [`tool_approval_decision_conflict`](/api-reference/protocols/errors#tool_approval_decision_conflict).
 - Retrying after the round already finished returns [`tool_approval_continuation_settled`](/api-reference/protocols/errors#tool_approval_continuation_settled). Read the history for the outcome instead of sending again.
 - Retrying while a continuation for the round is already running returns `session_busy`.
+- If the session's previous turn stopped responding, the call returns [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) with a `Retry-After` header. Your decisions stay recorded, so send the same call again after that many seconds.
 - While approvals are pending or a continuation is running, new chat turns and regeneration return [`session_busy`](/api-reference/protocols/errors#session_busy). Its `details.reason` is `approval_pending` while a decision is missing, and `continuation_waiting` once the round is decided but not yet continued. Either clears when you send the round's decisions in one `continueChat()` call.
 - A turn that waits for a decision takes no steering, so [steer a running turn](/platform/sessions-and-turns#steer-a-running-turn) fails with `steer_not_available` while the pause lasts; keep those messages in your queue. Once a continuation is running, it accepts steering again.
 - Closing or cancelling the continuation stream cancels the resumed turn, the same as a chat turn. Forward your request's abort signal. A dropped stream cannot be rejoined, so read the outcome from the [history](/platform/sessions-and-turns#read-the-history).

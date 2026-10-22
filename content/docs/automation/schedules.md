@@ -118,10 +118,12 @@ You see the task ID and the saved schedule. At each scheduled time a new run app
 | Kind | Config | Use it when |
 | --- | --- | --- |
 | `once` | `at`: an ISO 8601 time with an offset, such as `2026-08-15T09:00:00+01:00` | The work should run once at a known time. |
-| `interval` | `everyMs`: milliseconds, at least `60000` | The work should repeat every so often, counted from when you created the schedule. |
+| `interval` | `everyMs`: milliseconds, at least the [minimum interval](/api-reference/protocols/service-limits#task-interval) | The work should repeat at a fixed interval. |
 | `cron` | `expression`: five numeric fields. Optional `timezone` (an IANA name, default `UTC`) and `staggerMs` | The work should follow the calendar, such as weekdays at 9:00. |
 
 For example, `{ kind: "interval", config: { everyMs: 15 * 60_000 } }` runs every 15 minutes. In Python and Rust, use `every_ms` and `stagger_ms`. In Go, `ba.ScheduleInterval` and `ba.ScheduleCron` take `time.Duration` values in `Every` and `Stagger`.
+
+Interval runs fall on a fixed grid that starts when you created the task, not when you set the schedule. If you add an interval to an existing task or change `everyMs` later, runs still land on that grid. For example, a task created at 10:00 that gets an hourly interval at 10:45 first runs at 11:00.
 
 `staggerMs` delays each cron run by up to that many milliseconds. Each task gets its own fixed delay within that limit, so many tasks that share a cron time do not all start at once.
 
@@ -136,9 +138,10 @@ If you disable the task's agent, scheduled times pass without creating runs. Rec
 
 ## What to expect [#what-to-expect]
 
+- **Start time.** Blazing Agents can create a scheduled run up to about 30 seconds after its scheduled time.
 - **One run at a time.** If a run is still active when the next time arrives, that time is skipped.
 - **No catch-up.** Missed cron and interval times are skipped, not run in a burst later. Intervals continue at their next regular time.
-- **Late one-time runs.** A one-time schedule that was missed because of a platform delay may start as soon as the platform recovers.
+- **One-time schedules in the past.** A `once` schedule runs right away if its `at` time has already passed when you save it or enable the task again. A one-time run that a platform delay held up starts as soon as the platform recovers.
 - **Blocked runs.** If your quota is exhausted, a scheduled run ends as `blocked` and the next scheduled time tries again. See [usage and quotas](/platform/usage-and-quotas).
 
 ## Next [#next]

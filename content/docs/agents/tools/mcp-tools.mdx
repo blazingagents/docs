@@ -128,6 +128,9 @@ return err
 
 The list of connection IDs you send replaces the agent's whole list, so the example adds to the current one. From the next turn, the agent can call `lookup_customer`. When a chat turn succeeds, the call and its result are saved in the session, so check them there rather than in the agent's reply.
 
+<span id="generated-tool-names"></span>
+The model does not see the server's own tool name. Each MCP tool gets a generated name that starts with `mcp__` and contains the original, such as `mcp__0123456789abcdef__lookup_customer__a1B2c3D4`. That generated name is what appears in session tool parts and in an approval's `toolName`. To match a tool in your code, read an approval's `tool` field instead, which holds `{ type: "mcp", connectionId, name }` with the server's own name.
+
 A connection has no on or off switch. Attaching it to an agent is what makes its tools available, and one connection can serve many agents.
 
 ## Choose how to sign in [#choose-how-to-sign-in]
@@ -170,9 +173,27 @@ Run it again after you change credentials or the server changes, because tools a
 
 At the start of each turn, Blazing Agents connects to every attached server and lists its tools. A connection that needs sign-in fails the turn, and so can a server that cannot be reached or a tool that fails. Blazing Agents does not quietly run the turn with fewer tools. MCP tools that require the MCP task protocol are not offered to the agent.
 
-Requests to the server use HTTPS, follow only safe redirects, and have time and size limits. Tool results are size-limited too, and a result that echoes a stored credential is rejected.
+Requests to the server use HTTPS, follow only safe redirects, and have [time limits](/api-reference/protocols/service-limits#mcp-runtime-timeouts) and [size limits](/api-reference/protocols/service-limits#mcp-payloads). Tool results have a size limit too, and a result that echoes a stored credential is rejected.
 
-Each attachment decides what end-user context the server receives. Turn on forwarding of the turn's `userId` or selected `metadata` keys with `agents.updateMcpAttachment()` (`update_mcp_attachment()` in Python and Rust, `UpdateMCPAttachment()` in Go). The server receives that context as information only; it does not grant access.
+Each attachment decides what end-user context the server receives. Turn on forwarding of the turn's `userId` or selected `metadata` keys with `agents.updateMcpAttachment()` (`update_mcp_attachment()` in Python and Rust, `UpdateMCPAttachment()` in Go). The server receives that context as information only. It does not grant access.
+
+With forwarding on, every tool list and tool call request carries the context in its `_meta` field under the `com.blazingagents/request-context` key. Only the parts you turned on are present:
+
+```json
+{
+  "_meta": {
+    "com.blazingagents/request-context": {
+      "userId": "app-user-42",
+      "metadata": { "plan": "pro" }
+    }
+  }
+}
+```
+
+The context has a [size limit](/api-reference/protocols/service-limits#mcp-payloads). A turn whose context is larger fails.
+
+<span id="approval-rules-and-server-changes"></span>
+An [approval rule](/agents/tools/tool-approvals) names an MCP tool by the server's tool name. If the server renames or removes that tool, every turn of the agent fails with [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) until you remove or change the rule. Update approval rules before you deploy a server change that renames or removes a tool.
 
 ## Reconnect or delete [#reconnect-or-delete]
 

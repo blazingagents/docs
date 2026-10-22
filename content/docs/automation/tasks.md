@@ -115,7 +115,7 @@ No one is present to approve a tool call during a task. Each run saves the agent
 
 Changes apply to future runs only. A run that is already queued or running keeps the settings it saved when queued. The `agentId` and `userId` cannot change after creation.
 
-Deleting a task removes it and its schedule. It does not undo anything earlier runs did, such as files written or messages sent. Cancel an active run first if you need it stopped.
+Deleting a task removes it and its schedule. While a run is queued or running, the delete fails with [`task_active_run_exists`](/api-reference/protocols/errors#task_active_run_exists) (HTTP 409). [Cancel the run](/automation/task-runs#cancel-a-run), wait until it reaches a final status, then delete the task. Deleting does not undo anything earlier runs did, such as files written or messages sent.
 
 ## Production notes [#production-notes]
 

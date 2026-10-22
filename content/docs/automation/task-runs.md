@@ -156,14 +156,18 @@ if answer != nil {
 return nil
 ```
 
-When the run is done, you see its final status and the agent's last answer. A run moves from `queued` to `running`, then ends in one of four final statuses:
+When the run is done, you see its final status and the agent's last answer. While the run is `queued` or `running`, its transcript holds only the task's prompt. The agent's messages appear all at once when the run ends, so poll `status` to follow a run. Task runs do not stream.
+
+A run moves from `queued` to `running`, then ends in one of four final statuses:
 
 | Status | Meaning |
 | --- | --- |
 | `succeeded` | The agent finished. Its last assistant message is the result. |
-| `failed` | Something went wrong. Read `error`, but treat it as sensitive and redact it before you log it. |
+| `failed` | The run did not finish. Read `error`, but treat it as sensitive and redact it before you log it. |
 | `canceled` | You cancelled the run before it finished. |
-| `blocked` | The agent did not run because a quota, plan, usage credit, billing guard, or model spending limit check failed. It is not a failure. See [usage and quotas](/platform/usage-and-quotas). |
+| `blocked` | The agent did not run because a quota, plan, usage credit, [monetization guard](/platform/monetization#guard-rules), or model spending limit check refused it. It is not a failure. See [usage and quotas](/platform/usage-and-quotas). |
+
+A limit that stops a run after the agent started working ends the run as `failed`, not `blocked`. If a [model spending limit](/platform/usage-and-quotas#spending-limit-stops) runs out during the run, the messages that finished stay in its transcript. If the run reaches the [turn deadline](/api-reference/protocols/service-limits#turn-deadline), its `error` is `Task run deadline exceeded`.
 
 Each run that executes gets a fresh [session](/platform/sessions-and-turns), so the transcript holds only this run. A run blocked before its session was created has an empty transcript. Use `client.tasks.getRun()` when you need the run's timestamps, session ID, or its saved `agentConfig`.
 

@@ -139,8 +139,7 @@ Blazing Agents fills in the template before the agent runs, and only the filled-
 
 ## Limits [#limits]
 
-- Names up to 80 characters.
-- Templates up to 10,240 characters, with at most 10 distinct variables.
+A prompt's name and template have length limits, and a template has a limit on distinct variables. A prompt past any of them is rejected with `validation_failed`. The values are in [service limits](/api-reference/protocols/service-limits#prompt-fields).
 
 ## Organize prompts by agent [#organize-prompts-by-agent]
 
