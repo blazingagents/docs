@@ -87,7 +87,7 @@ let connection = client
 
 **Signature:** `create(connection: impl Into<NewChatConnection>) -> Call<CreateChatConnection>`
 
-`NewChatConnection::slack(agent_id, name, credentials)` and `::telegram(agent_id, name, credentials)` build the input. For the optional settings, build a `NewSlackConnection` or `NewTelegramConnection` directly: `NewSlackConnection::new(agent_id, name, credentials).enabled(false).channel_ids([...])`, and the Telegram one adds `.chat_ids([...])` and `.business_mode(true)`. `enabled` defaults to `true`, and each list takes up to 20 IDs that health checks look at without restricting who can talk to the agent.
+`NewChatConnection::slack(agent_id, name, credentials)` and `::telegram(agent_id, name, credentials)` build the input. For the optional settings, build a `NewSlackConnection` or `NewTelegramConnection` directly: `NewSlackConnection::new(agent_id, name, credentials).enabled(false).channel_ids([...])`, and the Telegram one adds `.chat_ids([...])` and `.business_mode(true)`. `enabled` defaults to `true`, and each list takes IDs, within the [chat connection limits](/api-reference/protocols/service-limits#chat-connection-fields), that health checks look at without restricting who can talk to the agent.
 
 Awaiting returns [`ChatConnection`](#chatconnection). If `agent_id` is the admin agent, `create()` fails with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`) and creates nothing. If creation times out, list your connections before retrying, since the first attempt may have succeeded. Fails with `validation_failed` or `not_found`.
 
@@ -109,9 +109,9 @@ let connection = client
 
 | Setter | Description |
 | --- | --- |
-| `name(name)` | A new display name, 1 to 80 characters |
-| `channel_ids(channel_ids)` | Slack channel IDs health checks look at, up to 20 |
-| `chat_ids(chat_ids)` | Telegram chat IDs health checks look at, up to 20 |
+| `name(name)` | A new display name within the [chat connection limits](/api-reference/protocols/service-limits#chat-connection-fields) |
+| `channel_ids(channel_ids)` | Slack channel IDs health checks look at, within the [chat connection limits](/api-reference/protocols/service-limits#chat-connection-fields) |
+| `chat_ids(chat_ids)` | Telegram chat IDs health checks look at, within the [chat connection limits](/api-reference/protocols/service-limits#chat-connection-fields) |
 | `business_mode(business_mode)` | Whether a Telegram bot runs in Business mode |
 
 Changing `business_mode` on an enabled Telegram connection registers its webhook again. If that fails, the change is still saved and the call fails with [`chat_webhook_conflict`](/api-reference/protocols/errors#chat_webhook_conflict) or [`chat_webhook_registration_failed`](/api-reference/protocols/errors#chat_webhook_registration_failed); call [`enable()`](#enable) to retry.

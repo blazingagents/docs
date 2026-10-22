@@ -281,9 +281,9 @@ let functions = Functions::builder()
     .build()?;
 ```
 
-`build()` fails with `FunctionsError` for a name outside `^[A-Za-z][A-Za-z0-9_-]{0,63}$` or reserved for a built-in or MCP tool, a duplicate, more than 32 functions, an empty description, a non-object input schema, or definitions over 64 KiB.
+`build()` fails with `FunctionsError` for a name outside `^[A-Za-z][A-Za-z0-9_-]{0,63}$` or reserved for a built-in or MCP tool, a duplicate, an empty description, a non-object input schema, or more functions or larger definitions than the [function limits](/api-reference/protocols/service-limits#backend-functions) allow.
 
-The handler also gets a `FunctionContext`: `idempotency_key()` to make side effects idempotent across retries, `deadline()` for when the platform stops waiting, `cancelled()` which resolves when the deadline passes or the stream is dropped, and `is_cancelled()`. Input that does not decode, an `Err`, or a result that is not plain JSON becomes a sanitized tool error; the handler's own error text never reaches the agent. Results over 256 KiB become an invalid-result error.
+The handler also gets a `FunctionContext`: `idempotency_key()` to make side effects idempotent across retries, `deadline()` for when the platform stops waiting, `cancelled()` which resolves when the deadline passes or the stream is dropped, and `is_cancelled()`. Input that does not decode, an `Err`, or a result that is not plain JSON becomes a sanitized tool error; the handler's own error text never reaches the agent. A result over the [function limits](/api-reference/protocols/service-limits#backend-functions) becomes an invalid-result error.
 
 Build one `Functions` value and attach it to every chat call with the `functions` setter; it is cheap to clone. Claims and result submissions retry transient failures with the same body until the call's deadline. See [backend functions](/agents/tools/backend-functions).
 

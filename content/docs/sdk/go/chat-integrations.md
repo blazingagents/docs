@@ -98,7 +98,7 @@ return nil
 
 **Signature:** `func (s *ChatConnectionsService) Create(ctx context.Context, params ChatConnectionSpec, opts ...RequestOption) (*ChatConnection, error)`
 
-Pass a `ba.SlackConnection` or a `ba.TelegramConnection`. Both take `AgentID`, `Name`, `Credentials`, and an optional `Enabled` (default `true`). A Slack connection adds `ChannelIDs`, and a Telegram connection adds `ChatIDs` and `BusinessMode`. Each list takes up to 20 IDs that health checks look at without restricting who can talk to the agent.
+Pass a `ba.SlackConnection` or a `ba.TelegramConnection`. Both take `AgentID`, `Name`, `Credentials`, and an optional `Enabled` (default `true`). A Slack connection adds `ChannelIDs`, and a Telegram connection adds `ChatIDs` and `BusinessMode`. Each list takes IDs, within the [chat connection limits](/api-reference/protocols/service-limits#chat-connection-fields), that health checks look at without restricting who can talk to the agent.
 
 Returns [`*ba.ChatConnection`](#chatconnection). If `AgentID` is the admin agent, `Create` fails with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`) and creates nothing. If creation times out, list your connections before retrying, since the first attempt may have succeeded. Creating an enabled Telegram connection registers its webhook. If that registration fails, `Create` still returns the connection, saved with `Enabled` `false` and a failing `webhook_url` health check; fix the bot, then call [`Enable`](#enable) to register again. Fails with `validation_failed`, `not_found`, or [`invalid_request`](/api-reference/protocols/errors#invalid_request) when the credentials fail the platform's check or the bot installation already has a connection. If a response ever echoes credential material back, the call fails client-side with `*ba.CredentialEchoError` and the body is discarded.
 
@@ -121,8 +121,8 @@ return nil
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `Name` | `*string` | A new display name, 1 to 80 characters |
-| `Configuration` | `*ba.ChatConfigurationUpdate` | `ChannelIDs` for Slack, or `ChatIDs` and `BusinessMode` for Telegram. Each list takes up to 20 IDs that health checks look at |
+| `Name` | `*string` | A new display name within the [chat connection limits](/api-reference/protocols/service-limits#chat-connection-fields) |
+| `Configuration` | `*ba.ChatConfigurationUpdate` | `ChannelIDs` for Slack, or `ChatIDs` and `BusinessMode` for Telegram. Each list takes IDs, within the [chat connection limits](/api-reference/protocols/service-limits#chat-connection-fields), that health checks look at |
 
 Changing `BusinessMode` on an enabled Telegram connection registers its webhook again. If that fails, your change is still saved and the call fails with [`chat_webhook_conflict`](/api-reference/protocols/errors#chat_webhook_conflict) when the bot sends updates to another webhook, or [`chat_webhook_registration_failed`](/api-reference/protocols/errors#chat_webhook_registration_failed) otherwise; call [`Enable`](#enable) to retry. Returns [`*ba.ChatConnection`](#chatconnection). Also fails with `validation_failed`, `invalid_request` when the configuration does not match the connection's platform, or `not_found`.
 

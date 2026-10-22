@@ -339,9 +339,9 @@ _ = functions
 return nil
 ```
 
-`ba.NewFunctions` returns a `*ba.ArgumentError` for a name outside `^[A-Za-z][A-Za-z0-9_-]{0,63}$` or reserved for a built-in or MCP tool, a duplicate, more than 32 functions, an empty description, a non-object input schema, or definitions over 64 KiB.
+`ba.NewFunctions` returns a `*ba.ArgumentError` for a name outside `^[A-Za-z][A-Za-z0-9_-]{0,63}$` or reserved for a built-in or MCP tool, a duplicate, an empty description, a non-object input schema, or more functions or larger definitions than the [function limits](/api-reference/protocols/service-limits#backend-functions) allow.
 
-The handler also gets a `ba.FunctionCall`: `ID` to make side effects idempotent across retries, `Name`, and `Deadline` for when the platform stops waiting. Its context is canceled at the deadline, when you close the stream, or when the chat call's context ends. Input that does not decode, a returned error, a panic, or a result that is not plain JSON becomes a sanitized tool error; the handler's own error text never reaches the agent. Results over 256 KiB become an invalid-result error.
+The handler also gets a `ba.FunctionCall`: `ID` to make side effects idempotent across retries, `Name`, and `Deadline` for when the platform stops waiting. Its context is canceled at the deadline, when you close the stream, or when the chat call's context ends. Input that does not decode, a returned error, a panic, or a result that is not plain JSON becomes a sanitized tool error; the handler's own error text never reaches the agent. A result over the [function limits](/api-reference/protocols/service-limits#backend-functions) becomes an invalid-result error.
 
 Build one `*ba.Functions` value and attach it to every chat call with the `Functions` field; it is immutable and safe to share across goroutines. Claims and result submissions retry transient failures with the same body until the call's deadline. A permanent failure ends the stream with a `*ba.StreamError` whose `Kind` is `ba.StreamFunctionCall`. See [backend functions](/agents/tools/backend-functions).
 
