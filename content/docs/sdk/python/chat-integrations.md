@@ -5,7 +5,7 @@ description: Connect an agent to your own Slack app or Telegram bot with the Pyt
 
 # Chat integrations
 
-`client.chat_connections` puts an existing agent behind your Slack app or Telegram bot. Blazing Agents receives the messages, keeps a session per conversation, posts the replies, and shows tool approval buttons in the chat. A message sent while the agent is answering waits and is answered in order, and a redelivered event is answered once. You send the bot credentials once; they are never returned. The agent must have a provider and model, and it cannot be the admin agent. Your tenant needs an active subscription.
+`client.chat_connections` puts an existing agent behind your Slack app or Telegram bot. Blazing Agents receives the messages, keeps a session per conversation, posts the replies, and shows tool approval buttons in the chat. A failed post is retried a limited number of times. A reply that still fails stays in the session transcript, where [`sessions.messages()`](/sdk/python/sessions#messages) reads it. A message sent while the agent is answering waits and is answered in order, and a redelivered event is answered once. You send the bot credentials once; they are never returned. The agent must have a provider and model, and it cannot be the admin agent. Your tenant needs an active subscription.
 
 Run connection setup from your backend or a one-off script, never from code you ship to users, since it needs your API key and the bot credentials. Examples assume `client = BlazingAgents()`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names. For the Slack and Telegram setup steps, and for how the bot reports interrupted turns, see [Slack and Telegram](/platform/chat-integrations).
 
@@ -37,11 +37,6 @@ print([(check.code, check.status) for check in connection.health.checks])
 | [`enable()`](#enable) | Start accepting messages | `ChatConnection` |
 | [`disable()`](#disable) | Stop accepting messages | `ChatConnection` |
 | [`delete()`](#delete) | Disconnect the bot | `None` |
-| [`list_deliveries()`](#list-connection-deliveries) | List one connection's deliveries | `ChatConnectionDeliveriesPage` |
-| [`iter_deliveries()`](#iter-connection-deliveries) | Iterate one connection's deliveries | `Iterator[ChatDelivery]` |
-| [`repair_delivery()`](#repair-delivery) | Send a stuck reply or approval card again | `ChatDeliveryResult` |
-
-`client.chat_deliveries` lists replies and approval buttons that failed or may not have arrived, across every connection: [`list()`](#list-deliveries) gets one page and [`iter()`](#iter-deliveries) walks them all. To see one connection's deliveries in every status, use [`list_deliveries()`](#list-connection-deliveries), and to send one again, use [`repair_delivery()`](#repair-delivery).
 
 ## Methods [#methods]
 
@@ -179,105 +174,6 @@ client.chat_connections.delete(connection.id)
 
 Blazing Agents clears the bot's Telegram webhook if it still points to this connection. Uninstalling a Slack app is up to you. Raises `validation_failed` or `not_found`.
 
-### `list_deliveries()` [#list-connection-deliveries]
-
-Lists the replies and approval buttons one connection sent or tried to send, newest first, in every status. Records carry no message text, tool arguments, or credentials.
-
-```python
-page = client.chat_connections.list_deliveries(connection.id, limit=20)
-for delivery in page.data:
-    print(delivery.kind, delivery.status, delivery.attempt, delivery.diagnostic)
-```
-
-**Signature:** `list_deliveries(chat_connection_id: str, *, cursor=..., limit=...) -> ChatConnectionDeliveriesPage`
-
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `chat_connection_id` | `str` | Connection ID (`cc_...`) |
-| `cursor` | `str` | `next_cursor` from the previous page, to fetch older records |
-| `limit` | `int` | 1 to 100, default 100 |
-
-Returns `ChatConnectionDeliveriesPage` with `data: list[ChatDelivery]` and `next_cursor: str | None`. Raises `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `not_found`.
-
-### `iter_deliveries()` [#iter-connection-deliveries]
-
-Iterates every delivery of one connection, fetching pages as you go.
-
-```python
-for delivery in client.chat_connections.iter_deliveries(connection.id):
-    if delivery.status == "pending":
-        print(delivery.id, delivery.attempt)
-```
-
-**Signature:** `iter_deliveries(chat_connection_id: str, *, cursor=..., limit=...) -> Iterator[ChatDelivery]`
-
-Takes the same parameters as [`list_deliveries()`](#list-connection-deliveries); `limit` sets the page size, not the total. No request is sent until you start iterating. On the async client, use `async for` directly on `iter_deliveries(...)`; do not await it.
-
-### `repair_delivery()` [#repair-delivery]
-
-Sends a stuck reply or approval card again with the connection's current credentials. It does not run a turn or a tool. Use it when the previous send stopped before its outcome was known, such as an `ambiguous` delivery.
-
-```python
-for delivery in client.chat_deliveries.iter(status=["ambiguous"]):
-    result = client.chat_connections.repair_delivery(
-        delivery.connection_id,
-        delivery.id,
-        expected_attempt=delivery.attempt,
-    )
-    print(delivery.id, result.status, result.attempt)
-```
-
-**Signature:** `repair_delivery(chat_connection_id: str, delivery_id: str, *, expected_attempt: int) -> ChatDeliveryResult`
-
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `chat_connection_id` | `str` | Connection ID (`cc_...`) |
-| `delivery_id` | `str` | Delivery ID (`cd_...`) |
-| `expected_attempt` | `int` | The delivery's current `attempt`, 0 to 99. The repair is refused if it has changed |
-
-Calling `repair_delivery()` confirms two things for you: the sender of the previous attempt has stopped, and you accept that the message may appear twice because the platform may already have it. The SDK sends `previousSenderStopped` and `acceptDuplicateRisk` as `true` on every call. The connection must be enabled, and the API key needs write access.
-
-A successful call does not mean the message arrived. Check `result.status`: `"confirmed"`, `"failed"`, or `"ambiguous"`. Raises `invalid_request` when the connection is disabled, the attempt changed, another sender holds the delivery, or the approval or session it belongs to is no longer active. Also raises `validation_failed`, `insufficient_scope`, or `not_found`. The SDK raises `ValueError` before sending when `delivery_id` is empty, `"."`, or `".."`.
-
-### `chat_deliveries.list()` [#list-deliveries]
-
-Lists the replies and approval buttons that failed or may not have arrived, across every connection, newest first. Use it for a status view that shows which messages need attention.
-
-```python
-from datetime import datetime, timedelta, timezone
-
-since = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
-page = client.chat_deliveries.list(since=since)
-for delivery in page.data:
-    print(delivery.platform, delivery.connection_id, delivery.status, delivery.diagnostic)
-```
-
-**Signature:** `list(*, status=..., since=..., cursor=..., limit=...) -> ChatDeliveriesPage`
-
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `status` | `Sequence[ChatDeliveryListStatus]` | `"failed"`, `"ambiguous"`, or both; default both |
-| `since` | `str` | ISO 8601 date-time with an offset. Only deliveries created at or after it |
-| `cursor` | `str` | `next_cursor` from the previous page |
-| `limit` | `int` | 1 to 100, default 50 |
-
-`failed` means the platform did not accept the message, and `ambiguous` means it may have been sent. The feed never lists `pending` or `confirmed` deliveries; use [`list_deliveries()`](#list-connection-deliveries) on one connection for those, and passing any other `status` fails with `validation_failed`. To send a `failed` or `ambiguous` delivery again, use [`repair_delivery()`](#repair-delivery). Keep the same filters when you pass `next_cursor` back as `cursor`.
-
-Returns `ChatDeliveriesPage` with `data: list[TenantChatDelivery]` and `next_cursor: str | None`. Raises `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
-
-### `chat_deliveries.iter()` [#iter-deliveries]
-
-Iterates every matching delivery, fetching pages as you go.
-
-```python
-for delivery in client.chat_deliveries.iter(since=since):
-    print(delivery.platform, delivery.connection_id, delivery.status, delivery.diagnostic)
-```
-
-**Signature:** `iter(*, status=..., since=..., cursor=..., limit=...) -> Iterator[TenantChatDelivery]`
-
-Takes the same parameters as [`chat_deliveries.list()`](#list-deliveries). No request is sent until you start iterating. On the async client, use `async for` directly on `iter(...)`; do not await it.
-
 ## Response models [#response-models]
 
 ### `ChatConnection` [#chatconnection]
@@ -296,43 +192,6 @@ Takes the same parameters as [`chat_deliveries.list()`](#list-deliveries). No re
 | `credential_fragment` | `str` | Short, non-secret fragment of the credential |
 | `credential_version` | `int` | Version of the stored credentials |
 | `created_at`, `updated_at` | `str` | Timestamps |
-
-### `TenantChatDelivery` [#tenantchatdelivery]
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `id` | `str` | Delivery ID (`cd_...`) |
-| `connection_id` | `str` | The connection that posted it (`cc_...`) |
-| `agent_id` | `str` | The connection's agent |
-| `platform` | `str` | `"slack"` or `"telegram"` |
-| `kind` | `str` | `"reply"` or `"card"`: an agent reply or a tool approval card |
-| `status` | `ChatDeliveryStatus` | `"failed"` or `"ambiguous"` |
-| `attempt` | `int` | The current send attempt |
-| `diagnostic` | `str \| None` | Why the last send failed, when known |
-| `session_id` | `str` | The session behind the conversation |
-| `thread_id` | `str` | The chat thread it belongs to |
-| `message_id`, `approval_id` | `str \| None` | The reply message or the approval it carries |
-| `created_at`, `updated_at` | `str` | Timestamps |
-
-It also has `credential_version`, `representation`, and `receipts`. The package exports `ChatDelivery`, `TenantChatDelivery`, `ChatDeliveryStatus`, and `ChatDeliveryListStatus`.
-
-### `ChatDelivery` [#chatdelivery]
-
-One item of [`list_deliveries()`](#list-connection-deliveries). It has the fields of [`TenantChatDelivery`](#tenantchatdelivery) except `connection_id`, `agent_id`, and `platform`, and its `status` can be any `ChatDeliveryStatus`: `"pending"`, `"confirmed"`, `"failed"`, or `"ambiguous"`.
-
-### `ChatDeliveryResult` [#chatdeliveryresult]
-
-Returned by [`repair_delivery()`](#repair-delivery).
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `id` | `str` | Delivery ID (`cd_...`) |
-| `connection_id` | `str` | The connection that sent it (`cc_...`) |
-| `session_id` | `str` | The session behind the conversation |
-| `thread_id` | `str` | The chat thread it belongs to |
-| `kind` | `str` | `"reply"` or `"card"` |
-| `status` | `str` | `"confirmed"`, `"failed"`, or `"ambiguous"` after this attempt |
-| `attempt` | `int` | The attempt this repair made |
 
 ## Next [#next]
 

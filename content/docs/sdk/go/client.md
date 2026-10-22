@@ -100,7 +100,7 @@ return nil
 
 Pass the ID from the session your backend verified. Do not take it from a request body or query parameter. The ID must be 1 to 256 printable ASCII characters without a leading or trailing space, or `ForUser` returns an error that wraps `ba.ErrInvalidUserID`. You cannot set `X-BA-User-Id` yourself through headers.
 
-A `*ba.UserClient` has `Agents`, `Artifacts`, `Memories`, `Prompts`, `Sessions`, `Skills`, `Tasks`, `Workspaces`, the [`Chat` and `Generation` services](#generation-methods), and `Usage` with `Get`, [`Sessions`](/sdk/go/usage#sessions), and [`ForAgent`](/sdk/go/usage#get-for-agent). Tenant administration is missing at compile time: a `*ba.UserClient` has no `Providers`, `MCPConnections`, `ChatConnections`, `ChatDeliveries`, `Tenant`, `SpendingLimits`, or merchant fields, and its `Usage` has no `Overview`. Use the tenant client for those operations.
+A `*ba.UserClient` has `Agents`, `Artifacts`, `Memories`, `Prompts`, `Sessions`, `Skills`, `Tasks`, `Workspaces`, the [`Chat` and `Generation` services](#generation-methods), and `Usage` with `Get`, [`Sessions`](/sdk/go/usage#sessions), and [`ForAgent`](/sdk/go/usage#get-for-agent). Tenant administration is missing at compile time: a `*ba.UserClient` has no `Providers`, `MCPConnections`, `ChatConnections`, `Tenant`, `SpendingLimits`, or merchant fields, and its `Usage` has no `Overview`. Use the tenant client for those operations.
 
 A request's `UserID` field labels the resource or turn. It does not grant access. On a scoped request, the API fills in a missing `userId` with the scoped ID and rejects a different one. Without `ForUser`, your API key keeps tenant-wide authority, even when a request contains a `UserID`.
 

@@ -269,6 +269,7 @@ A queued run is canceled right away. A running one stops at its next safe point,
 | `turn_id` | `str \| None` | The run's metered turn, once started |
 | `status` | `str` | `queued`, `running`, `blocked`, `succeeded`, `failed`, or `canceled` |
 | `error` | `str \| None` | Failure reason |
+| `error_code` | `str \| None` | The API error code a `blocked` or `failed` run ended with, such as `quota_exceeded`. `None` for other runs and for a failure without a code |
 | `user_id`, `metadata` | `str`, `dict[str, object]` | Copied from the task |
 | `started_at`, `finished_at` | `datetime \| None` | Lifecycle times |
 | `cancel_requested_at`, `canceled_at` | `datetime \| None` | Cancellation times |

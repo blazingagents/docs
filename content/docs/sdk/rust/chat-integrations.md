@@ -5,7 +5,9 @@ description: Connect an agent to your own Slack app or Telegram bot with the Rus
 
 # Chat integrations
 
-`client.chat_connections()` connects an agent to your own Slack app or Telegram bot so people can talk to it there. `client.chat_deliveries()` lists replies and approval buttons that failed or may not have arrived, across every connection. Both are tenant only: a `UserClient` has neither.
+`client.chat_connections()` connects an agent to your own Slack app or Telegram bot so people can talk to it there. It is tenant only: a `UserClient` has no `chat_connections()`.
+
+The turn that answers a Slack or Telegram message posts the reply and any approval buttons itself, retrying a failed post a few times. A reply that still fails stays in the session, so you can read it with [`sessions().messages()`](/sdk/rust/sessions#messages).
 
 Examples receive a `client: blazing_agents::Client`. Every call also takes the `with_timeout`, `without_timeout`, `with_header`, and `with_client_request_id` transport options.
 
@@ -33,12 +35,9 @@ println!("{}", connection.webhook_url);
 | [`update()`](#update) | Change name or configuration | [`ChatConnection`](#chatconnection) |
 | [`rotate_credentials()`](#rotate-credentials) | Replace credentials | [`ChatConnection`](#chatconnection) |
 | [`check_health()`](#check-health) | Check the connection against its platform | [`ChatConnection`](#chatconnection) |
-| [`enable()`](#enable) | Resume deliveries | [`ChatConnection`](#chatconnection) |
-| [`disable()`](#disable) | Pause deliveries | [`ChatConnection`](#chatconnection) |
+| [`enable()`](#enable) | Start accepting messages | [`ChatConnection`](#chatconnection) |
+| [`disable()`](#disable) | Stop accepting messages | [`ChatConnection`](#chatconnection) |
 | [`delete()`](#delete) | Delete a connection | `()` |
-| [`deliveries()`](#deliveries) | List one connection's deliveries | [`Page<ChatDelivery>`](#tenantchatdelivery) |
-| [`repair_delivery()`](#repair-delivery) | Resend a failed or ambiguous delivery | [`ChatDeliveryResult`](#chatdeliveryresult) |
-| [`chat_deliveries().list()`](#list-deliveries) | List failed and ambiguous deliveries tenant-wide | [`Page<TenantChatDelivery>`](#tenantchatdelivery) |
 
 ## Methods [#methods]
 
@@ -153,7 +152,7 @@ Awaiting returns [`ChatConnection`](#chatconnection) whose `health` holds the la
 
 ### `enable()` [#enable]
 
-Resumes deliveries on a chat connection.
+Starts accepting new messages on a chat connection. Messages sent while it was disabled are not replayed.
 
 ```rust
 let connection = client.chat_connections().enable("cc_0123456789abcdef").await?;
@@ -165,7 +164,7 @@ Awaiting returns [`ChatConnection`](#chatconnection) with `enabled` `true`. Fail
 
 ### `disable()` [#disable]
 
-Pauses deliveries on a chat connection.
+Stops a chat connection from accepting new messages. Work already accepted can finish.
 
 ```rust
 let connection = client.chat_connections().disable("cc_0123456789abcdef").await?;
@@ -187,64 +186,6 @@ client.chat_connections().delete("cc_0123456789abcdef").await?;
 
 Fails with `validation_failed` or `not_found`.
 
-### `deliveries()` [#deliveries]
-
-Lists one chat connection's deliveries, newest first.
-
-```rust
-let page = client
-    .chat_connections()
-    .deliveries("cc_0123456789abcdef")
-    .await?;
-```
-
-**Signature:** `deliveries(chat_connection_id: impl Into<ChatConnectionId>) -> Call<ListChatDeliveries>`
-
-The `limit` setter takes 1 to 100 deliveries per page, defaulting to 100. Awaiting returns [`Page<ChatDelivery>`](#tenantchatdelivery); `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed`, `invalid_cursor`, or `not_found`.
-
-### `repair_delivery()` [#repair-delivery]
-
-Resends a failed or ambiguous delivery. `expected_attempt` is the delivery's current `attempt`, 0 to 99, and the repair is refused if it has changed. Calling it confirms the sender of the previous attempt has stopped, and that you accept the message may appear twice because the platform may already have it.
-
-```rust
-let result = client
-    .chat_connections()
-    .repair_delivery("cc_0123456789abcdef", "cd_0123456789abcdef", 1)
-    .await?;
-println!("{}", result.status);
-```
-
-**Signature:** `repair_delivery(chat_connection_id: impl Into<ChatConnectionId>, delivery_id: impl Into<ChatDeliveryId>, expected_attempt: u64) -> Call<RepairChatDelivery>`
-
-Awaiting returns [`ChatDeliveryResult`](#chatdeliveryresult). Fails with `validation_failed` or `not_found`.
-
-### `chat_deliveries().list()` [#list-deliveries]
-
-Lists failed and ambiguous deliveries across chat connections.
-
-```rust
-use blazing_agents::chat_connections::ChatDeliveryListStatus;
-
-let page = client
-    .chat_deliveries()
-    .list()
-    .status([ChatDeliveryListStatus::Failed])
-    .await?;
-for delivery in &page.data {
-    println!("{} {}", delivery.id, delivery.status);
-}
-```
-
-**Signature:** `list() -> Call<ListTenantChatDeliveries>`
-
-| Setter | Type | Description |
-| --- | --- | --- |
-| `status` | `impl IntoIterator<Item = ChatDeliveryListStatus>` | Only these statuses (`Failed`, `Ambiguous`), sent comma-separated; empty leaves the filter out |
-| `since` | `Timestamp` | Only deliveries created at or after this instant |
-| `limit` | `u8` | Page size, 1 to 100; defaults to 50 |
-
-Awaiting returns [`Page<TenantChatDelivery>`](#tenantchatdelivery); `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed` or `invalid_cursor`.
-
 ## Response models [#response-models]
 
 ### `ChatConnection` [#chatconnection]
@@ -264,38 +205,6 @@ Awaiting returns [`Page<TenantChatDelivery>`](#tenantchatdelivery); `.items()` a
 | `credential_version` | `u64` | Incremented on each rotation |
 | `webhook_url` | `String` | The webhook URL registered with the platform |
 | `created_at`, `updated_at` | `Timestamp` | Timestamps |
-
-### `TenantChatDelivery` [#tenantchatdelivery]
-
-`ChatDelivery` and `TenantChatDelivery` share their fields; the tenant-wide entry adds `connection_id`, `agent_id`, and `platform`.
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `id` | `ChatDeliveryId` | Delivery ID (`cd_...`) |
-| `kind` | `ChatDeliveryKind` | `Reply` or `Card` |
-| `status` | `ChatDeliveryStatus` | `Pending`, `Confirmed`, `Failed`, or `Ambiguous` |
-| `attempt` | `u64` | How many sends have been tried |
-| `credential_version` | `u64` | The credential version used |
-| `representation` | `String` | What the delivery sent, as text |
-| `diagnostic` | `Option<String>` | Why it failed |
-| `receipts` | `Option<serde_json::Value>` | The platform's receipts, in its own shape |
-| `session_id` | `SessionId` | The session the message belongs to |
-| `message_id` | `Option<String>` | The message's ID, when one exists |
-| `approval_id` | `Option<ApprovalId>` | The approval it answers, when it is one |
-| `thread_id` | `String` | The platform thread |
-| `created_at`, `updated_at` | `Timestamp` | Timestamps |
-
-### `ChatDeliveryResult` [#chatdeliveryresult]
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `id` | `ChatDeliveryId` | The delivery's ID |
-| `session_id` | `SessionId` | The session the message belongs to |
-| `thread_id` | `String` | The platform thread the delivery belongs to |
-| `connection_id` | `ChatConnectionId` | The connection the delivery went through |
-| `kind` | `ChatDeliveryKind` | What the delivery carries |
-| `status` | `ChatDeliveryStatus` | Where the delivery stands after the repair |
-| `attempt` | `u64` | How many sends have been tried |
 
 ## Next [#next]
 

@@ -1,6 +1,6 @@
 ---
 title: Chat connections
-description: Create and manage Slack and Telegram connections and inspect delivery outcomes.
+description: Create and manage Slack and Telegram connections.
 ---
 
 # Chat connections
@@ -22,22 +22,14 @@ Full credentials are never returned. A connection shows only
 `checkedAt`, `tokenValid`, `identityVerified`, and `checks` with `code`,
 `status` (`pass`, `fail`, `unknown`), and optional `subject`.
 
-## Delivery outcomes [#delivery-outcomes]
+## Replies [#replies]
 
-A delivery is one reply or approval card a connection tried to post to the
-chat. Its `status` is `pending` (not sent yet), `confirmed` (the platform
-accepted it), `failed` (it did not go through), or `ambiguous` (it may have
-been sent). Blazing Agents sends a `pending` reply by itself, even after an
-interruption, so only `failed` and `ambiguous` deliveries need your attention.
-
-`GET /v1/chat-deliveries` is an attention feed: it lists only `failed` and
-`ambiguous` deliveries across every connection, newest first. `status`
-narrows the feed to one of them as a comma-separated list in one parameter,
-such as `status=failed`; the default is both, other statuses are rejected,
-and repeated `status` parameters are not supported. `since` is an inclusive
-ISO 8601 date-time with an offset. Keep the same filters when you pass
-`nextCursor` back as `cursor`. For `pending` or `confirmed` deliveries, or
-the full history of one bot, use the per-connection list.
+The turn that answers a chat message posts its reply and any approval card
+itself. It retries a failed post a few times, so a post that landed but whose
+answer was lost can appear twice. A reply that still fails stays in the
+session, where you can read it with
+[list session messages](/api-reference/rest-api/sessions#list-session-messages).
+A turn you start through the API on a chat session does not post to the chat.
 
 ## Endpoints [#endpoints]
 
@@ -213,206 +205,6 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
   --data '{"name":"Support bot","agentId":"ag_4kP9sT2vXq7LmN3a","platform":"telegram","credentials":{"botToken":"7123456789:AAFexampleTokenReplaceMe_x9Qa"}}'
-```
-
-### GET /v1/chat-connections/:id/deliveries [#list-chat-deliveries]
-
-List chat deliveries.
-
-Lists the replies and approval cards the connection has sent or tried to send, newest first. Each record shows its status, attempt number, diagnostic code, and any message receipts the platform returned. Message bodies, tool arguments, and credentials are not included. Pass `nextCursor` as `cursor` to fetch older records.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication).
-
-| Field | Type | Location | Required | Description |
-| --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the chat connection. |
-| `cursor` | string | query |  | `nextCursor` from the previous page, to fetch older records. |
-| `limit` | integer | query |  | Maximum number of records to return, 1 to 100. Defaults to 100. 1–100. Defaults to `100`. |
-
-#### Response
-
-Returns `200 OK` as `application/json`. A page of chat deliveries.
-
-Response schema: `ChatDeliveryList`.
-
-```json
-{
-  "data": [
-    {
-      "id": "cd_2Nf7Lp4WxB9kTc3M",
-      "kind": "reply",
-      "status": "confirmed",
-      "attempt": 1,
-      "credentialVersion": 1,
-      "representation": "native",
-      "diagnostic": null,
-      "receipts": [
-        {
-          "attempt": 1,
-          "messageId": "412"
-        }
-      ],
-      "sessionId": "ss_5Jm1Qe8RvC3yHd6X",
-      "messageId": "412",
-      "approvalId": null,
-      "threadId": "telegram:5012345678",
-      "createdAt": "2026-07-10T10:05:00.000Z",
-      "updatedAt": "2026-07-10T10:05:02.000Z"
-    }
-  ],
-  "nextCursor": null
-}
-```
-
-#### Errors
-
-| Status | Codes | Description |
-| --- | --- | --- |
-| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
-| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
-| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
-
-See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
-
-#### cURL
-
-```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/deliveries" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-### GET /v1/chat-deliveries [#list-tenant-chat-deliveries]
-
-List your tenant's chat deliveries.
-
-Lists your tenant's failed and ambiguous chat deliveries across all Chat Connections, newest first. These are the replies and approval cards that need attention. Filter further with `since` (an inclusive `createdAt` lower bound), and pass `nextCursor` as `cursor` to fetch older records. For pending or confirmed deliveries, list a connection's deliveries instead.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication).
-
-| Field | Type | Location | Required | Description |
-| --- | --- | --- | --- | --- |
-| `status` | string | query |  | `failed`, `ambiguous`, or both, comma-separated. Defaults to `failed,ambiguous`. |
-| `since` | string | query |  | Only deliveries created at or after this ISO 8601 date-time. |
-| `cursor` | string | query |  | `nextCursor` from the previous page, to fetch older records. |
-| `limit` | integer | query |  | Maximum number of records to return. 1–100. Defaults to `50`. |
-
-#### Response
-
-Returns `200 OK` as `application/json`. A page of your tenant's chat deliveries.
-
-Response schema: `TenantChatDeliveryList`.
-
-```json
-{
-  "data": [
-    {
-      "id": "cd_2Nf7Lp4WxB9kTc3M",
-      "kind": "reply",
-      "status": "confirmed",
-      "attempt": 1,
-      "credentialVersion": 1,
-      "representation": "native",
-      "diagnostic": null,
-      "receipts": [
-        {
-          "attempt": 1,
-          "messageId": "412"
-        }
-      ],
-      "sessionId": "ss_5Jm1Qe8RvC3yHd6X",
-      "messageId": "412",
-      "approvalId": null,
-      "threadId": "telegram:5012345678",
-      "createdAt": "2026-07-10T10:05:00.000Z",
-      "updatedAt": "2026-07-10T10:05:02.000Z",
-      "connectionId": "cc_6Wd3Hs8KqP1vRt5N",
-      "agentId": "ag_4kP9sT2vXq7LmN3a",
-      "platform": "telegram"
-    }
-  ],
-  "nextCursor": null
-}
-```
-
-#### Errors
-
-| Status | Codes | Description |
-| --- | --- | --- |
-| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor) | The request is invalid |
-| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
-| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
-
-See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
-
-#### cURL
-
-```bash
-curl "$BLAZING_AGENTS_BASE_URL/v1/chat-deliveries" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
-### POST /v1/chat-connections/:id/deliveries/:deliveryId/repair [#repair-chat-delivery]
-
-Repair a chat delivery.
-
-Sends a stuck reply or approval card again, without running a turn or tool. Use it when the previous send stopped before its outcome was known. Send `expectedAttempt` equal to the delivery's current `attempt`, and set both `previousSenderStopped` and `acceptDuplicateRisk` to `true`. The connection must be enabled. Repair can make a message appear twice. Check `status` in the response: a successful request does not by itself mean the message was delivered.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
-
-| Field | Type | Location | Required | Description |
-| --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the chat connection. |
-| `deliveryId` | string | path | required | ID of the delivery. |
-| `expectedAttempt` | integer | body | required | The delivery's current `attempt`, from list chat deliveries. The repair is refused if it has changed. 0–99. |
-| `previousSenderStopped` | boolean | body | required | Confirms that the sender of the previous attempt has stopped. |
-| `acceptDuplicateRisk` | boolean | body | required | Confirms you accept that the message may appear twice, because the platform may already have it. |
-
-#### Response
-
-Returns `200 OK` as `application/json`. The delivery outcome.
-
-Response schema: `ChatDeliveryResult`.
-
-```json
-{
-  "id": "cd_2Nf7Lp4WxB9kTc3M",
-  "sessionId": "ss_5Jm1Qe8RvC3yHd6X",
-  "threadId": "telegram:5012345678",
-  "connectionId": "cc_6Wd3Hs8KqP1vRt5N",
-  "kind": "reply",
-  "status": "confirmed",
-  "attempt": 2
-}
-```
-
-#### Errors
-
-| Status | Codes | Description |
-| --- | --- | --- |
-| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
-| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
-| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
-
-See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF/deliveries/cd_1234567890ABCDEF/repair" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{"expectedAttempt":1,"previousSenderStopped":true,"acceptDuplicateRisk":true}'
 ```
 
 ### GET /v1/chat-connections/:id [#get-chat-connection]
@@ -807,7 +599,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
 
 Disable a chat connection.
 
-Stops the connection from accepting new messages and approval clicks. Work already accepted can finish. While disabled, Slack URL verification still succeeds, other messages are acknowledged and dropped, and deliveries cannot be repaired.
+Stops the connection from accepting new messages and approval clicks. Work already accepted can finish. While disabled, Slack URL verification still succeeds, and other messages are acknowledged and dropped.
 
 #### Request
 

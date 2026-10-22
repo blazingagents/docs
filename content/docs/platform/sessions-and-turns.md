@@ -479,13 +479,11 @@ A steer the agent accepts also shows up on the running turn's stream as a `data-
 
 | State | What it means for your UI |
 | --- | --- |
-| `accepted` | Saved for the running turn, not yet delivered. Keep waiting for an outcome |
-| `delivered` | Handed to the turn, but the agent may not have read it yet. Keep waiting |
+| `accepted` | Saved for the running turn, which may still read and save it. Keep waiting |
 | `committed` | Saved in the history. Done |
-| `not_placed` | Never reached the agent. Safe to send as an ordinary message |
-| `uncertain` | May have reached the agent before work was interrupted. Never resend automatically; show it and let the user decide |
+| `not_placed` | Not saved: the turn ended, or Blazing Agents lost it, before saving the message. Send it again as an ordinary message. If the turn read it and then failed, resending may repeat its tool calls, as any resend can |
 
-A finished receipt also carries a `reason`: `stopped` (you stopped the turn), `failed` (the turn failed), `owner_lost` (Blazing Agents lost the turn before it finished), `turn_finished` (the turn finished normally), or `null`. Poll `inputs()` while the session is not idle or receipts are pending, and pass `includeCompleted: true` (`include_completed=True` in Python) to read terminal receipts again later.
+A finished receipt also carries a `reason`: `stopped` (you stopped the turn), `failed` (the turn failed), `owner_lost` (Blazing Agents lost the turn before it finished), `turn_finished` (the turn finished normally), or `null`. Poll `inputs()` while the session is not idle or receipts are `accepted`. By default it lists only `accepted` receipts. Pass `includeCompleted: true` (`include_completed=True` in Python) to also list `committed` and `not_placed` ones.
 
 ### Stop a turn [#stop-a-turn]
 

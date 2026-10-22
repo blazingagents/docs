@@ -277,6 +277,7 @@ interface TasksListResponse {
 | `turnId` | `string \| null` | The turn in your usage records, once started |
 | `status` | `TaskRunStatus` | Where the run is |
 | `error` | `string \| null` | Why it failed or was blocked |
+| `errorCode` | `BlazingAgentsErrorCode \| null` | The API error code when the run ended `blocked` or `failed`, such as `quota_exceeded`; `null` otherwise or when the failure has no code |
 | `userId` | `string` | The task's end user when the run was created |
 | `metadata` | `Record<string, unknown>` | The task's metadata when the run was created |
 | `startedAt`, `finishedAt` | `string \| null` | When it started and ended |

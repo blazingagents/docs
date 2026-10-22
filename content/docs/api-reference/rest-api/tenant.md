@@ -119,7 +119,7 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/tenant" \
 
 Get the tenant model spending limit.
 
-An estimated USD allowance for model tokens, priced from the built-in model price list. It excludes platform compute, storage, workspace and network charges, and a request that costs more than estimated can exceed it. While a limit applies, models without a price are refused. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Money held for work whose usage is never reported is released at the next reset. Requires a tenant API key; a user-scoped request gets forbidden.
+A USD allowance for model tokens, priced from the built-in model price list or the provider's reported cost. It excludes platform compute, storage, workspace and network charges. Each running turn may finish one model request past the limit. While a limit applies, models without a price are refused, and a turn stops when a response has no reported cost. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Requires a tenant API key; a user-scoped request gets forbidden.
 
 #### Request
 
@@ -163,7 +163,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tenant/spending-limit" \
 
 Set the tenant model spending limit.
 
-An estimated USD allowance for model tokens, priced from the built-in model price list. It excludes platform compute, storage, workspace and network charges, and a request that costs more than estimated can exceed it. While a limit applies, models without a price are refused. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Money held for work whose usage is never reported is released at the next reset. Requires a tenant API key; a user-scoped request gets forbidden.
+A USD allowance for model tokens, priced from the built-in model price list or the provider's reported cost. It excludes platform compute, storage, workspace and network charges. Each running turn may finish one model request past the limit. While a limit applies, models without a price are refused, and a turn stops when a response has no reported cost. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Requires a tenant API key; a user-scoped request gets forbidden.
 
 #### Request
 

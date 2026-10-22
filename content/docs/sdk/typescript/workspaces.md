@@ -26,7 +26,7 @@ Every method takes one input object and accepts an optional `abortSignal`. Readi
 | [`list()`](#list) | List workspaces | `WorkspacesListResponse` |
 | [`get()`](#get) | Read one workspace | `Workspace` |
 | [`update()`](#update) | Change its name, metadata, or network rules | `Workspace` |
-| [`delete()`](#delete) | Delete a workspace and its files | `"completed" \| "pending"` |
+| [`delete()`](#delete) | Delete a workspace and its files | `void` |
 
 ## Methods [#methods]
 
@@ -115,20 +115,19 @@ Pass at least one field. Fields you leave out stay as they are, and `userId` can
 
 Deletes a workspace and all its files.
 
-**Signature:** `delete(input: { workspaceId: string } & ResourceRequestOptions): Promise<"completed" | "pending">`
+**Signature:** `delete(input: { workspaceId: string } & ResourceRequestOptions): Promise<void>`
 
 ```typescript
-const status = await client.workspaces.delete({ workspaceId });
+await client.workspaces.delete({ workspaceId });
 ```
 
-Move every agent that uses the workspace to another one first. Returns `"completed"` when the workspace is fully deleted, or `"pending"` when the rest of the cleanup finishes in the background.
+Move every agent that uses the workspace to another one first. When the call returns, the workspace and its files are gone.
 
 Errors:
 
 - `validation_failed`: the ID is malformed.
 - [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use): agents still use it. `details.agentIds` lists them.
 - `workspace_not_found`: no such workspace in your tenant.
-- [`service_unavailable`](/api-reference/protocols/errors#service_unavailable): try again with backoff.
 
 ## Response types [#response-types]
 

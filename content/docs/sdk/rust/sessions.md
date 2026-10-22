@@ -185,10 +185,10 @@ let page = client
 
 | Setter | Type | Description |
 | --- | --- | --- |
-| `include_completed` | `bool` | Also returns `InputState::Committed` and `InputState::NotPlaced` receipts. Defaults to `false` |
+| `include_completed` | `bool` | Also returns `InputState::Committed` and `InputState::NotPlaced` receipts. Defaults to `false`, which returns only `InputState::Accepted` receipts |
 | `limit` | `u8` | Page size, 1 to 200; defaults to 100 |
 
-Each `SessionInput` has `request_id`, `sequence`, `message`, `state`, `turn_id`, timestamps, and `reason`. An `InputState::NotPlaced` input never reached the agent and is safe to resend as a `chat()` message; an `InputState::Uncertain` one may have been read, so never resend it automatically. Fails with `validation_failed` or `not_found`.
+Each `SessionInput` has `request_id`, `sequence`, `message`, `state`, `turn_id`, timestamps, and `reason`. [What each state means](#sessioninput) says when to wait and when to resend. Fails with `validation_failed` or `not_found`.
 
 ### `stop()` [#stop]
 
@@ -271,7 +271,7 @@ A `UiMessage` has `id`, `role` (`MessageRole::System`, `User`, or `Assistant`), 
 | `request_id` | `String` | Your ID for the steer |
 | `sequence` | `u64` | Place in the arrival order; never changes |
 | `message` | `UserMessage` | The message you sent |
-| `state` | `InputState` | `Accepted`, `Delivered`, `Committed`, `NotPlaced`, or `Uncertain` |
+| `state` | `InputState` | `Accepted`, `Committed`, or `NotPlaced` |
 | `turn_id` | `TurnId` | The turn the steer was bound to |
 | `reason` | `Option<InputReason>` | `Stopped`, `Failed`, `OwnerLost`, or `TurnFinished` |
 | `created_at`, `updated_at` | `Timestamp` | Timestamps |
@@ -281,7 +281,9 @@ A `UiMessage` has `id`, `role` (`MessageRole::System`, `User`, or `Assistant`), 
 | `state` | `ActivityState` | `Idle`, `Running`, `Stopping`, or `Approval` |
 | `turn_id` | `Option<TurnId>` | The running turn, when there is one |
 
-`InputState::Committed` means the message is saved in the history; `InputState::NotPlaced` is safe to send as an ordinary `chat()` message; `InputState::Uncertain` means the agent may have read it, so never resend it automatically.
+- `InputState::Accepted`: saved for the running turn, which may still read and save it. Keep waiting.
+- `InputState::Committed`: saved in the history. Nothing more to do.
+- `InputState::NotPlaced`: not saved, because the turn ended or Blazing Agents lost it first. `reason` says which. Send it again as an ordinary [`chat()`](/sdk/rust/client#chat) message. If the turn read it and then failed, resending may repeat its tool calls, as any resend can.
 
 ## Next [#next]
 

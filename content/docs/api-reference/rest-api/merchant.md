@@ -10,8 +10,8 @@ description: Connect your billing account, link users to customers, and manage t
 Charge your customers for the model tokens they use, through your own Polar or
 Dodo account. Store one merchant connection for your tenant, link each of your
 end users to a customer in your billing provider, and watch the usage events
-Blazing Agents sends for every turn. Retry, release, or discard an event when
-it cannot be delivered.
+Blazing Agents sends for every turn. Retry or discard an event when it cannot
+be delivered.
 
 ## Endpoints [#endpoints]
 
@@ -39,7 +39,6 @@ Response schema: `MerchantConnectionResponse`.
     "id": "mch_6Wd3Lp8RtY2kVn5Q",
     "provider": "polar",
     "environment": "sandbox",
-    "status": "active",
     "merchantAccountId": "8f2c1d9e-4b7a-4f3e-9c21-5a6b7d8e9f01",
     "keyFragment": "x7Qa",
     "guard": {
@@ -76,7 +75,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/merchant-connection" \
 
 Create a merchant connection.
 
-Connects your Polar or Dodo account so your end users' model-token usage is sent to it. Blazing Agents checks the credential with your provider first, and afterwards shows only its last few characters. Creating a connection replaces your current one; events already recorded against the old connection keep being delivered. While a request admitted on the current connection is still running, it cannot be replaced and the request fails with `merchant_connection_in_use`. Customer bindings belong to a connection, so link your users again after you replace it. An enabled `guard` needs at least one entry in `productIds` or a `meterId`, and each of them must exist at your provider, or the request fails with `validation_failed` and an issue coded `merchant_guard_id_unknown` for each unknown ID. Monetization stays off until you set `monetizationEnabled` on your tenant.
+Connects your Polar or Dodo account so your end users' model-token usage is sent to it. Blazing Agents checks the credential with your provider first, and afterwards shows only its last few characters. Creating a connection replaces your current one: the old connection is retired like `DELETE /v1/merchant-connection` does, its `failed` events are discarded and its credential is deleted at once. While a request admitted on the current connection is still running or one of its usage events is `pending`, it cannot be replaced and the request fails with `merchant_connection_in_use`. Customer bindings belong to a connection, so link your users again after you replace it. An enabled `guard` needs at least one entry in `productIds` or a `meterId`, and each of them must exist at your provider, or the request fails with `validation_failed` and an issue coded `merchant_guard_id_unknown` for each unknown ID. Monetization stays off until you set `monetizationEnabled` on your tenant.
 
 #### Request
 
@@ -101,7 +100,6 @@ Response schema: `MerchantConnectionResponse`.
     "id": "mch_6Wd3Lp8RtY2kVn5Q",
     "provider": "polar",
     "environment": "sandbox",
-    "status": "active",
     "merchantAccountId": "8f2c1d9e-4b7a-4f3e-9c21-5a6b7d8e9f01",
     "keyFragment": "x7Qa",
     "guard": {
@@ -143,7 +141,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/merchant-connection" \
 
 Update the merchant connection.
 
-Changes your current merchant connection's status or guard, or rotates its credential. Fields you leave out keep their current value. A new `credential` is checked with your provider and must belong to the same merchant account; to switch accounts, create a new connection instead. A `guard` replaces the whole guard, and an enabled guard needs at least one entry in `productIds` or a `meterId`. Every product and meter of an enabled guard must exist at your provider, or the update fails with `validation_failed` and an issue coded `merchant_guard_id_unknown` for each unknown ID.
+Changes your current merchant connection's guard, or rotates its credential. Fields you leave out keep their current value. A new `credential` is checked with your provider and must belong to the same merchant account; to switch accounts, create a new connection instead. A `guard` replaces the whole guard, and an enabled guard needs at least one entry in `productIds` or a `meterId`. Every product and meter of an enabled guard must exist at your provider, or the update fails with `validation_failed` and an issue coded `merchant_guard_id_unknown` for each unknown ID.
 
 #### Request
 
@@ -152,7 +150,6 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `credential` | string | body |  | A replacement credential. It must belong to the same merchant account as the current one. |
-| `status` | string | body |  | `active` sends usage events to your provider. While `disconnected`, deliveries fail and can be retried after you set it back to `active`, and turns are refused if the guard is on. One of `active`, `disconnected`. |
 | `guard` | object | body |  | The complete guard configuration, replacing the current one. |
 
 #### Response
@@ -167,7 +164,6 @@ Response schema: `MerchantConnectionResponse`.
     "id": "mch_6Wd3Lp8RtY2kVn5Q",
     "provider": "polar",
     "environment": "sandbox",
-    "status": "active",
     "merchantAccountId": "8f2c1d9e-4b7a-4f3e-9c21-5a6b7d8e9f01",
     "keyFragment": "x7Qa",
     "guard": {
@@ -212,7 +208,7 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/merchant-connection" \
 
 Retire the merchant connection.
 
-Retires your current merchant connection. While a request admitted on the connection is still running, the connection cannot be retired and the request fails with `merchant_connection_in_use`; try again once those requests finish. New usage is no longer recorded against a retired connection, but events already recorded keep being delivered with its credential. Blazing Agents deletes the credential once none of those events is `pending`, `failed` or `uncertain`. Create a new connection to start again.
+Retires your current merchant connection. While a request admitted on the connection is still running or one of its usage events is `pending`, the connection cannot be retired and the request fails with `merchant_connection_in_use`; try again once those requests finish and those events are delivered. A `pending` event whose automatic delivery gave up also blocks until you retry it. When the connection is retired, its `failed` events are discarded and Blazing Agents deletes its credential at once, so nothing more is delivered through it. New usage is no longer recorded against a retired connection. Create a new connection to start again.
 
 #### Request
 
@@ -303,7 +299,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/merchant-connection/bindings" \
 
 Set a merchant binding.
 
-Links one of your end users to a customer in your billing provider, or changes the customer an existing link points to. Blazing Agents checks that the customer exists first. Usage for that user is then sent to this customer. Events already held as `unmapped` stay held until you release them.
+Links one of your end users to a customer in your billing provider, or changes the customer an existing link points to. Blazing Agents checks that the customer exists first. Usage for that user is then sent to this customer.
 
 #### Request
 
@@ -358,7 +354,7 @@ curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/merchant-connection/bindings/$US
 
 Delete a merchant binding.
 
-Removes the link between one of your end users and their customer on your current merchant connection. Usage for that user is then held as `unmapped` until you link them again.
+Removes the link between one of your end users and their customer on your current merchant connection. Usage for that user is then recorded as `discarded` and never billed, even after you link them again.
 
 #### Request
 
@@ -395,7 +391,7 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/merchant-connection/bindings/
 
 List merchant usage events.
 
-Lists the usage events Blazing Agents records for your billing provider, one per turn, newest first. Each event has a delivery `status` and a suggested `nextAction`: `wait`, `retry`, `bind_and_release`, `investigate`, `discard`, or `none`. `workflowIssue` is set when automatic delivery has given up on a `pending` event. Pass `nextCursor` as `cursor` to get the next page; it is `null` on the last page.
+Lists the usage events Blazing Agents records for your billing provider, one per turn, newest first. Each event has a delivery `status` and a suggested `nextAction`: `wait`, `retry`, `investigate`, `discard`, or `none`. `workflowIssue` is set when automatic delivery has given up on a `pending` event. Pass `nextCursor` as `cursor` to get the next page; it is `null` on the last page.
 
 #### Request
 
@@ -403,7 +399,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `status` | string | query |  | Return only events with this delivery status. One of `pending`, `accepted`, `failed`, `uncertain`, `unmapped`, `incomplete`, `discarded`, `expired`. |
+| `status` | string | query |  | Return only events with this delivery status. One of `pending`, `accepted`, `failed`, `incomplete`, `discarded`, `expired`. |
 | `cursor` | string | query |  | The `nextCursor` from the previous page. |
 | `limit` | integer | query |  | Events per page, from 1 to 200. 1–200. Defaults to `50`. |
 
@@ -481,15 +477,15 @@ Response schema: `MerchantUsageEventList`.
       "turnStatus": "succeeded",
       "startedAt": "2026-07-10T10:12:00.000Z",
       "occurredAt": "2026-07-10T10:12:09.000Z",
-      "status": "unmapped",
+      "status": "discarded",
       "payload": null,
       "attemptCount": 0,
       "attemptGeneration": 0,
       "lastAttemptAt": null,
-      "lastErrorCode": null,
+      "lastErrorCode": "MERCHANT_CUSTOMER_UNMAPPED",
       "acceptedAt": null,
       "workflowIssue": null,
-      "nextAction": "bind_and_release"
+      "nextAction": "none"
     }
   ],
   "nextCursor": null
@@ -540,9 +536,7 @@ Response schema: `MerchantUsageSummary`.
     "counts": {
       "pending": 2,
       "accepted": 318,
-      "uncertain": 0,
       "failed": 1,
-      "unmapped": 3,
       "incomplete": 0,
       "expired": 0,
       "discarded": 4
@@ -589,7 +583,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/merchant-usage-events/summary" \
 
 Get a merchant usage event.
 
-Returns one usage event with its delivery `status`, suggested `nextAction`, and the exact `payload` sent to your provider. `payload` is `null` for `unmapped` and `incomplete` events, and can be `null` for `discarded` ones.
+Returns one usage event with its delivery `status`, suggested `nextAction`, and the exact `payload` sent to your provider. `payload` is `null` for `incomplete` events, and can be `null` for `discarded` ones.
 
 #### Request
 
@@ -681,7 +675,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/merchant-usage-events/mev_1234567890ABCDEF" \
 
 Retry a merchant usage event.
 
-Sends a `failed` or `uncertain` event to your provider again, or a `pending` event that automatic delivery gave up on. The event goes back to `pending` with the same payload. Retrying is safe: your provider drops duplicates by the event ID. Fix the cause of a `failed` event, such as a revoked credential, before you retry it.
+Sends a `failed` event to your provider again, or a `pending` event that automatic delivery gave up on. The event goes back to `pending` with the same payload. Retrying is safe: your provider drops duplicates by the event ID. Fix the cause of a `failed` event, such as a revoked credential, before you retry it.
 
 #### Request
 
@@ -770,104 +764,11 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/merchant-usage-events/mev_12345
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### POST /v1/merchant-usage-events/:eventId/release [#release-merchant-usage-event]
-
-Release a merchant usage event.
-
-Sends an `unmapped` event to your provider after you link its user to a customer. Link the user on your current merchant connection with `PUT /v1/merchant-connection/bindings/{userId}` first. The event takes that customer, gets its payload, and goes to `pending`.
-
-#### Request
-
-Requires [bearer authentication](/api-reference/rest-api/authentication).
-
-| Field | Type | Location | Required | Description |
-| --- | --- | --- | --- | --- |
-| `eventId` | string | path | required | ID of the merchant usage event. |
-
-#### Response
-
-Returns `200 OK` as `application/json`. The event, pending delivery.
-
-Response schema: `MerchantUsageEventResponse`.
-
-```json
-{
-  "event": {
-    "id": "mev_2Hs8Kq4ZpX6cWm1T",
-    "turnId": "turn_5Nf7Gb2VcL9xRk3P",
-    "connectionId": "mch_6Wd3Lp8RtY2kVn5Q",
-    "provider": "polar",
-    "userId": "app:user-42",
-    "customerId": "cus_9aB3dE5fG7hJ",
-    "agentId": "ag_4kP9sT2vXq7LmN3a",
-    "sessionId": "ss_7Yt2Mv5QbN8dKs4W",
-    "model": "openai/gpt-6-luna",
-    "modelProvider": "openrouter",
-    "inputTokens": 1840,
-    "outputTokens": 612,
-    "totalTokens": 2452,
-    "turnStatus": "succeeded",
-    "startedAt": "2026-07-10T10:12:00.000Z",
-    "occurredAt": "2026-07-10T10:12:09.000Z",
-    "status": "pending",
-    "payload": {
-      "events": [
-        {
-          "customer_id": "cus_9aB3dE5fG7hJ",
-          "external_id": "mev_2Hs8Kq4ZpX6cWm1T",
-          "metadata": {
-            "agent_id": "ag_4kP9sT2vXq7LmN3a",
-            "ba_event_id": "mev_2Hs8Kq4ZpX6cWm1T",
-            "input_tokens": 1840,
-            "model": "openai/gpt-6-luna",
-            "model_provider": "openrouter",
-            "output_tokens": 612,
-            "session_id": "ss_7Yt2Mv5QbN8dKs4W",
-            "status": "succeeded",
-            "total_tokens": 2452,
-            "turn_id": "turn_5Nf7Gb2VcL9xRk3P"
-          },
-          "name": "ba.model_tokens.v1",
-          "timestamp": "2026-07-10T10:12:09.000Z"
-        }
-      ]
-    },
-    "attemptCount": 1,
-    "attemptGeneration": 1,
-    "lastAttemptAt": "2026-07-10T10:12:10.000Z",
-    "lastErrorCode": null,
-    "acceptedAt": null,
-    "workflowIssue": null,
-    "nextAction": "wait"
-  }
-}
-```
-
-#### Errors
-
-| Status | Codes | Description |
-| --- | --- | --- |
-| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed) | The request is invalid |
-| `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
-| `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
-| `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`merchant_event_not_found`](/api-reference/protocols/errors#merchant_event_not_found), [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
-| `409` | [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict), [`merchant_binding_required`](/api-reference/protocols/errors#merchant_binding_required) | The request conflicts with the resource's current state |
-
-See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
-
-#### cURL
-
-```bash
-curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/merchant-usage-events/mev_1234567890ABCDEF/release" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
-```
-
 ### POST /v1/merchant-usage-events/:eventId/discard [#discard-merchant-usage-event]
 
 Discard a merchant usage event.
 
-Marks an `unmapped`, `incomplete`, `failed`, `uncertain`, or `expired` event as `discarded`, so Blazing Agents stops trying to deliver it. The event stays in the list. Correct an `expired` event in your provider directly.
+Marks an `incomplete`, `failed`, or `expired` event as `discarded`, so Blazing Agents stops trying to deliver it. The event stays in the list. Correct an `expired` event in your provider directly.
 
 #### Request
 

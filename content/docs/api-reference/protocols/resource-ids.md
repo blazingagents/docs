@@ -28,13 +28,11 @@ access.
 | `#at`             | <span id="at">Artifact</span>                   | `at_` + 16 Base62 characters                               |
 | `#tk`             | <span id="tk">Task</span>                       | `tk_` + 16 Base62 characters                               |
 | `#tr`             | <span id="tr">Task run</span>                   | `tr_` + 16 Base62 characters                               |
-| `#ca`             | <span id="ca">Checkout attempt</span>            | `ca_` + 16 Base62 characters                               |
 | `#turn`           | <span id="turn">Metered Turn</span>             | `turn_` + 16 Base62 characters                             |
 | `#mem`            | <span id="mem">Memory</span>                    | `mem_` + 16 Base62 characters                              |
 | `#prompt`         | <span id="prompt">Prompt</span>                 | `prompt_` + 16 Base62 characters                           |
 | `#skill`          | <span id="skill">Agent-owned Skill</span>       | `skill_` + 16 Base62 characters                            |
 | `#cc`             | <span id="cc">Chat connection</span>            | `cc_` + 16 Base62 characters                               |
-| `#cd`             | <span id="cd">Chat delivery</span>              | `cd_` + 16 Base62 characters                               |
 | `#mch`            | <span id="mch">Merchant connection</span>       | `mch_` + 16 Base62 characters                              |
 | `#mev`            | <span id="mev">Merchant usage event</span>      | `mev_` + 16 Base62 characters                              |
 
@@ -87,7 +85,6 @@ ws_0123456789abcdef
 at_0123456789abcdef
 tk_0123456789abcdef
 tr_0123456789abcdef
-ca_0123456789abcdef
 turn_0123456789abcdef
 mem_0123456789abcdef
 prompt_0123456789abcdef

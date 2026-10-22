@@ -232,7 +232,7 @@ return client.Agents.Delete(ctx, agentID, ba.DeleteAgentParams{IncludeArtifacts:
 
 **Signature:** `func (s *AgentsService) Delete(ctx context.Context, agentID AgentID, params DeleteAgentParams, opts ...RequestOption) error`
 
-`IncludeArtifacts` is always sent: `true` also deletes the agent's published artifacts, and `false` keeps them. Fails with `validation_failed` or `not_found`.
+`IncludeArtifacts` is always sent: `true` also deletes the agent's published artifacts, and `false` keeps them. Fails with [`agent_busy`](/api-reference/protocols/errors#agent_busy) (409) while the agent has a running turn or a queued or running task run, and with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (409) for the admin agent. Also fails with `validation_failed` or `not_found`.
 
 ### `Disable` [#disable]
 

@@ -225,6 +225,17 @@
       "retryable": false
     },
     {
+      "code": "agent_busy",
+      "group": "agents-and-providers",
+      "statuses": [409],
+      "title": "The agent still has work running.",
+      "whatHappened": "The agent has a running turn, or a task run that is queued or running. Deleting the agent now would cut that work off, so it was not deleted.",
+      "howToFix": [
+        "Stop the running turn or cancel the task run, or wait for them to finish, then delete the agent again."
+      ],
+      "retryable": true
+    },
+    {
       "code": "provider_required",
       "group": "agents-and-providers",
       "statuses": [400],
@@ -749,7 +760,7 @@
       "group": "quotas-and-billing",
       "statuses": [409],
       "title": "Your account already pays for a plan.",
-      "whatHappened": "Your account has an active plan, or an earlier checkout has already been paid, so no new checkout was opened and you were not charged again. Checkout never changes a plan.",
+      "whatHappened": "Your account already has an active plan, so no new checkout was opened and you were not charged again. Checkout never changes a plan.",
       "howToFix": [
         "Reload the dashboard. A payment that is still processing shows up within a minute.",
         "Contact support to change your plan."
@@ -768,18 +779,6 @@
       "retryable": false
     },
     {
-      "code": "checkout_evidence_mismatch",
-      "group": "quotas-and-billing",
-      "statuses": [409],
-      "title": "The checkout does not match your account.",
-      "whatHappened": "The payment details returned from checkout do not match the checkout your account started or the plan it is paying for. Your plan was not changed.",
-      "howToFix": [
-        "Start a new checkout from the dashboard.",
-        "Contact support if you were charged."
-      ],
-      "retryable": false
-    },
-    {
       "code": "merchant_connection_not_found",
       "group": "quotas-and-billing",
       "statuses": [404],
@@ -794,10 +793,11 @@
       "code": "merchant_connection_in_use",
       "group": "quotas-and-billing",
       "statuses": [409],
-      "title": "Requests admitted on your billing connection are still running.",
-      "whatHappened": "You cannot remove or replace your merchant connection while a request admitted on it is still running, because that request's usage is recorded against it.",
+      "title": "Your billing connection still has running requests or pending usage.",
+      "whatHappened": "You cannot remove or replace your merchant connection while a request admitted on it is still running, or while one of its usage events is `pending`. Removing the connection now would lose that usage.",
       "howToFix": [
-        "Wait for the running requests to finish, then remove or replace the connection again."
+        "Wait for running requests to finish and for pending events to be delivered, then try again.",
+        "If a `pending` event's `nextAction` is `retry`, its automatic delivery gave up. Retry it. It ends `accepted` or `failed`, and a `failed` event no longer blocks removal."
       ],
       "retryable": true
     },
@@ -847,17 +847,6 @@
       "retryable": false
     },
     {
-      "code": "merchant_binding_required",
-      "group": "quotas-and-billing",
-      "statuses": [409],
-      "title": "Link the user before releasing the event.",
-      "whatHappened": "You tried to release an `unmapped` usage event, but its user is still not linked to a customer.",
-      "howToFix": [
-        "Link the event's `userId` to a customer, then release the event again."
-      ],
-      "retryable": false
-    },
-    {
       "code": "merchant_account_mismatch",
       "group": "quotas-and-billing",
       "statuses": [409],
@@ -885,7 +874,7 @@
       "group": "quotas-and-billing",
       "statuses": [409],
       "title": "The usage event's status does not allow this action.",
-      "whatHappened": "Retry works on `failed` and `uncertain` events and on `pending` events whose automatic delivery gave up. Release works only on `unmapped` events. Discard works only on events your provider has not accepted.",
+      "whatHappened": "Retry works on `failed` events and on `pending` events whose automatic delivery gave up. Discard works only on events your provider has not accepted.",
       "howToFix": [
         "Read the event's `status` and `nextAction`, and take the suggested action. See [delivery states](/platform/monetization#delivery-states)."
       ],
@@ -1030,10 +1019,10 @@
       "group": "quotas-and-billing",
       "statuses": [429],
       "title": "A model spending limit stopped the request.",
-      "whatHappened": "The agent's or the account's dollar limit for model tokens has no allowance left for this request. `details.scope` names the limit (`agent`, `tenant`, or `both`). `details.reason` says why: the period's spending reached the limit (`exhausted`), running work holds the rest (`reserved`), the model has no known price (`unpriced`), or an earlier request never reported its usage (`unknown_usage`).",
+      "whatHappened": "The agent's or the account's dollar limit for model tokens has no allowance left for this request. `details.scope` names the limit (`agent`, `tenant`, or `both`). `details.reason` says why: the period's spending reached the limit (`exhausted`), or the cost of the model or of one of its responses is unknown (`unpriced`).",
       "howToFix": [
-        "Do not retry automatically. Read the limit to see `spentUsd`, `reservedUsd`, and `nextResetAt`.",
-        "For `exhausted`, wait for the next reset or raise the amount. For `reserved`, try again after running work finishes. After `unknown_usage`, new turns run while `availableUsd` is above zero.",
+        "Do not retry automatically. Read the limit to see `spentUsd`, `availableUsd`, and `nextResetAt`.",
+        "For `exhausted`, wait for the next reset or raise the amount.",
         "For `unpriced`, switch the agent to a model with a known price, or turn off the limit. See [handle a spending stop](/platform/usage-and-quotas#spending-limit-stops)."
       ],
       "retryable": false
