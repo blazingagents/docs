@@ -687,7 +687,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sessions/ss_1234567
 
 Decide an approval round and continue the turn.
 
-Records every decision in one approval round and streams the rest of the turn in this request. No continuation starts without this call. Pass caller-local functions for this invocation. Identical decisions are idempotent; changed decisions conflict. A running retry returns session_busy and a terminal retry returns tool_approval_continuation_settled. If the session's previous turn stopped responding, the call returns session_turn_unresponsive with a Retry-After header, and the decisions stay recorded for the retry. A failure before admission leaves the round waiting for an explicit retry. Output is not replayed.
+Records every decision in one approval round and streams the rest of the turn in this request. No continuation starts without this call. Pass caller-local functions for this invocation. Identical decisions are idempotent; changed decisions conflict. A running retry returns session_busy and a terminal retry returns tool_approval_continuation_settled. If the session's previous turn stopped responding, the call returns session_turn_unresponsive with a Retry-After header, and the decisions stay recorded for the retry. A failure before the turn starts leaves the round waiting for an explicit retry. Output is not replayed.
 
 #### Request
 
