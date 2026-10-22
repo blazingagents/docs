@@ -86,7 +86,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `text` | string | body | required | The note to remember, up to 10 KiB. |
-| `userId` | string | body |  | The end user this memory belongs to. Only turns that pass the same `userId` see it. Leave it out or send an empty string for a general memory that every turn of the agent sees. It cannot change after creation. Defaults to `""`. |
+| `userId` | string | body |  | The end user this memory belongs to. Turns for that end user see it. Leave it out or send an empty string for a general memory, which unscoped turns see; a turn made through `forUser` sees only its end user's memories. It cannot change after creation. Defaults to `""`. |
 
 #### Response
 
