@@ -2,4 +2,4 @@ module docs-go-snippets
 
 go 1.26
 
-require github.com/blazingagents/golang-sdk v0.3.0
+require github.com/blazingagents/golang-sdk v0.4.0
