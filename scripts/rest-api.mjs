@@ -30,6 +30,12 @@ const BODY_NAMES = {
   "multipart/form-data": "a multipart form body",
 };
 
+const ACCESS_TEXT = {
+  read: "A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it.",
+  run: "A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it.",
+  write: "Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`.",
+};
+
 const spec = JSON.parse(readFileSync(specPath, "utf8"));
 
 function resolveSchema(schema) {
@@ -102,19 +108,44 @@ function describeField(input) {
   if (schema.enum && schema.enum.length > 1) {
     parts.push(`One of ${schema.enum.map(code).join(", ")}.`);
   }
-  if (schema.minLength !== undefined && schema.maxLength !== undefined) {
+  /** Contract descriptions often state the length or default themselves. */
+  const stated = schema.description ?? "";
+  if (schema.format === "date" && !stated) {
+    parts.push("A `YYYY-MM-DD` date.");
+  }
+  const statesLength = stated.includes("characters");
+  if (
+    !statesLength &&
+    schema.minLength !== undefined &&
+    schema.maxLength !== undefined
+  ) {
     parts.push(`${schema.minLength}–${schema.maxLength} characters.`);
-  } else if (schema.maxLength !== undefined) {
+  } else if (!statesLength && schema.maxLength !== undefined) {
     parts.push(`Up to ${schema.maxLength} characters.`);
   }
-  if (schema.minimum !== undefined) {
+  const maximum =
+    schema.maximum === Number.MAX_SAFE_INTEGER ? undefined : schema.maximum;
+  if (schema.exclusiveMinimum !== undefined) {
     parts.push(
-      schema.maximum === undefined || schema.maximum === Number.MAX_SAFE_INTEGER
-        ? `Minimum ${schema.minimum}.`
-        : `${schema.minimum}–${schema.maximum}.`
+      `More than ${schema.exclusiveMinimum}${maximum === undefined ? "" : `, up to ${maximum}`}.`
     );
+  } else if (schema.minimum !== undefined) {
+    parts.push(
+      maximum === undefined
+        ? `Minimum ${schema.minimum}.`
+        : `${schema.minimum}–${maximum}.`
+    );
+  } else if (maximum !== undefined) {
+    parts.push(`Up to ${maximum}.`);
   }
-  if (schema.default !== undefined) {
+  if (schema.minItems !== undefined && schema.maxItems !== undefined) {
+    parts.push(`${schema.minItems}–${schema.maxItems} items.`);
+  } else if (schema.maxItems !== undefined) {
+    parts.push(`Up to ${schema.maxItems} items.`);
+  } else if (schema.minItems !== undefined) {
+    parts.push(`At least ${schema.minItems} items.`);
+  }
+  if (schema.default !== undefined && !/defaults to/i.test(stated)) {
     parts.push(`Defaults to ${code(schema.default)}.`);
   }
   return parts.join(" ");
@@ -141,6 +172,100 @@ function requestBody(operation) {
     : undefined;
 }
 
+function tagValue(schema) {
+  return schema.const ?? (schema.enum?.length === 1 ? schema.enum[0] : undefined);
+}
+
+function objectVariants(schema) {
+  const variants = (schema.oneOf ?? schema.anyOf ?? [])
+    .map(resolveSchema)
+    .filter((variant) => variant.properties);
+  return variants.length > 0 ? variants : undefined;
+}
+
+/** The property whose single value tells a oneOf's object variants apart. */
+function discriminator(variants, prefix) {
+  const key = Object.keys(variants[0].properties).find((name) => {
+    const values = variants.map((variant) =>
+      variant.properties[name] === undefined
+        ? undefined
+        : tagValue(resolveSchema(variant.properties[name]))
+    );
+    return (
+      values.every((value) => value !== undefined) &&
+      new Set(values).size === variants.length
+    );
+  });
+  if (!key) {
+    throw new Error(`${prefix || "body"} oneOf variants need a discriminator`);
+  }
+  return key;
+}
+
+/**
+ * Rows for every field of an object, with nested objects, array items and
+ * oneOf variants flattened into dotted names. A field only some variants
+ * have records the discriminator values that allow it in `when`.
+ */
+function fieldRows(schema, location, prefix = "") {
+  const variants = objectVariants(schema);
+  if (variants?.length === 1) {
+    return fieldRows(variants[0], location, prefix);
+  }
+  if (variants) {
+    const key = discriminator(variants, prefix);
+    const groups = new Map();
+    for (const variant of variants) {
+      const label = code(tagValue(resolveSchema(variant.properties[key])));
+      for (const row of fieldRows(variant, location, prefix)) {
+        const id = JSON.stringify(row);
+        const group = groups.get(id) ?? { labels: [], row };
+        group.labels.push(label);
+        groups.set(id, group);
+      }
+    }
+    const names = [...groups.values()].map(({ row }) => row.name);
+    return [...groups.values()]
+      .sort(
+        (left, right) =>
+          names.indexOf(left.row.name) - names.indexOf(right.row.name)
+      )
+      .map(({ labels, row }) =>
+        labels.length === variants.length
+          ? row
+          : {
+              ...row,
+              when: [
+                `\`${prefix}${key}\` is ${labels.join(" or ")}`,
+                ...row.when,
+              ],
+            }
+      );
+  }
+  const required = new Set(schema.required ?? []);
+  return Object.entries(schema.properties ?? {}).flatMap(([name, property]) => {
+    const resolved = resolveSchema(property);
+    const path = `${prefix}${name}`;
+    const items = resolveSchema(resolved.items);
+    const hasFields = (candidate) =>
+      candidate.properties !== undefined || objectVariants(candidate) !== undefined;
+    return [
+      {
+        description: describeField(property),
+        location,
+        name: path,
+        required: required.has(name),
+        type: typeLabel(property),
+        when: [],
+      },
+      ...(hasFields(resolved) ? fieldRows(resolved, location, `${path}.`) : []),
+      ...(primaryType(resolved) === "array" && hasFields(items)
+        ? fieldRows(items, location, `${path}[].`)
+        : []),
+    ];
+  });
+}
+
 function parameterRows(operation, body) {
   const rows = (operation.parameters ?? []).map((parameter) => ({
     description: describeField(parameter.schema),
@@ -149,16 +274,18 @@ function parameterRows(operation, body) {
     required: parameter.required === true,
     type: typeLabel(parameter.schema),
   }));
-  if (body?.schema.properties) {
-    const required = new Set(body.schema.required ?? []);
-    for (const [name, schema] of Object.entries(body.schema.properties)) {
-      rows.push({
-        description: describeField(schema),
-        location: body.contentType === "multipart/form-data" ? "form" : "body",
-        name,
-        required: required.has(name),
-        type: typeLabel(schema),
-      });
+  if (body && (body.schema.properties || objectVariants(body.schema))) {
+    const location =
+      body.contentType === "multipart/form-data" ? "form" : "body";
+    for (const { when, ...row } of fieldRows(body.schema, location)) {
+      rows.push(
+        when.length === 0
+          ? row
+          : {
+              ...row,
+              description: `Only when ${when.join(" and ")}. ${row.description}`.trim(),
+            }
+      );
     }
   } else if (body) {
     rows.push({
@@ -288,7 +415,14 @@ export function loadRestApi() {
         const key = `${method.toUpperCase()} ${path}`;
         const body = requestBody(operation);
         const responses = successResponses(operation);
+        if (!ACCESS_TEXT[operation["x-access"]]) {
+          throw new Error(`${key} needs x-access read, run or write`);
+        }
         return {
+          access: operation["x-access"],
+          endUserScope: operation.security?.some(
+            (scheme) => "EndUserScope" in scheme
+          ) === true,
           anchor: operation.operationId
             .replace(CAMEL_CASE_BOUNDARY, "$1-$2")
             .toLowerCase(),
@@ -358,7 +492,13 @@ function renderOperation(operation) {
             ),
           ].join("\n"),
         ];
-  const auth = `Requires [bearer authentication](/api-reference/rest-api/authentication)${operation.body ? ` and ${BODY_NAMES[operation.body.contentType]}` : ""}.`;
+  const auth = [
+    `Requires [bearer authentication](/api-reference/rest-api/authentication)${operation.body ? ` and ${BODY_NAMES[operation.body.contentType]}` : ""}.`,
+    ACCESS_TEXT[operation.access],
+    operation.endUserScope
+      ? "Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records."
+      : "A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.",
+  ].join(" ");
   return [
     `### ${operation.method} ${operation.path} [#${operation.anchor}]`,
     `${operation.summary}.`,

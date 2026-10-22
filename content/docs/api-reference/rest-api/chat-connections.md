@@ -41,7 +41,7 @@ Lists every chat connection in your tenant, oldest first. Full credentials are n
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 There are no parameters and no request body.
 
@@ -127,11 +127,23 @@ Connects one of your agents to a Slack app or Telegram bot. Blazing Agents check
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `(body)` | object | body | required | Raw `application/json` request body. |
+| `agentId` | string | body | required | ID of the agent that answers messages on this connection. You cannot change it later. |
+| `name` | string | body | required | Display name, 1 to 80 characters. |
+| `enabled` | boolean | body |  | Whether the connection accepts messages. Defaults to `true`. |
+| `platform` | string | body | required | Chat platform: `slack` or `telegram`. |
+| `configuration` | object | body |  | Optional platform settings. Destination IDs choose where health checks look; they do not restrict who can talk to the agent. Defaults to `{}`. |
+| `configuration.channelIds` | string[] | body |  | Only when `platform` is `slack`. Up to 20 items. Defaults to `[]`. |
+| `credentials` | object | body | required | Only when `platform` is `slack`. The Slack app's bot token and signing secret. |
+| `credentials` | object | body | required | Only when `platform` is `telegram`. The Telegram bot token from BotFather. |
+| `credentials.botToken` | string | body | required | Only when `platform` is `slack`. 8–8192 characters. |
+| `credentials.botToken` | string | body | required | Only when `platform` is `telegram`. |
+| `credentials.signingSecret` | string | body | required | Only when `platform` is `slack`. |
+| `configuration.businessMode` | boolean | body |  | Only when `platform` is `telegram`. Defaults to `false`. |
+| `configuration.chatIds` | string[] | body |  | Only when `platform` is `telegram`. Up to 20 items. Defaults to `[]`. |
 
 #### Response
 
@@ -215,7 +227,7 @@ Returns a connection. `health` shows the result of the last check; call check he
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -300,13 +312,16 @@ Changes a connection's name or configuration. Send `name`, `configuration`, or b
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `id` | string | path | required | ID of the chat connection. |
 | `name` | string | body |  | New display name. 1–80 characters. |
 | `configuration` | object | body |  | Fields to change. Slack connections accept `channelIds`; Telegram connections accept `chatIds` and `businessMode`. Fields you leave out keep their values. |
+| `configuration.businessMode` | boolean | body |  |  |
+| `configuration.chatIds` | string[] | body |  | Up to 20 items. |
+| `configuration.channelIds` | string[] | body |  | Up to 20 items. |
 
 #### Response
 
@@ -391,7 +406,7 @@ Deletes a connection and its stored credentials. Sessions it created are kept. F
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -428,12 +443,15 @@ Replaces a connection's credentials. Send `platform` matching the connection and
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `id` | string | path | required | ID of the chat connection. |
-| `(body)` | object | body | required | Raw `application/json` request body. |
+| `platform` | string | body | required | Must match the connection's platform. |
+| `botToken` | string | body | required | Only when `platform` is `slack`. The new Slack bot token. 8–8192 characters. |
+| `botToken` | string | body | required | Only when `platform` is `telegram`. The new Telegram bot token. |
+| `signingSecret` | string | body | required | Only when `platform` is `slack`. The Slack app's signing secret. |
 
 #### Response
 
@@ -518,7 +536,7 @@ Runs new read-only checks against the chat platform, saves the results, and retu
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -603,7 +621,7 @@ Stops the connection from accepting new messages and approval clicks. [Manage an
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -688,7 +706,7 @@ Starts accepting new messages. Messages sent while the connection was disabled a
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |

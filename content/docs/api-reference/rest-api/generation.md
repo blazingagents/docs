@@ -26,7 +26,7 @@ Runs one turn of the agent without saving a session and streams the answer as pl
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -35,6 +35,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `promptId` | string | body |  | ID of a saved prompt to use instead of `prompt`. |
 | `variables` | object | body |  | Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables. |
 | `output` | object | body | required | What to stream back: `{"type":"text"}` for text, or `{"type":"object","schema":{…}}` for JSON that matches a JSON Schema. |
+| `output.type` | string | body | required |  |
+| `output.schema` | object | body | required | Only when `output.type` is `object`. |
 | `userId` | string | body |  | Your end user's ID, used for usage attribution. Defaults to `""`. |
 | `metadata` | object | body |  | Your own key-value data, recorded with the usage. Defaults to `{}`. |
 
