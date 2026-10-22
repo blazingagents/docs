@@ -9,6 +9,8 @@ description: Run agents in the background, on demand or on a schedule, and follo
 
 Examples receive a `client: blazing_agents::Client`. Every call also takes the `with_timeout`, `without_timeout`, `with_header`, and `with_client_request_id` transport options.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/rust/client#for-user) from `client.for_user()`, which returns only that user's tasks and runs. The tenant client sees every user's tasks and is for your backend's administration. A task created on a `UserClient` runs as a [scoped turn](/sdk/rust/client#for-user), so its agent and that agent's workspace must belong to the user.
+
 ```rust
 use blazing_agents::tasks::Schedule;
 
@@ -65,19 +67,20 @@ let created = client
 | `schedule` | `Schedule` | none | When the task runs by itself |
 | `enabled` | `bool` | `true` | Whether the schedule fires; a disabled task can still be started on demand |
 | `submit` | `bool` | `false` | Starts the first run at once; `run_id` is then set |
-| `user_id` | `impl Into<String>` | `""` | The end user the task belongs to, copied to every run. Fixed after creation |
+| `user_id` | `impl Into<String>` | `""`, or the scoped user on a `UserClient` | The end user the task belongs to, copied to every run. Fixed after creation |
 | `metadata` | `Metadata` | `{}` | Your own data, copied to every run |
 
-`Schedule` is `Schedule::once(timestamp)`, `Schedule::interval(every_ms)` (at least 60,000), or `Schedule::cron(expression)` with `.timezone(...)` (default `UTC`) and `.stagger_ms(...)`. A kind this version does not know decodes as `Schedule::Unrecognized`.
+`Schedule` is `Schedule::once(timestamp)`, `Schedule::interval(every_ms)` (at least the [minimum interval](/api-reference/protocols/service-limits#task-interval)), or `Schedule::cron(expression)` with `.timezone(...)` (default `UTC`) and `.stagger_ms(...)`. A kind this version does not know decodes as `Schedule::Unrecognized`.
 
-Awaiting returns [`CreatedTask`](#task) with `task` and `run_id` (`Some` only when `submit` started one). Reusing an `idempotency_key` with different task fields, or after deleting the task, fails with [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict). Also fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found), or [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit` starts a run on a disabled agent.
+Awaiting returns [`CreatedTask`](#task) with `task` and `run_id` (`Some` only when `submit` started one). Reusing an `idempotency_key` with different task fields, or after deleting the task, fails with [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict). Also fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found), [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit` starts a run on a disabled agent, or [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) when `agent_id` is the admin agent, which cannot run tasks.
 
 ### `list()` [#list]
 
 Lists tasks, most recently updated first. Each task's `latest_run` carries its most recent run's status.
 
 ```rust
-let page = client
+let user = client.for_user("user_0123456789abcdef")?;
+let page = user
     .tasks()
     .list()
     .agent_id("ag_0123456789abcdef")
@@ -91,7 +94,7 @@ let page = client
 | --- | --- | --- |
 | `agent_id` | `impl Into<AgentId>` | Only tasks for this agent |
 | `user_id` | `impl Into<String>` | Only tasks for this end user; `""` selects tenant-level tasks |
-| `limit` | `u8` | Page size, 1 to 200; defaults to 50 |
+| `limit` | `u8` | Page size, within the [task page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages) |
 
 Awaiting returns [`Page<TaskListItem>`](#task); `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
@@ -123,8 +126,8 @@ let task = client
 
 | Setter | Description |
 | --- | --- |
-| `name(name)` | New display name, 1 to 80 characters |
-| `prompt(prompt)` | New prompt, 1 to 6,000 characters |
+| `name(name)` | New display name, within the [task field limits](/api-reference/protocols/service-limits#task-fields) |
+| `prompt(prompt)` | New prompt, within the [task field limits](/api-reference/protocols/service-limits#task-fields) |
 | `schedule(schedule)` | A new schedule, replacing the current one |
 | `clear_schedule()` | Removes the schedule; the task runs only when you start it |
 | `enabled(enabled)` | Whether the schedule fires |
@@ -159,7 +162,7 @@ println!("{}", run.run_id);
 
 **Signature:** `submit(task_id: impl Into<TaskId>) -> Call<CreateTaskRun>`
 
-The `idempotency_key` setter makes retries safe: repeating the request with the same key returns the same run. Awaiting returns [`CreatedTaskRun`](#taskrun) with `run_id`. Fails with `validation_failed`, `not_found`, or `task_active_run_exists` while another run is queued or running.
+The `idempotency_key` setter makes retries safe: repeating the request with the same key returns the same run. Awaiting returns [`CreatedTaskRun`](#taskrun) with `run_id`. Fails with `validation_failed`, `not_found`, `task_active_run_exists` while another run is queued or running, `agent_disabled` when the task's agent is disabled, or [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) while your account is scheduled for deletion.
 
 ### `list_runs()` [#list-runs]
 
@@ -171,7 +174,7 @@ let page = client.tasks().list_runs("tk_0123456789abcdef").await?;
 
 **Signature:** `list_runs(task_id: impl Into<TaskId>) -> Call<ListTaskRuns>`
 
-The `limit` setter takes 1 to 200 runs per page, defaulting to 50. Awaiting returns [`Page<TaskRun>`](#taskrun); `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed`, `invalid_cursor`, or `not_found`.
+The `limit` setter sets runs per page, within the [task run page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages). Awaiting returns [`Page<TaskRun>`](#taskrun); `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed`, `invalid_cursor`, or `not_found`.
 
 ### `get_run()` [#get-run]
 
@@ -194,7 +197,8 @@ Awaiting returns [`TaskRun`](#taskrun). Fails with `validation_failed` or `not_f
 Returns a run's transcript with the run's `status`, `error`, and `finished_at`, so one request says both what the agent said and whether the run is done. The page is empty until the run starts its session.
 
 ```rust
-let page = client
+let user = client.for_user("user_0123456789abcdef")?;
+let page = user
     .tasks()
     .run_messages("tk_0123456789abcdef", "tr_0123456789abcdef")
     .await?;
@@ -205,7 +209,7 @@ for message in &page.data {
 
 **Signature:** `run_messages(task_id: impl Into<TaskId>, run_id: impl Into<TaskRunId>) -> Call<ListTaskRunMessages>`
 
-Pages walk backward with `.cursor()`; the `after` setter polls for messages newer than a saved `latest_cursor`. Use one or the other. `limit` is 1 to 200, defaulting to 50. Awaiting returns `RunMessagesPage`. Fails with `validation_failed`, `invalid_cursor`, or `not_found`.
+Pages walk backward with `.cursor()`; the `after` setter polls for messages newer than a saved `latest_cursor`. Use one or the other. `limit` sets the page size, within the [message page limit](/api-reference/protocols/service-limits#session-or-task-run-message-page). Awaiting returns `RunMessagesPage`. Fails with `validation_failed`, `invalid_cursor`, or `not_found`.
 
 ### `cancel_run()` [#cancel-run]
 

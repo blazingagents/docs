@@ -9,6 +9,8 @@ description: Create, configure, pause, and delete agents with the Python SDK.
 
 Examples assume `client = BlazingAgents()` and reuse objects such as `provider` and `agent` from earlier examples. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names.
 
+In a route that serves a signed-in end user, call these methods on [`client.for_user(verified_user_id)`](/sdk/python/client#for-user), which returns only that user's records. The tenant client sees every user's records and is for your backend's administration. A scoped turn needs an agent that belongs to the user, attached to a workspace that also belongs to the user.
+
 ```python
 import os
 
@@ -51,15 +53,15 @@ print(agent.id, agent.name)
 
 ### `create()` [#create]
 
-Creates an agent.
+Creates an agent. On a scoped client, the agent and the workspace created for it belong to that user.
 
 ```python
-agent = client.agents.create(
+user = client.for_user(verified_user_id)
+agent = user.agents.create(
     name="Support agent",
     provider_id=provider.id,
     model="openai/gpt-6-luna",
     tools=["read", "grep", "glob", "save_memory", "search_memories"],
-    user_id="customer_123",
     metadata={"team": "support"},
 )
 ```
@@ -68,21 +70,21 @@ agent = client.agents.create(
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `name` | `str` | required | Display name, 1 to 80 characters. Agents can share a name |
+| `name` | `str` | required | Display name, within the [agent field limits](/api-reference/protocols/service-limits#agent-fields). Agents can share a name |
 | `provider_id`, `model` | `str` | none | Provider and its native model ID. Pass both or neither |
 | `thinking_level` | `str \| None` | `None` | Reasoning level; `None` uses the provider default. Needs a provider and model. See [`get_thinking_levels()`](/sdk/python/providers#get-thinking-levels) |
 | `workspace_tier` | `Literal["core", "plus"]` | `"core"` | Tier for a new workspace; cannot combine with `workspace_id` |
 | `workspace_id` | `str` | new workspace | Existing workspace to share. When omitted, a new workspace is created with the agent's name and `user_id` |
 | `tools` | `list[AgentTool]` | `[]` | Built-in tools, each turned on by name, such as `"read"`, `"write_todos"`, `"save_memory"`, or `"web_search"`. Names must be unique. See [built-in tools](/agents/tools/built-in-tools) |
-| `instructions` | `str` | `""` | System instructions, up to 3,000 characters |
-| `memory_injection_enabled` | `bool` | `False` | Add the agent's memories to each turn's context automatically |
+| `instructions` | `str` | `""` | System instructions, within the [agent field limits](/api-reference/protocols/service-limits#agent-fields) |
+| `memory_injection_enabled` | `bool` | `False` | Add the agent's memories to each turn's context automatically, up to the [injection budget](/api-reference/protocols/service-limits#memory-injection) |
 | `auto_compaction` | `bool` | `True` | Summarize older context when it nears the model's context window |
 | `compaction_reserve_tokens` | `int` | `16384` | Tokens to keep free below the model's context window |
 | `approval_in_chat` | `ApprovalPolicyInput` | `{"default": "full"}` | Tool approval policy for chat and stateless calls |
 | `approval_in_tasks` | `ApprovalPolicyInput` | `{"default": "full"}` | Tool approval policy for task runs |
-| `user_id` | `str` | `""` | End user this agent belongs to; `""` means tenant level. Fixed after creation |
+| `user_id` | `str` | `""` | End user this agent belongs to; `""` means tenant level. Fixed after creation. A scoped client fills it in |
 | `metadata` | `dict[str, object]` | `{}` | Your own data |
-| `mcp_connection_ids` | `list[str]` | `[]` | Up to 10 unique MCP connection IDs |
+| `mcp_connection_ids` | `list[str]` | `[]` | Unique MCP connection IDs, within the [per-agent limit](/api-reference/protocols/service-limits#mcp-connections-per-agent) |
 
 Without `provider_id` and `model`, the agent is saved unconfigured. Passing only one of them raises `validation_failed`. `workspace_tier` chooses Core or Plus for a new workspace and defaults to `core`. Combining it with `workspace_id` raises `validation_failed`. A workspace created for the agent stays independent afterwards: renaming the agent does not rename it.
 
@@ -94,26 +96,27 @@ Returns [`Agent`](#agent). Raises `APIStatusError` with [`validation_failed`](/a
 
 ### `list()` [#list]
 
-Lists your agents, most recently updated first.
+Lists your agents, newest first.
 
 ```python
-page = client.agents.list(user_id="", limit=50)
+user = client.for_user(verified_user_id)
+page = user.agents.list(limit=50)
 for agent in page.data:
     print(agent.id, agent.name)
 if page.next_cursor is not None:
-    next_page = client.agents.list(user_id="", cursor=page.next_cursor, limit=50)
+    next_page = user.agents.list(cursor=page.next_cursor, limit=50)
 ```
 
 **Signature:** `list(*, user_id=..., workspace_id=..., cursor=..., limit=...) -> AgentsPage`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `user_id` | `str` | Only agents for this end user; `""` returns tenant-level agents |
+| `user_id` | `str` | Tenant client: only agents for this end user; `""` returns tenant-level agents |
 | `workspace_id` | `str` | Only agents attached to this workspace |
 | `cursor` | `str` | `next_cursor` from the previous page |
-| `limit` | `int` | Page size, 1 to 100; defaults to 50 |
+| `limit` | `int` | Page size, within the [agent page limit](/api-reference/protocols/service-limits#agent-page) |
 
-Returns `AgentsPage` with `data: list[Agent]` and `next_cursor: str | None`. Keep the same filters when paging. Raises `validation_failed`, `invalid_cursor`, or `not_found` when a user-scoped client filters by a workspace it does not own.
+Returns `AgentsPage` with `data: list[Agent]` and `next_cursor: str | None`. A scoped client returns only its user's agents. Keep the same filters when paging. Raises `validation_failed`, `invalid_cursor`, or `not_found` when a user-scoped client filters by a workspace it does not own.
 
 ### `get()` [#get]
 
@@ -197,7 +200,7 @@ agent = client.agents.upload_avatar(agent.id, Path("avatar.webp"))
 
 **Signature:** `upload_avatar(agent_id: str, file: UploadFile, *, filename: str | None = None, content_type: str | None = None) -> Agent`
 
-`file` is a PNG, JPEG, or WebP image of at most 512 KiB, given as bytes, a file path, or an open binary file. The SDK opens and closes paths itself and never closes a file object you pass. Bytes need `filename`; paths and named file objects supply their own. `content_type` overrides the type guessed from the filename.
+`file` is a PNG, JPEG, or WebP image within the [avatar upload limit](/api-reference/protocols/service-limits#agent-avatar-upload), given as bytes, a file path, or an open binary file. The SDK opens and closes paths itself and never closes a file object you pass. Bytes need `filename`; paths and named file objects supply their own. `content_type` overrides the type guessed from the filename.
 
 Returns [`Agent`](#agent) whose `avatar_url` is a short-lived signed URL. A missing filename raises `ValueError`. Raises `validation_failed` for a missing, oversized, or unsupported file, `not_found`, or `admin_agent_managed`.
 
@@ -243,7 +246,7 @@ attachment = client.agents.update_mcp_attachment(
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `forward_user_id` | `bool` | Send the turn's `user_id` to the MCP server |
-| `forwarded_metadata_keys` | `Sequence[str]` | Up to 32 unique turn metadata keys to send |
+| `forwarded_metadata_keys` | `Sequence[str]` | Unique turn metadata keys to send, within the [forwarded metadata limit](/api-reference/protocols/service-limits#mcp-forwarded-metadata) |
 
 Pass at least one; omitting both raises `validation_failed`. Returns [`McpAttachment`](#mcpattachment). Also raises `not_found`.
 

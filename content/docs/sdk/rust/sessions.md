@@ -9,8 +9,11 @@ description: List conversations, read transcripts, approve tool calls, and delet
 
 Examples receive a `client: blazing_agents::Client`. Every call also takes the `with_timeout`, `without_timeout`, `with_header`, and `with_client_request_id` transport options.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/rust/client#for-user) from `client.for_user()`, which returns only that user's sessions. The tenant client sees every user's sessions and is for your backend's administration.
+
 ```rust
-let page = client
+let user = client.for_user("user_0123456789abcdef")?;
+let page = user
     .sessions()
     .list("ag_0123456789abcdef")
     .await?;
@@ -38,7 +41,7 @@ for session in &page.data {
 
 ### `list()` [#list]
 
-Lists an agent's sessions, most recently updated first. An unknown agent returns an empty page.
+Lists an agent's sessions, most recently updated first. An unknown agent returns an empty page. This tenant-admin view filters by end user; a `UserClient` returns only its own user's sessions without the filter.
 
 ```rust
 let page = client
@@ -54,7 +57,7 @@ let page = client
 | Setter | Type | Description |
 | --- | --- | --- |
 | `user_id` | `impl Into<String>` | Only this end user's sessions; `""` selects sessions without an end user |
-| `limit` | `u8` | Page size, 1 to 200; defaults to 50 |
+| `limit` | `u8` | Page size, within the [session page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages) |
 
 Awaiting returns [`Page<Session>`](#session); `.items()` and `.pages()` walk every page lazily. Fails with `Error::Api` whose code is `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
@@ -72,7 +75,7 @@ let page = client.sessions().list_latest().by_agent(true).await?;
 | --- | --- | --- |
 | `user_id` | `impl Into<String>` | Only this end user's sessions; `""` selects sessions without an end user |
 | `by_agent` | `bool` | `true` returns at most one session per agent: its latest. Defaults to `false` |
-| `limit` | `u8` | Page size, 1 to 200; defaults to 50 |
+| `limit` | `u8` | Page size, within the [session page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages) |
 
 Awaiting returns [`Page<LatestSession>`](#session): the `Session` fields plus `agent_id`, the agent's current `model`, `thinking_level`, and `status`. Fails with `validation_failed` or `invalid_cursor`.
 
@@ -96,7 +99,8 @@ Awaiting returns [`SessionDetail`](#session): the `Session` fields plus `agent_c
 Lists a session's messages: without a position, the newest page in chronological order.
 
 ```rust
-let page = client
+let user = client.for_user("user_0123456789abcdef")?;
+let page = user
     .sessions()
     .messages("ag_0123456789abcdef", "ss_0123456789abcdef")
     .await?;
@@ -110,7 +114,7 @@ for message in &page.data {
 | Setter | Type | Description |
 | --- | --- | --- |
 | `after` | `Cursor` | Returns messages added after a saved `latest_cursor`, to poll a live transcript |
-| `limit` | `u8` | Page size, 1 to 200; defaults to 50 |
+| `limit` | `u8` | Page size, within the [message page limit](/api-reference/protocols/service-limits#session-or-task-run-message-page) |
 
 Pass `next_cursor` to `.cursor()` to walk further back. `after` polls forward; it replaces any `.cursor()`, and a later `.cursor()` keeps the forward direction, so `.items()` resumed from a saved forward cursor keeps polling forward. Each `UiMessage` has `id`, `role`, `branchable`, untyped `parts` (`UiPart.kind` plus `fields`), `metadata`, and `extra` for fields this version does not model. Fails with `validation_failed` when you combine `.cursor()` and `after`, `invalid_cursor`, or `not_found`.
 
@@ -119,7 +123,8 @@ Pass `next_cursor` to `.cursor()` to walk further back. `after` polls forward; i
 Lists a session's pending tool approvals. Send the round's decisions with [`continue_chat()`](/sdk/rust/client#continue-chat).
 
 ```rust
-let approvals = client
+let user = client.for_user("user_0123456789abcdef")?;
+let approvals = user
     .sessions()
     .tool_approvals("ag_0123456789abcdef", "ss_0123456789abcdef")
     .await?;
@@ -137,15 +142,15 @@ Awaiting returns [`ToolApprovalList`](#toolapprovals) with `data` (`Vec<ToolAppr
 Permanently deletes a session and its transcript and, with `delete_artifacts`, its artifacts.
 
 ```rust
-client
-    .sessions()
+let user = client.for_user("user_0123456789abcdef")?;
+user.sessions()
     .delete("ag_0123456789abcdef", "ss_0123456789abcdef", false)
     .await?;
 ```
 
 **Signature:** `delete(agent_id: impl Into<AgentId>, session_id: impl Into<SessionId>, delete_artifacts: bool) -> Call<DeleteSession>`
 
-Fails with [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn is running or an approval continuation is still open, `validation_failed`, or `not_found`.
+Fails with [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn is running or an approval continuation is still open, `validation_failed`, or `not_found`. If the session's last turn stopped responding, it fails with [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive); wait for `ApiError::retry_after()`, then delete again.
 
 ### `submit_input()` [#submit-input]
 
@@ -186,7 +191,7 @@ let page = client
 | Setter | Type | Description |
 | --- | --- | --- |
 | `include_completed` | `bool` | Also returns `InputState::Committed` and `InputState::NotPlaced` receipts. Defaults to `false`, which returns only `InputState::Accepted` receipts |
-| `limit` | `u8` | Page size, 1 to 200; defaults to 100 |
+| `limit` | `u8` | Page size, within the [input page limit](/api-reference/protocols/service-limits#session-input-page) |
 
 Each `SessionInput` has `request_id`, `sequence`, `message`, `state`, `turn_id`, timestamps, and `reason`. [What each state means](#sessioninput) says when to wait and when to resend. Fails with `validation_failed` or `not_found`.
 
@@ -227,7 +232,7 @@ let child = client
 
 **Signature:** `fork(agent_id: impl Into<AgentId>, session_id: impl Into<SessionId>, message_id: impl Into<String>, idempotency_key: impl Into<String>) -> Call<ForkSession>`
 
-Reuse `idempotency_key` (1 to 200 characters) when retrying: a replay returns the same child. Awaiting returns [`SessionDetail`](#session). Errors: [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict) (409) for the same key with another message, [`session_fork_unavailable`](/api-reference/protocols/errors#session_fork_unavailable) (409) for a removed or ineligible reply, [`session_fork_deleted`](/api-reference/protocols/errors#session_fork_deleted) (410) for a replay whose child was deleted, and [`not_found`](/api-reference/protocols/errors#not_found) (404) for a missing or inaccessible source or agent. Also fails with `validation_failed`.
+Reuse `idempotency_key` (within the [key length limit](/api-reference/protocols/service-limits#fork-idempotency-key)) when retrying: a replay returns the same child. Awaiting returns [`SessionDetail`](#session). Errors: [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict) (409) for the same key with another message, [`session_fork_unavailable`](/api-reference/protocols/errors#session_fork_unavailable) (409) for a removed or ineligible reply, [`session_fork_deleted`](/api-reference/protocols/errors#session_fork_deleted) (410) for a replay whose child was deleted, and [`not_found`](/api-reference/protocols/errors#not_found) (404) for a missing or inaccessible source or agent. Also fails with `validation_failed`.
 
 ## Response models [#response-models]
 

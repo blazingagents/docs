@@ -7,6 +7,8 @@ description: Create, upload, edit, copy, and delete an agent's skills with the G
 
 `client.Skills` manages each agent's skills: instruction packs with a `SKILL.md` frontmatter file and any supporting files. Every method takes the owning agent's ID first.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/go/client#for-user) from `client.ForUser(userID)`, which reaches only the skills of that user's agents. The tenant client reaches every agent's skills and is for your backend's administration.
+
 Examples are function bodies that receive `ctx context.Context`, `client *ba.Client`, `agentID ba.AgentID`, and `sessionID ba.SessionID`, and return an `error`. Every method also takes the per-call options `ba.WithRequestTimeout`, `ba.WithRequestHeader`, `ba.WithClientRequestID`, and `ba.CaptureResponse`.
 
 ```go
@@ -82,7 +84,11 @@ Returns [`*ba.Skill`](#skill-and-skilldetail). Fails with `validation_failed`, [
 Lists the agent's skills, newest first, without their files.
 
 ```go
-page, err := client.Skills.List(ctx, agentID, ba.ListSkillsParams{})
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+page, err := user.Skills.List(ctx, agentID, ba.ListSkillsParams{})
 if err != nil {
 	return err
 }
@@ -97,7 +103,7 @@ return nil
 | Field | Type | Description |
 | --- | --- | --- |
 | `Cursor` | `*string` | The `NextCursor` of the previous page |
-| `Limit` | `*int` | Page size, 1 to 100; defaults to 50 |
+| `Limit` | `*int` | Page size, within the [skill page limit](/api-reference/protocols/service-limits#skill-page) |
 
 Returns [`*ba.Page[SkillSummary]`](#skill-and-skilldetail); `All` walks every page lazily. Fails with `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `not_found` when the agent does not exist.
 
@@ -195,7 +201,7 @@ Returns [`*ba.Skill`](#skill-and-skilldetail). Fails with [`invalid_request`](/a
 
 ### `Copy` [#copy]
 
-Copies the skill, with all its files, to each agent in `AgentIDs`: 1 to 30 IDs, each listed once. Each copy is a new skill with its own ID.
+Copies the skill, with all its files, to each agent in `AgentIDs`, each listed once, within the [copy destination limit](/api-reference/protocols/service-limits#skill-copy). Each copy is a new skill with its own ID.
 
 ```go
 results, err := client.Skills.Copy(ctx, agentID, "skill_0123456789abcdef", ba.CopySkillParams{
@@ -242,9 +248,9 @@ Returns one `ba.SkillCopyResult` per destination, in request order. A `ba.SkillC
 | `skill_invalid_markdown` | `SKILL.md` frontmatter is missing or invalid |
 | `skill_invalid_archive` | The archive is invalid or contains unsafe paths |
 | `skill_name_conflict` | The agent already has a skill with that name |
-| `skill_limit_reached` | The agent already has 100 skills |
-| `skill_too_many_files` | The skill would have more than 100 files |
-| `skill_uncompressed_too_large` | The skill would exceed 10 MiB |
+| `skill_limit_reached` | The agent already has the [most skills it can hold](/api-reference/protocols/service-limits#skills-per-agent) |
+| `skill_too_many_files` | The skill would exceed the [file count limit](/api-reference/protocols/service-limits#skill-bundle) |
+| `skill_uncompressed_too_large` | The skill would exceed the [size limit](/api-reference/protocols/service-limits#skill-bundle) |
 
 ## Next [#next]
 

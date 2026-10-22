@@ -63,7 +63,7 @@ return nil
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `Name` | `*string` | A new display name, 1 to 80 characters |
+| `Name` | `*string` | A new display name, within the [name limit](/api-reference/protocols/service-limits#tenant-display-name) |
 | `MonetizationEnabled` | `*bool` | Bills usage to your end users through your merchant account. Turning it off drops usage events your merchant has not yet accepted |
 | `Quota` | `ba.Nullable[ba.QuotaInput]` | `ba.Value(quota)` replaces the whole monthly quota; `ba.Null[ba.QuotaInput]()` removes it |
 
@@ -78,7 +78,7 @@ fmt.Println(tenant.Quota != nil)
 return nil
 ```
 
-`ba.QuotaInput` takes `ResetDay`, the reset day of each month from 1 to 28, and the `MonthlyTokenLimit` and `MonthlyRequestLimit` pointers. Every field is always sent; a nil limit goes out as `null`, which means unlimited.
+`ba.QuotaInput` takes `ResetDay`, the day of each month the quota resets (see the [reset day limit](/api-reference/protocols/service-limits#quota-reset-day)), and the `MonthlyTokenLimit` and `MonthlyRequestLimit` pointers. Every field is always sent; a nil limit goes out as `null`, which means unlimited. Set at least one limit, or the update fails with `validation_failed`. To remove the quota, send `ba.Null[ba.QuotaInput]()`.
 
 Returns [`*ba.TenantSettings`](#tenantsettings). Fails with `*ba.APIError` whose `Code` is [`validation_failed`](/api-reference/protocols/errors#validation_failed).
 

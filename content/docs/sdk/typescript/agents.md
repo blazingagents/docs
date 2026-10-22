@@ -17,6 +17,8 @@ const agent = await client.agents.create({
 });
 ```
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/typescript/client#for-user) from `client.forUser(verifiedUserId)`. It creates agents that belong to that end user, returns only their agents, and answers `not_found` for anyone else's. The tenant client sees every user's agents and is for your backend's administration.
+
 Every method takes one input object and accepts an optional `abortSignal`. New sessions and task runs save the current configuration when they start. See [Configuration snapshots and lifecycle](/agents/configuration-snapshots).
 
 ## Available operations [#available-operations]
@@ -56,21 +58,21 @@ const agent = await client.agents.create({
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `name` | `string` | yes | none | Display name, 1 to 80 characters. Agents can share a name |
+| `name` | `string` | yes | none | Display name within the [agent field limits](/api-reference/protocols/service-limits#agent-fields). Agents can share a name |
 | `providerId` | `string \| null` | no | `null` | Provider that runs the model; set together with `model` |
 | `model` | `string \| null` | no | `null` | Model ID as your provider names it |
 | `thinkingLevel` | `string \| null` | no | `null` | Reasoning level; `null` uses the provider's default. See [thinking level](/agents/providers-and-models#thinking-level) |
-| `instructions` | `string` | no | `""` | System instructions, up to 3,000 characters |
+| `instructions` | `string` | no | `""` | System instructions within the [agent field limits](/api-reference/protocols/service-limits#agent-fields) |
 | `tools` | `AgentToolName[]` | no | `[]` | Built-in tools, each turned on by name, such as `"read"`, `"write_todos"`, `"save_memory"`, or `"web_search"`. Names must be unique. See [built-in tools](/agents/tools/built-in-tools) |
-| `mcpConnectionIds` | `string[]` | no | `[]` | Up to 10 MCP connections |
+| `mcpConnectionIds` | `string[]` | no | `[]` | MCP connections, up to the [per-agent limit](/api-reference/protocols/service-limits#mcp-connections-per-agent) |
 | `workspaceTier` | `"core" \| "plus"` | no | `"core"` | Tier for a new workspace; cannot combine with `workspaceId` |
 | `workspaceId` | `string` | no | new workspace | Existing workspace to share |
-| `memoryInjectionEnabled` | `boolean` | no | `false` | Add relevant memories to each turn automatically |
+| `memoryInjectionEnabled` | `boolean` | no | `false` | Add relevant memories to each turn automatically, up to the [memory injection budget](/api-reference/protocols/service-limits#memory-injection) |
 | `autoCompaction` | `boolean` | no | `true` | Summarize older context when the conversation nears the model's limit |
 | `compactionReserveTokens` | `number` | no | `16384` | Tokens kept free below the model's context window |
 | `approvalInChat` | `ApprovalPolicy` | no | `{ default: "full" }` | Tool approval policy for chat and stateless turns |
 | `approvalInTasks` | `ApprovalPolicy` | no | `{ default: "full" }` | Tool approval policy for task runs |
-| `userId` | `string` | no | `""` | The end user this agent belongs to; cannot change later |
+| `userId` | `string` | no | `""` | The end user this agent belongs to; cannot change later. A scoped client fills it in |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your own labels |
 
 Set `providerId` and `model` together, or leave both out to create an agent you configure later. Turns on an agent without a model fail with [`provider_required`](/api-reference/protocols/errors#provider_required). Blazing Agents checks the model against your provider when you save.
@@ -99,24 +101,25 @@ Returns [`Agent`](#agent). Errors: [`validation_failed`](/api-reference/protocol
 
 ### `list()` [#list]
 
-Lists your agents, most recently updated first, one page at a time.
+Lists your agents, newest first, one page at a time.
 
 **Signature:** `list(input?: AgentsListOptions): Promise<AgentsResponse>`
 
 ```typescript
-const page = await client.agents.list({ userId: "user_123", limit: 50 });
+const user = client.forUser(verifiedUserId);
+const page = await user.agents.list({ limit: 50 });
 for (const agent of page.data) console.log(agent.id, agent.name);
 const next = page.nextCursor
-  ? await client.agents.list({ userId: "user_123", cursor: page.nextCursor, limit: 50 })
+  ? await user.agents.list({ cursor: page.nextCursor, limit: 50 })
   : null;
 ```
 
 | Option | Type | Required | Description |
 | --- | --- | --- | --- |
-| `userId` | `string` | no | Only agents for this end user; `""` for tenant-level agents |
+| `userId` | `string` | no | Tenant client only: agents for this end user; `""` for tenant-level agents |
 | `workspaceId` | `string` | no | Only agents that use this workspace |
 | `cursor` | `string` | no | `nextCursor` from the previous page |
-| `limit` | `number` | no | Page size, 1 to 100; defaults to 50 |
+| `limit` | `number` | no | Page size; see the [agent page limit](/api-reference/protocols/service-limits#agent-page) |
 
 Returns `{ data: Agent[], nextCursor: string | null }`. Keep the same filters when paging. Errors: `validation_failed`, `invalid_cursor`, and `not_found` when a user-scoped client filters by a workspace it does not own.
 
@@ -145,7 +148,7 @@ const agent = await client.agents.update({
 });
 ```
 
-Takes `agentId` plus any [`create()`](#create) field except `userId`. Pass at least one field.
+Takes `agentId` plus any [`create()`](#create) field except `userId` and `workspaceTier`. Pass at least one field.
 
 - Fields you leave out keep their current value.
 - Arrays such as `tools` and `mcpConnectionIds` replace the whole list.
@@ -212,7 +215,7 @@ const agent = await client.agents.uploadAvatar({
 });
 ```
 
-`file` is a PNG, JPEG, or WebP image of at most 512 KiB. Returns [`Agent`](#agent) with a short-lived `avatarUrl`; fetch the agent again for a fresh URL. Errors: `validation_failed`, `not_found`, `admin_agent_managed`.
+`file` is a PNG, JPEG, or WebP image within the [avatar upload limit](/api-reference/protocols/service-limits#agent-avatar-upload). Returns [`Agent`](#agent) with a short-lived `avatarUrl`; fetch the agent again for a fresh URL. Errors: `validation_failed`, `not_found`, `admin_agent_managed`.
 
 ### `removeAvatar()` [#remove-avatar]
 
@@ -258,7 +261,7 @@ const attachment = await client.agents.updateMcpAttachment({
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
 | `mcpConnectionId` | `string` | yes | An MCP connection in the agent's `mcpConnectionIds` |
 | `forwardUserId` | `boolean` | no | Send the turn's `userId` |
-| `forwardedMetadataKeys` | `string[]` | no | Turn metadata keys to send; up to 32 unique keys of at most 64 characters |
+| `forwardedMetadataKeys` | `string[]` | no | Turn metadata keys to send, unique and within the [forwarded metadata limits](/api-reference/protocols/service-limits#mcp-forwarded-metadata) |
 
 Pass at least one of the two settings. Returns [`McpAttachmentResponse`](#mcpattachmentresponse). Errors: `validation_failed`, `not_found`. See [MCP tools](/agents/tools/mcp-tools).
 
@@ -337,7 +340,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | Code | Meaning |
 | --- | --- |
 | `validation_failed` | An ID or field is invalid; `param` names it |
-| `not_found` | No such agent or connection in your tenant |
+| `not_found` | No such agent or connection in your tenant, or a scoped client asked for another end user's agent |
 | `provider_not_found` | The provider does not exist |
 | `model_not_found` | The provider does not offer this model |
 | `model_validation_unavailable` | The provider's model list could not be fetched; try again |

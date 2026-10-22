@@ -19,11 +19,13 @@ console.log(skill.name, skill.files);
 
 Select the agent once, then call every method on the returned `skills` object. Each method takes one input object and accepts an optional `abortSignal`. Managing skills does not touch the agent's workspace.
 
+In a route that serves a signed-in end user, select the agent on the [scoped client](/sdk/typescript/client#for-user) with `client.forUser(verifiedUserId).agent({ agentId })`. It reaches only that end user's agents and answers `not_found` for anyone else's. The tenant client reaches every agent and is for your backend's administration.
+
 ## Limits [#limits]
 
-- An agent can own up to 100 skills, and skill names are unique per agent.
-- A skill holds up to 100 files and 10 MiB in total. An uploaded archive is at most 10 MiB.
-- `SKILL.md` starts with YAML frontmatter. `name` (lowercase letters, digits, and single hyphens, up to 64 characters) and `description` (up to 1,024 characters) are required. `license`, `compatibility`, `metadata`, and `allowed-tools` are optional.
+- An agent can own a [fixed number of skills](/api-reference/protocols/service-limits#skills-per-agent), and skill names are unique per agent.
+- A skill and an uploaded archive stay within the [skill bundle limits](/api-reference/protocols/service-limits#skill-bundle).
+- `SKILL.md` starts with YAML frontmatter. `name` (lowercase letters, digits, and single hyphens) and `description` are required, within the [frontmatter limits](/api-reference/protocols/service-limits#skill-frontmatter). `license`, `compatibility`, `metadata`, and `allowed-tools` are optional.
 - File paths are relative, such as `scripts/deploy.sh`, without `.` or `..` segments.
 
 ## Available operations [#available-operations]
@@ -78,7 +80,7 @@ const skill = await client.agent({ agentId }).skills.upload({
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `source.file` | `Blob \| Uint8Array` | yes | Archive bytes, at most 10 MiB |
+| `source.file` | `Blob \| Uint8Array` | yes | Archive bytes, within the [skill bundle limits](/api-reference/protocols/service-limits#skill-bundle) |
 | `source.type` | `"zip" \| "tar" \| "tar.gz"` | yes | Archive format |
 
 Returns [`SkillDetail`](#skilldetail). Errors: `validation_failed`, [`skill_invalid_archive`](/api-reference/protocols/errors#skill_invalid_archive), `skill_invalid_markdown`, `skill_name_conflict`, `skill_limit_reached`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), `skill_uncompressed_too_large`, and `not_found` when the agent does not exist.
@@ -95,7 +97,7 @@ const { data, nextCursor } = await client.agent({ agentId }).skills.list();
 
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `limit` | `number` | no | `50` | 1 to 100 per page |
+| `limit` | `number` | no | `50` | Page size; see the [skill page limit](/api-reference/protocols/service-limits#skill-page) |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Returns [`SkillsListResponse`](#skillslistresponse). Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), `not_found`.
@@ -175,7 +177,7 @@ for (const result of results) {
 }
 ```
 
-`to.agentIds` lists 1 to 30 different agents. One failed destination does not stop the others, so check each result. Results come back in the order you listed the agents. Returns [`SkillCopyResults`](#skillcopyresults). Errors for the whole call: `validation_failed`, `not_found`, `skill_not_found`.
+`to.agentIds` lists different agents, up to the [copy destination limit](/api-reference/protocols/service-limits#skill-copy). One failed destination does not stop the others, so check each result. Results come back in the order you listed the agents. Returns [`SkillCopyResults`](#skillcopyresults). Errors for the whole call: `validation_failed`, `not_found`, `skill_not_found`.
 
 ### `delete()` [#delete]
 
@@ -240,9 +242,9 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The skill-
 | `skill_invalid_markdown` | `SKILL.md` frontmatter is missing or invalid |
 | `skill_invalid_archive` | The archive format or contents are invalid or unsafe |
 | `skill_name_conflict` | The agent already has a skill with this name |
-| `skill_limit_reached` | The agent already has 100 skills |
-| `skill_too_many_files` | The skill would have more than 100 files |
-| `skill_uncompressed_too_large` | The skill would be larger than 10 MiB |
+| `skill_limit_reached` | The agent already has the [most skills it can own](/api-reference/protocols/service-limits#skills-per-agent) |
+| `skill_too_many_files` | The skill would have more files than the [skill bundle limits](/api-reference/protocols/service-limits#skill-bundle) allow |
+| `skill_uncompressed_too_large` | The skill would be larger than the [skill bundle limits](/api-reference/protocols/service-limits#skill-bundle) allow |
 
 ## Next [#next]
 

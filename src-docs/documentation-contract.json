@@ -3066,6 +3066,153 @@
     },
     {
       "anchors": {
+        "assignedIds": [
+          "create-chat-relay",
+          "create-completion-relay",
+          "relay-errors",
+          "chat-transport",
+          "direct-chat-transport"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {
+              "title": "server.ts"
+            }
+          },
+          {
+            "language": "tsx",
+            "metadata": {
+              "title": "Chat.tsx"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "json",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/chat-transport.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "connection-get",
+          "connection-create",
+          "connection-update",
+          "connection-retire",
+          "bindings-list",
+          "bindings-put",
+          "bindings-delete",
+          "events-list",
+          "events-get",
+          "events-summary",
+          "events-retry",
+          "events-discard",
+          "merchantconnectionresponse",
+          "merchantbindingsresponse",
+          "merchantusageeventsresponse",
+          "merchantusagesummaryresponse"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/typescript/merchant.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
         "assignedIds": [],
         "kind": "h2"
       },
@@ -5473,6 +5620,99 @@
     {
       "anchors": {
         "assignedIds": [
+          "connection-get",
+          "connection-create",
+          "connection-update",
+          "connection-retire",
+          "bindings-list",
+          "bindings-iter",
+          "bindings-put",
+          "bindings-delete",
+          "events-list",
+          "events-iter",
+          "events-get",
+          "events-summary",
+          "events-retry",
+          "events-discard",
+          "merchantconnectionresponse",
+          "merchantbindingspage",
+          "merchantusageeventspage",
+          "merchantusagesummaryresponse"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          },
+          {
+            "language": "python",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/python/merchant.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
           "get",
           "update",
           "get-spending-limit",
@@ -5521,6 +5761,45 @@
     {
       "anchors": {
         "assignedIds": [
+          "get-connection",
+          "create-connection",
+          "update-connection",
+          "retire-connection",
+          "list-bindings",
+          "put-binding",
+          "delete-binding",
+          "list-events",
+          "get-event",
+          "summary",
+          "retry-event",
+          "discard-event",
+          "merchantconnection",
+          "merchantbinding",
+          "merchantusageevent",
+          "merchantusagesummary"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "rust",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/rust/merchant.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
           "get",
           "update",
           "get-spending-limit",
@@ -5562,6 +5841,45 @@
         ]
       },
       "file": "sdk/go/tenant.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
+        "assignedIds": [
+          "get-connection",
+          "create-connection",
+          "update-connection",
+          "retire-connection",
+          "list-bindings",
+          "set-binding",
+          "delete-binding",
+          "list-events",
+          "event-summary",
+          "get-event",
+          "retry-event",
+          "discard-event",
+          "merchantconnection",
+          "merchantbinding",
+          "merchantusageevent",
+          "merchantusagesummary"
+        ],
+        "kind": "methods"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "go",
+            "metadata": {}
+          }
+        ]
+      },
+      "file": "sdk/go/merchant.md",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -6894,6 +7212,20 @@
       "url": "/sdk/typescript/tenant"
     },
     {
+      "file": "sdk/typescript/chat-transport.md",
+      "name": "Chat transport and relays",
+      "publishable": true,
+      "title": "Chat transport and relays",
+      "url": "/sdk/typescript/chat-transport"
+    },
+    {
+      "file": "sdk/typescript/merchant.md",
+      "name": "Merchant",
+      "publishable": true,
+      "title": "Merchant",
+      "url": "/sdk/typescript/merchant"
+    },
+    {
       "file": "sdk/python/index.mdx",
       "name": "Python SDK",
       "publishable": true,
@@ -7174,6 +7506,13 @@
       "url": "/sdk/python/tenant"
     },
     {
+      "file": "sdk/python/merchant.md",
+      "name": "Merchant",
+      "publishable": true,
+      "title": "Merchant",
+      "url": "/sdk/python/merchant"
+    },
+    {
       "file": "sdk/rust/tenant.md",
       "name": "Tenant",
       "publishable": true,
@@ -7181,11 +7520,25 @@
       "url": "/sdk/rust/tenant"
     },
     {
+      "file": "sdk/rust/merchant.md",
+      "name": "Merchant",
+      "publishable": true,
+      "title": "Merchant",
+      "url": "/sdk/rust/merchant"
+    },
+    {
       "file": "sdk/go/tenant.md",
       "name": "Tenant",
       "publishable": true,
       "title": "Tenant",
       "url": "/sdk/go/tenant"
+    },
+    {
+      "file": "sdk/go/merchant.md",
+      "name": "Merchant",
+      "publishable": true,
+      "title": "Merchant",
+      "url": "/sdk/go/merchant"
     },
     {
       "file": "mcp.mdx",

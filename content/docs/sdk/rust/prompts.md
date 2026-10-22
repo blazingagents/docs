@@ -9,14 +9,17 @@ description: Save reusable message templates and run them with variables, using 
 
 Examples receive a `client: blazing_agents::Client`. Every call also takes the `with_timeout`, `without_timeout`, `with_header`, and `with_client_request_id` transport options.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/rust/client#for-user) from `client.for_user()`, which returns only that user's prompts. The tenant client sees every user's prompts and is for your backend's administration. A turn on a `UserClient` can run only that user's saved prompts; a tenant-level prompt fails with `not_found` there.
+
 ```rust
 use blazing_agents::generation::SavedPrompt;
 
-let prompt = client
+let user = client.for_user("user_0123456789abcdef")?;
+let prompt = user
     .prompts()
     .create("Greeting", "Greet {{name}} in one sentence.")
     .await?;
-let answer = client
+let answer = user
     .completion(
         "ag_0123456789abcdef",
         SavedPrompt::new(&prompt.id).var("name", "Ada"),
@@ -27,7 +30,7 @@ println!("{answer}");
 
 ## Templates and variables [#templates-and-variables]
 
-A template is text with `{{variable}}` placeholders: up to 10,240 characters and up to 10 variables. The created prompt lists the placeholder names in `variables`, in first-seen order. `SavedPrompt::new(id).var(name, value)` supplies the values when you run it; missing or unknown variables fail with `prompt_variable_missing` or `prompt_variable_unknown`.
+A template is text with `{{variable}}` placeholders, within the [prompt field limits](/api-reference/protocols/service-limits#prompt-fields). The created prompt lists the placeholder names in `variables`, in first-seen order. `SavedPrompt::new(id).var(name, value)` supplies the values when you run it; missing or unknown variables fail with `prompt_variable_missing` or `prompt_variable_unknown`.
 
 ## Available operations [#available-operations]
 
@@ -43,7 +46,7 @@ A template is text with `{{variable}}` placeholders: up to 10,240 characters and
 
 ### `create()` [#create]
 
-Saves a prompt. `name` is 1 to 80 characters and prompts can share one.
+Saves a prompt. `name` is within the [prompt field limits](/api-reference/protocols/service-limits#prompt-fields), and prompts can share one.
 
 ```rust
 let prompt = client
@@ -58,17 +61,18 @@ let prompt = client
 | Setter | Type | Description |
 | --- | --- | --- |
 | `agent_id` | `impl Into<AgentId>` | Links the prompt to an agent. Deleting that agent deletes the prompt |
-| `user_id` | `impl Into<String>` | The end user the prompt belongs to. Fixed after creation |
+| `user_id` | `impl Into<String>` | The end user the prompt belongs to; a `UserClient` sets its own user. Fixed after creation |
 | `metadata` | `Metadata` | Your own data |
 
 Awaiting returns [`Prompt`](#prompt). Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `list()` [#list]
 
-Lists prompts, newest first. Without filters it returns every prompt.
+Lists prompts, newest first. Without filters the tenant client returns every prompt, and a `UserClient` returns every prompt of its user.
 
 ```rust
-let page = client
+let user = client.for_user("user_0123456789abcdef")?;
+let page = user
     .prompts()
     .list()
     .agent_id("ag_0123456789abcdef")
@@ -81,7 +85,7 @@ let page = client
 | --- | --- | --- |
 | `user_id` | `impl Into<String>` | Only prompts of this end user; `""` selects tenant-level prompts |
 | `agent_id` | `impl Into<AgentId>` | Only prompts linked to this agent |
-| `limit` | `u8` | Page size, 1 to 100; defaults to 50 |
+| `limit` | `u8` | Page size, within the [prompt page limit](/api-reference/protocols/service-limits#prompt-page) |
 
 Awaiting returns [`Page<Prompt>`](#prompt); `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `not_found` when a `UserClient` filters by an agent it does not own.
 
@@ -115,7 +119,7 @@ let prompt = client
 | --- | --- |
 | `agent_id(agent_id)` | Links the prompt to an agent |
 | `clear_agent_id()` | Removes the agent link |
-| `name(name)` | A new display name, 1 to 80 characters |
+| `name(name)` | A new display name, within the [prompt field limits](/api-reference/protocols/service-limits#prompt-fields) |
 | `template(template)` | A new template; `variables` is recomputed |
 | `metadata(metadata)` | Replaces the metadata completely |
 

@@ -44,7 +44,7 @@ async def show_tenant() -> None:
 
 | Attribute | What you manage |
 | --- | --- |
-| [`BlazingAgents`](/sdk/python/client) | Client options, errors, and the `chat()`, `completion()`, and `object()` generation methods |
+| [`BlazingAgents`](/sdk/python/client) | Client options, errors, [end-user scope](/sdk/python/client#for-user), and the `chat()`, `completion()`, and `object()` generation methods |
 | [`agents`](/sdk/python/agents) | Agent configuration, avatars, and MCP settings |
 | [`workspaces`](/sdk/python/workspaces) | Private file systems your agents share |
 | [`agent(agent_id).skills`](/sdk/python/skills) | Skills owned by one agent |
@@ -58,10 +58,11 @@ async def show_tenant() -> None:
 | [`usage`](/sdk/python/usage) | Token and request usage |
 | [`tenant`](/sdk/python/tenant) | Tenant name and quota |
 | [`chat_connections`](/sdk/python/chat-integrations) | Slack and Telegram bots |
+| [`merchant_connection`, `merchant_bindings`, `merchant_usage_events`](/sdk/python/merchant) | Billing your end users through Polar or Dodo |
 
 ## Conventions [#conventions]
 
-- Arguments use snake case and are keyword-only, except leading resource IDs such as `agent_id` in `client.agents.get(agent_id)`.
+- Arguments use snake case. Some methods take leading arguments by position, such as `agent_id` in `client.agents.get(agent_id)`. Others take every argument by keyword, such as `client.workspaces.get(workspace_id=...)`. Each method's signature shows which, and every later argument is keyword-only.
 - Omitting an argument sends nothing, so the server keeps its default or current value. Passing `None` sends JSON `null`, which clears a nullable field.
 - Responses are Pydantic v2 models with snake-case fields. Unknown server fields stay in `model_extra`, so a newer API does not break your code.
 - `response_meta(model)` returns the status, server request ID, and headers of the response behind a model. Keep the request ID when you contact support. See [request IDs](/sdk/python/client#response-observation-and-request-ids).

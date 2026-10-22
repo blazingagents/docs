@@ -100,7 +100,7 @@ return nil
 
 Pass a `ba.SlackConnection` or a `ba.TelegramConnection`. Both take `AgentID`, `Name`, `Credentials`, and an optional `Enabled` (default `true`). A Slack connection adds `ChannelIDs`, and a Telegram connection adds `ChatIDs` and `BusinessMode`. Each list takes up to 20 IDs that health checks look at without restricting who can talk to the agent.
 
-Returns [`*ba.ChatConnection`](#chatconnection). If `AgentID` is the admin agent, `Create` fails with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`) and creates nothing. If creation times out, list your connections before retrying, since the first attempt may have succeeded. Fails with `validation_failed`, `not_found`, [`chat_webhook_conflict`](/api-reference/protocols/errors#chat_webhook_conflict), or [`chat_webhook_registration_failed`](/api-reference/protocols/errors#chat_webhook_registration_failed). If a response ever echoes credential material back, the call fails client-side with `*ba.CredentialEchoError` and the body is discarded.
+Returns [`*ba.ChatConnection`](#chatconnection). If `AgentID` is the admin agent, `Create` fails with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`) and creates nothing. If creation times out, list your connections before retrying, since the first attempt may have succeeded. Creating an enabled Telegram connection registers its webhook. If that registration fails, `Create` still returns the connection, saved with `Enabled` `false` and a failing `webhook_url` health check; fix the bot, then call [`Enable`](#enable) to register again. Fails with `validation_failed`, `not_found`, or [`invalid_request`](/api-reference/protocols/errors#invalid_request) when the credentials fail the platform's check or the bot installation already has a connection. If a response ever echoes credential material back, the call fails client-side with `*ba.CredentialEchoError` and the body is discarded.
 
 ### `Update` [#update]
 
@@ -124,7 +124,7 @@ return nil
 | `Name` | `*string` | A new display name, 1 to 80 characters |
 | `Configuration` | `*ba.ChatConfigurationUpdate` | `ChannelIDs` for Slack, or `ChatIDs` and `BusinessMode` for Telegram. Each list takes up to 20 IDs that health checks look at |
 
-Returns [`*ba.ChatConnection`](#chatconnection). Fails with `validation_failed` or `not_found`.
+Changing `BusinessMode` on an enabled Telegram connection registers its webhook again. If that fails, your change is still saved and the call fails with [`chat_webhook_conflict`](/api-reference/protocols/errors#chat_webhook_conflict) when the bot sends updates to another webhook, or [`chat_webhook_registration_failed`](/api-reference/protocols/errors#chat_webhook_registration_failed) otherwise; call [`Enable`](#enable) to retry. Returns [`*ba.ChatConnection`](#chatconnection). Also fails with `validation_failed`, `invalid_request` when the configuration does not match the connection's platform, or `not_found`.
 
 ### `RotateCredentials` [#rotate-credentials]
 
@@ -143,7 +143,7 @@ return nil
 
 **Signature:** `func (s *ChatConnectionsService) RotateCredentials(ctx context.Context, connectionID ChatConnectionID, params ChatCredentials, opts ...RequestOption) (*ChatConnection, error)`
 
-Pass `ba.SlackCredentials{BotToken: ..., SigningSecret: ...}` or `ba.TelegramCredentials{BotToken: ...}`. Returns [`*ba.ChatConnection`](#chatconnection) with an incremented `CredentialVersion`. Fails with `validation_failed` or `not_found`.
+Pass `ba.SlackCredentials{BotToken: ..., SigningSecret: ...}` or `ba.TelegramCredentials{BotToken: ...}`. Returns [`*ba.ChatConnection`](#chatconnection) with an incremented `CredentialVersion`. On an enabled Telegram connection, the webhook is registered again with a new secret. If that fails, the new credentials are still saved and the call fails with `chat_webhook_conflict` or `chat_webhook_registration_failed`; call [`Enable`](#enable) to retry. Also fails with `validation_failed`, `invalid_request` when the credentials are for another platform or bot or fail the platform's check, or `not_found`.
 
 ### `CheckHealth` [#check-health]
 
@@ -177,7 +177,7 @@ return nil
 
 **Signature:** `func (s *ChatConnectionsService) Enable(ctx context.Context, connectionID ChatConnectionID, opts ...RequestOption) (*ChatConnection, error)`
 
-Returns [`*ba.ChatConnection`](#chatconnection) with `Enabled` `true`. Fails with `validation_failed` or `not_found`.
+Returns [`*ba.ChatConnection`](#chatconnection) with `Enabled` `true`. Messages sent while the connection was disabled are not replayed. For Telegram, the webhook is registered first. If the bot already sends updates to a webhook outside Blazing Agents, the call fails with `chat_webhook_conflict`; remove that webhook and try again. Any other registration failure returns `chat_webhook_registration_failed`, and the connection stays disabled. Also fails with `validation_failed` or `not_found`.
 
 ### `Disable` [#disable]
 
