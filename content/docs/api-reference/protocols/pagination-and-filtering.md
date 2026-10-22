@@ -11,7 +11,7 @@ for new messages without re-reading old ones.
 
 ## Contract [#contract]
 
-A standard page is `{ data, nextCursor }`. Pass a non-null `nextCursor` back as
+A standard page is `{ data, nextCursor }`. Two lists name their array differently: customer bindings return `{ bindings, nextCursor }` and merchant usage events return `{ events, nextCursor }`. Pass a non-null `nextCursor` back as
 `cursor` to the same endpoint with the same filters. `null` means there are no
 more pages in that direction. Cursors are opaque: do not decode, edit, or reuse
 one on another list. A cursor the API cannot read returns `400
@@ -19,25 +19,30 @@ invalid_cursor`; other bad paging parameters return `400 validation_failed`.
 
 Lists run newest first: tasks by
 `updatedAt`, memories by `createdAt` then `id`, and other lists by their own
-timestamp. Transcripts return the newest page first, with messages in
+timestamp. Customer bindings are the exception: they are sorted by `userId`, and session inputs come in arrival order. Transcripts return the newest page first, with messages in
 chronological order inside each page.
 
 | Collection        | SDK method                                                                                                         | REST operation                                                                                                     | Response cursor fields       | Page size                                       | Filters                                      |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ----------------------------------------------- | -------------------------------------------- |
-| Agents            | [`agents.list`](/sdk/typescript/agents#list)                                                             | [`list-agents`](/api-reference/rest-api/agents#list-agents)                                                            | `nextCursor`                 | default 50, max 100                             | `userId`, `workspaceId`                      |
+| Agents | [`agents.list`](/sdk/typescript/agents#list) | [`list-agents`](/api-reference/rest-api/agents#list-agents) | `nextCursor` | [agent page](/api-reference/protocols/service-limits#agent-page) | `userId`, `workspaceId` |
+| Workspaces | [`workspaces.list`](/sdk/typescript/workspaces#list) | [`list-workspaces`](/api-reference/rest-api/workspaces#list-workspaces) | `nextCursor` | [workspace page](/api-reference/protocols/service-limits#workspace-page) | `userId` |
+| Skills | [`skills.list`](/sdk/typescript/skills#list) | [`list-skills`](/api-reference/rest-api/skills#list-skills) | `nextCursor` | [skill page](/api-reference/protocols/service-limits#skill-page) | owning Agent path |
 | Providers         | [`providers.list`](/sdk/typescript/providers#list)                                                       | [`list-providers`](/api-reference/rest-api/providers#list-providers)                                                   | none                         | bounded; no public `limit`                      | none                                            |
 | MCP Connections   | [`mcpConnections.list`](/sdk/typescript/mcp-connections#list)                                            | [`list-mcp-connections`](/api-reference/rest-api/mcp-connections#list-mcp-connections)                                 | none                         | bounded; no public `limit`                      | none                                            |
 | MCP Attachments   | [`agents.listMcpAttachments`](/sdk/typescript/agents#list-mcp-attachments)                               | [`list-agent-mcp-attachments`](/api-reference/rest-api/agents#list-agent-mcp-attachments)                              | none                         | bounded; no public `limit`                      | owning Agent path                            |
-| Prompts           | [`prompts.list`](/sdk/typescript/prompts#list)                                                           | [`list-prompts`](/api-reference/rest-api/prompts#list-prompts)                                                         | `nextCursor`                 | default 50, max 100                             | `userId`, `agentId`                          |
-| Sessions          | [`sessions.list`](/sdk/typescript/sessions#list)                                                         | [`list-sessions`](/api-reference/rest-api/sessions#list-sessions)                                                      | `nextCursor`                 | default 50, max 200                             | `userId`                                     |
-| Latest Sessions   | [`sessions.listLatest`](/sdk/typescript/sessions#list-latest)                                            | [`list-latest-sessions`](/api-reference/rest-api/sessions#list-latest-sessions)                                    | `nextCursor`                 | default 50, max 200                             | `userId`, `byAgent`                          |
-| Session messages  | [`sessions.messages`](/sdk/typescript/sessions#messages)                                                 | [`list-session-messages`](/api-reference/rest-api/sessions#list-session-messages)                                      | `nextCursor`, `latestCursor` | default 50, max 200                             | `cursor` or `after`                          |
-| Artifacts         | [`artifacts.list`](/sdk/typescript/artifacts#list)                                                       | [`list-artifacts`](/api-reference/rest-api/artifacts#list-artifacts)                                                   | `nextCursor`                 | fixed 50; no public `limit`                     | `agentId`, `sessionId`                       |
-| Memories          | [`memories.list`](/sdk/typescript/memories#list)                                                         | [`list-memories`](/api-reference/rest-api/memories#list-memories)                                                      | `nextCursor`                 | default 50, max 100                             | `userId`, `search`                           |
-| Tasks             | [`tasks.list`](/sdk/typescript/tasks#list)                                                               | [`list-tasks`](/api-reference/rest-api/tasks#list-tasks)                                                               | `nextCursor`                 | default 50, max 200                             | `agentId`, `userId`                          |
-| Task runs         | [`tasks.listRuns`](/sdk/typescript/tasks#list-runs)                                                      | [`list-task-runs`](/api-reference/rest-api/task-runs#list-task-runs)                                                   | `nextCursor`                 | default 50, max 200                             | owning Task path                             |
-| Task run messages | [`tasks.runMessages`](/sdk/typescript/tasks#run-messages)                                                | [`list-task-run-messages`](/api-reference/rest-api/task-runs#list-task-run-messages)                                   | `nextCursor`, `latestCursor` | default 50, max 200                             | `cursor` or `after`                          |
-| Usage             | [`usage.get`](/sdk/typescript/usage#get), [`getForAgent`](/sdk/typescript/usage#get-for-agent) | [`get-usage`](/api-reference/rest-api/usage#get-usage), [`get-agent-usage`](/api-reference/rest-api/usage#get-agent-usage) | none                         | not cursored; Session top-N default 50, max 200 | dates, Agent, Session, Attribution, grouping |
+| Prompts | [`prompts.list`](/sdk/typescript/prompts#list) | [`list-prompts`](/api-reference/rest-api/prompts#list-prompts) | `nextCursor` | [prompt page](/api-reference/protocols/service-limits#prompt-page) | `userId`, `agentId` |
+| Sessions | [`sessions.list`](/sdk/typescript/sessions#list) | [`list-sessions`](/api-reference/rest-api/sessions#list-sessions) | `nextCursor` | [cursored pages](/api-reference/protocols/service-limits#other-cursored-resource-pages) | `userId` |
+| Latest Sessions | [`sessions.listLatest`](/sdk/typescript/sessions#list-latest) | [`list-latest-sessions`](/api-reference/rest-api/sessions#list-latest-sessions) | `nextCursor` | [cursored pages](/api-reference/protocols/service-limits#other-cursored-resource-pages) | `userId`, `byAgent` |
+| Session messages | [`sessions.messages`](/sdk/typescript/sessions#messages) | [`list-session-messages`](/api-reference/rest-api/sessions#list-session-messages) | `nextCursor`, `latestCursor` | [message page](/api-reference/protocols/service-limits#session-or-task-run-message-page) | `cursor` or `after` |
+| Session inputs | [`sessions.inputs`](/sdk/typescript/sessions#inputs) | [`list-session-inputs`](/api-reference/rest-api/sessions#list-session-inputs) | `nextCursor` | [session input page](/api-reference/protocols/service-limits#session-input-page) | `includeCompleted` |
+| Artifacts | [`artifacts.list`](/sdk/typescript/artifacts#list) | [`list-artifacts`](/api-reference/rest-api/artifacts#list-artifacts) | `nextCursor` | fixed; no public `limit` ([cursored pages](/api-reference/protocols/service-limits#other-cursored-resource-pages)) | `agentId`, `sessionId` |
+| Memories | [`memories.list`](/sdk/typescript/memories#list) | [`list-memories`](/api-reference/rest-api/memories#list-memories) | `nextCursor` | [memory page](/api-reference/protocols/service-limits#memory-page) | `userId`, `search` |
+| Tasks | [`tasks.list`](/sdk/typescript/tasks#list) | [`list-tasks`](/api-reference/rest-api/tasks#list-tasks) | `nextCursor` | [cursored pages](/api-reference/protocols/service-limits#other-cursored-resource-pages) | `agentId`, `userId` |
+| Task runs | [`tasks.listRuns`](/sdk/typescript/tasks#list-runs) | [`list-task-runs`](/api-reference/rest-api/task-runs#list-task-runs) | `nextCursor` | [cursored pages](/api-reference/protocols/service-limits#other-cursored-resource-pages) | owning Task path |
+| Task run messages | [`tasks.runMessages`](/sdk/typescript/tasks#run-messages) | [`list-task-run-messages`](/api-reference/rest-api/task-runs#list-task-run-messages) | `nextCursor`, `latestCursor` | [message page](/api-reference/protocols/service-limits#session-or-task-run-message-page) | `cursor` or `after` |
+| Usage | [`usage.get`](/sdk/typescript/usage#get), [`getForAgent`](/sdk/typescript/usage#get-for-agent) | [`get-usage`](/api-reference/rest-api/usage#get-usage), [`get-agent-usage`](/api-reference/rest-api/usage#get-agent-usage) | none | not cursored; [session top-N](/api-reference/protocols/service-limits#usage-session-top-n) | dates, Agent, Session, Attribution, grouping |
+| Customer bindings | `merchantBindings.list` | [`list-merchant-bindings`](/api-reference/rest-api/merchant#list-merchant-bindings) | `nextCursor` | [merchant page](/api-reference/protocols/service-limits#merchant-page) | `userId` |
+| Merchant usage events | `merchantUsageEvents.list` | [`list-merchant-usage-events`](/api-reference/rest-api/merchant#list-merchant-usage-events) | `nextCursor` | [merchant page](/api-reference/protocols/service-limits#merchant-page) | `status` |
 
 
 Lists without cursor fields return everything in one bounded response. No
@@ -61,11 +66,14 @@ Session and task-run transcripts add `latestCursor`:
 
 Every `userId` filter works the same way: leave it out to include everyone,
 send `""` for tenant-level records, or send a value to select that end user.
-`userId` groups your data; it does not restrict access.
+`userId` groups your data; it does not restrict access. A
+[user-scoped client](/api-reference/rest-api/authentication#end-user-scope)
+returns only that user's records, and a `userId` filter that names another
+user returns `400 invalid_request`.
 
 Usage `from` and `to` are inclusive UTC dates and must be sent together.
-Without them you get the last 30 days ending today, and the range can span at
-most 31 days. `groupBy` defaults to `day` and also accepts `agent`, `model`,
+Without them you get the [default window](/api-reference/protocols/service-limits#usage-query-window), which
+is also the longest range you can ask for. `groupBy` defaults to `day` and also accepts `agent`, `model`,
 `session`, and `user`. `sessionId: ""` selects stateless turns, which come back
 with `sessionId: null`. Tenant-level buckets in `groupBy=user` keep
 `userId: ""`.

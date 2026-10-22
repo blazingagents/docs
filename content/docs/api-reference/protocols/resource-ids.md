@@ -35,11 +35,13 @@ access.
 | `#cc`             | <span id="cc">Chat connection</span>            | `cc_` + 16 Base62 characters                               |
 | `#mch`            | <span id="mch">Merchant connection</span>       | `mch_` + 16 Base62 characters                              |
 | `#mev`            | <span id="mev">Merchant usage event</span>      | `mev_` + 16 Base62 characters                              |
+| `#fc`             | <span id="fc">Backend function call</span>     | `fc_` + 16 Base62 characters                               |
 
-An API key is a credential, not an ID. It is `ba_` plus 40 Base62 characters
-and is shown only once, when you create it. Its `ak_...` record ID lets you list
-and delete keys but cannot authenticate a request. Display fragments such as
-`ba_ab` are neither IDs nor credentials.
+An API key is a credential, not an ID. It is `ba_read_` or `ba_full_`, for its
+[access level](/platform/security-and-credentials#api-key-access-levels), plus
+40 Base62 characters, and is shown only once, when you create it. Its `ak_...`
+record ID lets you list and delete keys but cannot authenticate a request.
+Display fragments such as `ba_full_ab` are neither IDs nor credentials.
 
 Blazing Agents creates every ID for you; the SDKs have no ID generator. When
 you start a session, its `ss_...` ID comes back in the `Location` header.
