@@ -424,7 +424,7 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_123456789
 
 Rotate chat connection credentials.
 
-Replaces a connection's credentials. Send `platform` matching the connection and the complete credentials for the same bot installation: Slack needs `botToken` and `signingSecret`, and Telegram needs `botToken`. The new credentials are checked with the chat platform and must identify the same bot. The enabled state and sessions are kept. On an enabled Telegram connection, Blazing Agents re-registers the webhook with a new secret. If that fails, the new credentials are still saved and the request returns an error; call enable to retry.
+Replaces a connection's credentials. Send `platform` matching the connection and the complete credentials for the same bot installation: Slack needs `botToken` and `signingSecret`, and Telegram needs `botToken`. The new credentials are checked with the chat platform and must identify the same bot. The enabled state and sessions are kept. On an enabled Telegram connection, Blazing Agents re-registers the webhook with a new secret. If that fails, the new credentials are still saved and the request returns an error; call enable to retry. [Manage and troubleshoot](https://docs.blazingagents.com/platform/chat-integrations#manage-and-troubleshoot) covers what happens to running turns and waiting messages.
 
 #### Request
 
@@ -599,7 +599,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
 
 Disable a chat connection.
 
-Stops the connection from accepting new messages and approval clicks. Work already accepted can finish. While disabled, Slack URL verification still succeeds, and other messages are acknowledged and dropped.
+Stops the connection from accepting new messages and approval clicks. [Manage and troubleshoot](https://docs.blazingagents.com/platform/chat-integrations#manage-and-troubleshoot) covers what happens to running turns and waiting messages.
 
 #### Request
 
