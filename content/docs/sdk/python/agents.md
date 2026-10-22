@@ -159,7 +159,7 @@ client.agents.delete(agent.id, include_artifacts=False)
 
 **Signature:** `delete(agent_id: str, *, include_artifacts: bool) -> None`
 
-`include_artifacts` is required: `True` also deletes the agent's published artifacts, and `False` keeps them. Raises `validation_failed`, `not_found`, or `admin_agent_managed`.
+`include_artifacts` is required: `True` also deletes the agent's published artifacts, and `False` keeps them. Raises [`agent_busy`](/api-reference/protocols/errors#agent_busy) (HTTP `409`) while the agent has a running turn or a queued or running task run. Also raises `validation_failed`, `not_found`, or `admin_agent_managed`.
 
 ### `disable()` [#disable]
 

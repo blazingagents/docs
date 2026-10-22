@@ -21,11 +21,11 @@ Each code links to its own entry. You can link straight to one, for example
 | --- | --- |
 | [Auth and access](#auth-and-access) | [`unauthorized`](#unauthorized), [`forbidden`](#forbidden), [`insufficient_scope`](#insufficient_scope), [`api_key_limit_reached`](#api_key_limit_reached), [`tenant_deleting`](#tenant_deleting), [`tenant_deletion_in_progress`](#tenant_deletion_in_progress), [`tenant_deletion_not_ready`](#tenant_deletion_not_ready), [`tenant_not_deleting`](#tenant_not_deleting) |
 | [Requests and validation](#requests-and-validation) | [`invalid_request`](#invalid_request), [`idempotency_conflict`](#idempotency_conflict), [`validation_failed`](#validation_failed), [`not_found`](#not_found), [`invalid_cursor`](#invalid_cursor) |
-| [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
+| [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`agent_busy`](#agent_busy), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
 | [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`session_turn_unresponsive`](#session_turn_unresponsive), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`input_idempotency_conflict`](#input_idempotency_conflict), [`steer_not_available`](#steer_not_available), [`message_id_conflict`](#message_id_conflict), [`message_not_found`](#message_not_found), [`tool_approval_continuation_settled`](#tool_approval_continuation_settled), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict), [`session_fork_unavailable`](#session_fork_unavailable), [`session_fork_deleted`](#session_fork_deleted) |
 | [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
 | [Tasks](#tasks) | [`task_active_run_exists`](#task_active_run_exists) |
-| [Quotas and billing](#quotas-and-billing) | [`quota_exceeded`](#quota_exceeded), [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`subscription_already_paid`](#subscription_already_paid), [`subscription_not_cancelled`](#subscription_not_cancelled), [`checkout_evidence_mismatch`](#checkout_evidence_mismatch), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_connection_in_use`](#merchant_connection_in_use), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_binding_required`](#merchant_binding_required), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable), [`model_spending_limit_exceeded`](#model_spending_limit_exceeded) |
+| [Quotas and billing](#quotas-and-billing) | [`quota_exceeded`](#quota_exceeded), [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`subscription_already_paid`](#subscription_already_paid), [`subscription_not_cancelled`](#subscription_not_cancelled), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_connection_in_use`](#merchant_connection_in_use), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable), [`model_spending_limit_exceeded`](#model_spending_limit_exceeded) |
 | [Workspaces and artifacts](#workspaces-and-artifacts) | [`workspace_not_found`](#workspace_not_found), [`workspace_in_use`](#workspace_in_use), [`workspace_busy`](#workspace_busy), [`artifact_session_cap_reached`](#artifact_session_cap_reached) |
 | [Service](#service) | [`internal`](#internal), [`service_unavailable`](#service_unavailable) |
 
@@ -84,7 +84,7 @@ code added after you wrote your client still reaches your handler.
 
 | Code | `status` | What happened |
 | --- | ---: | --- |
-| `credential_echo` | response status | A provider, MCP connection, chat connection, chat delivery, or merchant connection response contains a credential field. `details.field` names it, and the body is discarded. |
+| `credential_echo` | response status | A provider, MCP connection, chat connection, or merchant connection response contains a credential field. `details.field` names it, and the body is discarded. |
 | `invalid_response` | response status | The response body is not a valid error or result. |
 | `network_error` | `undefined` | The request failed before any response arrived, and you did not cancel it. |
 | `request_aborted` | `undefined` | Your `AbortSignal` cancelled the request. |
@@ -97,8 +97,8 @@ In Python, an error response raises `APIStatusError` with `code`,
 `status_code`, `details`, `param`, `request_id`, `headers`, and `retry_after`.
 A network failure raises `APIConnectionError` (or `APITimeoutError`), and a
 failure after a stream starts raises `StreamError`. A provider, MCP connection,
-chat connection, chat delivery, or merchant connection response that contains a
-credential raises `CredentialEchoError`, without the body. All of them extend
+chat connection, or merchant connection response that contains a credential
+raises `CredentialEchoError`, without the body. All of them extend
 `BlazingAgentsError`. As in TypeScript, `str(error)` for an `APIStatusError`
 starts with the bracketed code, and `error.code` holds the bare code.
 
@@ -495,6 +495,18 @@ To fix it:
 
 - Send only `providerId`, `model`, and `thinkingLevel` when you update this agent.
 - Use one of your own agents for everything else.
+
+### `agent_busy` [#agent_busy]
+
+**The agent still has work running.**
+
+The agent has a running turn, or a task run that is queued or running. Deleting the agent now would cut that work off, so it was not deleted.
+
+HTTP `409`. Retrying the same request can succeed.
+
+To fix it:
+
+- Stop the running turn or cancel the task run, or wait for them to finish, then delete the agent again.
 
 ### `provider_required` [#provider_required]
 
@@ -1105,7 +1117,7 @@ To fix it:
 
 **Your account already pays for a plan.**
 
-Your account has an active plan, or an earlier checkout has already been paid, so no new checkout was opened and you were not charged again. Checkout never changes a plan.
+Your account already has an active plan, so no new checkout was opened and you were not charged again. Checkout never changes a plan.
 
 HTTP `409`. Retrying the same request fails the same way until you fix the cause.
 
@@ -1126,19 +1138,6 @@ To fix it:
 
 - Cancel the subscription in **Settings → Subscription** in the [dashboard](https://www.blazingagents.com/app). Your plan stays active until your next billing date, and the current period is not refunded. Then request the deletion again.
 
-### `checkout_evidence_mismatch` [#checkout_evidence_mismatch]
-
-**The checkout does not match your account.**
-
-The payment details returned from checkout do not match the checkout your account started or the plan it is paying for. Your plan was not changed.
-
-HTTP `409`. Retrying the same request fails the same way until you fix the cause.
-
-To fix it:
-
-- Start a new checkout from the dashboard.
-- Contact support if you were charged.
-
 ### `merchant_connection_not_found` [#merchant_connection_not_found]
 
 **You have not connected a billing account.**
@@ -1153,15 +1152,16 @@ To fix it:
 
 ### `merchant_connection_in_use` [#merchant_connection_in_use]
 
-**Requests admitted on your billing connection are still running.**
+**Your billing connection still has running requests or pending usage.**
 
-You cannot remove or replace your merchant connection while a request admitted on it is still running, because that request's usage is recorded against it.
+You cannot remove or replace your merchant connection while a request admitted on it is still running, or while one of its usage events is `pending`. Removing the connection now would lose that usage.
 
 HTTP `409`. Retrying the same request can succeed.
 
 To fix it:
 
-- Wait for the running requests to finish, then remove or replace the connection again.
+- Wait for running requests to finish and for pending events to be delivered, then try again.
+- If a `pending` event's `nextAction` is `retry`, its automatic delivery gave up. Retry it. It ends `accepted` or `failed`, and a `failed` event no longer blocks removal.
 
 ### `merchant_credential_invalid` [#merchant_credential_invalid]
 
@@ -1212,18 +1212,6 @@ To fix it:
 
 - Check the `userId`, or link the user to a customer.
 
-### `merchant_binding_required` [#merchant_binding_required]
-
-**Link the user before releasing the event.**
-
-You tried to release an `unmapped` usage event, but its user is still not linked to a customer.
-
-HTTP `409`. Retrying the same request fails the same way until you fix the cause.
-
-To fix it:
-
-- Link the event's `userId` to a customer, then release the event again.
-
 ### `merchant_account_mismatch` [#merchant_account_mismatch]
 
 **The new credential belongs to a different billing account.**
@@ -1253,7 +1241,7 @@ To fix it:
 
 **The usage event's status does not allow this action.**
 
-Retry works on `failed` and `uncertain` events and on `pending` events whose automatic delivery gave up. Release works only on `unmapped` events. Discard works only on events your provider has not accepted.
+Retry works on `failed` events and on `pending` events whose automatic delivery gave up. Discard works only on events your provider has not accepted.
 
 HTTP `409`. Retrying the same request fails the same way until you fix the cause.
 
@@ -1313,14 +1301,14 @@ To fix it:
 
 **A model spending limit stopped the request.**
 
-The agent's or the account's dollar limit for model tokens has no allowance left for this request. `details.scope` names the limit (`agent`, `tenant`, or `both`). `details.reason` says why: the period's spending reached the limit (`exhausted`), running work holds the rest (`reserved`), the model has no known price (`unpriced`), or an earlier request never reported its usage (`unknown_usage`).
+The agent's or the account's dollar limit for model tokens has no allowance left for this request. `details.scope` names the limit (`agent`, `tenant`, or `both`). `details.reason` says why: the period's spending reached the limit (`exhausted`), or the cost of the model or of one of its responses is unknown (`unpriced`).
 
 HTTP `429`. Retrying the same request fails the same way until you fix the cause.
 
 To fix it:
 
-- Do not retry automatically. Read the limit to see `spentUsd`, `reservedUsd`, and `nextResetAt`.
-- For `exhausted`, wait for the next reset or raise the amount. For `reserved`, try again after running work finishes. After `unknown_usage`, new turns run while `availableUsd` is above zero.
+- Do not retry automatically. Read the limit to see `spentUsd`, `availableUsd`, and `nextResetAt`.
+- For `exhausted`, wait for the next reset or raise the amount.
 - For `unpriced`, switch the agent to a model with a known price, or turn off the limit. See [handle a spending stop](/platform/usage-and-quotas#spending-limit-stops).
 
 ## Workspaces and artifacts [#workspaces-and-artifacts]

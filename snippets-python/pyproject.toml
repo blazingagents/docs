@@ -3,7 +3,7 @@ name = "docs-python-snippets"
 version = "0.0.0"
 requires-python = ">=3.11"
 dependencies = [
-  "blazing_agents==0.29.0",
+  "blazing_agents==0.30.0",
   "pyright==1.1.414",
 ]
 

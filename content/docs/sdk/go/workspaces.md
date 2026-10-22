@@ -29,7 +29,7 @@ return nil
 | [`List`](#list), `All` | List workspaces | [`*Page[Workspace]`](#workspace) |
 | [`Get`](#get) | Get one workspace | [`*Workspace`](#workspace) |
 | [`Update`](#update) | Change name, metadata, or network policy | [`*Workspace`](#workspace) |
-| [`Delete`](#delete) | Permanently delete a workspace | [`WorkspaceDeletion`](#workspacedeletion) |
+| [`Delete`](#delete) | Permanently delete a workspace | `error` |
 
 ## Methods [#methods]
 
@@ -132,29 +132,20 @@ Returns [`*ba.Workspace`](#workspace). Fails with `validation_failed` or `worksp
 Permanently deletes a workspace and all its files.
 
 ```go
-deletion, err := client.Workspaces.Delete(ctx, "ws_0123456789abcdef")
-if err != nil {
+if err := client.Workspaces.Delete(ctx, "ws_0123456789abcdef"); err != nil {
 	return err
-}
-switch deletion.(type) {
-case ba.WorkspaceDeletionCompleted:
-	fmt.Println("gone")
-case ba.WorkspaceDeletionPending:
-	fmt.Println("cleanup running")
 }
 return nil
 ```
 
-**Signature:** `func (s *WorkspacesService) Delete(ctx context.Context, workspaceID WorkspaceID, opts ...RequestOption) (WorkspaceDeletion, error)`
+**Signature:** `func (s *WorkspacesService) Delete(ctx context.Context, workspaceID WorkspaceID, opts ...RequestOption) error`
 
-Move attached agents to another workspace first. Returns `ba.WorkspaceDeletionCompleted{}` when deletion finished right away, or `ba.WorkspaceDeletionPending{}` when it was accepted and cleanup continues in the background.
+Move attached agents to another workspace first. When the call returns, the workspace and its files are gone.
 
 | Code | Meaning |
 | --- | --- |
 | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use) | Agents still use it; `APIError.Details` holds their IDs under `agentIds` |
-| [`workspace_busy`](/api-reference/protocols/errors#workspace_busy) | An agent is working in it; retry when that work finishes |
 | `workspace_not_found` | No such workspace in your tenant |
-| [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | Temporary failure; retry with backoff |
 
 ## Response models [#response-models]
 
@@ -170,13 +161,6 @@ Move attached agents to another workspace first. Returns `ba.WorkspaceDeletionCo
 | `Metadata` | `ba.Metadata` | Your own data |
 | `NetworkPolicy` | `ba.NetworkPolicy` | Which hosts the workspace can reach |
 | `CreatedAt`, `UpdatedAt` | `time.Time` | Timestamps |
-
-### `WorkspaceDeletion` [#workspacedeletion]
-
-| Value | Meaning |
-| --- | --- |
-| `ba.WorkspaceDeletionCompleted` | The workspace and its files are gone |
-| `ba.WorkspaceDeletionPending` | Deletion was accepted; cleanup continues in the background |
 
 ## Next [#next]
 

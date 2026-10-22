@@ -211,6 +211,8 @@ return client.Agents.Delete(ctx, agentID, ba.DeleteAgentParams{IncludeArtifacts:
 
 This removes the agent's sessions, tasks, memories, skills, linked prompts, and avatar. Its workspace, provider, and MCP connections stay, so you can attach them to another agent. Artifacts you keep and past usage records still show the deleted agent's ID.
 
+An agent with work still running cannot be deleted. While it has a running turn, or a task run that is queued or running, deletion fails with [`agent_busy`](/api-reference/protocols/errors#agent_busy). Stop the turn or cancel the task run, or wait for it to finish, then delete again.
+
 ## The admin agent [#the-admin-agent]
 
 Every tenant has exactly one admin agent. It is the built-in assistant that manages your tenant, and Blazing Agents creates it for you. It appears in `agents.list()` next to your own agents, and the dashboard marks it **Manages this tenant**.

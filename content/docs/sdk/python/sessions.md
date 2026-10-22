@@ -177,7 +177,7 @@ Lists the session's steer receipts in the order they arrived, with the session's
 
 ```python
 page = client.sessions.inputs(agent_id=agent_id, session_id=session_id)
-pending = [item for item in page.data if item.state in ("accepted", "delivered")]
+pending = [item for item in page.data if item.state == "accepted"]
 print(page.activity.state, len(pending))
 ```
 
@@ -189,7 +189,7 @@ print(page.activity.state, len(pending))
 | `cursor` | `str` | none | `next_cursor` from the previous page |
 | `limit` | `int` | `100` | 1 to 200 per page |
 
-Without `include_completed`, you get the pending `accepted` and `delivered` receipts plus any `uncertain` ones, so your app can show them to the user. To watch for changes, call it again without a cursor; the cursor only pages through a long list. `activity` reports `idle`, `running`, `stopping`, or `approval`, with the running `turn_id`. Raises `validation_failed`, `invalid_cursor`, or `not_found`.
+Without `include_completed`, you get only the `accepted` receipts the running turn has not saved yet, so your app can show them to the user. To watch for changes, call it again without a cursor; the cursor only pages through a long list. `activity` reports `idle`, `running`, `stopping`, or `approval`, with the running `turn_id`. Raises `validation_failed`, `invalid_cursor`, or `not_found`.
 
 ### `stop()` [#stop]
 
@@ -277,7 +277,7 @@ A `SessionMessage` has `id`, `role` (`"system"`, `"user"`, or `"assistant"`), `p
 | `request_id` | `str` | Your ID for the steer |
 | `sequence` | `int` | Place in the arrival order; never changes |
 | `message` | `SessionInputMessage` | The message you sent, with `id`, `role` (always `"user"`), `parts`, and `metadata` |
-| `state` | `str` | `"accepted"`, `"delivered"`, `"committed"`, `"not_placed"`, or `"uncertain"` |
+| `state` | `str` | `"accepted"`, `"committed"`, or `"not_placed"` |
 | `turn_id` | `str` | The turn the steer was bound to |
 | `reason` | `str \| None` | `"stopped"`, `"failed"`, `"owner_lost"`, or `"turn_finished"` |
 | `created_at`, `updated_at` | `datetime` | Timestamps |
@@ -287,7 +287,7 @@ A `SessionMessage` has `id`, `role` (`"system"`, `"user"`, or `"assistant"`), `p
 | `state` | `str` | `"idle"`, `"running"`, `"stopping"`, or `"approval"` |
 | `turn_id` | `str \| None` | The running turn, when there is one |
 
-`committed` means the message is saved in the history; `not_placed` is safe to send as an ordinary chat message; `uncertain` means the agent may have read it, so never resend it automatically. See [what each state means](/platform/sessions-and-turns#steer-receipts).
+`accepted` means the message is saved for the running turn, which may still read and save it, so keep waiting. `committed` means the message is saved in the history, and you are done. `not_placed` means it was not saved, because the turn ended or Blazing Agents lost it first. Send it again as an ordinary chat message. If the turn read it and then failed, resending may repeat its tool calls, as any resend can. See [what each state means](/platform/sessions-and-turns#steer-receipts).
 
 ## Next [#next]
 

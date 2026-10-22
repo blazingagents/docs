@@ -205,7 +205,7 @@ return nil
 | `Cursor` | `*string` | The `NextCursor` of the previous page |
 | `Limit` | `*int` | Page size, 1 to 200; defaults to 100 |
 
-Each `ba.SessionInput` has `RequestID`, `Sequence`, `Message`, `State`, `TurnID`, timestamps, and `Reason`. A `not_placed` input never reached the agent and is safe to resend as a `Chat.Send` message; an `uncertain` one may have been read, so never resend it automatically. `AllInputs` walks every page lazily. Fails with `validation_failed` or `not_found`.
+Each `ba.SessionInput` has `RequestID`, `Sequence`, `Message`, `State`, `TurnID`, timestamps, and `Reason`. By default the list holds only `accepted` receipts; `IncludeCompleted` adds `committed` and `not_placed` ones. `AllInputs` walks every page lazily. Fails with `validation_failed` or `not_found`.
 
 ### `Stop` [#stop]
 
@@ -288,7 +288,7 @@ A `ba.Message` has `ID`, `Role` (`ba.MessageRoleSystem`, `ba.MessageRoleUser`, o
 | `RequestID` | `string` | Your ID for the steer |
 | `Sequence` | `int64` | Place in the arrival order; never changes |
 | `Message` | `ba.UserMessage` | The message you sent |
-| `State` | `ba.SessionInputState` | `accepted`, `delivered`, `committed`, `not_placed`, or `uncertain`, as `ba.SessionInputStateAccepted` and so on |
+| `State` | `ba.SessionInputState` | `accepted`, `committed`, or `not_placed`, as `ba.SessionInputStateAccepted` and so on |
 | `TurnID` | `ba.TurnID` | The turn the steer was bound to |
 | `Reason` | `*ba.SessionInputReason` | `stopped`, `failed`, `owner_lost`, or `turn_finished`, or nil |
 | `CreatedAt`, `UpdatedAt` | `time.Time` | Timestamps |
@@ -298,7 +298,7 @@ A `ba.Message` has `ID`, `Role` (`ba.MessageRoleSystem`, `ba.MessageRoleUser`, o
 | `State` | `ba.SessionActivityState` | `idle`, `running`, `stopping`, or `approval`, as `ba.SessionActivityStateIdle` and so on |
 | `TurnID` | `*ba.TurnID` | The running turn, when there is one |
 
-A `committed` input is saved in the history; a `not_placed` input is safe to send as an ordinary `Chat.Send` message; an `uncertain` input means the agent may have read it, so never resend it automatically.
+An `accepted` input is saved for the running turn, which may still read and save it, so keep waiting. A `committed` input is saved in the history, and nothing more happens to it. A `not_placed` input was never saved, because the turn ended or Blazing Agents lost the message before saving it; send it again as an ordinary [`Chat.Send`](/sdk/go/client#chat) message. If the turn read it and then failed, resending may repeat its tool calls, as any resend can.
 
 ## Next [#next]
 

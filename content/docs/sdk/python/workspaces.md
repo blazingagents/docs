@@ -28,7 +28,7 @@ agent = client.agents.update("ag_0123456789abcdef", workspace_id=workspace.id)
 | [`iter()`](#iter) | Iterate every workspace | `Iterator[Workspace]` |
 | [`get()`](#get) | Get one workspace | `Workspace` |
 | [`update()`](#update) | Change name, metadata, or network policy | `Workspace` |
-| [`delete()`](#delete) | Delete a workspace and its files | `WorkspaceDeletionOutcome` |
+| [`delete()`](#delete) | Delete a workspace and its files | `None` |
 
 ## Methods [#methods]
 
@@ -122,19 +122,18 @@ Returns [`Workspace`](#workspace). Raises `validation_failed`, `workspace_not_fo
 Deletes a workspace and all its files.
 
 ```python
-outcome = client.workspaces.delete(workspace_id=workspace.id)
+client.workspaces.delete(workspace_id=workspace.id)
 ```
 
-**Signature:** `delete(*, workspace_id: str) -> WorkspaceDeletionOutcome`
+**Signature:** `delete(*, workspace_id: str) -> None`
 
-Move every agent to another workspace first. Returns `"completed"` when deletion finished right away, or `"pending"` when it was accepted and cleanup continues in the background.
+Move every agent to another workspace first. When the call returns, the workspace and its files are gone.
 
 | Code | Meaning |
 | --- | --- |
 | `validation_failed` | The ID is malformed |
 | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use) | Agents still use it; their IDs are in `error.details["agentIds"]` |
 | `workspace_not_found` | No such workspace in your tenant |
-| [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | Temporary failure; retry with backoff |
 
 ## Response types [#response-types]
 

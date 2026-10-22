@@ -240,19 +240,19 @@ Monthly resets keep the original day. A January 31 start resets on February 28 o
 
 Changing the schedule moves `nextResetAt` at once, counted from the new schedule and the current time. The current period keeps its start and the spending counted so far. Unused allowance does not carry forward.
 
-Changing only the dollar amount keeps the reset time and the spending counted so far. Lowering the amount does not stop a model request that has already started, and its cost counts in the period where it started.
+Changing only the dollar amount keeps the reset time and the spending counted so far. Lowering the amount does not stop a model request that has already started, and its cost counts in the period when its response arrives.
 
 If you turn a limit off and on again within one period, its spending count picks up where it was. Model requests made while it was off do not count toward it. Turning a limit on affects turns that start afterward. A turn that started with no limit in force runs to the end.
 
 ### Understand the reported dollars [#spending-limit-costs]
 
-The limit counts model tokens, including cache tokens, priced from the model price list built into Blazing Agents. It excludes Blazing Agents platform, workspace, storage, and network charges. The estimate can differ from your provider's invoice or negotiated prices.
+The limit counts model tokens, including cache tokens, priced from the model price list built into Blazing Agents. It excludes Blazing Agents platform, workspace, storage, and network charges. This cost can differ from your provider's invoice or negotiated prices.
 
-Models from a `custom` provider, and models missing from that price list, cannot be priced. While a limit applies, turns that use them are refused. If a request's usage is never reported, for example after a crash, its reserved allowance stays unavailable until the next reset, which starts with nothing reserved.
+Models from a `custom` provider, and models missing from that price list, cannot be priced. While a limit applies, turns that use them are refused. If a model response arrives without a cost Blazing Agents can determine, its cost is not counted and the turn stops after that response with `unpriced`.
 
-`spentUsd` is the cost of finished model requests in the current period. `reservedUsd` is the estimated cost held for requests that are still running or whose usage was never reported. `availableUsd` is what new requests can still use. A running turn's costs can stay in `reservedUsd` until the turn ends.
+`spentUsd` is the cost of model responses in the current period. `availableUsd` is the amount minus `spentUsd`, never below zero.
 
-Concurrent turns share the available allowance. Each model request uses a cost estimate before it starts, so actual spending can exceed the limit when the estimate is too low. Treat the allowance as a spending control, not an exact invoice ceiling.
+Blazing Agents checks the limit before each model request and adds each response's cost after it arrives. A running turn can therefore finish one request past the limit, and concurrent turns can together go over it by about one request each. Treat the allowance as a spending control, not an exact invoice ceiling.
 
 ### Handle a spending stop [#spending-limit-stops]
 
@@ -261,13 +261,11 @@ A request blocked before streaming returns HTTP `429` with [`model_spending_limi
 | `reason` | What happened | What to do |
 | --- | --- | --- |
 | `exhausted` | Spending reached the limit for this period. | Wait for `nextResetAt`, or raise the amount. |
-| `reserved` | Running work holds the rest of the allowance. | Try again after that work finishes, or raise the amount. |
-| `unpriced` | The model has no price in the built-in price list. | Switch the agent to a priced model, or turn off the limit that applies. |
-| `unknown_usage` | A model request finished without reporting its usage. The turn stops, and the request's estimated cost stays held until the next reset. | Check `availableUsd`. New turns run while allowance remains. |
+| `unpriced` | The model has no price in the built-in price list, so the turn is refused before it runs. Or a model response arrived without a cost Blazing Agents could determine, so its cost is not counted and the turn stops after that response, keeping the finished output. | Switch the agent to a priced model, or turn off the limit that applies. |
 
 Chat and approval-continuation streams report a stop that happens mid-turn through a `data-ba-error` event with code `model_spending_limit_exceeded` and the same `details` as the HTTP error. Completion and object streams instead fail with `stream_error`. See [streaming errors](/api-reference/protocols/streaming#spending-stop-events). Chat messages and tool results that finished before the stop stay in the session. A task run that a spending limit refuses before any model work ends as `blocked`. A task run stopped after model work started ends as `failed`, and the work that finished stays in its transcript.
 
-Do not retry a budget stop automatically. Read the current limit and its reset time. Wait for running work to finish, wait for the reset, or increase the allowance. Changing a limit does not undo completed tools or restart a stopped turn.
+Do not retry a budget stop automatically. Read the current limit and its reset time. Wait for the reset, or increase the allowance. Changing a limit does not undo completed tools or restart a stopped turn.
 
 ## What is recorded [#what-is-recorded]
 
@@ -275,7 +273,10 @@ Each turn adds one usage record with input tokens, output tokens, one request, d
 
 Failed and cancelled turns are recorded too. A turn that fails before the model responds records zero tokens but still counts the request and duration. If it fails after some model steps finished, the tokens from those steps stay in usage.
 
-These reports show model usage, not the compute and network charges on your Blazing Agents bill. Those charges can reach your bill some time after the work runs, once they are measured. If a later measurement is lower, Blazing Agents adds a separate correction in your favor and leaves the original charge as it was. A higher later measurement is never charged to you.
+These reports show model usage, not the compute and network charges on your Blazing Agents bill. Those charges can reach your bill some time after the work runs, once they are measured.
+
+- **Compute:** if a later measurement is lower, Blazing Agents adds a separate correction in your favor and leaves the original charge as it was. A higher later measurement is never charged to you.
+- **Network egress:** Blazing Agents charges it every hour against the billing period's running total. A later measurement inside the period, higher or lower, changes the next hourly charge. About an hour after the period ends, Blazing Agents settles it once more, and later measurements no longer change it. That last settlement can draw on the next period's usage credit.
 
 ## Break down usage [#break-down-usage]
 

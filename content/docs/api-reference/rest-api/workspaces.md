@@ -276,7 +276,7 @@ curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/workspaces/ws_1234567890ABCDEF" 
 
 Delete a workspace.
 
-Permanently deletes a workspace and all its files. Every agent needs a workspace, so move attached agents to another workspace first: while any agent uses it, the request returns `409 workspace_in_use` with their IDs in `details.agentIds`. Returns `202` after cleanup is accepted for processing.
+Permanently deletes a workspace and all its files. Every agent needs a workspace, so move attached agents to another workspace first: while any agent uses it, the request returns `409 workspace_in_use` with their IDs in `details.agentIds`. Returns `204` once the workspace is deleted.
 
 #### Request
 
@@ -288,7 +288,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 
 #### Response
 
-Returns `202 Accepted`. Deletion accepted for processing.
+Returns `204 No Content`. The workspace was deleted.
 
 #### Errors
 
@@ -300,7 +300,6 @@ Returns `202 Accepted`. Deletion accepted for processing.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
 | `409` | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use) | The request conflicts with the resource's current state |
-| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

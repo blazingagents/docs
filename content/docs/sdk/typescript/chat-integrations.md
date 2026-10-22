@@ -36,10 +36,8 @@ Every method takes one input object and accepts an optional `abortSignal`. Bot c
 | [`enable()`](#enable) | Start handling messages | `ChatConnection` |
 | [`disable()`](#disable) | Stop handling messages | `ChatConnection` |
 | [`delete()`](#delete) | Delete a connection | `void` |
-| [`listDeliveries()`](#list-connection-deliveries) | List one connection's deliveries | `ChatDeliveryList` |
-| [`repairDelivery()`](#repair-delivery) | Send a stuck reply or approval card again | `ChatDeliveryResult` |
 
-`client.chatDeliveries` has one method, [`list()`](#list-deliveries), which lists replies and approval buttons that failed or may not have arrived, across every connection.
+Blazing Agents posts each reply and approval card for you and retries a failed post a limited number of times. A reply that still fails to post stays in the session, so you can read it with [`sessions.messages()`](/sdk/typescript/sessions#messages).
 
 ## Methods [#methods]
 
@@ -184,81 +182,6 @@ await client.chatConnections.delete({ chatConnectionId });
 
 A Telegram bot's webhook is cleared for you. Uninstall a Slack app yourself. Errors: `validation_failed`, `not_found`.
 
-### `listDeliveries()` [#list-connection-deliveries]
-
-Lists one page of the replies and approval cards a connection has sent or tried to send, newest first, in every status.
-
-**Signature:** `listDeliveries(input: { chatConnectionId: string; cursor?: string; limit?: number } & ResourceRequestOptions): Promise<ChatDeliveryList>`
-
-```typescript
-const page = await client.chatConnections.listDeliveries({ chatConnectionId });
-for (const delivery of page.data) {
-  console.log(delivery.id, delivery.kind, delivery.status, delivery.attempt);
-}
-```
-
-| Field | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `chatConnectionId` | `string` | yes | none | Connection ID (`cc_…`) |
-| `cursor` | `string` | no | none | `nextCursor` from the previous page, to fetch older records |
-| `limit` | `number` | no | `100` | 1 to 100 deliveries per page |
-
-Each record shows its status, attempt number, and diagnostic, but not the message text, tool arguments, or credentials. Returns [`ChatDeliveryList`](#chatdeliverylist). Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), `not_found`.
-
-### `repairDelivery()` [#repair-delivery]
-
-Sends a stuck reply or approval card again, without running a turn or tool. Use it when the previous send stopped before its outcome was known.
-
-**Signature:** `repairDelivery(input: RepairChatDeliveryBody & { chatConnectionId: string; deliveryId: string } & ResourceRequestOptions): Promise<ChatDeliveryResult>`
-
-```typescript
-const result = await client.chatConnections.repairDelivery({
-  chatConnectionId,
-  deliveryId: "cd_0123456789abcdef",
-  expectedAttempt: 1,
-  previousSenderStopped: true,
-  acceptDuplicateRisk: true,
-});
-if (result.status !== "confirmed") console.warn("Not delivered yet", result);
-```
-
-| Field | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `chatConnectionId` | `string` | yes | none | Connection ID (`cc_…`) |
-| `deliveryId` | `string` | yes | none | Delivery ID (`cd_…`) |
-| `expectedAttempt` | `number` | yes | none | The delivery's current `attempt`, 0 to 99 |
-| `previousSenderStopped` | `true` | yes | none | Confirms the sender of the previous attempt has stopped |
-| `acceptDuplicateRisk` | `true` | yes | none | Confirms you accept that the message may appear twice |
-
-Read `attempt` from [`listDeliveries()`](#list-connection-deliveries). The repair is refused if the attempt has changed, the delivery is already confirmed or being sent, or the connection is disabled. The platform may already have the message, so a repair can post it twice. A successful call does not by itself mean the message arrived, so check `status` in the result.
-
-Returns [`ChatDeliveryResult`](#chatdeliveryresult). Errors: `validation_failed`, [`invalid_request`](/api-reference/protocols/errors#invalid_request) when the repair is refused, `not_found`.
-
-### `chatDeliveries.list()` [#list-deliveries]
-
-Lists the replies and approval buttons that failed or may not have arrived, across every connection, newest first. Use it for a status view that shows which messages need attention.
-
-**Signature:** `list(input?: ChatDeliveriesListOptions): Promise<ChatDeliveriesResponse>`
-
-```typescript
-const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-const page = await client.chatDeliveries.list({ since });
-for (const delivery of page.data) {
-  console.log(delivery.platform, delivery.connectionId, delivery.status, delivery.diagnostic);
-}
-```
-
-| Option | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `status` | `ChatDeliveryListStatus[]` | no | both | `"failed"`, `"ambiguous"`, or both |
-| `since` | `string` | no | none | ISO 8601 date-time with an offset. Only deliveries created at or after it |
-| `cursor` | `string` | no | none | `nextCursor` from the previous page |
-| `limit` | `number` | no | `50` | 1 to 100 deliveries per page |
-
-`failed` means the platform did not accept the message, and `ambiguous` means it may have been sent. The feed never lists `pending` or `confirmed` deliveries; [list one connection's deliveries](#list-connection-deliveries) for those, and passing any other `status` fails with `validation_failed`. Keep the same filters when you pass `nextCursor` back as `cursor`.
-
-Returns [`ChatDeliveriesResponse`](#chatdeliveriesresponse). Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
-
 ## Response types [#response-types]
 
 ### `ChatConnection` [#chatconnection]
@@ -280,48 +203,6 @@ Returns [`ChatDeliveriesResponse`](#chatdeliveriesresponse). Errors: `validation
 | `createdAt`, `updatedAt` | `string` | ISO 8601 timestamps |
 
 Each entry in `health.checks` is `{ code: string; status: "pass" | "fail" | "unknown"; subject?: string }`.
-
-### `ChatDeliveryList` [#chatdeliverylist]
-
-`{ data: ChatDelivery[]; nextCursor: string | null }`. `nextCursor` is `null` on the last page. Each `ChatDelivery` has:
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `id` | `string` | Delivery ID (`cd_…`) |
-| `kind` | `"reply" \| "card"` | An agent reply or a tool approval card |
-| `status` | `ChatDeliveryStatus` | `"pending"`, `"confirmed"`, `"failed"`, or `"ambiguous"` |
-| `attempt` | `number` | The current send attempt |
-| `diagnostic` | `string \| null` | Why the last send failed, when known |
-| `sessionId` | `string` | The session behind the conversation |
-| `threadId` | `string` | The chat thread it belongs to |
-| `messageId`, `approvalId` | `string \| null` | The reply message or the approval it carries |
-| `createdAt`, `updatedAt` | `string` | ISO 8601 timestamps |
-
-It also has `credentialVersion`, `representation`, and `receipts`.
-
-### `ChatDeliveriesResponse` [#chatdeliveriesresponse]
-
-`{ data: TenantChatDelivery[]; nextCursor: string | null }`. `nextCursor` is `null` on the last page. A `TenantChatDelivery` has every [`ChatDelivery`](#chatdeliverylist) field, with `status` only `"failed"` or `"ambiguous"`, plus:
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `connectionId` | `string` | The connection that posted it (`cc_…`) |
-| `agentId` | `string` | The connection's agent |
-| `platform` | `"slack" \| "telegram"` | Chat platform |
-
-### `ChatDeliveryResult` [#chatdeliveryresult]
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `id` | `string` | Delivery ID (`cd_…`) |
-| `connectionId` | `string` | The connection that sent it (`cc_…`) |
-| `sessionId` | `string` | The session behind the conversation |
-| `threadId` | `string` | The chat thread it belongs to |
-| `kind` | `"reply" \| "card"` | An agent reply or a tool approval card |
-| `status` | `"confirmed" \| "failed" \| "ambiguous"` | Where the delivery stands after the repair |
-| `attempt` | `number` | The current send attempt |
-
-The package exports `ChatDelivery`, `ChatDeliveryList`, `TenantChatDelivery`, `ChatDeliveryResult`, `RepairChatDeliveryBody`, `ChatDeliveryStatus`, and `ChatDeliveryListStatus`.
 
 ## Next [#next]
 

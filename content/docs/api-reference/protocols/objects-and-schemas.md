@@ -64,7 +64,7 @@ it. See [Attribution](#attribution).
 | `taskScheduleKindSchema` | `once`, `interval`, `cron` |
 | `toolApprovalContinuationStateSchema` | `waiting`, `running`, `succeeded`, `failed` |
 | `toolApprovalStateSchema.decision` | `pending`, `approved`, `denied` |
-| `sessionInputStateSchema` | `accepted`, `delivered`, `committed`, `not_placed`, `uncertain` |
+| `sessionInputStateSchema` | `accepted`, `committed`, `not_placed` |
 | `sessionInputSchema.reason` | `stopped`, `failed`, `owner_lost`, `turn_finished`, or `null` |
 | `sessionActivitySchema.state` | `idle`, `running`, `stopping`, `approval` |
 
@@ -175,9 +175,10 @@ See [SDK Session messages](/sdk/typescript/sessions#messages),
 submitted to a running Turn. It carries your `requestId`, a `sequence` that
 fixes its arrival order, the `message` (always role `user`), a `state` from
 `sessionInputStateSchema`, the owning `turnId`, timestamps, and a nullable
-`reason` (`stopped`, `failed`, `owner_lost`, or `turn_finished`). `committed`
-means the message is saved in the history, `not_placed` is safe to send as an
-ordinary chat message, and `uncertain` must never be resent automatically.
+`reason` (`stopped`, `failed`, `owner_lost`, or `turn_finished`). `accepted`
+means the running turn may still read and save the message, `committed` means
+it is saved in the history, and `not_placed` means it was not saved, so send it
+again as an ordinary chat message.
 
 See [SDK Sessions](/sdk/typescript/sessions#submit-input),
 [REST steer a running turn](/api-reference/rest-api/sessions#submit-session-input), and

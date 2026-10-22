@@ -832,7 +832,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sess
 
 List steer receipts.
 
-Lists steer receipts in arrival order. committed means the message is saved in history; not_placed means the agent never read it, so send it as ordinary chat; uncertain means it may have reached the agent, so never resend it automatically. The running turn stream reports a steer the agent read as data-ba-steer-consumed.
+Lists steer receipts in arrival order. accepted means a running turn still holds the message, so wait. committed means the message is saved in history. not_placed means it was not saved because its turn ended or its owner was lost, so send it again as ordinary chat; if the turn read it and then failed, a resend may repeat tool effects, as any resend can. The running turn stream reports a steer the agent read as data-ba-steer-consumed.
 
 #### Request
 
