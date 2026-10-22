@@ -7,10 +7,16 @@ description: List conversations, read transcripts, approve tool calls, and delet
 
 `client.Sessions` lists and manages the conversations your agents hold. Turns are sent with [`Chat.Send`](/sdk/go/client#chat); this page covers everything around them.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/go/client#for-user) from `client.ForUser(userID)`, which returns only that user's sessions. The tenant client sees every user's sessions and is for your backend's administration.
+
 Examples are function bodies that receive `ctx context.Context`, `client *ba.Client`, `agentID ba.AgentID`, and `sessionID ba.SessionID`, and return an `error`. Every method also takes the per-call options `ba.WithRequestTimeout`, `ba.WithRequestHeader`, `ba.WithClientRequestID`, and `ba.CaptureResponse`.
 
 ```go
-page, err := client.Sessions.List(ctx, agentID, ba.ListSessionsParams{})
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+page, err := user.Sessions.List(ctx, agentID, ba.ListSessionsParams{})
 if err != nil {
 	return err
 }
@@ -42,10 +48,11 @@ return nil
 Lists an agent's sessions, most recently updated first. An unknown agent returns an empty page.
 
 ```go
-page, err := client.Sessions.List(ctx, agentID, ba.ListSessionsParams{
-	UserID: new("customer_123"),
-	Limit:  new(50),
-})
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+page, err := user.Sessions.List(ctx, agentID, ba.ListSessionsParams{Limit: new(50)})
 if err != nil {
 	return err
 }
@@ -57,9 +64,9 @@ return nil
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `UserID` | `*string` | Only this end user's sessions; `new("")` selects sessions without an end user |
+| `UserID` | `*string` | For a tenant-wide view on the tenant client: only this end user's sessions; `new("")` selects sessions without an end user. Leave it unset on a scoped client |
 | `Cursor` | `*string` | The `NextCursor` of the previous page |
-| `Limit` | `*int` | Page size, 1 to 200; defaults to 50 |
+| `Limit` | `*int` | Page size, within the [session page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages) |
 
 Returns [`*ba.Page[SessionSummary]`](#session); `All` walks every page lazily. Fails with `*ba.APIError` whose `Code` is `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
@@ -68,7 +75,11 @@ Returns [`*ba.Page[SessionSummary]`](#session); `All` walks every page lazily. F
 Lists the most recently updated sessions across all your agents, including sessions of disabled agents.
 
 ```go
-page, err := client.Sessions.ListLatest(ctx, ba.ListLatestSessionsParams{ByAgent: new(true)})
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+page, err := user.Sessions.ListLatest(ctx, ba.ListLatestSessionsParams{ByAgent: new(true)})
 if err != nil {
 	return err
 }
@@ -82,10 +93,10 @@ return nil
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `UserID` | `*string` | Only this end user's sessions; `new("")` selects sessions without an end user |
+| `UserID` | `*string` | For a tenant-wide view on the tenant client: only this end user's sessions; `new("")` selects sessions without an end user. Leave it unset on a scoped client |
 | `ByAgent` | `*bool` | `true` returns at most one session per agent: its latest. Defaults to `false` |
 | `Cursor` | `*string` | The `NextCursor` of the previous page |
-| `Limit` | `*int` | Page size, 1 to 200; defaults to 50 |
+| `Limit` | `*int` | Page size, within the [session page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages) |
 
 Returns [`*ba.Page[LatestSession]`](#session): the `SessionSummary` fields plus `AgentID`, the agent's current `Model`, `ThinkingLevel`, and `Status`. `AllLatest` walks every page lazily. Fails with `validation_failed` or `invalid_cursor`.
 
@@ -111,7 +122,11 @@ Returns [`*ba.Session`](#session): the `SessionSummary` fields plus `AgentConfig
 Lists a session's messages: without a position, the newest page in chronological order.
 
 ```go
-page, err := client.Sessions.ListMessages(ctx, agentID, sessionID, ba.ListSessionMessagesParams{})
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+page, err := user.Sessions.ListMessages(ctx, agentID, sessionID, ba.ListSessionMessagesParams{})
 if err != nil {
 	return err
 }
@@ -127,7 +142,7 @@ return nil
 | --- | --- | --- |
 | `Cursor` | `*string` | A `NextCursor`, to walk further back |
 | `After` | `*string` | Returns messages added after a saved `LatestCursor`, to poll a live transcript |
-| `Limit` | `*int` | Page size, 1 to 200; defaults to 50 |
+| `Limit` | `*int` | Page size, within the [message page limit](/api-reference/protocols/service-limits#session-or-task-run-message-page) |
 
 Returns a `*ba.SessionMessageList` with `Data`, `NextCursor`, and `LatestCursor`. Set `Cursor` or `After`, not both; setting both fails client-side with `*ba.ArgumentError`. `AllMessages` keeps the direction you start with: started with `After`, it polls forward page by page. Each `ba.Message` has `ID`, `Role`, `Branchable`, `Parts` as raw JSON (`[]json.RawMessage`), and `Metadata`. Fails with `validation_failed`, `invalid_cursor`, or `not_found`.
 
@@ -136,7 +151,11 @@ Returns a `*ba.SessionMessageList` with `Data`, `NextCursor`, and `LatestCursor`
 Lists a session's pending tool approvals. Send the round's decisions with [`Chat.Continue`](/sdk/go/client#continue-chat).
 
 ```go
-approvals, err := client.Sessions.ListToolApprovals(ctx, agentID, sessionID)
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+approvals, err := user.Sessions.ListToolApprovals(ctx, agentID, sessionID)
 if err != nil {
 	return err
 }
@@ -160,7 +179,7 @@ return client.Sessions.Delete(ctx, agentID, sessionID, ba.DeleteSessionParams{De
 
 **Signature:** `func (s *SessionsService) Delete(ctx context.Context, agentID AgentID, sessionID SessionID, params DeleteSessionParams, opts ...RequestOption) error`
 
-`DeleteArtifacts` is always sent. Fails with [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn is running or an approval continuation is still open, `validation_failed`, or `not_found`.
+`DeleteArtifacts` is always sent. Fails with [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn is running or an approval continuation is still open. Fails with [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) when the last turn stopped responding; repeat the call after `apiErr.RetryAfter`. Also fails with `validation_failed` or `not_found`.
 
 ### `SubmitInput` [#submit-input]
 
@@ -203,7 +222,7 @@ return nil
 | --- | --- | --- |
 | `IncludeCompleted` | `*bool` | Also returns committed and not-placed receipts. Defaults to `false` |
 | `Cursor` | `*string` | The `NextCursor` of the previous page |
-| `Limit` | `*int` | Page size, 1 to 200; defaults to 100 |
+| `Limit` | `*int` | Page size, within the [session input page limit](/api-reference/protocols/service-limits#session-input-page) |
 
 Each `ba.SessionInput` has `RequestID`, `Sequence`, `Message`, `State`, `TurnID`, timestamps, and `Reason`. By default the list holds only `accepted` receipts; `IncludeCompleted` adds `committed` and `not_placed` ones. `AllInputs` walks every page lazily. Fails with `validation_failed` or `not_found`.
 
@@ -244,7 +263,7 @@ return nil
 
 **Signature:** `func (s *SessionsService) Fork(ctx context.Context, agentID AgentID, sessionID SessionID, params ForkSessionParams, opts ...RequestOption) (*Session, error)`
 
-Reuse `IdempotencyKey` (1 to 200 characters) when retrying: a replay returns the same child, with status 200 instead of 201 in `ba.CaptureResponse`. An empty key fails client-side with `*ba.ArgumentError`. Returns [`*ba.Session`](#session). Errors: [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict) (409) for the same key with another message, [`session_fork_unavailable`](/api-reference/protocols/errors#session_fork_unavailable) (409) for a removed or ineligible reply, [`session_fork_deleted`](/api-reference/protocols/errors#session_fork_deleted) (410) for a replay whose child was deleted, and [`not_found`](/api-reference/protocols/errors#not_found) (404) for a missing or inaccessible source or agent. Also fails with `validation_failed`.
+Reuse `IdempotencyKey` (within the [key length limit](/api-reference/protocols/service-limits#fork-idempotency-key)) when retrying: a replay returns the same child, with status 200 instead of 201 in `ba.CaptureResponse`. An empty key fails client-side with `*ba.ArgumentError`. Returns [`*ba.Session`](#session). Errors: [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict) (409) for the same key with another message, [`session_fork_unavailable`](/api-reference/protocols/errors#session_fork_unavailable) (409) for a removed or ineligible reply, [`session_fork_deleted`](/api-reference/protocols/errors#session_fork_deleted) (410) for a replay whose child was deleted, and [`not_found`](/api-reference/protocols/errors#not_found) (404) for a missing or inaccessible source or agent. Also fails with `validation_failed`.
 
 ## Response models [#response-models]
 

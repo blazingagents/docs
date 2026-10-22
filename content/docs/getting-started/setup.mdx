@@ -15,12 +15,14 @@ You need a Blazing Agents account and either Node.js 24 or later, Python 3.11 or
   <Step>
     ## Create an API key [#create-an-api-key]
 
-    Open [API keys](https://www.blazingagents.com/app/keys) in the dashboard and create a key. Copy the full `ba_...` value right away: you see it only once.
+    Open [API keys](https://www.blazingagents.com/app/keys) in the dashboard and create a key with **Full** access. The quickstart creates a provider and an agent, and a read-only key cannot create either. See [access levels](/platform/security-and-credentials#api-key-access-levels) for what each level can do.
+
+    Copy the full `ba_full_...` value right away, because you see it only once.
 
     Put the key in your shell environment. All SDKs send it with every request.
 
     ```bash
-    export BLAZING_AGENTS_API_KEY="ba_..."
+    export BLAZING_AGENTS_API_KEY="ba_full_..."
     ```
 
     Your terminal now has `BLAZING_AGENTS_API_KEY` set. Open a new terminal later and you need to export it again, or load it from your usual secret store.
@@ -35,7 +37,7 @@ You need a Blazing Agents account and either Node.js 24 or later, Python 3.11 or
     mkdir blazing-quickstart && cd blazing-quickstart
     npm init -y
     npm pkg set type=module
-    npm install @blazingagents/sdk ai zod
+    npm install @blazingagents/sdk ai@^7.0.84 zod@^4.5.4
     ```
 
     ```bash tab="Python"
@@ -151,7 +153,7 @@ You need a Blazing Agents account and either Node.js 24 or later, Python 3.11 or
   Never put an API key in a browser bundle, mobile app, log, or URL. Keep it in backend configuration only.
 </Callout>
 
-One key can reach every agent in your tenant. It identifies your backend, not your users. Your app still signs users in and decides what each one may do before it calls Blazing Agents.
+A key at either access level can run every agent in your tenant and read every session. It identifies your backend, not your users. Your backend signs each user in, then calls Blazing Agents as that user, so each user reaches only their own agents and conversations. [Connect Blazing Agents to your app](/getting-started/connect-your-app) shows how.
 
 ## Next [#next]
 

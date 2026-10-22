@@ -9,6 +9,8 @@ description: Read token, request, and duration totals for your tenant or one age
 
 Examples receive a `client: blazing_agents::Client`. Every call also takes the `with_timeout`, `without_timeout`, `with_header`, and `with_client_request_id` transport options.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/rust/client#for-user) from `client.for_user()`, which counts only that user's usage. The tenant client counts every user's usage and is for your backend's administration, as in this tenant-wide report:
+
 ```rust
 let usage = client
     .usage()
@@ -20,7 +22,7 @@ println!("{}", usage.totals.input_tokens);
 
 ## Date ranges [#date-ranges]
 
-The `range` setter takes the UTC `YYYY-MM-DD` days to cover, `from` first and `to` last; `to` can be at most 31 days after `from`. Omitted, the period is the last 30 days ending today.
+The `range` setter takes the UTC `YYYY-MM-DD` days to cover, `from` first and `to` last, within the [usage query window](/api-reference/protocols/service-limits#usage-query-window). Omitted, the period is the last 30 days ending today.
 
 ## Available operations [#available-operations]
 
@@ -44,7 +46,7 @@ println!("{}", overview.totals.request_count);
 
 **Signature:** `overview() -> Call<GetUsageOverview>`
 
-The `range` setter limits the period, and `limit` (1 to 20, default 5) sets rows per ranked breakdown. Awaiting returns [`UsageOverview`](#usageoverview) with `totals`, `daily`, `by_agent`, `by_user`, `by_model`, and `active_agent_count`. Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed).
+The `range` setter limits the period, and `limit` sets rows per ranked breakdown, within the [overview ranking limit](/api-reference/protocols/service-limits#usage-overview-top-n). Awaiting returns [`UsageOverview`](#usageoverview) with `totals`, `daily`, `by_agent`, `by_user`, `by_model`, and `active_agent_count`. Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed).
 
 ### `get()` [#get]
 
@@ -72,16 +74,17 @@ for bucket in &usage.buckets {
 | `session_id(session_id)` | Only usage in this session; `""` selects calls made without a session |
 | `user_id(user_id)` | Only usage for this end user; `""` selects tenant-level usage |
 | `group_by(group_by)` | `UsageGroupBy::Day`, `Agent`, `Model`, `Session`, or `User`. `Session` returns the top sessions by total tokens |
-| `limit(limit)` | Sessions returned with `Session` grouping, 1 to 200; other groupings ignore it. Defaults to 50 |
+| `limit(limit)` | Sessions returned with `Session` grouping, within the [session ranking limit](/api-reference/protocols/service-limits#usage-session-top-n); other groupings ignore it |
 
 Awaiting returns [`Usage`](#usage). Fails with `validation_failed`.
 
 ### `sessions()` [#sessions]
 
-Gets the usage of specific sessions, 1 to 100 of them.
+Gets the usage of specific sessions, within the [session batch limit](/api-reference/protocols/service-limits#usage-exact-session-batch).
 
 ```rust
-let usage = client
+let user = client.for_user("user_0123456789abcdef")?;
+let usage = user
     .usage()
     .sessions(["ss_0123456789abcdef"])
     .await?;

@@ -49,7 +49,7 @@ let tenant = client.tenant().update().name("Acme agents").await?;
 
 | Setter | Description |
 | --- | --- |
-| `name(name)` | A new display name, 1 to 80 characters |
+| `name(name)` | A new display name, within the [display name limit](/api-reference/protocols/service-limits#tenant-display-name) |
 | `monetization_enabled(enabled)` | Bills usage to your end users through your merchant account. Turning it off drops usage events your merchant has not yet accepted |
 | `quota(quota)` | Replaces the whole monthly quota |
 | `clear_quota()` | Removes the monthly quota |
@@ -64,7 +64,7 @@ let tenant = client
     .await?;
 ```
 
-`QuotaInput::new(reset_day)` takes the reset day of each month, 1 to 28. Every field is always sent; a limit you do not set goes out as `null`, which means unlimited.
+`QuotaInput::new(reset_day)` takes the reset day of each month, within the [reset day range](/api-reference/protocols/service-limits#quota-reset-day). Set at least one limit with `monthly_token_limit()` or `monthly_request_limit()`, or the update fails with `validation_failed`. Every field is always sent; a limit you do not set goes out as `null`, which means unlimited. To remove the whole quota, call `clear_quota()` instead.
 
 Awaiting returns [`TenantSettings`](#tenantsettings). Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed).
 

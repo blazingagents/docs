@@ -19,7 +19,7 @@ Lists or searches an agent's memories, newest first, one page at a time. Pass `n
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -80,7 +80,7 @@ Adds a memory to an agent. An agent keeps up to 500 memories; when it is full, t
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -138,7 +138,7 @@ Retrieves one memory. Reading it here does not change its `lastAccessedAt`.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -193,7 +193,7 @@ Replaces a memory's text and marks it as used now, which moves it to the back of
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -251,7 +251,7 @@ Permanently deletes a memory.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |

@@ -25,7 +25,7 @@ Go from an empty folder to an agent that answers your users inside your own app.
   <Step>
     ### [Connect Blazing Agents to your app](/getting-started/connect-your-app)
 
-    Add a chat endpoint to your backend that checks who the user is and remembers each conversation.
+    Add a chat endpoint to your backend that signs users in, gives each one their own agent, and remembers each conversation.
 
   </Step>
   <Step>
@@ -44,11 +44,11 @@ Go from an empty folder to an agent that answers your users inside your own app.
 
 ## How the pieces fit [#what-you-will-build]
 
-Your frontend sends messages to your backend. Your backend signs the user in, decides which conversations they may open, and calls Blazing Agents with your API key. Blazing Agents runs the agent and streams the answer back through your backend.
+Your frontend sends messages to your backend. Your backend signs the user in and calls Blazing Agents with your API key, acting as that user. Each user gets their own agent, and Blazing Agents lets each user open only their own conversations. Blazing Agents runs the agent and streams the answer back through your backend.
 
-Your frontend never sees the API key. That matters because one key can reach every agent in your tenant.
+Your frontend never sees the API key. That matters because a key at either [access level](/platform/security-and-credentials#api-key-access-levels) can run every agent in your tenant.
 
 ## Next [#next]
 
 - [Why Blazing Agents](/why) to see what the platform handles for you.
-- [Examples](https://github.com/blazingagents/examples) for complete Next.js, TanStack Start, Vite + Hono, Express, and FastAPI apps.
+- [Examples](https://github.com/blazingagents/examples) for complete Next.js, TanStack Start, Vite + Hono, Express, and FastAPI apps. Rust and Go examples live in the [Rust SDK](https://github.com/blazingagents/rust-sdk/tree/main/examples) and [Go SDK](https://github.com/blazingagents/golang-sdk/tree/main/examples) repositories.

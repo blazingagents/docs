@@ -726,7 +726,7 @@
       "group": "quotas-and-billing",
       "statuses": [429],
       "title": "Too many requests at once.",
-      "whatHappened": "Either too many interactive turns are running at the same time for your plan, or you created agents, tasks, or workspaces faster than the [creation rate limit](/api-reference/protocols/service-limits#tenant-resource-creation-rate) allows.",
+      "whatHappened": "Either more turns are running at once than your plan's [concurrent turn limit](/api-reference/protocols/service-limits#concurrent-turns) allows, or you created agents, tasks, or workspaces faster than the [creation rate limit](/api-reference/protocols/service-limits#tenant-resource-creation-rate) allows.",
       "howToFix": [
         "Wait for the time in the `Retry-After` header when it is present.",
         "Otherwise retry with backoff and jitter, and limit how many turns you run at once. See [quota and capacity outcomes](/platform/usage-and-quotas#quota-and-capacity-outcomes)."
@@ -794,9 +794,9 @@
       "group": "quotas-and-billing",
       "statuses": [409],
       "title": "Your billing connection still has running requests or pending usage.",
-      "whatHappened": "You cannot remove or replace your merchant connection while a request admitted on it is still running, or while one of its usage events is `pending`. Removing the connection now would lose that usage.",
+      "whatHappened": "You cannot remove or replace your merchant connection while a turn or task run that started on this connection is still running, or while one of its usage events is `pending`. Removing the connection now would lose that usage.",
       "howToFix": [
-        "Wait for running requests to finish and for pending events to be delivered, then try again.",
+        "Wait for running turns and task runs to finish and for pending events to be delivered, then try again.",
         "If a `pending` event's `nextAction` is `retry`, its automatic delivery gave up. Retry it. It ends `accepted` or `failed`, and a `failed` event no longer blocks removal."
       ],
       "retryable": true

@@ -16,6 +16,8 @@ const workspace = await client.workspaces.create({
 await client.agents.update({ agentId, workspaceId: workspace.id });
 ```
 
+Every turn of an agent runs in that agent's one workspace, so end users who share an agent also share its files. In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/typescript/client#for-user) from `client.forUser(verifiedUserId)`. It creates workspaces that belong to that end user, returns only theirs, and answers `workspace_not_found` for anyone else's. The tenant client sees every user's workspaces and is for your backend's administration.
+
 Every method takes one input object and accepts an optional `abortSignal`. Reading or changing a workspace record does not touch its files.
 
 ## Available operations [#available-operations]
@@ -37,17 +39,16 @@ Creates an empty workspace. Core is the default. Pass `tier: "plus"` to keep fil
 **Signature:** `create(input?: CreateWorkspaceBody & ResourceRequestOptions): Promise<Workspace>`
 
 ```typescript
-const workspace = await client.workspaces.create({
+const workspace = await client.forUser(verifiedUserId).workspaces.create({
   name: "Release files",
-  userId: "user_42",
 });
 ```
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `tier` | `"core" \| "plus"` | no | `"core"` | Immutable workspace tier |
-| `name` | `string` | no | none | Display name, 1 to 80 characters |
-| `userId` | `string` | no | `""` | The end user this workspace belongs to; cannot change later |
+| `name` | `string` | no | none | Display name within the [workspace name limit](/api-reference/protocols/service-limits#workspace-name) |
+| `userId` | `string` | no | `""` | The end user this workspace belongs to; cannot change later. A scoped client fills it in |
 | `metadata` | `Record<string, unknown>` | no | `{}` | Your own labels |
 | `networkPolicy` | `WorkspaceNetworkPolicy` | no | `{ mode: "unrestricted" }` | Outbound network rules |
 
@@ -66,13 +67,13 @@ Lists workspaces, newest first.
 **Signature:** `list(input?: WorkspacesListOptions): Promise<WorkspacesListResponse>`
 
 ```typescript
-const { data, nextCursor } = await client.workspaces.list({ userId: "user_42" });
+const { data, nextCursor } = await client.forUser(verifiedUserId).workspaces.list();
 ```
 
 | Option | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `userId` | `string` | no | none | Only this end user's workspaces; `""` for tenant-level ones |
-| `limit` | `number` | no | `50` | 1 to 200 per page |
+| `userId` | `string` | no | none | Tenant client only: this end user's workspaces; `""` for tenant-level ones |
+| `limit` | `number` | no | `50` | Page size; see the [workspace page limit](/api-reference/protocols/service-limits#workspace-page) |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
 Returns [`WorkspacesListResponse`](#workspaceslistresponse). Errors: `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).

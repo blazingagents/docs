@@ -9,9 +9,12 @@ description: List, inspect, download, and delete the files your agents publish, 
 
 Examples assume `client = BlazingAgents()`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names and use `async for` with `iter()`.
 
+In a route that serves a signed-in end user, call these methods on [`client.for_user(verified_user_id)`](/sdk/python/client#for-user), which returns only that user's records. The tenant client sees every user's records and is for your backend's administration. An artifact ID from a browser is safe to use only on the scoped client, which answers `not_found` for another user's artifact.
+
 ```python
-for artifact in client.artifacts.iter(agent_id="ag_0123456789abcdef"):
-    download = client.artifacts.create_download_url(artifact_id=artifact.artifact_id)
+user = client.for_user(verified_user_id)
+for artifact in user.artifacts.iter(agent_id="ag_0123456789abcdef"):
+    download = user.artifacts.create_download_url(artifact_id=artifact.artifact_id)
     print(artifact.filename, download.url)
 ```
 
@@ -22,14 +25,14 @@ for artifact in client.artifacts.iter(agent_id="ag_0123456789abcdef"):
 | [`list()`](#list) | Get one page of artifacts | `ArtifactsPage` |
 | [`iter()`](#iter) | Iterate every artifact | `Iterator[Artifact]` |
 | [`get()`](#get) | Get one artifact's details | `Artifact` |
-| [`create_download_url()`](#create-download-url) | Get a five-minute download link | `ArtifactDownloadUrl` |
+| [`create_download_url()`](#create-download-url) | Get a short-lived download link | `ArtifactDownloadUrl` |
 | [`delete()`](#delete) | Delete an artifact | `None` |
 
 ## Methods [#methods]
 
 ### `list()` [#list]
 
-Gets one page of 50 artifacts, newest first.
+Gets one [fixed-size page](/api-reference/protocols/service-limits#other-cursored-resource-pages) of artifacts, newest first.
 
 ```python
 page = client.artifacts.list(agent_id="ag_0123456789abcdef", session_id="ss_0123456789abcdef")
@@ -37,7 +40,7 @@ page = client.artifacts.list(agent_id="ag_0123456789abcdef", session_id="ss_0123
 
 **Signature:** `list(*, agent_id=..., session_id=..., cursor=...) -> ArtifactsPage`
 
-Filter by agent, session, or both. Pass the previous page's `next_cursor` as `cursor`. Returns `ArtifactsPage` with `data: list[Artifact]` and `next_cursor: str | None`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
+Filter by agent, session, or both. A scoped client returns only its user's artifacts. Pass the previous page's `next_cursor` as `cursor`. Returns `ArtifactsPage` with `data: list[Artifact]` and `next_cursor: str | None`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `iter()` [#iter]
 
@@ -67,10 +70,11 @@ Returns [`Artifact`](#artifact). Raises `validation_failed` or [`not_found`](/ap
 
 ### `create_download_url()` [#create-download-url]
 
-Creates a direct download link that expires after five minutes.
+Creates a direct download link that expires after the [download URL lifetime](/api-reference/protocols/service-limits#artifact-download-url).
 
 ```python
-download = client.artifacts.create_download_url(artifact_id=artifact.artifact_id)
+user = client.for_user(verified_user_id)
+download = user.artifacts.create_download_url(artifact_id=artifact.artifact_id)
 print(download.url, download.expires_at)
 ```
 

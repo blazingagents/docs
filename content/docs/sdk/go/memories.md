@@ -7,12 +7,17 @@ description: Create, search, update, and delete the notes an agent remembers, wi
 
 `client.Memories` manages the durable notes an agent remembers across sessions.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/go/client#for-user) from `client.ForUser(userID)`, which returns only that user's memories. The tenant client sees every user's memories and is for your backend's administration.
+
 Examples are function bodies that receive `ctx context.Context`, `client *ba.Client`, `agentID ba.AgentID`, and `sessionID ba.SessionID`, and return an `error`. Every method also takes the per-call options `ba.WithRequestTimeout`, `ba.WithRequestHeader`, `ba.WithClientRequestID`, and `ba.CaptureResponse`.
 
 ```go
-memory, err := client.Memories.Create(ctx, agentID, ba.CreateMemoryParams{
-	Text:   "Prefers release notes under five lines.",
-	UserID: new("customer_123"),
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+memory, err := user.Memories.Create(ctx, agentID, ba.CreateMemoryParams{
+	Text: "Prefers release notes under five lines.",
 })
 if err != nil {
 	return err
@@ -23,7 +28,7 @@ return nil
 
 ## How memories are kept [#how-memories-are-kept]
 
-A memory is a text note tied to one agent, optionally scoped to an end user. An empty or omitted `UserID` creates a general memory every turn of the agent sees. An agent holds at most 500 memories; creating one when it is full can remove the memory used least recently.
+A memory is a text note tied to one agent, optionally scoped to an end user. An empty or omitted `UserID` creates a general memory. A turn on the tenant client sees the general memories, plus the memories of the turn's `UserID` when it has one. A turn on a scoped client sees only its user's memories, never the general ones. An agent holds a [limited number of memories](/api-reference/protocols/service-limits#memories-per-agent); creating one when it is full can remove the memory used least recently.
 
 ## Available operations [#available-operations]
 
@@ -39,7 +44,7 @@ A memory is a text note tied to one agent, optionally scoped to an end user. An 
 
 ### `Create` [#create]
 
-Stores a memory. `Text` is non-empty and at most 10 KiB.
+Stores a memory. `Text` is non-empty and within the [memory text limit](/api-reference/protocols/service-limits#memory-text). On a scoped client, the memory belongs to that user.
 
 ```go
 memory, err := client.Memories.Create(ctx, agentID, ba.CreateMemoryParams{Text: "Prefers German in replies."})
@@ -55,7 +60,7 @@ return nil
 | Field | Type | Description |
 | --- | --- | --- |
 | `Text` | `string` | The text to remember |
-| `UserID` | `*string` | The end user the memory belongs to. Fixed after creation |
+| `UserID` | `*string` | The end user the memory belongs to. Fixed after creation. A scoped client fills it in |
 
 Returns [`*ba.Memory`](#memory). Fails with `*ba.APIError` whose `Code` is [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`not_found`](/api-reference/protocols/errors#not_found).
 
@@ -64,7 +69,11 @@ Returns [`*ba.Memory`](#memory). Fails with `*ba.APIError` whose `Code` is [`val
 Lists an agent's memories.
 
 ```go
-page, err := client.Memories.List(ctx, agentID, ba.ListMemoriesParams{Search: new("release notes")})
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+page, err := user.Memories.List(ctx, agentID, ba.ListMemoriesParams{Search: new("release notes")})
 if err != nil {
 	return err
 }
@@ -78,10 +87,10 @@ return nil
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `UserID` | `*string` | Only memories with exactly this `UserID`; `new("")` selects general memories, and nil returns all |
+| `UserID` | `*string` | For a tenant-wide view on the tenant client: only memories with exactly this `UserID`; `new("")` selects general memories, and nil returns all. Leave it unset on a scoped client |
 | `Search` | `*string` | Only memories whose text matches these words; an empty string is ignored |
 | `Cursor` | `*string` | The `NextCursor` of the previous page |
-| `Limit` | `*int` | Page size, 1 to 100; defaults to 50 |
+| `Limit` | `*int` | Page size, within the [memory page limit](/api-reference/protocols/service-limits#memory-page) |
 
 Returns [`*ba.Page[Memory]`](#memory); `All` walks every page lazily. Fails with `validation_failed`, `invalid_cursor`, or `not_found`.
 

@@ -93,7 +93,7 @@ Both agents now read and write the same files. Each agent can touch those files 
 
 - **Files belong to the workspace.** Sessions, task runs, and stateless generation that share a workspace see the same files. On Plus they also survive the workspace stopping; see [what survives a stop](#snapshot-resume). [Verify it yourself](#verify-durable-file-operations).
 - **The agent works under `/workspace`.** Relative paths resolve there, and `bash` starts there.
-- **Compute starts on use.** Creating a workspace or agent starts no compute. The first file or shell operation does, and the workspace stops after about 10 minutes without one.
+- **Compute starts on use.** Creating a workspace or agent starts no compute. The first file or shell operation does, and the workspace stops after an [idle period](/api-reference/protocols/service-limits#workspace-idle-stop) without one.
 - **Your model keys never enter it.** The agent reasons outside the workspace. Only file and shell calls run inside, and they receive no provider credentials or application environment variables.
 - **It stands on its own.** Renaming an agent does not rename its workspace, and deleting an agent keeps the workspace and its files. Moving an agent to another workspace does not copy files across.
 
@@ -133,7 +133,7 @@ Switching between unrestricted access and a restricted mode restarts the workspa
 | Core | 256 MiB | Lost when the workspace stops |
 | Plus | 4 GiB | Kept when the workspace stops while idle |
 
-Every workspace starts with Python 3.13, Node.js 24 with the TypeScript compiler (`tsc`), and common shell tools: bash, git, curl, wget, jq, ripgrep, zip, unzip and xz. Nothing else is installed. There is no Go toolchain or C compiler, so the agent installs what it needs, for example with `npm install` or `pip install` into a virtual environment, and prefers packages that ship prebuilt binaries. Core has about 1.6 GB of free disk and loses installed packages when it stops. Use Plus for heavier dependencies or ones the next run should find.
+Every workspace starts with Python 3.13, Node.js 24 with the TypeScript compiler (`tsc`), and common shell tools: bash, git, curl, wget, jq, ripgrep, zip, unzip and xz. Nothing else is installed. There is no Go toolchain or C compiler, so the agent installs what it needs, for example with `npm install` or `pip install` into a virtual environment, and prefers packages that ship prebuilt binaries. Core has [limited free disk](/api-reference/protocols/service-limits#workspace-disk) and loses installed packages when it stops. Use Plus for heavier dependencies or ones the next run should find.
 
 Create a workspace with `tier: "plus"`, or create an agent with `workspaceTier: "plus"` (`workspace_tier="plus"` in Python, `.workspace_tier(WorkspaceTier::Plus)` in Rust, `WorkspaceTier: new(ba.WorkspaceTierPlus)` in Go). Omit the tier to use Core. Do not combine `workspaceId` with `workspaceTier`, even when you request Core. An existing workspace keeps its own tier.
 

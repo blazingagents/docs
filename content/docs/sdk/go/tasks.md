@@ -7,6 +7,8 @@ description: Run agents in the background, on demand or on a schedule, and follo
 
 `client.Tasks` runs an agent's saved prompt in the background, on demand or on a schedule.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/go/client#for-user) from `client.ForUser(userID)`, which returns only that user's tasks and runs. The tenant client sees every user's tasks and is for your backend's administration. A run of a scoped task needs an agent and workspace that belong to the user.
+
 Examples are function bodies that receive `ctx context.Context`, `client *ba.Client`, `agentID ba.AgentID`, and `sessionID ba.SessionID`, and return an `error`. Every method also takes the per-call options `ba.WithRequestTimeout`, `ba.WithRequestHeader`, `ba.WithClientRequestID`, and `ba.CaptureResponse`.
 
 ```go
@@ -70,16 +72,16 @@ return nil
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
 | `AgentID` | `ba.AgentID` | required | The agent that runs the task |
-| `Name` | `string` | required | Display name, 1 to 80 characters |
-| `Prompt` | `string` | required | The prompt every run receives, 1 to 6,000 characters |
+| `Name` | `string` | required | Display name, within the [task field limits](/api-reference/protocols/service-limits#task-fields) |
+| `Prompt` | `string` | required | The prompt every run receives, within the [task field limits](/api-reference/protocols/service-limits#task-fields) |
 | `IdempotencyKey` | `*string` | none | A repeated request with the same key returns the task instead of creating another |
 | `Schedule` | `ba.Nullable[ba.Schedule]` | none | When the task runs by itself |
 | `Enabled` | `*bool` | `true` | Whether the schedule fires; a disabled task can still be started on demand |
 | `Submit` | `*bool` | `false` | Starts the first run at once; `RunID` is then set |
-| `UserID` | `*string` | `""` | The end user the task belongs to, copied to every run. Fixed after creation |
+| `UserID` | `*string` | `""` | The end user the task belongs to, copied to every run. Fixed after creation. A scoped client fills it in |
 | `Metadata` | `ba.Metadata` | `{}` | Your own data, copied to every run |
 
-`ba.Schedule` is `ba.ScheduleOnce{At: t}`, `ba.ScheduleInterval{Every: d}` (at least one minute), or `ba.ScheduleCron{Expression: expr}` with an optional `Timezone` (default `UTC`) and `Stagger`. A kind this version does not know decodes as `ba.UnknownSchedule`, which is sent back unchanged. Go cannot infer the type argument from the field, so write it out: `ba.Value[ba.Schedule](ba.ScheduleInterval{Every: time.Hour})`.
+`ba.Schedule` is `ba.ScheduleOnce{At: t}`, `ba.ScheduleInterval{Every: d}` (no shorter than the [interval limit](/api-reference/protocols/service-limits#task-interval)), or `ba.ScheduleCron{Expression: expr}` with an optional `Timezone` (default `UTC`) and `Stagger`. A kind this version does not know decodes as `ba.UnknownSchedule`, which is sent back unchanged. Go cannot infer the type argument from the field, so write it out: `ba.Value[ba.Schedule](ba.ScheduleInterval{Every: time.Hour})`.
 
 Returns [`*ba.CreatedTask`](#task) with `Task` and `RunID` (set only when `Submit` started one). Reusing an `IdempotencyKey` with different task fields, or after deleting the task, fails with [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict). Also fails with `*ba.APIError` whose `Code` is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found), or [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `Submit` starts a run on a disabled agent.
 
@@ -88,7 +90,11 @@ Returns [`*ba.CreatedTask`](#task) with `Task` and `RunID` (set only when `Submi
 Lists tasks, most recently updated first. Each task's `LatestRun` carries its most recent run's status.
 
 ```go
-page, err := client.Tasks.List(ctx, ba.ListTasksParams{AgentID: &agentID, Limit: new(50)})
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+page, err := user.Tasks.List(ctx, ba.ListTasksParams{AgentID: &agentID, Limit: new(50)})
 if err != nil {
 	return err
 }
@@ -101,9 +107,9 @@ return nil
 | Field | Type | Description |
 | --- | --- | --- |
 | `AgentID` | `*ba.AgentID` | Only tasks for this agent |
-| `UserID` | `*string` | Only tasks for this end user; `new("")` selects tenant-level tasks |
+| `UserID` | `*string` | For a tenant-wide view on the tenant client: only tasks for this end user; `new("")` selects tenant-level tasks. Leave it unset on a scoped client |
 | `Cursor` | `*string` | The `NextCursor` of the previous page |
-| `Limit` | `*int` | Page size, 1 to 200; defaults to 50 |
+| `Limit` | `*int` | Page size, within the [task page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages) |
 
 Returns [`*ba.Page[TaskListItem]`](#task); `All` walks every page lazily. Fails with `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
@@ -143,8 +149,8 @@ return nil
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `Name` | `*string` | New display name, 1 to 80 characters |
-| `Prompt` | `*string` | New prompt, 1 to 6,000 characters |
+| `Name` | `*string` | New display name, within the [task field limits](/api-reference/protocols/service-limits#task-fields) |
+| `Prompt` | `*string` | New prompt, within the [task field limits](/api-reference/protocols/service-limits#task-fields) |
 | `Schedule` | `ba.Nullable[ba.Schedule]` | `ba.Value[ba.Schedule](...)` replaces the schedule; `ba.Null[ba.Schedule]()` removes it, so the task runs only when you start it |
 | `Enabled` | `*bool` | Whether the schedule fires |
 | `Metadata` | `ba.Metadata` | Replaces the metadata completely |
@@ -197,7 +203,7 @@ return nil
 
 **Signature:** `func (s *TasksService) ListRuns(ctx context.Context, taskID TaskID, params ListTaskRunsParams, opts ...RequestOption) (*Page[TaskRun], error)`
 
-`Limit` takes 1 to 200 runs per page, defaulting to 50, and `Cursor` resumes from a `NextCursor`. Returns [`*ba.Page[TaskRun]`](#taskrun); `AllRuns` walks every page lazily. Fails with `validation_failed`, `invalid_cursor`, or `not_found`.
+`Limit` sets the runs per page, within the [task run page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages), and `Cursor` resumes from a `NextCursor`. Returns [`*ba.Page[TaskRun]`](#taskrun); `AllRuns` walks every page lazily. Fails with `validation_failed`, `invalid_cursor`, or `not_found`.
 
 ### `GetRun` [#get-run]
 
@@ -218,10 +224,14 @@ Returns [`*ba.TaskRun`](#taskrun). Fails with `validation_failed` or `not_found`
 
 ### `ListRunMessages` [#run-messages]
 
-Returns a run's transcript with the run's `Status`, `Error`, and `FinishedAt`, so one request says both what the agent said and whether the run is done. The page is empty until the run starts its session.
+Returns a run's transcript with the run's `Status`, `Error`, and `FinishedAt`, so one request says both what the agent said and whether the run is done. The page is empty until the run starts its session. While the run works, it holds only the prompt message; the agent's messages appear together when the run ends.
 
 ```go
-page, err := client.Tasks.ListRunMessages(ctx, "tk_0123456789abcdef", "tr_0123456789abcdef", ba.ListTaskRunMessagesParams{})
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+page, err := user.Tasks.ListRunMessages(ctx, "tk_0123456789abcdef", "tr_0123456789abcdef", ba.ListTaskRunMessagesParams{})
 if err != nil {
 	return err
 }
@@ -233,7 +243,7 @@ return nil
 
 **Signature:** `func (s *TasksService) ListRunMessages(ctx context.Context, taskID TaskID, runID TaskRunID, params ListTaskRunMessagesParams, opts ...RequestOption) (*TaskRunMessageList, error)`
 
-`Cursor` walks backward through a `NextCursor`; `After` polls for messages newer than a saved `LatestCursor`. Set one or the other; both fail client-side with `*ba.ArgumentError`. `Limit` is 1 to 200, defaulting to 50. Returns a `*ba.TaskRunMessageList` with `Data`, `NextCursor`, `LatestCursor`, `Status`, `Error`, and `FinishedAt`. `AllRunMessages` keeps the direction you start with. Fails with `validation_failed`, `invalid_cursor`, or `not_found`.
+`Cursor` walks backward through a `NextCursor`; `After` polls for messages newer than a saved `LatestCursor`. Set one or the other; both fail client-side with `*ba.ArgumentError`. `Limit` sets the page size, within the [message page limit](/api-reference/protocols/service-limits#session-or-task-run-message-page). Returns a `*ba.TaskRunMessageList` with `Data`, `NextCursor`, `LatestCursor`, `Status`, `Error`, and `FinishedAt`. `AllRunMessages` keeps the direction you start with. Fails with `validation_failed`, `invalid_cursor`, or `not_found`.
 
 ### `CancelRun` [#cancel-run]
 
@@ -281,6 +291,7 @@ It succeeds whenever the task exists, even if the run is missing or already fini
 | `TurnID` | `*ba.TurnID` | The run's metered turn |
 | `Status` | `ba.TaskRunStatus` | Queued through canceled |
 | `Error` | `*string` | Why a failed or blocked run did not complete |
+| `ErrorCode` | `*ba.ErrorCode` | The reason a blocked or failed run ended, as an API error code such as `ba.ErrorCodeUsageCreditRequired`; nil for other runs and for a failure without a code |
 | `UserID` | `string` | End user, copied from the task |
 | `Metadata` | `ba.Metadata` | Your own data |
 | `StartedAt`, `FinishedAt`, `CancelRequestedAt`, `CanceledAt`, `CreatedAt`, `UpdatedAt` | `*time.Time`, `time.Time` | Lifecycle timestamps |

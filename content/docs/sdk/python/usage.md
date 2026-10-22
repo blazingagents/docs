@@ -9,6 +9,8 @@ description: Read token, request, and duration totals for your tenant or one age
 
 Examples assume `client = BlazingAgents()`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names.
 
+To show an end user their own usage, call `get()`, `sessions()`, and `get_for_agent()` on [`client.for_user(verified_user_id)`](/sdk/python/client#for-user), which counts only that user's usage. The tenant client counts every user's usage and is for your backend's administration. `overview()` is on the tenant client only.
+
 ```python
 usage = client.usage.get(group_by="agent")
 for bucket in usage.buckets:
@@ -18,7 +20,7 @@ print(usage.totals.request_count)
 
 ## Date ranges [#date-ranges]
 
-Every method takes an optional `from_` and `to`, inclusive UTC dates such as `"2026-09-01"`. Pass both or neither. Without them you get the last 30 days, ending today. A custom range can span at most 31 days. The argument is `from_` because `from` is a Python keyword.
+Every method takes an optional `from_` and `to`, inclusive UTC dates such as `"2026-09-01"`. Pass both or neither. The [usage query window](/api-reference/protocols/service-limits#usage-query-window) sets the default range and the longest custom range. The argument is `from_` because `from` is a Python keyword.
 
 ## Available operations [#available-operations]
 
@@ -44,17 +46,17 @@ for day in dashboard.daily:
 
 **Signature:** `overview(*, from_=..., to=..., limit=...) -> UsageOverview`
 
-`limit` caps the agent and end-user rankings. It is 1 to 20 and defaults to 5. Returns [`UsageOverview`](#usageoverview). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) for a partial, reversed, or too-long range, or an invalid limit.
+`limit` caps the agent and end-user rankings, within the [overview ranking limit](/api-reference/protocols/service-limits#usage-overview-top-n). Tenant client only. Returns [`UsageOverview`](#usageoverview). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) for a partial, reversed, or too-long range, or an invalid limit.
 
 ### `get()` [#get]
 
-Gets usage across your tenant, optionally filtered and grouped.
+Gets usage across your tenant, optionally filtered and grouped. On a scoped client, it counts only that user's usage.
 
 ```python
-usage = client.usage.get(
+user = client.for_user(verified_user_id)
+usage = user.usage.get(
     from_="2026-09-01",
     to="2026-09-20",
-    user_id="customer_123",
     group_by="day",
 )
 ```
@@ -65,9 +67,9 @@ usage = client.usage.get(
 | --- | --- | --- |
 | `agent_id` | `str` | Only this agent |
 | `session_id` | `str` | Only this session; `""` selects calls outside any session, such as `completion()` |
-| `user_id` | `str` | Only this end user; `""` selects tenant-level usage |
+| `user_id` | `str` | Tenant client: only this end user; `""` selects tenant-level usage |
 | `group_by` | `UsageGroupBy` | `"day"` (default), `"agent"`, `"model"`, `"session"`, or `"user"` |
-| `limit` | `int` | 1 to 200, default 50. Only applies to `group_by="session"`, where it returns the top sessions |
+| `limit` | `int` | Number of top sessions, within the [session ranking limit](/api-reference/protocols/service-limits#usage-session-top-n). Only applies to `group_by="session"` |
 
 Returns [`Usage`](#usage). Raises `validation_failed` for a bad range, filter, grouping, or limit.
 
@@ -87,7 +89,7 @@ for row in result.data:
 
 **Signature:** `sessions(session_ids: Sequence[str], *, from_=..., to=...) -> SessionUsageList`
 
-Pass 1 to 100 distinct session IDs. `from_` and `to` follow the [date range rules](#date-ranges). A missing session, or one outside the tenant or user scope, returns `not_found` for the whole request. This method does not rank or truncate sessions. It is also available on a [`for_user()`](/sdk/python/client#for-user) client.
+Pass distinct session IDs, within the [batch limit](/api-reference/protocols/service-limits#usage-exact-session-batch). `from_` and `to` follow the [date range rules](#date-ranges). A missing session, or one outside the tenant or user scope, returns `not_found` for the whole request. This method does not rank or truncate sessions. It is also available on a [`for_user()`](/sdk/python/client#for-user) client.
 
 ### `get_for_agent()` [#get-for-agent]
 

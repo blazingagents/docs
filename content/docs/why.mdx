@@ -32,14 +32,15 @@ Blazing Agents ships each of these today.
 
 | Blazing Agents handles | You keep |
 | --- | --- |
-| Running each turn against your chosen provider and model | Signing in your users and deciding what each one may access |
+| Running each turn against your chosen provider and model | Signing in your users |
 | Saving sessions and their history | Your product UI and user experience |
 | Each agent's workspace: files, shell, and network rules | Your business rules and data |
-| Skills, memory, MCP connections, and tool approvals | Which agent, session, or resource belongs to which user |
+| Keeping each end user to their own agents, sessions, files, and memories when you call as that user | Roles and permissions inside your product |
+| Skills, memory, MCP connections, and tool approvals | Which agents each user gets |
 | Tasks, task runs, and schedules | When to start work, and what to do with the result |
 | Usage records, quotas, and token billing events | Your prices, plans, and invoices, through your own Polar or Dodo account |
 
-Your backend is the only thing that talks to Blazing Agents. It checks who the user is, then calls the API with your key. A `userId` you pass labels usage and resources for reporting. It does not grant access, so your backend stays the gatekeeper. See [tenancy and attribution](/platform/tenancy-and-attribution).
+Your backend is the only thing that talks to Blazing Agents. It signs the user in, then calls the API with your key as that user, through `client.forUser(userId)` in TypeScript. Blazing Agents limits those calls to the user's own agents, sessions, files, and memories, and answers `404` when one user asks for another user's records. You keep no table of which user owns which conversation. A call made without a user reaches your whole tenant. See [tenancy and attribution](/platform/tenancy-and-attribution).
 
 ## Build it yourself vs Blazing Agents [#build-it-yourself-vs-blazing-agents]
 
@@ -65,7 +66,7 @@ This table compares building on a plain model SDK with your own database and san
 Blazing Agents sits behind your backend:
 
 1. **Your frontend** renders the chat and sends messages to your backend.
-2. **Your backend** signs in the user, checks access, and calls Blazing Agents through the [TypeScript SDK](/sdk/typescript), [Python SDK](/sdk/python), [Rust SDK](/sdk/rust), or [Go SDK](/sdk/go).
+2. **Your backend** signs in the user and calls Blazing Agents as that user through the [TypeScript SDK](/sdk/typescript), [Python SDK](/sdk/python), [Rust SDK](/sdk/rust), or [Go SDK](/sdk/go).
 3. **Blazing Agents** runs the turn and streams the answer back through your backend.
 
 The stream uses the Vercel AI SDK UI message format, so `useChat` from `@ai-sdk/react` renders it with no custom parsing. The [chatbot guide](/getting-started/chatbot) builds the send flow and lists how to add stop, edit, and regenerate.

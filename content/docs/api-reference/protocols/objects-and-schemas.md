@@ -435,7 +435,7 @@ See [SDK Tenant settings](/sdk/typescript/tenant),
 ### Quota [#quota]
 
 `quotaSchema` / `Quota` holds a monthly token ceiling, a monthly request
-ceiling, and a reset day from 1 to 28. Each ceiling is a positive integer, or
+ceiling, and a [reset day](/api-reference/protocols/service-limits#quota-reset-day). Each ceiling is a positive integer, or
 `null` for no limit. A tenant with `quota: null` has no quota.
 
 See [SDK Tenant settings](/sdk/typescript/tenant#patch),

@@ -9,21 +9,23 @@ description: Create, search, update, and delete the notes an agent remembers, wi
 
 Examples receive a `client: blazing_agents::Client`. Every call also takes the `with_timeout`, `without_timeout`, `with_header`, and `with_client_request_id` transport options.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/rust/client#for-user) from `client.for_user()`, which returns only that user's memories. The tenant client sees every user's memories and is for your backend's administration.
+
 ```rust
-let memory = client
+let user = client.for_user("user_0123456789abcdef")?;
+let memory = user
     .memories()
     .create(
         "ag_0123456789abcdef",
         "Prefers release notes under five lines.",
     )
-    .user_id("customer_123")
     .await?;
 println!("{}", memory.id);
 ```
 
 ## How memories are kept [#how-memories-are-kept]
 
-A memory is a text note tied to one agent, optionally scoped to an end user. An empty or omitted `user_id` creates a general memory every turn of the agent sees. An agent holds at most 500 memories; creating one when it is full can remove the memory used least recently.
+A memory is a text note tied to one agent, optionally scoped to an end user. A memory created on a `UserClient` belongs to its user. On the tenant client, an empty or omitted `user_id` creates a general memory. Turns on the tenant client see the general memories and those of the session's end user. Turns on a `UserClient` see only that user's memories, never the general ones. An agent has a [memory limit](/api-reference/protocols/service-limits#memories-per-agent); creating one when it is full can remove the memory used least recently.
 
 ## Available operations [#available-operations]
 
@@ -39,7 +41,7 @@ A memory is a text note tied to one agent, optionally scoped to an end user. An 
 
 ### `create()` [#create]
 
-Stores a memory. `text` is non-empty and at most 10 KiB.
+Stores a memory. `text` is non-empty and within the [memory text limit](/api-reference/protocols/service-limits#memory-text). This tenant-client example creates a general memory.
 
 ```rust
 let memory = client
@@ -61,7 +63,8 @@ Awaiting returns [`Memory`](#memory). Fails with `Error::Api` whose code is [`va
 Lists an agent's memories.
 
 ```rust
-let page = client
+let user = client.for_user("user_0123456789abcdef")?;
+let page = user
     .memories()
     .list("ag_0123456789abcdef")
     .search("release notes")
@@ -75,9 +78,9 @@ for memory in &page.data {
 
 | Setter | Type | Description |
 | --- | --- | --- |
-| `user_id` | `impl Into<String>` | Only memories with exactly this `user_id`; `""` selects general memories, and unset returns all |
+| `user_id` | `impl Into<String>` | Only memories with exactly this `user_id`; `""` selects general memories, and unset returns all. A `UserClient` returns only its user's memories |
 | `search` | `impl Into<String>` | Only memories whose text matches these words; an empty string is ignored |
-| `limit` | `u8` | Page size, 1 to 100; defaults to 50 |
+| `limit` | `u8` | Page size, within the [memory page limit](/api-reference/protocols/service-limits#memory-page) |
 
 Awaiting returns [`Page<Memory>`](#memory); `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed`, `invalid_cursor`, or `not_found`.
 
@@ -86,7 +89,8 @@ Awaiting returns [`Page<Memory>`](#memory); `.items()` and `.pages()` walk every
 Gets one memory. Does not change `last_accessed_at`.
 
 ```rust
-let memory = client
+let user = client.for_user("user_0123456789abcdef")?;
+let memory = user
     .memories()
     .get("ag_0123456789abcdef", "mem_0123456789abcdef")
     .await?;

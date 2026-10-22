@@ -52,7 +52,7 @@ provider = client.providers.create(
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `name` | `str` | Display name, 1 to 80 characters |
+| `name` | `str` | Display name, within the [provider name limit](/api-reference/protocols/service-limits#provider-name) |
 | `provider_type` | `ProviderType` | `"openai"`, `"anthropic"`, `"openrouter"`, `"google"`, `"vercel_ai_gateway"`, or `"custom"` |
 | `api_key` | `str` | The provider's API key. Never returned |
 | `base_url` | `str \| None` | Required for `"custom"`; not accepted for `"vercel_ai_gateway"` |
@@ -140,8 +140,8 @@ Raises `validation_failed`, `provider_not_found`, or one of these codes:
 
 | Code | Meaning |
 | --- | --- |
-| [`provider_in_use`](/api-reference/protocols/errors#provider_in_use) | A current agent uses it. Move the agent first; confirmation does not override this |
-| [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) | Saved sessions or queued or running task runs use it. `error.details.sessionIds` and `error.details.taskRunIds` list them. Pass `confirm_snapshot_invalidation=True` to delete anyway |
+| [`provider_in_use`](/api-reference/protocols/errors#provider_in_use) | A current agent uses it. `error.details["agentIds"]` lists the agents. Move them first; confirmation does not override this |
+| [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) | Saved sessions or queued or running task runs use it. `error.details["sessionIds"]` and `error.details["taskRunIds"]` list them. Pass `confirm_snapshot_invalidation=True` to delete anyway |
 
 After a confirmed delete, session and task run history remains, but any later turn that needs the provider raises `provider_not_found`.
 

@@ -132,7 +132,7 @@ elif result.error is not None:
 
 **Signature:** `test(mcp_connection_id: str) -> McpConnectionTestResult`
 
-A failed check is a normal result with `ok == False`, not an exception. Testing an OAuth connection can refresh its stored tokens. Raises `validation_failed`, or `not_found` for an unknown connection.
+A failed check is a normal result with `ok == False`, not an exception. Its `error.code` is one of the [uppercase status codes](#status-codes). Testing an OAuth connection can refresh its stored tokens. Raises `validation_failed`, or `not_found` for an unknown connection.
 
 ### `reconnect()` [#reconnect]
 
@@ -166,14 +166,14 @@ Raises `validation_failed`, `not_found`, a [live check error](#errors-and-secret
 | `auth_type` | `str` | Authentication type |
 | `status` | `str` | For example `"connected"`, `"needs_auth"`, or `"error"` |
 | `credential_fragment` | `str \| None` | Short, non-secret fragment of the credential |
-| `last_auth_error_code` | `str \| None` | Last authentication error |
+| `last_auth_error_code` | `str \| None` | Last authentication error, as an [uppercase status code](#status-codes) |
 | `oauth_issuer`, `oauth_resource` | `AnyUrl \| None` | OAuth details, when used |
 | `token_expires_at` | `datetime \| None` | OAuth token expiry, when known |
 | `created_at`, `updated_at` | `datetime` | Timestamps |
 
 ### `McpConnectionTestResult` [#mcpconnectiontestresult]
 
-When `ok` is `True`, it has `latency_ms`, `server` (with `name` and `version`), `tool_count`, and `tool_names`. When `ok` is `False`, only `error` is set, with a `code` and a `message`.
+When `ok` is `True`, it has `latency_ms`, `server` (with `name` and `version`), `tool_count`, and `tool_names`. When `ok` is `False`, only `error` is set, with an uppercase [status code](#status-codes) as `code` and a `message`.
 
 ### `McpConnectionReconnectResult` [#mcpconnectionreconnectresult]
 
@@ -182,6 +182,17 @@ Has `status` (`"connected"` or `"needs_auth"`) and the updated `connection`.
 ## Errors and secrets [#errors-and-secrets]
 
 Live checks in `create()` and `reconnect()` can raise [`mcp_connection_authentication_failed`](/api-reference/protocols/errors#mcp_connection_authentication_failed), [`mcp_connection_invalid`](/api-reference/protocols/errors#mcp_connection_invalid), [`mcp_connection_unreachable`](/api-reference/protocols/errors#mcp_connection_unreachable), or [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed). Never log bearer tokens or client secrets.
+
+### Status codes [#status-codes]
+
+`McpConnection.last_auth_error_code` and a failed test's `error.code` use uppercase codes:
+
+- `MCP_CONNECTION_AUTHENTICATION_FAILED`
+- `MCP_CONNECTION_INVALID`
+- `MCP_CONNECTION_UNREACHABLE`
+- `MCP_CONNECTION_DISCOVERY_FAILED`
+
+They name the same failures as the live check errors above, but in uppercase. `APIStatusError.code` is lowercase, so compare each field with the uppercase value. The SDK types both fields as `str`, so a type checker does not catch a lowercase comparison.
 
 ## Next [#next]
 

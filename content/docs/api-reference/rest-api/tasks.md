@@ -30,7 +30,7 @@ Lists your tasks, most recently updated first, one page at a time. Each task inc
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -109,15 +109,22 @@ Creates a task: a saved prompt your agent runs in the background. With a `schedu
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `idempotencyKey` | string | body |  | Retry the same creation with this key to return the current task and its original initial run. Changed requests or deleted tasks return a conflict. |
 | `agentId` | string | body | required | ID of the agent that runs the task. It cannot change later. |
-| `name` | string | body | required | Display name, 1 to 80 characters. 1–80 characters. |
-| `prompt` | string | body | required | The prompt the agent receives on every run, 1 to 6,000 characters. 1–6000 characters. |
+| `name` | string | body | required | Display name, 1 to 80 characters. |
+| `prompt` | string | body | required | The prompt the agent receives on every run, 1 to 6,000 characters. |
 | `schedule` | object \| null | body |  | When the task runs by itself: `once` at a time, every `everyMs` milliseconds (at least 60,000) for `interval`, or a five-field cron expression in an IANA timezone for `cron`. `null` means the task runs only when you start it. Defaults to `null`. |
+| `schedule.kind` | string | body | required |  |
+| `schedule.config` | object | body | required |  |
+| `schedule.config.at` | string | body | required | Only when `schedule.kind` is `once`. |
+| `schedule.config.everyMs` | integer | body | required | Only when `schedule.kind` is `interval`. Minimum 60000. |
+| `schedule.config.expression` | string | body | required | Only when `schedule.kind` is `cron`. 1–120 characters. |
+| `schedule.config.staggerMs` | integer | body |  | Only when `schedule.kind` is `cron`. Minimum 0. |
+| `schedule.config.timezone` | string | body |  | Only when `schedule.kind` is `cron`. 1–64 characters. Defaults to `UTC`. |
 | `enabled` | boolean | body |  | Whether the schedule fires. A disabled task can still be started on demand. Defaults to `true`. |
 | `submit` | boolean | body |  | Start a run as soon as the task is created. Defaults to `false`. |
 | `userId` | string | body |  | Your end user's ID, used for attribution. An empty string means a tenant-level task. It cannot change after creation. Defaults to `""`. |
@@ -221,7 +228,7 @@ Returns a task without running it. `activeRunId` is the run in progress, if any,
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -288,14 +295,21 @@ Updates a task. Send at least one field; fields you leave out keep their values.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `taskId` | string | path | required | ID of the task. |
-| `name` | string | body |  | Display name, 1 to 80 characters. 1–80 characters. |
-| `prompt` | string | body |  | The prompt the agent receives on every run, 1 to 6,000 characters. 1–6000 characters. |
+| `name` | string | body |  | Display name, 1 to 80 characters. |
+| `prompt` | string | body |  | The prompt the agent receives on every run, 1 to 6,000 characters. |
 | `schedule` | object \| null | body |  | When the task runs by itself: `once` at a time, every `everyMs` milliseconds (at least 60,000) for `interval`, or a five-field cron expression in an IANA timezone for `cron`. `null` means the task runs only when you start it. |
+| `schedule.kind` | string | body | required |  |
+| `schedule.config` | object | body | required |  |
+| `schedule.config.at` | string | body | required | Only when `schedule.kind` is `once`. |
+| `schedule.config.everyMs` | integer | body | required | Only when `schedule.kind` is `interval`. Minimum 60000. |
+| `schedule.config.expression` | string | body | required | Only when `schedule.kind` is `cron`. 1–120 characters. |
+| `schedule.config.staggerMs` | integer | body |  | Only when `schedule.kind` is `cron`. Minimum 0. |
+| `schedule.config.timezone` | string | body |  | Only when `schedule.kind` is `cron`. 1–64 characters. Defaults to `UTC`. |
 | `enabled` | boolean | body |  | Whether the schedule fires. A disabled task can still be started on demand. |
 | `metadata` | object | body |  | Your own key-value data. Replaces the current metadata. |
 
@@ -363,7 +377,7 @@ Deletes a task and stops its schedule. Its past runs and their transcripts are k
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |

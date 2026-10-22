@@ -65,14 +65,33 @@ let agent = correlated.agents().get("ag_0123456789abcdef").await?;
 
 **Signature:** `for_user(user_id: impl AsRef<str>) -> Result<UserClient, ConfigError>`
 
-Use `for_user()` in your backend after you authenticate an end user. It returns a `UserClient` that sends `X-BA-User-Id` on every request, and the API checks that user's ownership for reads and writes. It makes no network request.
+Use `for_user()` in your backend after you authenticate an end user. It returns a `UserClient` that sends `X-BA-User-Id` on every request. It makes no network request. Reads and lists on it return only that user's records, and another user's record fails with `not_found`. Records it creates belong to that user.
 
 ```rust
-let user_client = client.for_user("verified_user_42")?;
-let page = user_client.agents().list().limit(50).await?;
+use blazing_agents::messages::UserMessage;
+use futures_util::TryStreamExt;
+
+let user = client.for_user("user_0123456789abcdef")?;
+let agent = user
+    .agents()
+    .create("Assistant")
+    .model("prv_0123456789abcdef", "openai/gpt-6-luna")
+    .await?;
+let mut stream = user.chat(&agent.id, UserMessage::text("Hello")).await?;
+while let Some(event) = stream.try_next().await? {
+    print!("{}", String::from_utf8_lossy(&event));
+}
 ```
 
 Pass the ID from the session your backend verified. Do not take it from a request body or query parameter. The ID must be 1 to 256 printable ASCII characters without a leading or trailing space, or `for_user()` fails with `ConfigError::InvalidUserId`. The scope header wins over default and per-call headers.
+
+A turn on a `UserClient` needs an agent that belongs to the user, and the agent's workspace must belong to the user too. This applies to chat, regeneration, tool approval continuations, stateless generation, and task runs. Otherwise the turn fails with [`not_found`](/api-reference/protocols/errors#not_found) for the agent or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) for the workspace. A session you continue must also belong to the user. An agent created on a `UserClient` without `workspace_id` gets a new workspace that belongs to the same user, as in the example.
+
+A `UserClient` sees only the user's own memories, both in turns and through `memories()`. It never sees the agent's general memories, which belong to no end user.
+
+An agent without an end user has one workspace for every end user. Each of its turns runs in that workspace, so files one user's turn writes are visible to another user's turns. Give each end user their own agent and workspace when their files must stay apart.
+
+Keep the tenant client for your backend's administration: providers, tenant settings, MCP and chat connections, billing, and reports across users.
 
 A `UserClient` has `agents()`, `artifacts()`, `memories()`, `prompts()`, `sessions()`, `tasks()`, `workspaces()`, `agent()`, the [generation methods](#generation-methods), and `usage()` with `get()`, [`sessions()`](/sdk/rust/usage#sessions), and [`get_for_agent()`](/sdk/rust/usage#get-for-agent). Tenant administration is missing at compile time: a `UserClient` has no `providers()`, `mcp_connections()`, `chat_connections()`, `tenant()`, or merchant accessors, its `agents()` has no spending limit methods, and its `usage()` has no `overview()`. Use the tenant client for those operations.
 
@@ -153,6 +172,8 @@ The client has `chat()`, `regenerate()`, and `continue_chat()` for conversations
 
 Give `chat()` one input: a `UserMessage`, a `ChatInput::try_from` over a `Vec<UserMessage>` for a batch, or a `SavedPrompt` for a saved prompt. `regenerate()` takes a `UserMessage` or `SavedPrompt`. The stateless methods take prompt text or a `SavedPrompt`, and `object()` and `object_stream()` also take an `ObjectSchema`. `SavedPrompt::new(id).var(name, value)` supplies the saved prompt's variables.
 
+In a route that serves a signed-in end user, call these methods on the [`UserClient`](#for-user) from `for_user()`. The examples below run on the tenant client, as a backend job would.
+
 `chat()`, `regenerate()`, and the four stateless calls (`completion`, `completion_stream`, `object`, `object_stream`) have `user_id` and `metadata` setters to attribute the turn; `chat()`, `regenerate()`, and `continue_chat()` have a `functions` setter; `continue_chat()` has only `functions`. Every call has the `with_*` transport options.
 
 ## Methods [#methods]
@@ -181,7 +202,7 @@ Without the `session` setter, `chat()` starts a new session. Its `ss_...` ID is 
 | Setter | Description |
 | --- | --- |
 | `session(session_id)` | Continue an existing session instead of starting one |
-| `user_id(user_id)` | Attribute the turn to an end user |
+| `user_id(user_id)` | Label the turn with an end user. On the tenant client it grants no access |
 | `metadata(metadata)` | Your own data, stored with the turn |
 | `functions(functions)` | Backend functions the agent may call during the turn |
 
@@ -260,9 +281,9 @@ let functions = Functions::builder()
     .build()?;
 ```
 
-`build()` fails with `FunctionsError` for a name outside `^[A-Za-z][A-Za-z0-9_-]{0,63}$` or reserved for a built-in or MCP tool, a duplicate, more than 32 functions, an empty description, a non-object input schema, or definitions over 64 KiB.
+`build()` fails with `FunctionsError` for a name outside `^[A-Za-z][A-Za-z0-9_-]{0,63}$` or reserved for a built-in or MCP tool, a duplicate, an empty description, a non-object input schema, or more functions or larger definitions than the [function limits](/api-reference/protocols/service-limits#backend-functions) allow.
 
-The handler also gets a `FunctionContext`: `idempotency_key()` to make side effects idempotent across retries, `deadline()` for when the platform stops waiting, `cancelled()` which resolves when the deadline passes or the stream is dropped, and `is_cancelled()`. Input that does not decode, an `Err`, or a result that is not plain JSON becomes a sanitized tool error; the handler's own error text never reaches the agent. Results over 256 KiB become an invalid-result error.
+The handler also gets a `FunctionContext`: `idempotency_key()` to make side effects idempotent across retries, `deadline()` for when the platform stops waiting, `cancelled()` which resolves when the deadline passes or the stream is dropped, and `is_cancelled()`. Input that does not decode, an `Err`, or a result that is not plain JSON becomes a sanitized tool error; the handler's own error text never reaches the agent. A result over the [function limits](/api-reference/protocols/service-limits#backend-functions) becomes an invalid-result error.
 
 Build one `Functions` value and attach it to every chat call with the `functions` setter; it is cheap to clone. Claims and result submissions retry transient failures with the same body until the call's deadline. See [backend functions](/agents/tools/backend-functions).
 

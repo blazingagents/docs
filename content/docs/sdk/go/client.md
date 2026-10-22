@@ -83,24 +83,37 @@ return nil
 
 **Signature:** `func (c *Client) ForUser(userID string) (*UserClient, error)`
 
-Use `ForUser` in your backend after you authenticate an end user. It returns a `*ba.UserClient` that sends `X-BA-User-Id` on every request, and the API checks that user's ownership for reads and writes. It makes no network request.
+Use `ForUser` in a route that serves a signed-in end user. It returns a `*ba.UserClient` that sends `X-BA-User-Id` on every request, and it makes no network request. Reads and lists on it return only that user's records, and another user's record fails with `not_found`. Records you create on it belong to that user.
 
 ```go
-userClient, err := client.ForUser("verified_user_42")
+user, err := client.ForUser("user_0123456789abcdef")
 if err != nil {
 	return err
 }
-page, err := userClient.Agents.List(ctx, ba.ListAgentsParams{Limit: new(50)})
+agent, err := user.Agents.Create(ctx, ba.CreateAgentParams{
+	Name:       "Personal assistant",
+	ProviderID: ba.Value[ba.ProviderID]("prv_0123456789abcdef"),
+	Model:      ba.Value("openai/gpt-6-luna"),
+})
 if err != nil {
 	return err
 }
-fmt.Println(len(page.Data))
-return nil
+stream, err := user.Chat.Send(ctx, agent.ID, ba.Messages(ba.TextMessage("Hello")), ba.ChatParams{})
+if err != nil {
+	return err
+}
+defer stream.Close()
+_, err = stream.WriteTo(os.Stdout)
+return err
 ```
 
 Pass the ID from the session your backend verified. Do not take it from a request body or query parameter. The ID must be 1 to 256 printable ASCII characters without a leading or trailing space, or `ForUser` returns an error that wraps `ba.ErrInvalidUserID`. You cannot set `X-BA-User-Id` yourself through headers.
 
-A `*ba.UserClient` has `Agents`, `Artifacts`, `Memories`, `Prompts`, `Sessions`, `Skills`, `Tasks`, `Workspaces`, the [`Chat` and `Generation` services](#generation-methods), and `Usage` with `Get`, [`Sessions`](/sdk/go/usage#sessions), and [`ForAgent`](/sdk/go/usage#get-for-agent). Tenant administration is missing at compile time: a `*ba.UserClient` has no `Providers`, `MCPConnections`, `ChatConnections`, `Tenant`, `SpendingLimits`, or merchant fields, and its `Usage` has no `Overview`. Use the tenant client for those operations.
+A turn on a `*ba.UserClient` (a chat, a completion, an object, a continued approval round, or a task run) needs an agent that belongs to the user, and the agent's workspace must belong to the user too. An agent you create on the scoped client gets a new workspace owned by the same user, as in the example. To share a workspace across that user's agents, create it with `user.Workspaces.Create` and pass its `WorkspaceID`. Otherwise the turn fails with [`not_found`](/api-reference/protocols/errors#not_found) for the agent or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) for the workspace. A session you continue must belong to the user as well. A scoped turn sees only that user's memories, never the agent's general memories.
+
+Every turn of an agent runs in the agent's one workspace. If you run one tenant-level agent for many end users on the tenant client, each user's turns can read the files that other users' turns wrote. Give each end user their own agent on the scoped client when their files must stay apart.
+
+A `*ba.UserClient` has `Agents`, `Artifacts`, `Memories`, `Prompts`, `Sessions`, `Skills`, `Tasks`, `Workspaces`, the [`Chat` and `Generation` services](#generation-methods), and `Usage` with `Get`, [`Sessions`](/sdk/go/usage#sessions), and [`ForAgent`](/sdk/go/usage#get-for-agent). Tenant administration is missing at compile time: a `*ba.UserClient` has no `Providers`, `MCPConnections`, `ChatConnections`, `Tenant`, `SpendingLimits`, or merchant fields, and its `Usage` has no `Overview`. Use the tenant client for those operations. The tenant client sees every user's records, so keep it for your backend's administration: providers, tenant settings, and reports across users.
 
 A request's `UserID` field labels the resource or turn. It does not grant access. On a scoped request, the API fills in a missing `userId` with the scoped ID and rejects a different one. Without `ForUser`, your API key keeps tenant-wide authority, even when a request contains a `UserID`.
 
@@ -174,15 +187,13 @@ A `*ba.APIError` prints as `blazingagents: getAgent: 404 not_found: Agent not fo
 
 The SDK sends no telemetry. Pass `ba.WithLogger` to receive its `log/slog` records: a debug record for every response with the operation, method, path, status, duration, request ID, and client request ID, and the backend function runner's records, such as a refused function call or a handler's error text. The SDK does not log credentials, headers, request bodies, schemas, or stream content.
 
-Chats with backend functions run handlers on their own goroutines while you consume the stream.
-
 ## Generation methods [#generation-methods]
 
 `client.Chat` has `Send`, `Regenerate`, and `Continue` for conversations that Blazing Agents stores as sessions. `client.Generation` has buffered and streaming forms of stateless text, and the generic functions `ba.Object` and `ba.StreamObject` produce structured output. Every call runs one metered turn.
 
 Give `Send` one input: `ba.Messages(...)` with one or more `ba.UserMessage` values, or a `ba.SavedPrompt` for a saved prompt. `Regenerate` takes a `ba.UserMessage` or `ba.SavedPrompt`. The stateless methods take `ba.Text("...")` or a `ba.SavedPrompt`. `ba.SavedPrompt{ID: promptID, Variables: map[string]string{...}}` supplies the saved prompt's variables.
 
-`ba.ChatParams`, `ba.RegenerateParams`, `ba.GenerateParams`, and `ba.ObjectParams[T]` have `UserID` and `Metadata` fields to attribute the turn; `ba.ChatParams`, `ba.RegenerateParams`, and `ba.ContinueParams` have a `Functions` field; `ba.ContinueParams` has only `Functions`. Every call takes the per-call options.
+`ba.ChatParams`, `ba.RegenerateParams`, `ba.GenerateParams`, and `ba.ObjectParams[T]` have `UserID` and `Metadata` fields to attribute the turn. On the tenant client, `UserID` only labels the turn and its usage. In a route that serves an end user, call these methods on a [`*ba.UserClient`](#for-user), which fills in the user. `ba.ChatParams`, `ba.RegenerateParams`, and `ba.ContinueParams` have a `Functions` field; `ba.ContinueParams` has only `Functions`. Every call takes the per-call options.
 
 ## Methods [#methods]
 
@@ -190,10 +201,14 @@ Give `Send` one input: `ba.Messages(...)` with one or more `ba.UserMessage` valu
 
 **Signature:** `func (s *ChatService) Send(ctx context.Context, agentID AgentID, input ChatInput, params ChatParams, opts ...RequestOption) (*ChatStream, error)`
 
-Sends a message in a session and returns a `*ba.ChatStream` of AI SDK SSE events. When you attach backend functions, the SDK consumes private callback events and yields the remaining events to your application.
+Sends a message in a session and returns a `*ba.ChatStream` of AI SDK SSE events. When you attach backend functions, the SDK consumes private callback events and yields the remaining events to your application. In a route that serves an end user, send on the user's [scoped client](#for-user).
 
 ```go
-stream, err := client.Chat.Send(ctx, agentID, ba.Messages(ba.TextMessage("Hello")), ba.ChatParams{})
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+stream, err := user.Chat.Send(ctx, agentID, ba.Messages(ba.TextMessage("Hello")), ba.ChatParams{})
 if err != nil {
 	return err
 }
@@ -213,11 +228,50 @@ With an empty `SessionID`, `Send` starts a new session. Its `ss_...` ID is avail
 | Field | Type | Description |
 | --- | --- | --- |
 | `SessionID` | `ba.SessionID` | Continue an existing session instead of starting one |
-| `UserID` | `*string` | Attribute the turn to an end user |
+| `UserID` | `*string` | Label the turn with an end user. It grants no access, and a `*ba.UserClient` fills it in |
 | `Metadata` | `ba.Metadata` | Your own data, stored with the turn |
 | `Functions` | `*ba.Functions` | Backend functions the agent may call during the turn |
 
-`Events()` yields one complete event per iteration as a fresh byte slice. `WriteTo(w)` relays every remaining event to an `io.Writer` and flushes after each one, and `SetRelayHeaders(h)` sets the headers a browser `useChat` transport expects; together they relay a turn from an `http.Handler`.
+`Events()` yields one complete event per iteration as a fresh byte slice. `WriteTo(w)` relays every remaining event to an `io.Writer` and flushes after each one, and `SetRelayHeaders(h)` sets the stream headers a browser `useChat` transport expects; together they relay a turn from an `http.Handler`.
+
+`SetRelayHeaders` does not copy `Location`. When the call starts a new session, copy `stream.Meta().Header.Get("Location")` to your response, so a browser transport such as the TypeScript SDK's `BlazingAgentsChatTransport` learns the new session ID and sends it back on the next message. On the scoped client, a session ID from the browser is safe to pass on: another user's session fails with `not_found`.
+
+```go
+type chatRequest struct {
+	Message   ba.UserMessage `json:"message"`
+	SessionID ba.SessionID   `json:"sessionId"`
+}
+
+http.HandleFunc("POST /api/chat", func(w http.ResponseWriter, r *http.Request) {
+	var body chatRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+	user, err := client.ForUser("user_0123456789abcdef")
+	if err != nil {
+		http.Error(w, "invalid user", http.StatusBadRequest)
+		return
+	}
+	stream, err := user.Chat.Send(r.Context(), agentID, ba.Messages(body.Message),
+		ba.ChatParams{SessionID: body.SessionID})
+	if err != nil {
+		http.Error(w, "the agent call failed", http.StatusBadGateway)
+		return
+	}
+	defer stream.Close()
+	stream.SetRelayHeaders(w.Header())
+	if location := stream.Meta().Header.Get("Location"); location != "" {
+		w.Header().Set("Location", location)
+	}
+	if _, err := stream.WriteTo(w); err != nil {
+		log.Printf("relay ended: %v", err)
+	}
+})
+return nil
+```
+
+Replace the placeholder with the user ID from your sign-in check. The [`chat_relay` example](https://github.com/blazingagents/golang-sdk/tree/main/examples/chat_relay) adds regeneration and a demo sign-in.
 
 `ba.TextMessage(text)` builds a text message with a random ID. `ba.NewUserMessage(id, first, rest...)` sets the ID and parts: `ba.TextPart{Text: ...}`, or `ba.FilePart{MediaType: ..., URL: ...}` to attach a file, such as an image, as a `data:` URL or a fetchable URL. Keep the message and resend it to retry safely. A batch sends several waiting messages in one turn, and each stays a separate user message in order:
 
@@ -234,7 +288,9 @@ return err
 
 `ba.Messages` takes at least one message by its signature, so an empty batch cannot be built. A chat fails with `*ba.APIError` whose status is 409 and code is `message_id_conflict` if any message ID is already saved in the session's history. The entire batch is rejected before model or tool work, including when a reused ID has changed content. Regeneration is exempt. After an unknown response, read the history instead of automatically retrying. See [sessions and turns](/platform/sessions-and-turns#send-while-the-agent-is-working).
 
-Keep consuming the stream while the chat runs. Function calls are dispatched as you read their events, so pausing iteration delays new calls. Running handlers do not block iteration.
+On an existing session, `Send` fails with 409 [`session_busy`](/api-reference/protocols/errors#session_busy) while another turn runs, a tool approval waits for a decision, or an approval continuation runs; `apiErr.Details["reason"]` names the cause. Wait for the turn, or [steer](/sdk/go/sessions#submit-input) the message into it. When the previous turn stopped responding, `Send` fails with 409 [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive). Wait for `apiErr.RetryAfter`, read the history to see what was saved, and send again under a new message ID. See [busy and concurrent sessions](/platform/sessions-and-turns#busy-and-concurrent-sessions).
+
+Keep consuming the stream while the chat runs. Function calls are dispatched as you read their events, so pausing iteration delays new calls. Handlers run on their own goroutines and do not block iteration.
 
 ### `Chat.Regenerate` [#regenerate]
 
@@ -254,7 +310,7 @@ _, err = stream.WriteTo(os.Stdout)
 return err
 ```
 
-`ba.RegenerateParams` also has `UserID`, `Metadata`, and `Functions` fields. It returns a `*ba.ChatStream`, the same as `Send`.
+`ba.RegenerateParams` also has `UserID`, `Metadata`, and `Functions` fields. It returns a `*ba.ChatStream`, the same as `Send`, and fails with `session_busy` or `session_turn_unresponsive` in the same cases.
 
 ### `ba.NewFunctions` [#functions]
 
@@ -283,9 +339,9 @@ _ = functions
 return nil
 ```
 
-`ba.NewFunctions` returns a `*ba.ArgumentError` for a name outside `^[A-Za-z][A-Za-z0-9_-]{0,63}$` or reserved for a built-in or MCP tool, a duplicate, more than 32 functions, an empty description, a non-object input schema, or definitions over 64 KiB.
+`ba.NewFunctions` returns a `*ba.ArgumentError` for a name outside `^[A-Za-z][A-Za-z0-9_-]{0,63}$` or reserved for a built-in or MCP tool, a duplicate, an empty description, a non-object input schema, or more functions or larger definitions than the [function limits](/api-reference/protocols/service-limits#backend-functions) allow.
 
-The handler also gets a `ba.FunctionCall`: `ID` to make side effects idempotent across retries, `Name`, and `Deadline` for when the platform stops waiting. Its context is canceled at the deadline, when you close the stream, or when the chat call's context ends. Input that does not decode, a returned error, a panic, or a result that is not plain JSON becomes a sanitized tool error; the handler's own error text never reaches the agent. Results over 256 KiB become an invalid-result error.
+The handler also gets a `ba.FunctionCall`: `ID` to make side effects idempotent across retries, `Name`, and `Deadline` for when the platform stops waiting. Its context is canceled at the deadline, when you close the stream, or when the chat call's context ends. Input that does not decode, a returned error, a panic, or a result that is not plain JSON becomes a sanitized tool error; the handler's own error text never reaches the agent. A result over the [function limits](/api-reference/protocols/service-limits#backend-functions) becomes an invalid-result error.
 
 Build one `*ba.Functions` value and attach it to every chat call with the `Functions` field; it is immutable and safe to share across goroutines. Claims and result submissions retry transient failures with the same body until the call's deadline. A permanent failure ends the stream with a `*ba.StreamError` whose `Kind` is `ba.StreamFunctionCall`. See [backend functions](/agents/tools/backend-functions).
 
@@ -310,7 +366,7 @@ return err
 
 Set `Functions` when the chat uses [backend functions](/agents/tools/backend-functions).
 
-Repeating the same decisions is safe. A missing, duplicate, or mixed round fails with `validation_failed`; a changed decision fails with `tool_approval_decision_conflict`; a retry while the continuation runs fails with `session_busy`; and a finished round fails with `tool_approval_continuation_settled`. An empty `decisions` slice fails client-side with `*ba.ArgumentError`. See [tool approvals](/agents/tools/tool-approvals).
+Repeating the same decisions is safe. A missing, duplicate, or mixed round fails with `validation_failed`; a changed decision fails with `tool_approval_decision_conflict`; a retry while the continuation runs fails with `session_busy`; and a finished round fails with `tool_approval_continuation_settled`. When the session's previous turn stopped responding, it fails with `session_turn_unresponsive`; your decisions stay recorded, so repeat the call after `apiErr.RetryAfter`. An empty `decisions` slice fails client-side with `*ba.ArgumentError`. See [tool approvals](/agents/tools/tool-approvals).
 
 ### `Generation.Completion` [#completion]
 

@@ -68,7 +68,9 @@ let connection = client
 
 **Signature:** `create(connection: NewMcpConnection) -> Call<CreateMcpConnection>`
 
-Awaiting returns [`McpConnection`](#mcpconnection). Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`mcp_connection_name_conflict`](/api-reference/protocols/errors#mcp_connection_name_conflict), [`mcp_connection_limit_reached`](/api-reference/protocols/errors#mcp_connection_limit_reached), or [`mcp_connection_invalid`](/api-reference/protocols/errors#mcp_connection_invalid). If a response ever echoes credential material back, the call fails client-side with `Error::CredentialEcho` and the body is discarded.
+For `None`, `Bearer`, and `OAuthClientCredentials`, Blazing Agents checks the live server before it saves the connection. `OAuthAuthorizationCode` is saved as `needs_auth` without a check, and an admin finishes sign-in from the dashboard. A failed create saves nothing.
+
+Awaiting returns [`McpConnection`](#mcpconnection). Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`mcp_connection_name_conflict`](/api-reference/protocols/errors#mcp_connection_name_conflict), [`mcp_connection_limit_reached`](/api-reference/protocols/errors#mcp_connection_limit_reached), or [`mcp_connection_invalid`](/api-reference/protocols/errors#mcp_connection_invalid). A failed live check fails with [`mcp_connection_authentication_failed`](/api-reference/protocols/errors#mcp_connection_authentication_failed) when the server rejects the credentials, [`mcp_connection_unreachable`](/api-reference/protocols/errors#mcp_connection_unreachable) when it cannot be reached, or [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) when its tool list cannot be read. If a response ever echoes credential material back, the call fails client-side with `Error::CredentialEcho` and the body is discarded.
 
 ### `list()` [#list]
 
@@ -168,7 +170,7 @@ let result = client
 
 **Signature:** `reconnect(mcp_connection_id: impl Into<McpConnectionId>, auth: McpReconnect) -> Call<ReconnectMcpConnection>`
 
-`McpReconnect` has the same variants as `NewMcpConnection` without `name`. Awaiting returns [`McpConnectionReconnectResult`](#mcpconnectionreconnectresult) with `status` (`McpReconnectStatus::Connected`, or `McpReconnectStatus::NeedsAuth` when an admin must sign in through the dashboard) and the updated `connection`. Fails with `validation_failed`, `not_found`, `mcp_connection_invalid`, or [`mcp_connection_stale_credential_version`](/api-reference/protocols/errors#mcp_connection_stale_credential_version).
+`McpReconnect` has the same variants as `NewMcpConnection` without `name`. As with `create()`, every variant except `OAuthAuthorizationCode` checks the live server before anything is replaced, and a failed check leaves the existing configuration as it was. Awaiting returns [`McpConnectionReconnectResult`](#mcpconnectionreconnectresult) with `status` (`McpReconnectStatus::Connected`, or `McpReconnectStatus::NeedsAuth` when an admin must sign in through the dashboard) and the updated `connection`. Fails with `validation_failed`, `not_found`, `mcp_connection_invalid`, or [`mcp_connection_stale_credential_version`](/api-reference/protocols/errors#mcp_connection_stale_credential_version). A failed live check fails with `mcp_connection_authentication_failed`, `mcp_connection_unreachable`, or `mcp_connection_discovery_failed`.
 
 ## Response models [#response-models]
 

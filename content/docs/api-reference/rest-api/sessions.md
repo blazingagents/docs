@@ -57,13 +57,13 @@ Lists an agent's sessions, most recently updated first, one page at a time. Each
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `cursor` | string | query |  | Cursor from the previous page's `nextCursor`. Leave it out for the first page. |
-| `limit` | integer | query |  | Number of items per page, from 1 to 200. Defaults to 50. 1–200. Defaults to `50`. |
+| `limit` | integer | query |  | Number of items per page, from 1 to 200. Defaults to 50. 1–200. |
 | `userId` | string | query |  | Return only this end user's sessions. Send an empty value for sessions without an end user. |
 
 #### Response
@@ -117,12 +117,12 @@ Starts a session and runs its first turn. The new session's URL is in the `Locat
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
-| `messages` | any[] | body |  | Ordered messages for one Turn, each an AI SDK `UIMessage` with `role: "user"`, an `id`, and non-empty `parts`. Parts can be text, or `file` parts with an `image/*` media type and a base64 `data:` URL. Send either `messages` or `promptId`. |
+| `messages` | any[] | body |  | Ordered messages for one Turn, each an AI SDK `UIMessage` with `role: "user"`, an `id`, and non-empty `parts`. Parts can be text, or `file` parts with an `image/*` media type and a base64 `data:` URL. Send either `messages` or `promptId`. At least 1 items. |
 | `promptId` | string | body |  | ID of a saved prompt to send instead of `messages`. |
 | `variables` | object | body |  | Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables. |
 | `trigger` | string | body |  | `submit-message` (the default) sends a new message. `regenerate-message` generates the answer again and is allowed only when continuing a session. One of `submit-message`, `regenerate-message`. Defaults to `submit-message`. |
@@ -168,13 +168,13 @@ Lists your tenant's sessions across all agents, most recently updated first, ski
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `byAgent` | string | query |  | `true` returns at most one session per agent: its latest. Defaults to `false`. One of `true`, `false`. Defaults to `false`. |
+| `byAgent` | string | query |  | `true` returns at most one session per agent: its latest. Defaults to `false`. One of `true`, `false`. |
 | `cursor` | string | query |  | Cursor from the previous page's `nextCursor`. Leave it out for the first page. |
-| `limit` | integer | query |  | Number of items per page, from 1 to 200. Defaults to 50. 1–200. Defaults to `50`. |
+| `limit` | integer | query |  | Number of items per page, from 1 to 200. Defaults to 50. 1–200. |
 | `userId` | string | query |  | Return only this end user's sessions. Send an empty value for sessions without an end user. |
 
 #### Response
@@ -232,7 +232,7 @@ Returns session details and the agent configuration selected for its first turn.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -315,13 +315,13 @@ Continues a session with a new turn. A session that does not exist or was delete
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `sessionId` | string | path | required | ID of the session. |
-| `messages` | any[] | body |  | Ordered messages for one Turn, each an AI SDK `UIMessage` with `role: "user"`, an `id`, and non-empty `parts`. Parts can be text, or `file` parts with an `image/*` media type and a base64 `data:` URL. Send either `messages` or `promptId`. |
+| `messages` | any[] | body |  | Ordered messages for one Turn, each an AI SDK `UIMessage` with `role: "user"`, an `id`, and non-empty `parts`. Parts can be text, or `file` parts with an `image/*` media type and a base64 `data:` URL. Send either `messages` or `promptId`. At least 1 items. |
 | `promptId` | string | body |  | ID of a saved prompt to send instead of `messages`. |
 | `variables` | object | body |  | Values for the saved prompt's variables. Allowed only with `promptId`, and must name exactly the prompt's variables. |
 | `trigger` | string | body |  | `submit-message` (the default) sends a new message. `regenerate-message` generates the answer again and is allowed only when continuing a session. One of `submit-message`, `regenerate-message`. Defaults to `submit-message`. |
@@ -367,7 +367,7 @@ Deletes a session. Afterwards it can no longer be read or continued, and every r
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -407,7 +407,7 @@ Copies the conversation through the selected branchable assistant message, inclu
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -549,7 +549,7 @@ Lists a session's messages as AI SDK `UIMessage` objects. The first page holds t
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -557,7 +557,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication).
 | `sessionId` | string | path | required | ID of the session. |
 | `after` | string | query |  | A `latestCursor` you saved earlier. Returns messages added after it, to poll for new messages. |
 | `cursor` | string | query |  | Cursor from the previous page's `nextCursor`, to walk back to older messages. |
-| `limit` | integer | query |  | Number of messages per page, from 1 to 200. Defaults to 50. 1–200. Defaults to `50`. |
+| `limit` | integer | query |  | Number of messages per page, from 1 to 200. Defaults to 50. 1–200. |
 
 #### Response
 
@@ -623,7 +623,7 @@ Lists the session's pending and decided tool approvals, with the continuation th
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -691,13 +691,16 @@ Records every decision in one approval round and streams the rest of the turn in
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `sessionId` | string | path | required | ID of the session. |
-| `decisions` | object[] | body | required | One decision for every approval in the current round. |
+| `decisions` | object[] | body | required | One decision for every approval in the current round. At least 1 items. |
+| `decisions[].approvalId` | string | body | required |  |
+| `decisions[].approved` | boolean | body | required |  |
+| `decisions[].reason` | string | body |  | 1–1000 characters. |
 | `functions` | object | body |  | Caller-local functions the model may call during this turn, keyed by name; each entry has a `description` and a JSON Schema `inputSchema`. Your backend claims and answers each call through the function-call endpoints. |
 
 #### Response
@@ -737,7 +740,7 @@ Claims one caller-local function call announced by a `data-ba-function-call` eve
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -786,7 +789,7 @@ Submits the outcome of a claimed function call: its JSON output or a sanitized e
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -795,6 +798,9 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `functionCallId` | string | path | required | ID of the function call, from the ready event's `data.id`. |
 | `claimRequestId` | string | body | required | A UUID you generate once per call and reuse on every retry of its claim and result. |
 | `outcome` | object | body | required | The handler's JSON output, or a sanitized error message for the model. |
+| `outcome.kind` | string | body | required |  |
+| `outcome.value` | boolean \| null | body | required | Only when `outcome.kind` is `output`. The function's JSON output: any JSON value. |
+| `outcome.message` | string | body | required | Only when `outcome.kind` is `error`. 1–4096 characters. |
 
 #### Response
 
@@ -836,13 +842,13 @@ Lists steer receipts in arrival order. accepted means a running turn still holds
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `sessionId` | string | path | required | ID of the session. |
-| `includeCompleted` | string | query |  | Also return terminal receipts. Defaults to `false`. One of `true`, `false`. Defaults to `false`. |
+| `includeCompleted` | string | query |  | Also return terminal receipts. Defaults to `false`. One of `true`, `false`. |
 | `limit` | integer | query |  | Maximum receipts per page, from 1 to 200. 1–200. Defaults to `100`. |
 | `cursor` | string | query |  | The previous page's nextCursor. |
 
@@ -908,7 +914,7 @@ Submits one user message to the running turn. Returns steer_not_available if it 
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -979,7 +985,7 @@ Records cancellation for the named turn and returns immediately. The existing tu
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |

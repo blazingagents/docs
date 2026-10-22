@@ -106,8 +106,8 @@ The error code tells you what to fix. It does not tell you the retry is safe, so
 - **[`unauthorized`](/api-reference/protocols/errors#unauthorized):** replace the API key.
 - **[`not_found`](/api-reference/protocols/errors#not_found):** check the ID and whether the resource was deleted.
 - **[`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded):** wait for the quota window to reset, or raise the quota.
-- **[`model_spending_limit_exceeded`](/api-reference/protocols/errors#model_spending_limit_exceeded):** do not retry automatically. Its `reason` tells you whether to wait for the reset, wait for running work, raise the limit, or switch models. See [handle a spending stop](/platform/usage-and-quotas#spending-limit-stops).
-- **[`rate_limited`](/api-reference/protocols/errors#rate_limited):** too many turns are running. Wait for the `Retry-After` header when it is present, otherwise retry with backoff.
+- **[`model_spending_limit_exceeded`](/api-reference/protocols/errors#model_spending_limit_exceeded):** do not retry automatically. Its `reason` is `exhausted`, so wait for the reset or raise the limit, or `unpriced`, so switch to a priced model or turn the limit off. See [handle a spending stop](/platform/usage-and-quotas#spending-limit-stops).
+- **[`rate_limited`](/api-reference/protocols/errors#rate_limited):** more turns are running than your plan's [concurrent turn limit](/api-reference/protocols/service-limits#concurrent-turns), or you created agents, tasks, or workspaces faster than the [creation rate](/api-reference/protocols/service-limits#tenant-resource-creation-rate). Wait for the `Retry-After` header when it is present, otherwise retry with backoff.
 - **[`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive):** the session's previous turn stopped responding. Wait for the `Retry-After` header, which is at most a minute. Read the session's messages first, then send again under a new message ID.
 - **Provider or [`internal`](/api-reference/protocols/errors#internal) errors:** retry only if the cause looks temporary and the call is safe to repeat.
 
@@ -123,7 +123,7 @@ In TypeScript, a broken connection after streaming starts raises `stream_error`,
 
 ## Cancellation and deadlines [#cancellation-and-deadlines]
 
-Cancelling a task run asks it to stop. The run stops at its next safe point, so keep checking until it reaches a final status. A run that hits its time limit also stops and ends as `failed`.
+Cancelling a task run asks it to stop. The run stops at its next safe point, so keep checking until it reaches a final status. A turn that reaches the [turn deadline](/api-reference/protocols/service-limits#turn-deadline) also stops, and a task run then ends as `failed`.
 
 A workspace command or file operation that has already started may finish after cancellation. Files it changed, and effects on remote systems, stay in place. Plan to clean up or reverse external effects yourself.
 
@@ -148,9 +148,10 @@ Lists return a `nextCursor`. Pass it back to the same call with the same filters
 | [`model_not_found`](/api-reference/protocols/errors#model_not_found) or [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable) | The provider's current model list. | Pick a listed model. Create a new provider if the key, type, or base URL changed. |
 | `stream_error` after output began | Whether any text arrived, and the request ID. | Retry only if the whole call is safe to repeat. |
 | MCP connection test fails or shows `error` | The connection's status and test result. | Test, reconnect, or finish OAuth sign-in. See [MCP tools](/agents/tools/mcp-tools). |
-| [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The agent's workspace attachment. | Attach a workspace before using workspace tools. |
+| [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The agent's workspace attachment, and with a [user-scoped client](/platform/tenancy-and-attribution#user-labels-and-user-scope), whether the workspace belongs to that user. | Attach a workspace before using workspace tools. For a scoped turn, give the user an agent and workspace of their own. |
+| `not_found` from a user-scoped client | Whether the agent or session belongs to that user. | Create the user's own agent with the scoped client, and resume only that user's sessions. |
 | Task run `failed` or `canceled` | The run and its transcript. | Submit a new run once repeating its effects is safe. |
-| `quota_exceeded` or run `blocked` | Your usage against your quota. | Wait for the reset day or raise the quota. |
+| `quota_exceeded` or run `blocked` | The run's `errorCode`, which names the check that stopped it. | Fix that check, such as waiting for the quota reset or adding usage credit. See [quota and capacity outcomes](/platform/usage-and-quotas#quota-and-capacity-outcomes). |
 
 When you replace a provider, saved sessions and queued or running task runs may still use the old one. Move current agents to the new provider first. See [rotate or remove a key](/agents/providers-and-models#rotate-or-remove-a-key) before removing the old provider.
 

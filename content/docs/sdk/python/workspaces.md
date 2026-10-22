@@ -11,6 +11,8 @@ Every agent gets its own workspace when you create it, so you only need this res
 
 Examples assume `client = BlazingAgents()`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names and use `async for` with `iter()`.
 
+In a route that serves a signed-in end user, call these methods on [`client.for_user(verified_user_id)`](/sdk/python/client#for-user), which returns only that user's records. The tenant client sees every user's records and is for your backend's administration. Every turn of every agent attached to a workspace sees the same files, so give each end user a workspace of their own when their files must stay private.
+
 ```python
 workspace = client.workspaces.create(
     name="Release files",
@@ -37,9 +39,9 @@ agent = client.agents.update("ag_0123456789abcdef", workspace_id=workspace.id)
 Creates an empty workspace. Core is the default. Pass `tier="plus"` to keep files when the workspace stops; see [what survives a stop](/agents/workspaces#snapshot-resume). The tier cannot change through `update()`; create and attach another workspace to change it. Files are not copied.
 
 ```python
-workspace = client.workspaces.create(
+user = client.for_user(verified_user_id)
+workspace = user.workspaces.create(
     name="Customer files",
-    user_id="customer_123",
     metadata={"project": "docs"},
 )
 ```
@@ -49,8 +51,8 @@ workspace = client.workspaces.create(
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
 | `tier` | `Literal["core", "plus"]` | `"core"` | Immutable workspace tier |
-| `name` | `str` | `None` | Display name, 1 to 80 characters |
-| `user_id` | `str` | `""` | End user the workspace belongs to; `""` means tenant level. Fixed after creation |
+| `name` | `str` | `None` | Display name, within the [workspace name limit](/api-reference/protocols/service-limits#workspace-name) |
+| `user_id` | `str` | `""` | End user the workspace belongs to; `""` means tenant level. Fixed after creation. A scoped client fills it in |
 | `metadata` | `dict[str, object]` | `{}` | Your own data |
 | `network_policy` | `WorkspaceNetworkPolicy` | `{"mode": "unrestricted"}` | Outbound network access for every agent using the workspace |
 
@@ -63,14 +65,15 @@ Returns [`Workspace`](#workspace). Raises `APIStatusError` with [`validation_fai
 Gets one page of workspaces, newest first.
 
 ```python
-page = client.workspaces.list(user_id="customer_123", limit=50)
+user = client.for_user(verified_user_id)
+page = user.workspaces.list(limit=50)
 if page.next_cursor is not None:
-    page = client.workspaces.list(cursor=page.next_cursor, limit=50)
+    page = user.workspaces.list(cursor=page.next_cursor, limit=50)
 ```
 
 **Signature:** `list(*, cursor=..., limit=..., user_id=...) -> WorkspacesPage`
 
-`limit` is 1 to 200 and defaults to 50. Pass the previous page's `next_cursor` as `cursor`. `user_id=""` returns tenant-level workspaces; omitting `user_id` returns all of them.
+`limit` follows the [workspace page limit](/api-reference/protocols/service-limits#workspace-page). Pass the previous page's `next_cursor` as `cursor`. On a scoped client, the page holds only that user's workspaces. On the tenant client, for an administration view, `user_id` filters by end user, `user_id=""` returns tenant-level workspaces, and omitting `user_id` returns all of them.
 
 Returns `WorkspacesPage` with `data: list[Workspace]` and `next_cursor: str | None`. Raises `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
@@ -79,7 +82,7 @@ Returns `WorkspacesPage` with `data: list[Workspace]` and `next_cursor: str | No
 Iterates every workspace, fetching pages as you go.
 
 ```python
-for workspace in client.workspaces.iter(user_id="customer_123"):
+for workspace in client.for_user(verified_user_id).workspaces.iter():
     print(workspace.id, workspace.name)
 ```
 
@@ -114,6 +117,8 @@ workspace = client.workspaces.update(
 **Signature:** `update(*, workspace_id: str, name=..., metadata=..., network_policy=...) -> Workspace`
 
 Omitted parameters keep their current value. `name=None` clears the name. `metadata` and `network_policy` replace the current values completely. `user_id` cannot change. Calling `update()` with nothing to change raises `validation_failed`.
+
+A `network_policy` that switches between `unrestricted` and a restricted mode (`offline` or `allowlist`) stops a running workspace. The workspace applies the new policy the next time an agent uses it. A Core workspace loses its files in that restart, and a Plus workspace keeps them. See [control network access](/agents/workspaces#control-network-access).
 
 Returns [`Workspace`](#workspace). Raises `validation_failed`, `workspace_not_found`, or [`workspace_busy`](/api-reference/protocols/errors#workspace_busy).
 

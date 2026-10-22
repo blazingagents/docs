@@ -9,6 +9,8 @@ description: Save reusable message templates and run them with variables, using 
 
 Examples assume `client = BlazingAgents()` and an `agent_id`. Every method also accepts `extra_headers` and `timeout`. On `AsyncBlazingAgents`, await the same method names.
 
+In a route that serves a signed-in end user, call these methods on [`client.for_user(verified_user_id)`](/sdk/python/client#for-user), which returns only that user's records. The tenant client sees every user's records and is for your backend's administration.
+
 ```python
 prompt = client.prompts.create(
     name="Release summary",
@@ -24,7 +26,7 @@ print(prompt.variables, str(result))
 
 ## Templates and variables [#templates-and-variables]
 
-Write placeholders as `{{name}}`. Names are trimmed and must look like identifiers. The prompt's `variables` field lists each name once, in the order it first appears. A template holds up to 10 variables and 10 KiB of text.
+Write placeholders as `{{name}}`. Names are trimmed and must look like identifiers. The prompt's `variables` field lists each name once, in the order it first appears. The [prompt field limits](/api-reference/protocols/service-limits#prompt-fields) cap the template's length and its number of variables.
 
 To run a prompt, pass `prompt_id` and `variables` to [`chat()`](/sdk/python/client#chat), [`completion()`](/sdk/python/client#completion), or [`object()`](/sdk/python/client#object) instead of a literal message or prompt. Supply exactly the names in `variables`: a missing one raises [`prompt_variable_missing`](/api-reference/protocols/errors#prompt_variable_missing) and an extra one raises [`prompt_variable_unknown`](/api-reference/protocols/errors#prompt_variable_unknown). Only the filled-in text is stored in the session, so editing or deleting the prompt later does not change past transcripts.
 
@@ -45,11 +47,11 @@ To run a prompt, pass `prompt_id` and `variables` to [`chat()`](/sdk/python/clie
 Saves a prompt template.
 
 ```python
-prompt = client.prompts.create(
+user = client.for_user(verified_user_id)
+prompt = user.prompts.create(
     name="Onboarding welcome",
     template="Welcome {{customer}} and explain {{feature}}.",
     agent_id=agent_id,
-    user_id="customer_123",
 )
 ```
 
@@ -57,29 +59,30 @@ prompt = client.prompts.create(
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `name` | `str` | required | Display name, 1 to 80 characters. Prompts can share a name |
+| `name` | `str` | required | Display name, within the [prompt field limits](/api-reference/protocols/service-limits#prompt-fields). Prompts can share a name |
 | `template` | `str` | required | Text with `{{variable}}` placeholders |
-| `agent_id` | `str \| None` | `None` | Link the prompt to one agent. Deleting that agent deletes the prompt |
-| `user_id` | `str` | `""` | End user; `""` means tenant level. Fixed after creation |
+| `agent_id` | `str \| None` | `None` | Link the prompt to one agent. Deleting that agent deletes the prompt. On a scoped client, the agent must belong to the user |
+| `user_id` | `str` | `""` | End user; `""` means tenant level. Fixed after creation. A scoped client fills it in |
 | `metadata` | `dict[str, object]` | `{}` | Your own data |
 
 Returns [`Prompt`](#prompt). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`not_found`](/api-reference/protocols/errors#not_found) for an unknown `agent_id`.
 
 ### `list()` [#list]
 
-Lists your prompts.
+Lists your prompts, newest first.
 
 ```python
-page = client.prompts.list(agent_id=agent_id, limit=50)
+user = client.for_user(verified_user_id)
+page = user.prompts.list(agent_id=agent_id, limit=50)
 for prompt in page.data:
     print(prompt.id, prompt.name)
 if page.next_cursor is not None:
-    next_page = client.prompts.list(agent_id=agent_id, cursor=page.next_cursor, limit=50)
+    next_page = user.prompts.list(agent_id=agent_id, cursor=page.next_cursor, limit=50)
 ```
 
 **Signature:** `list(*, agent_id=..., user_id=..., cursor=..., limit=...) -> PromptsPage`
 
-Omit both filters for every prompt. `user_id=""` returns tenant-level prompts. With both filters you get prompts that match both. `limit` is 1 to 100 and defaults to 50. Returns `PromptsPage` with `data: list[Prompt]` and `next_cursor: str | None`. Keep the same filters when paging. Raises `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `not_found` when a user-scoped client filters by an agent it does not own.
+A scoped client returns only its user's prompts. On the tenant client, omit both filters for every prompt, and pass `user_id=""` for tenant-level prompts. With both filters you get prompts that match both. `limit` follows the [prompt page limit](/api-reference/protocols/service-limits#prompt-page). Returns `PromptsPage` with `data: list[Prompt]` and `next_cursor: str | None`. Keep the same filters when paging. Raises `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `not_found` when a user-scoped client filters by an agent it does not own.
 
 ### `get()` [#get]
 

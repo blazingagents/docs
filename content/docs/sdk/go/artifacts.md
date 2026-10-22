@@ -7,10 +7,16 @@ description: List, inspect, download, and delete the files your agents publish, 
 
 `client.Artifacts` manages the fixed copies of files your agents publish.
 
+In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/go/client#for-user) from `client.ForUser(userID)`, which returns only that user's artifacts. The tenant client sees every user's artifacts and is for your backend's administration.
+
 Examples are function bodies that receive `ctx context.Context`, `client *ba.Client`, `agentID ba.AgentID`, and `sessionID ba.SessionID`, and return an `error`. Every method also takes the per-call options `ba.WithRequestTimeout`, `ba.WithRequestHeader`, `ba.WithClientRequestID`, and `ba.CaptureResponse`.
 
 ```go
-page, err := client.Artifacts.List(ctx, ba.ListArtifactsParams{})
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+page, err := user.Artifacts.List(ctx, ba.ListArtifactsParams{})
 if err != nil {
 	return err
 }
@@ -33,7 +39,7 @@ return nil
 
 ### `List` [#list]
 
-Lists artifacts, newest first, 50 per page.
+Lists artifacts, newest first, with a fixed [page size](/api-reference/protocols/service-limits#other-cursored-resource-pages).
 
 ```go
 page, err := client.Artifacts.List(ctx, ba.ListArtifactsParams{AgentID: &agentID})
@@ -73,10 +79,14 @@ Returns [`*ba.Artifact`](#artifact). Fails with `validation_failed` or [`not_fou
 
 ### `CreateDownloadURL` [#create-download-url]
 
-Creates a link that downloads the artifact's file for five minutes. Fetch it without an API key; anyone with the link can download the file, so keep it out of logs.
+Creates a link that downloads the artifact's file for a [short time](/api-reference/protocols/service-limits#artifact-download-url). Fetch it without an API key; anyone with the link can download the file, so keep it out of logs. Create it on the user's scoped client, so a user can download only their own artifacts.
 
 ```go
-link, err := client.Artifacts.CreateDownloadURL(ctx, "at_0123456789abcdef")
+user, err := client.ForUser("user_0123456789abcdef")
+if err != nil {
+	return err
+}
+link, err := user.Artifacts.CreateDownloadURL(ctx, "at_0123456789abcdef")
 if err != nil {
 	return err
 }

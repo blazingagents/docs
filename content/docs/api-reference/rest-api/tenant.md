@@ -7,7 +7,7 @@ description: Read and change your tenant settings.
 
 ## Overview [#overview]
 
-Read or change your tenant's display name and monthly quota.
+Read or change your tenant's display name, monthly quota, model spending limit, and monetization setting. These are tenant operations, so a [user-scoped request](/api-reference/rest-api/authentication#end-user-scope) gets `403 forbidden`.
 
 ## Endpoints [#endpoints]
 
@@ -19,7 +19,7 @@ Returns your tenant's display name, monthly quota, and monetization setting. A `
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 There are no parameters and no request body.
 
@@ -68,13 +68,16 @@ Updates your tenant's display name, monthly quota, or monetization setting. Send
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `monetizationEnabled` | boolean | body |  | Bill usage to your end users through your merchant account. Turning it off drops usage events your merchant has not yet accepted. |
 | `name` | string | body |  | Display name of your tenant. 1–80 characters. |
 | `quota` | object \| null | body |  | The whole monthly quota, replacing the current one, or `null` to remove it. Send `monthlyTokenLimit`, `monthlyRequestLimit`, and `resetDay`, with at least one limit set. |
+| `quota.monthlyTokenLimit` | integer \| null | body | required | More than 0. |
+| `quota.monthlyRequestLimit` | integer \| null | body | required | More than 0. |
+| `quota.resetDay` | integer | body | required | 1–28. |
 
 #### Response
 
@@ -123,7 +126,7 @@ A USD allowance for model tokens, priced from the built-in model price list or t
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 There are no parameters and no request body.
 
@@ -167,11 +170,14 @@ A USD allowance for model tokens, priced from the built-in model price list or t
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. A tenant operation: it refuses an [end-user scope](/api-reference/rest-api/authentication#end-user-scope) with `403 forbidden`.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `spendingLimit` | object \| null | body | required | Model-only USD allowance and UTC reset schedule. Set null to disable the limit. |
+| `spendingLimit.amountUsd` | number | body | required | More than 0, up to 1000000000. |
+| `spendingLimit.resetStartDate` | string | body | required | A `YYYY-MM-DD` date. |
+| `spendingLimit.resetInterval` | string | body | required | One of `daily`, `weekly`, `biweekly`, `monthly`. |
 
 #### Response
 

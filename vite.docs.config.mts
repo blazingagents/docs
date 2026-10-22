@@ -1,3 +1,4 @@
+import { Server } from "node:http";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
@@ -74,6 +75,22 @@ export default defineConfig({
           source: documentationNotFoundHtml,
           type: "asset",
         });
+      },
+    },
+    {
+      name: "documentation-prerender-keep-alive",
+      /**
+       * Prerendering fetches every page from this preview server in the same
+       * process. An event-loop stall longer than Node's 5 s keep-alive timeout,
+       * which a busy machine produces, lets the server close sockets the fetch
+       * client then reuses; the reset escapes prerender error handling and
+       * drops the page. The server lives only for the build, so never expire
+       * idle sockets.
+       */
+      configurePreviewServer(server) {
+        if (server.httpServer instanceof Server) {
+          server.httpServer.keepAliveTimeout = 0;
+        }
       },
     },
     fumadocs(),

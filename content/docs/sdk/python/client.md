@@ -39,7 +39,7 @@ The SDK owns two headers. It always sets `Authorization` from your tenant API ke
 
 The SDK closes the HTTPX client it creates when you close the SDK client. An `http_client` you pass in stays yours; the SDK never closes it.
 
-Ordinary requests time out after 60 seconds by default, and `None` disables the timeout. Streaming requests keep the connect, write, and pool timeouts but have no read deadline. Backend function claims and result submissions retry transient failures. Other requests do not retry automatically.
+Ordinary requests time out after 60 seconds by default, and `None` disables the timeout. Streaming requests keep the connect, write, and pool timeouts but have no read deadline. Requests do not retry automatically, except the claims and results of [backend functions](#backend-functions).
 
 ### `agent()` [#agent]
 
@@ -62,9 +62,14 @@ Generation methods also accept `client_request_id` per call, and every method ac
 
 ### `for_user()` [#for-user]
 
-**Signature:** `for_user(user_id: str) -> UserClient`
+**Signatures:**
 
-Use `for_user()` in your backend after you authenticate an end user. It returns a `UserClient` that sends `X-BA-User-Id` on every request, and the API checks that user's ownership for reads and writes. On `AsyncBlazingAgents` it returns an `AsyncUserClient`. The method makes no network request.
+```pyi
+BlazingAgents.for_user(user_id: str) -> UserClient
+AsyncBlazingAgents.for_user(user_id: str) -> AsyncUserClient
+```
+
+Use `for_user()` in your backend after you authenticate an end user. It returns a client that sends `X-BA-User-Id` on every request. Reads and lists on it return only that user's records. Another user's record raises a 404 error, as if it did not exist. Creates on it record that user's `user_id`. The method makes no network request.
 
 ```python
 from blazing_agents import BlazingAgents
@@ -79,7 +84,29 @@ def list_my_agents(verified_user_id: str):
 
 Pass the ID from the session your backend verified. Do not take it from a request body or query parameter. The ID must contain 1 to 256 printable ASCII characters without a leading or trailing space, or `for_user()` raises `ValueError`. The scope header wins over `default_headers` and `extra_headers`.
 
-A `UserClient` has `agents`, `artifacts`, `memories`, `prompts`, `sessions`, `tasks`, `workspaces`, `agent()`, the [generation methods](#generation-methods), and `usage` with `get()`, [`sessions()`](/sdk/python/usage#sessions), and [`get_for_agent()`](/sdk/python/usage#get-for-agent). It omits tenant administration, such as `providers`, `tenant`, and the merchant resources, and it omits the usage overview and Agent spending limits. Use the tenant client for those operations.
+A `UserClient` has `agents`, `artifacts`, `memories`, `prompts`, `sessions`, `tasks`, `workspaces`, `agent()`, the [generation methods](#generation-methods), and `usage` with `get()`, [`sessions()`](/sdk/python/usage#sessions), and [`get_for_agent()`](/sdk/python/usage#get-for-agent). It omits tenant administration, such as `providers`, `mcp_connections`, `chat_connections`, `tenant`, and the merchant resources, and it omits the usage overview and agent spending limits. Use the tenant client for your backend's administration: providers, tenant settings, and reports across users.
+
+A scoped turn, from a generation method or a task run, needs an agent that belongs to the user, attached to a workspace that also belongs to the user. Otherwise the call raises `not_found` for the agent or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) for the workspace, both with status 404. A session you continue must belong to the user too. The scoped client sees only that user's memories, never the agent's general ones.
+
+```python
+provider_id = "prv_0123456789abcdef"
+user = client.for_user(verified_user_id)
+workspace = user.workspaces.create(name="Personal files")
+agent = user.agents.create(
+    name="Assistant",
+    provider_id=provider_id,
+    model="openai/gpt-6-luna",
+    workspace_id=workspace.id,
+)
+with user.chat(
+    agent_id=agent.id,
+    message={"id": "message-1", "role": "user", "parts": [{"type": "text", "text": "Hello"}]},
+) as stream:
+    for chunk in stream:
+        print(chunk.decode(), end="")
+```
+
+Every turn of an agent runs in that agent's one workspace. An agent with no end user (`user_id == ""`) that serves several end users through the tenant client therefore shows one user's files to the next user's turns. Give each end user their own agent and workspace when their files must stay private.
 
 A request body's `user_id` labels the resource or turn. It does not grant access. On a scoped request, the API fills in a missing `user_id` with the scoped ID and rejects a different one. Without `for_user()`, your API key keeps tenant-wide authority, even when a request body contains `user_id`.
 
@@ -117,7 +144,7 @@ To read the response behind a model a method returned, pass the model to `respon
 ```python
 from blazing_agents import response_meta
 
-agent = client.agents.get("ag_...")
+agent = client.agents.get("ag_0123456789abcdef")
 meta = response_meta(agent)
 print(meta.status, meta.request_id)
 ```
@@ -167,17 +194,17 @@ Branch on `error.code`, not the message. Cancellation, `KeyboardInterrupt`, and 
 
 ## Logging and telemetry [#logging-and-telemetry]
 
-The SDK sends no telemetry. The `blazing_agents` logger emits warnings for failed backend functions, invalid results, and failed claim or result requests. These records can include the function name, call ID, and API error message. Handler exception details are omitted.
+The SDK sends no telemetry. The `blazing_agents` logger emits warnings for failed [backend functions](#backend-functions), invalid results, and failed claim or result requests. These records can include the function name, call ID, and API error message. Handler exception details are omitted.
 
 At debug level, HTTP records include the method, path without query, status, elapsed time, and request ID. Function records also identify skipped or refused calls. The SDK does not log credentials, headers, request bodies, schemas, or stream content.
-
-Chats with backend functions run handlers in background threads or async tasks while you consume the stream.
 
 ## Generation methods [#generation-methods]
 
 The client has six generation methods: `chat()` and `continue_chat()` for conversations that Blazing Agents stores as sessions, plus buffered and streaming forms of stateless text and structured output. Every call runs one metered turn. All arguments are keyword-only.
 
-Give each call exactly one input: a literal `message` or `messages`, a `decisions` list for `continue_chat()`, a `prompt`, or a saved prompt through `prompt_id`. `variables` works only with `prompt_id`. Every generation method also accepts `user_id` and `metadata` to attribute the turn to an end user, `client_request_id`, `extra_headers`, and `timeout`.
+Give each call exactly one input: a literal `message` or `messages`, a `decisions` list for `continue_chat()`, a `prompt`, or a saved prompt through `prompt_id`. `variables` works only with `prompt_id`. Every generation method accepts `client_request_id`, `extra_headers`, and `timeout`. Every method except `continue_chat()` also accepts `user_id` and `metadata`, which label the turn.
+
+In a route that serves a signed-in end user, call these methods on the [scoped client](#for-user), so the turn runs only on that user's agent, workspace, and sessions. On the tenant client, `user_id` labels the turn for usage and attribution but grants no access. The examples below use the tenant client.
 
 `AsyncBlazingAgents` has the same six method names; you await them.
 
@@ -187,7 +214,7 @@ Give each call exactly one input: a literal `message` or `messages`, a `decision
 
 **Signature:** `chat(*, agent_id, message=..., messages=..., prompt_id=..., variables=..., trigger=..., message_id=..., session_id=..., user_id=..., metadata=..., functions=..., client_request_id=None, extra_headers=None, timeout=...) -> ChatStream`
 
-Sends a message in a session and returns a `ChatStream` of AI SDK SSE bytes. When you attach backend functions, the SDK consumes private callback events and forwards the remaining events to your application.
+Sends a message in a session and returns a `ChatStream` of AI SDK SSE bytes.
 
 ```python
 with client.chat(
@@ -211,17 +238,7 @@ Ordinary chat raises `APIStatusError` with `status_code=409` and `code="message_
 
 With the async client, call `stream = await client.chat(...)`, then use `async with stream` and `async for chunk in stream`.
 
-Pass `functions` to attach handlers created with `define_function()`. Supply the handlers again on each request. The same `extra_headers` apply to the chat and its function claims and results. See [backend functions](/agents/tools/backend-functions).
-
-Keep consuming the stream while the chat runs. Function calls are dispatched as you read their events, so pausing iteration delays new calls. Running handlers do not block iteration.
-
-### `define_function()` [#define-function]
-
-**Signature:** `define_function(*, description, input_schema, execute) -> ChatFunction`
-
-The exported helper takes a Pydantic-compatible input type that describes an object. The handler receives the validated input and a `FunctionContext` with `idempotency_key`, `deadline_at`, and a `cancelled` threading event. It returns a plain JSON value. Convert Pydantic results with `model_dump(mode="json")` before returning them.
-
-`BlazingAgents` accepts synchronous handlers. `AsyncBlazingAgents` accepts async handlers and runs synchronous handlers in a worker thread. Synchronous cancellation is cooperative. See [handle cancellation and retries](/agents/tools/backend-functions#handle-cancellation-and-retries).
+Pass `functions` to attach [backend functions](#backend-functions).
 
 ### `continue_chat()` [#continue-chat]
 
@@ -242,7 +259,7 @@ with client.continue_chat(
         print(chunk.decode(), end="")
 ```
 
-Attach `functions` when the chat uses [backend functions](/agents/tools/backend-functions). With `AsyncBlazingAgents`, await this method and consume the returned `AsyncChatStream`.
+Attach `functions` when the chat uses [backend functions](#backend-functions). With `AsyncBlazingAgents`, await this method and consume the returned `AsyncChatStream`.
 
 Repeating the same decisions is safe. A missing, duplicate, or mixed round raises `validation_failed`; a changed decision raises `tool_approval_decision_conflict`; a retry while the continuation runs raises `session_busy`; and a finished round raises `tool_approval_continuation_settled`. See [tool approvals](/agents/tools/tool-approvals).
 
@@ -320,6 +337,22 @@ with client.object_stream(
 ```
 
 With the async client, call `stream = await client.object_stream(...)`, then use `async with`, `async for`, `await stream.get_final_object()`, and `await stream.aclose()` to stop early.
+
+## Backend functions [#backend-functions]
+
+Backend functions are tools whose handlers run in your backend during a chat. Create each handler with [`define_function()`](#define-function), then pass them by name as `functions` to [`chat()`](#chat) or [`continue_chat()`](#continue-chat). Supply the handlers again on every request. See the [backend functions guide](/agents/tools/backend-functions).
+
+The SDK reads the function calls from the chat stream and forwards the remaining events to your application. It dispatches each call as you read its event, so keep consuming the stream while the chat runs. Pausing iteration delays new calls. Handlers run in background threads, or in async tasks on `AsyncBlazingAgents`, so a running handler does not block iteration.
+
+The SDK claims each call and submits its result with the same `extra_headers` as the chat. Those claim and result requests retry transient failures. Failures appear as warnings on the `blazing_agents` logger. See [logging and telemetry](#logging-and-telemetry).
+
+### `define_function()` [#define-function]
+
+**Signature:** `define_function(*, description, input_schema, execute) -> ChatFunction`
+
+The exported helper takes a Pydantic-compatible input type that describes an object. The handler receives the validated input and a `FunctionContext` with `idempotency_key`, `deadline_at`, and a `cancelled` threading event. It returns a plain JSON value. Convert Pydantic results with `model_dump(mode="json")` before returning them.
+
+`BlazingAgents` accepts synchronous handlers. `AsyncBlazingAgents` accepts async handlers and runs synchronous handlers in a worker thread. Synchronous cancellation is cooperative. See [handle cancellation and retries](/agents/tools/backend-functions#handle-cancellation-and-retries).
 
 ## Stream ownership and failures [#stream-ownership-and-failures]
 

@@ -63,14 +63,14 @@ console.log(connection.webhookUrl);
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `name` | `string` | yes | none | 1 to 80 characters |
+| `name` | `string` | yes | none | Display name within the [chat connection limits](/api-reference/protocols/service-limits#chat-connection-fields) |
 | `agentId` | `string` | yes | none | One of your own agents, not the admin agent; cannot change later |
 | `platform` | `"slack" \| "telegram"` | yes | none | Chat platform |
 | `credentials` | `object` | yes | none | Slack: `botToken` and `signingSecret`. Telegram: `botToken` |
 | `configuration` | `object` | no | `{}` | Slack: `channelIds`. Telegram: `chatIds` and `businessMode` |
 | `enabled` | `boolean` | no | `true` | Start handling messages right away |
 
-`channelIds` and `chatIds` list up to 20 conversations that health checks test against. They do not limit where the bot answers. Set `businessMode: true` for a Telegram Business bot.
+`channelIds` and `chatIds` list conversations, within the [chat connection limits](/api-reference/protocols/service-limits#chat-connection-fields), that health checks test against. They do not limit where the bot answers. Set `businessMode: true` for a Telegram Business bot.
 
 For Telegram, Blazing Agents registers the bot's webhook when the connection is enabled. For Slack, paste the returned `webhookUrl` into your Slack app's settings. Pass `enabled: false` to finish setup before messages arrive. To use another agent or bot, create a new connection. If `agentId` is the admin agent, `create()` fails with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`) and creates nothing.
 

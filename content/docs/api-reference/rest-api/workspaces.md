@@ -23,12 +23,12 @@ Lists your tenant's workspaces newest first, one page at a time. Pass `nextCurso
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `cursor` | string | query |  | `nextCursor` from the previous page. |
-| `limit` | integer | query |  | Page size, from 1 to 200. Defaults to 50. 1–200. Defaults to `50`. |
+| `limit` | integer | query |  | Page size, from 1 to 200. Defaults to 50. 1–200. |
 | `userId` | string | query |  | Return only workspaces with this exact `userId`. Send `""` for tenant-level workspaces. |
 
 #### Response
@@ -89,15 +89,17 @@ Creates a private file system your agents can keep between sessions. Creating it
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `tier` | string | body |  | Workspace tier, fixed at creation. Core loses its files when the workspace stops; Plus keeps them when it stops while idle. One of `core`, `plus`. Defaults to `core`. |
-| `name` | string | body |  | Display name, up to 80 characters. Leave it out for an unnamed workspace. 1–80 characters. |
+| `name` | string | body |  | Display name, up to 80 characters. Leave it out for an unnamed workspace. |
 | `userId` | string | body |  | Your own ID for the end user who owns the workspace. `""` means a tenant-level workspace. It cannot be changed later. Defaults to `""`. |
 | `metadata` | object | body |  | Your own key-value data, returned as sent. Defaults to `{}`. |
 | `networkPolicy` | object | body |  | Which hosts the workspace can reach: `unrestricted`, `allowlist` with `allowedHosts`, or `offline`. Defaults to `{"mode":"unrestricted"}`. |
+| `networkPolicy.mode` | string | body | required |  |
+| `networkPolicy.allowedHosts` | string[] | body | required | Only when `networkPolicy.mode` is `allowlist`. At least 1 items. |
 
 #### Response
 
@@ -156,7 +158,7 @@ Returns a workspace without starting it.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
@@ -216,14 +218,16 @@ Updates a workspace's name, metadata, or network policy. Send at least one field
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body.
+Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `workspaceId` | string | path | required | ID of the workspace. |
-| `name` | string \| null | body |  | New display name, up to 80 characters, or `null` to clear it. 1–80 characters. |
+| `name` | string \| null | body |  | New display name, up to 80 characters, or `null` to clear it. |
 | `metadata` | object | body |  | Replaces the workspace's metadata. |
 | `networkPolicy` | object | body |  | Replaces the network policy. Which hosts the workspace can reach: `unrestricted`, `allowlist` with `allowedHosts`, or `offline`. |
+| `networkPolicy.mode` | string | body | required |  |
+| `networkPolicy.allowedHosts` | string[] | body | required | Only when `networkPolicy.mode` is `allowlist`. At least 1 items. |
 
 #### Response
 
@@ -280,7 +284,7 @@ Permanently deletes a workspace and all its files. Every agent needs a workspace
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication).
+Requires [bearer authentication](/api-reference/rest-api/authentication). Needs a full [API key](/api-reference/rest-api/authentication#access-levels); a read-only key gets `403 insufficient_scope`. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
