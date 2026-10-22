@@ -142,7 +142,7 @@ Every SDK exception derives from `BlazingAgentsError`.
 | `APIConnectionError` | The network fails before a complete response |
 | `APITimeoutError` | An HTTP timeout fires; also an `APIConnectionError` |
 | `StreamError` | Reading, ownership, headers, decoding, or finalization fails after stream headers arrive. Carries `status_code`, headers, `request_id`, and `retry_after` |
-| `CredentialEchoError` | A provider, MCP connection, chat connection, chat delivery, or merchant connection response contains a credential field or echoes a submitted secret. The body is discarded; carries `request_id` |
+| `CredentialEchoError` | A provider, MCP connection, chat connection, or merchant connection response contains a credential field or echoes a submitted secret. The body is discarded; carries `request_id` |
 | `ObjectTruncationError` | A complete response contains incomplete JSON |
 | `ObjectJSONDecodeError` | A complete response contains invalid JSON |
 | `ObjectValidationError` | Decoded JSON does not match the requested output type |

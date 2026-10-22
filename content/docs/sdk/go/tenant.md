@@ -99,7 +99,7 @@ return nil
 
 **Signature:** `func (s *SpendingLimitsService) GetTenant(ctx context.Context, opts ...RequestOption) (*ModelSpendingLimitStatus, error)`
 
-Returns `*ba.ModelSpendingLimitStatus` with `SpendingLimit`, `Period` (a `*ba.SpendingLimitPeriod` with `StartsAt`, `EndsAt`, `SpentUSD`, `ReservedUSD`, and `AvailableUSD`), and `NextResetAt`. All three are nil while no limit is set.
+Returns `*ba.ModelSpendingLimitStatus` with `SpendingLimit`, `Period` (a `*ba.SpendingLimitPeriod` with `StartsAt`, `EndsAt`, `SpentUSD`, and `AvailableUSD`), and `NextResetAt`. All three are nil while no limit is set. `AvailableUSD` is the amount minus `SpentUSD`, never below zero.
 
 ### `SpendingLimits.UpdateTenant` [#update-spending-limit]
 
@@ -126,7 +126,7 @@ Blazing Agents checks usage in the current quota period before each turn starts.
 
 A quota is your own safety setting. It is not a plan limit, credit balance, or bill.
 
-Turning `MonetizationEnabled` off drops usage events your merchant has not yet accepted. See [Monetization](/platform/monetization) before you change it.
+To pause billing, turn monetization off with `client.Tenant.Update(ctx, ba.UpdateTenantParams{MonetizationEnabled: new(false)})`. This drops usage events your merchant has not yet accepted. See [Monetization](/platform/monetization) before you change it.
 
 ## Response model [#response-model]
 

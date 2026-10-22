@@ -51,7 +51,7 @@ configuration or attachment changes must keep every rule valid. See
 
 Get an agent model spending limit.
 
-An estimated USD allowance for model tokens, priced from the built-in model price list. It excludes platform compute, storage, workspace and network charges, and a request that costs more than estimated can exceed it. While a limit applies, models without a price are refused. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Money held for work whose usage is never reported is released at the next reset. Requires a tenant API key; a user-scoped request gets forbidden.
+A USD allowance for model tokens, priced from the built-in model price list or the provider's reported cost. It excludes platform compute, storage, workspace and network charges. Each running turn may finish one model request past the limit. While a limit applies, models without a price are refused, and a turn stops when a response has no reported cost. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Requires a tenant API key; a user-scoped request gets forbidden.
 
 #### Request
 
@@ -98,7 +98,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/spending-limit" \
 
 Set an agent model spending limit.
 
-An estimated USD allowance for model tokens, priced from the built-in model price list. It excludes platform compute, storage, workspace and network charges, and a request that costs more than estimated can exceed it. While a limit applies, models without a price are refused. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Money held for work whose usage is never reported is released at the next reset. Requires a tenant API key; a user-scoped request gets forbidden.
+A USD allowance for model tokens, priced from the built-in model price list or the provider's reported cost. It excludes platform compute, storage, workspace and network charges. Each running turn may finish one model request past the limit. While a limit applies, models without a price are refused, and a turn stops when a response has no reported cost. Resets happen at midnight UTC on the schedule anchored to resetStartDate; a future date applies the limit at once until then. Saving takes effect immediately and keeps the spending already counted in the current period. Requires a tenant API key; a user-scoped request gets forbidden.
 
 #### Request
 
@@ -616,7 +616,7 @@ curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
 
 Delete an agent.
 
-Permanently deletes an agent. Its workspace is kept. Set `includeArtifacts` to choose whether its artifacts are deleted too. The platform-managed agent cannot be deleted.
+Permanently deletes an agent. Its workspace is kept. Set `includeArtifacts` to choose whether its artifacts are deleted too. The platform-managed agent cannot be deleted. An agent cannot be deleted while it has a running turn or a queued or running task run: the call returns `409 agent_busy`, so stop that work or wait for it to finish, then delete again.
 
 #### Request
 
@@ -640,7 +640,7 @@ Returns `204 No Content`. The agent was deleted.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
-| `409` | [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) | The request conflicts with the resource's current state |
+| `409` | [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), [`agent_busy`](/api-reference/protocols/errors#agent_busy) | The request conflicts with the resource's current state |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

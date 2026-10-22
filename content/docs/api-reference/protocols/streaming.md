@@ -118,12 +118,11 @@ A model spending stop sends the event with `code: "model_spending_limit_exceeded
   "transient": true,
   "data": {
     "code": "model_spending_limit_exceeded",
-    "message": "Agent funds are reserved by unfinished work.",
+    "message": "The model spending limit was reached. Wait for the next reset or change the limit.",
     "details": {
       "scope": "agent",
-      "reason": "reserved",
-      "spentUsd": 4,
-      "reservedUsd": 1,
+      "reason": "exhausted",
+      "spentUsd": 5.02,
       "availableUsd": 0,
       "nextResetAt": "2026-11-01T00:00:00Z"
     }
@@ -131,8 +130,8 @@ A model spending stop sends the event with `code: "model_spending_limit_exceeded
 }
 ```
 
-The scope is `agent`, `tenant`, or `both`. The reason is `exhausted`, `reserved`,
-`unpriced`, or `unknown_usage`; [handle a spending stop](/platform/usage-and-quotas#spending-limit-stops)
+The scope is `agent`, `tenant`, or `both`. The reason is `exhausted` or `unpriced`;
+[handle a spending stop](/platform/usage-and-quotas#spending-limit-stops)
 says what each one means and what to do. The following error ends the turn.
 
 Completion and object streams use plain text and do not carry this event.

@@ -162,7 +162,7 @@ Besides API codes, the SDK raises five codes of its own. `code` stays an open st
 | `request_aborted` | Your abort signal stopped the request |
 | `invalid_response` | A response or error body could not be read |
 | `stream_error` | A stream was missing, malformed, read twice, or broke while reading |
-| `credential_echo` | A provider, MCP connection, chat connection, chat delivery, or merchant connection response contained a credential field. `details.field` names it, and the body is discarded |
+| `credential_echo` | A provider, MCP connection, chat connection, or merchant connection response contained a credential field. `details.field` names it, and the body is discarded |
 
 The SDK also throws the API code `invalid_request` before any request when an ID in the URL path is `""`, `.`, or `..`, or when [`forUser()`](#for-user) gets an invalid user ID.
 

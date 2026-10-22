@@ -124,14 +124,12 @@ client.workspaces().delete("ws_0123456789abcdef").await?;
 
 **Signature:** `delete(workspace_id: impl Into<WorkspaceId>) -> Call<DeleteWorkspace>`
 
-Move attached agents to another workspace first. Awaiting returns `()` once the deletion is accepted; the files are removed in the background.
+Move attached agents to another workspace first. Awaiting returns `()`, and by then the workspace and its files are gone.
 
 | Code | Meaning |
 | --- | --- |
 | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use) | Agents still use it; `ApiError::details()` holds their IDs under `agentIds` |
-| [`workspace_busy`](/api-reference/protocols/errors#workspace_busy) | An agent is working in it; retry when that work finishes |
 | `workspace_not_found` | No such workspace in your tenant |
-| [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | Temporary failure; retry with backoff |
 
 ## Response models [#response-models]
 

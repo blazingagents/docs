@@ -66,7 +66,7 @@ Pass at least one field; the ones you leave out stay as they are. A `quota` repl
 
 At least one limit must be a positive number. Once usage passes a limit, new turns fail with [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded) and task runs end as `blocked`; turns already running finish. See [Usage and quotas](/platform/usage-and-quotas#quota-and-capacity-outcomes).
 
-Turning `monetizationEnabled` off drops usage events your merchant has not yet accepted. See [Monetization](/platform/monetization) before you change it.
+To pause billing, set `monetizationEnabled` to `false`. Turning it off drops usage events your merchant has not yet accepted, and turning it back on does not restore them. See [Monetization](/platform/monetization) before you change it.
 
 Returns [`TenantSettingsResponse`](#tenantsettingsresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed).
 
@@ -133,14 +133,13 @@ interface SpendingLimitResponse {
     startsAt: string;
     endsAt: string;
     spentUsd: number;
-    reservedUsd: number;
     availableUsd: number;
   } | null;
   nextResetAt: string | null;
 }
 ```
 
-`spendingLimit`, `period`, and `nextResetAt` are `null` while no limit is set. See [what the dollar fields mean](/platform/usage-and-quotas#spending-limit-costs).
+`spendingLimit`, `period`, and `nextResetAt` are `null` while no limit is set. `availableUsd` is the limit's `amountUsd` minus `spentUsd`, and never below zero. See [what the dollar fields mean](/platform/usage-and-quotas#spending-limit-costs).
 
 ## Next [#next]
 

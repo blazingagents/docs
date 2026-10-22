@@ -5,7 +5,9 @@ description: Connect an agent to your own Slack app or Telegram bot with the Go 
 
 # Chat integrations
 
-`client.ChatConnections` connects an agent to your own Slack app or Telegram bot so people can talk to it there. `client.ChatDeliveries` lists replies and approval buttons that failed or may not have arrived, across every connection. Both are tenant only: a `*ba.UserClient` has neither.
+`client.ChatConnections` connects an agent to your own Slack app or Telegram bot so people can talk to it there. It is tenant only: a `*ba.UserClient` does not have it.
+
+The turn that answers a Slack or Telegram message posts the reply and any approval card itself, retrying a failed post a few times. A reply that still fails stays in the session transcript, so you can read it with [`Sessions.ListMessages`](/sdk/go/sessions#messages).
 
 Examples are function bodies that receive `ctx context.Context`, `client *ba.Client`, `agentID ba.AgentID`, and `sessionID ba.SessionID`, and return an `error`. Every method also takes the per-call options `ba.WithRequestTimeout`, `ba.WithRequestHeader`, `ba.WithClientRequestID`, and `ba.CaptureResponse`.
 
@@ -32,12 +34,9 @@ return nil
 | [`Update`](#update) | Change name or configuration | [`*ChatConnection`](#chatconnection) |
 | [`RotateCredentials`](#rotate-credentials) | Replace credentials | [`*ChatConnection`](#chatconnection) |
 | [`CheckHealth`](#check-health) | Check the connection against its platform | [`*ChatConnection`](#chatconnection) |
-| [`Enable`](#enable) | Resume deliveries | [`*ChatConnection`](#chatconnection) |
-| [`Disable`](#disable) | Pause deliveries | [`*ChatConnection`](#chatconnection) |
+| [`Enable`](#enable) | Accept messages again | [`*ChatConnection`](#chatconnection) |
+| [`Disable`](#disable) | Stop accepting messages | [`*ChatConnection`](#chatconnection) |
 | [`Delete`](#delete) | Delete a connection | `error` |
-| [`ListDeliveries`](#deliveries), `AllDeliveries` | List one connection's deliveries | [`*Page[ChatDelivery]`](#tenantchatdelivery) |
-| [`RepairDelivery`](#repair-delivery) | Resend a failed or ambiguous delivery | [`*ChatDeliveryResult`](#chatdeliveryresult) |
-| [`ChatDeliveries.List`](#list-deliveries), `All` | List failed and ambiguous deliveries tenant-wide | [`*Page[TenantChatDelivery]`](#tenantchatdelivery) |
 
 ## Methods [#methods]
 
@@ -165,7 +164,7 @@ Returns [`*ba.ChatConnection`](#chatconnection) whose `Health` holds the last ch
 
 ### `Enable` [#enable]
 
-Resumes deliveries on a chat connection.
+Lets a chat connection accept messages again.
 
 ```go
 connection, err := client.ChatConnections.Enable(ctx, "cc_0123456789abcdef")
@@ -182,7 +181,7 @@ Returns [`*ba.ChatConnection`](#chatconnection) with `Enabled` `true`. Fails wit
 
 ### `Disable` [#disable]
 
-Pauses deliveries on a chat connection.
+Stops a chat connection from accepting messages.
 
 ```go
 connection, err := client.ChatConnections.Disable(ctx, "cc_0123456789abcdef")
@@ -209,70 +208,6 @@ return client.ChatConnections.Delete(ctx, "cc_0123456789abcdef")
 
 Fails with `validation_failed` or `not_found`.
 
-### `ListDeliveries` [#deliveries]
-
-Lists one chat connection's deliveries, newest first.
-
-```go
-page, err := client.ChatConnections.ListDeliveries(ctx, "cc_0123456789abcdef", ba.ListChatDeliveriesParams{})
-if err != nil {
-	return err
-}
-fmt.Println(len(page.Data))
-return nil
-```
-
-**Signature:** `func (s *ChatConnectionsService) ListDeliveries(ctx context.Context, connectionID ChatConnectionID, params ListChatDeliveriesParams, opts ...RequestOption) (*Page[ChatDelivery], error)`
-
-`Limit` takes 1 to 100 deliveries per page, defaulting to 100, and `Cursor` resumes from a `NextCursor`. Returns [`*ba.Page[ChatDelivery]`](#tenantchatdelivery); `AllDeliveries` walks every page lazily. Fails with `validation_failed`, `invalid_cursor`, or `not_found`.
-
-### `RepairDelivery` [#repair-delivery]
-
-Resends a failed or ambiguous delivery. `ExpectedAttempt` is the delivery's current `Attempt`, 0 to 99, and the repair is refused if it has changed. Calling it confirms the sender of the previous attempt has stopped, and that you accept the message may appear twice because the platform may already have it.
-
-```go
-result, err := client.ChatConnections.RepairDelivery(ctx, "cc_0123456789abcdef", "cd_0123456789abcdef", ba.RepairChatDeliveryParams{
-	ExpectedAttempt: 1,
-})
-if err != nil {
-	return err
-}
-fmt.Println(result.Status)
-return nil
-```
-
-**Signature:** `func (s *ChatConnectionsService) RepairDelivery(ctx context.Context, connectionID ChatConnectionID, deliveryID ChatDeliveryID, params RepairChatDeliveryParams, opts ...RequestOption) (*ChatDeliveryResult, error)`
-
-Returns [`*ba.ChatDeliveryResult`](#chatdeliveryresult). Fails with `validation_failed` or `not_found`.
-
-### `ChatDeliveries.List` [#list-deliveries]
-
-Lists failed and ambiguous deliveries across chat connections.
-
-```go
-page, err := client.ChatDeliveries.List(ctx, ba.ListTenantChatDeliveriesParams{
-	Status: []ba.ChatDeliveryStatus{ba.ChatDeliveryStatusFailed},
-})
-if err != nil {
-	return err
-}
-for _, delivery := range page.Data {
-	fmt.Println(delivery.ID, delivery.Status)
-}
-return nil
-```
-
-**Signature:** `func (s *ChatDeliveriesService) List(ctx context.Context, params ListTenantChatDeliveriesParams, opts ...RequestOption) (*Page[TenantChatDelivery], error)`
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `Status` | `[]ba.ChatDeliveryStatus` | Only these statuses (`ba.ChatDeliveryStatusFailed`, `ba.ChatDeliveryStatusAmbiguous`), sent comma-separated; nil leaves the filter out |
-| `Since` | `*time.Time` | Only deliveries created at or after this instant |
-| `Cursor` | `*string` | The `NextCursor` of the previous page |
-| `Limit` | `*int` | Page size, 1 to 100; defaults to 50 |
-
-Returns [`*ba.Page[TenantChatDelivery]`](#tenantchatdelivery); `All` walks every page lazily. Fails with `validation_failed` or `invalid_cursor`.
-
 ## Response models [#response-models]
 
 ### `ChatConnection` [#chatconnection]
@@ -292,38 +227,6 @@ Returns [`*ba.Page[TenantChatDelivery]`](#tenantchatdelivery); `All` walks every
 | `CredentialVersion` | `int64` | Incremented on each rotation |
 | `WebhookURL` | `string` | The webhook URL registered with the platform |
 | `CreatedAt`, `UpdatedAt` | `time.Time` | Timestamps |
-
-### `TenantChatDelivery` [#tenantchatdelivery]
-
-`ba.ChatDelivery` and `ba.TenantChatDelivery` share their fields; the tenant-wide entry adds `ConnectionID`, `AgentID`, and `Platform`.
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `ID` | `ba.ChatDeliveryID` | Delivery ID (`cd_...`) |
-| `Kind` | `ba.ChatDeliveryKind` | `ba.ChatDeliveryKindReply` or `ba.ChatDeliveryKindCard` |
-| `Status` | `ba.ChatDeliveryStatus` | `pending`, `confirmed`, `failed`, or `ambiguous` |
-| `Attempt` | `int64` | How many sends have been tried |
-| `CredentialVersion` | `int64` | The credential version used |
-| `Representation` | `string` | What the delivery sent, as text |
-| `Diagnostic` | `*string` | Why it failed |
-| `Receipts` | `json.RawMessage` | The platform's receipts, in its own shape |
-| `SessionID` | `ba.SessionID` | The session the message belongs to |
-| `MessageID` | `*string` | The message's ID, when one exists |
-| `ApprovalID` | `*ba.ApprovalID` | The approval it answers, when it is one |
-| `ThreadID` | `string` | The platform thread |
-| `CreatedAt`, `UpdatedAt` | `time.Time` | Timestamps |
-
-### `ChatDeliveryResult` [#chatdeliveryresult]
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `ID` | `ba.ChatDeliveryID` | The delivery's ID |
-| `SessionID` | `ba.SessionID` | The session the message belongs to |
-| `ThreadID` | `string` | The platform thread the delivery belongs to |
-| `ConnectionID` | `ba.ChatConnectionID` | The connection the delivery went through |
-| `Kind` | `ba.ChatDeliveryKind` | What the delivery carries |
-| `Status` | `ba.ChatDeliveryStatus` | Where the delivery stands after the repair |
-| `Attempt` | `int64` | How many sends have been tried |
 
 ## Next [#next]
 

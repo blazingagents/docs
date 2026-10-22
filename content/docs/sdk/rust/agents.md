@@ -204,7 +204,7 @@ client.agents().delete("ag_0123456789abcdef", false).await?;
 
 **Signature:** `delete(agent_id: impl Into<AgentId>, include_artifacts: bool) -> Call<DeleteAgent>`
 
-`include_artifacts` is required: `true` also deletes the agent's published artifacts, and `false` keeps them. Fails with `validation_failed` or `not_found`.
+`include_artifacts` is required: `true` also deletes the agent's published artifacts, and `false` keeps them. Fails with [`agent_busy`](/api-reference/protocols/errors#agent_busy) (HTTP `409`) while the agent has a running turn or a queued or running task run; stop that work or wait for it, then delete again. Fails with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`) for the admin agent, and with `validation_failed` or `not_found`.
 
 ### `disable()` [#disable]
 

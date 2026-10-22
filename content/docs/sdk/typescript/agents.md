@@ -171,7 +171,7 @@ await client.agents.delete({ agentId, includeArtifacts: false });
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
 | `includeArtifacts` | `boolean` | yes | `true` deletes the agent's artifacts; `false` keeps them |
 
-The agent's workspace stays. Delete it with [`workspaces.delete()`](/sdk/typescript/workspaces#delete) if nothing else uses it. Errors: `validation_failed`, `not_found`, `admin_agent_managed`.
+The agent's workspace stays. Delete it with [`workspaces.delete()`](/sdk/typescript/workspaces#delete) if nothing else uses it. Errors: `validation_failed`, `not_found`, `admin_agent_managed`, [`agent_busy`](/api-reference/protocols/errors#agent_busy) (HTTP `409`) while the agent has a running turn or a queued or running task run.
 
 ### `disable()` [#disable]
 

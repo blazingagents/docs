@@ -182,7 +182,7 @@ Lists the session's steer receipts in the order they arrived, with the session's
 
 ```typescript
 const { data, activity } = await client.sessions.inputs({ agentId, sessionId });
-const pending = data.filter((input) => input.state === "accepted" || input.state === "delivered");
+const pending = data.filter((input) => input.state === "accepted");
 ```
 
 | Parameter | Type | Required | Default | Description |
@@ -193,7 +193,7 @@ const pending = data.filter((input) => input.state === "accepted" || input.state
 | `limit` | `number` | no | `100` | 1 to 200 per page |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
-Without `includeCompleted`, you get the pending `accepted` and `delivered` receipts plus any `uncertain` ones, so your app can show them to the user. To watch for changes, call it again without a cursor; the cursor only pages through a long list. `activity` reports `idle`, `running`, `stopping`, or `approval`, with the running `turnId`. Returns [`SessionInputsResponse`](#sessioninputsresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
+Without `includeCompleted`, you get only the `accepted` receipts, which are still waiting, so your app can show them to the user. To watch for changes, call it again without a cursor; the cursor only pages through a long list. `activity` reports `idle`, `running`, `stopping`, or `approval`, with the running `turnId`. Returns [`SessionInputsResponse`](#sessioninputsresponse). Errors: `validation_failed`, `invalid_cursor`, `not_found`.
 
 ### `stop()` [#stop]
 
@@ -338,7 +338,7 @@ interface SessionInput {
   reason: "stopped" | "failed" | "owner_lost" | "turn_finished" | null;
 }
 
-type SessionInputState = "accepted" | "delivered" | "committed" | "not_placed" | "uncertain";
+type SessionInputState = "accepted" | "committed" | "not_placed";
 
 interface SessionActivity {
   state: "idle" | "running" | "stopping" | "approval";
@@ -346,7 +346,13 @@ interface SessionActivity {
 }
 ```
 
-`sequence` fixes the steer's arrival order and never changes. `turnId` names the turn the steer was bound to. `committed` means the message is saved in the history; `not_placed` is safe to send as an ordinary chat message; `uncertain` means the agent may have read it, so never resend it automatically. `owner_lost` means Blazing Agents lost the turn before it finished. See [what each state means](/platform/sessions-and-turns#steer-receipts).
+`sequence` fixes the steer's arrival order and never changes. `turnId` names the turn the steer was bound to. `state` tells you what happened to the message:
+
+- `accepted`: saved for the running turn, which may still read and save it. Keep waiting.
+- `committed`: saved in the history. You are done.
+- `not_placed`: not saved, because the turn ended or Blazing Agents lost it first. Send it again as an ordinary chat message. If the turn read it and then failed, resending may repeat its tool calls, as any resend can.
+
+On a `not_placed` receipt, `reason` says why. `owner_lost` means Blazing Agents lost the turn before it finished. See [what each state means](/platform/sessions-and-turns#steer-receipts).
 
 ### `SessionInputsResponse` [#sessioninputsresponse]
 

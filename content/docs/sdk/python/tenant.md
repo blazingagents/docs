@@ -86,7 +86,7 @@ if budget.period is not None:
 
 **Signature:** `get_spending_limit() -> SpendingLimitResponse`
 
-Returns a `SpendingLimitResponse` with `spending_limit`, `period` (`starts_at`, `ends_at`, `spent_usd`, `reserved_usd`, `available_usd`), and `next_reset_at`. All three are `None` while no limit is set.
+Returns a `SpendingLimitResponse` with `spending_limit`, `period` (`starts_at`, `ends_at`, `spent_usd`, `available_usd`), and `next_reset_at`. All three are `None` while no limit is set. `available_usd` is the limit's `amount_usd` minus `spent_usd`, never below zero.
 
 ### `update_spending_limit()` [#update-spending-limit]
 
@@ -112,7 +112,7 @@ Blazing Agents checks usage in the current quota period before each turn starts.
 
 A quota is your own safety setting. It is not a plan limit, credit balance, or bill.
 
-Turning `monetization_enabled` off drops usage events your merchant has not yet accepted. See [Monetization](/platform/monetization) before you change it.
+To pause billing, turn monetization off with `client.tenant.update(monetization_enabled=False)`. This drops usage events your merchant has not yet accepted. See [Monetization](/platform/monetization) before you change it.
 
 ## Response model [#response-model]
 
