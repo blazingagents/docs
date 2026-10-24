@@ -62,8 +62,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
-| `cursor` | string | query |  | Cursor from the previous page's `nextCursor`. Leave it out for the first page. |
-| `limit` | integer | query |  | Number of items per page, from 1 to 200. Defaults to 50. 1–200. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
+| `limit` | integer | query |  | Page size, from 1 to 200. Defaults to 50. 1–200. |
 | `userId` | string | query |  | Return only this end user's sessions. Send an empty value for sessions without an end user. |
 
 #### Response
@@ -173,8 +173,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `byAgent` | string | query |  | `true` returns at most one session per agent: its latest. Defaults to `false`. One of `true`, `false`. |
-| `cursor` | string | query |  | Cursor from the previous page's `nextCursor`. Leave it out for the first page. |
-| `limit` | integer | query |  | Number of items per page, from 1 to 200. Defaults to 50. 1–200. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
+| `limit` | integer | query |  | Page size, from 1 to 200. Defaults to 50. 1–200. |
 | `userId` | string | query |  | Return only this end user's sessions. Send an empty value for sessions without an end user. |
 
 #### Response
@@ -556,8 +556,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 | `agentId` | string | path | required | ID of the agent. |
 | `sessionId` | string | path | required | ID of the session. |
 | `after` | string | query |  | A `latestCursor` you saved earlier. Returns messages added after it, to poll for new messages. |
-| `cursor` | string | query |  | Cursor from the previous page's `nextCursor`, to walk back to older messages. |
-| `limit` | integer | query |  | Number of messages per page, from 1 to 200. Defaults to 50. 1–200. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
+| `limit` | integer | query |  | Page size, from 1 to 200. Defaults to 50. 1–200. |
 
 #### Response
 
@@ -849,7 +849,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 | `agentId` | string | path | required | ID of the agent. |
 | `sessionId` | string | path | required | ID of the session. |
 | `includeCompleted` | string | query |  | Also return terminal receipts. Defaults to `false`. One of `true`, `false`. |
-| `limit` | integer | query |  | Maximum receipts per page, from 1 to 200. 1–200. Defaults to `100`. |
+| `limit` | integer | query |  | Page size, from 1 to 200. Defaults to 100. 1–200. |
 | `cursor` | string | query |  | The previous page's nextCursor. |
 
 #### Response

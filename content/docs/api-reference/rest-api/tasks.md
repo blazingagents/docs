@@ -37,7 +37,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 | `agentId` | string | query |  | Return only tasks for this agent. |
 | `userId` | string | query |  | Return only tasks for this end user. An empty string returns tenant-level tasks. |
 | `cursor` | string \| null | query |  | `nextCursor` from the previous page. |
-| `limit` | integer | query |  | Tasks per page, 1 to 200. 1–200. Defaults to `50`. |
+| `limit` | integer | query |  | Page size, from 1 to 200. Defaults to 50. 1–200. |
 
 #### Response
 

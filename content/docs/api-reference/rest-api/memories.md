@@ -27,7 +27,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 | `userId` | string | query |  | Return only memories for this end user. Send an empty string for general memories, or leave it out for all memories. |
 | `search` | string | query |  | Return only memories whose text matches these words. |
 | `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
-| `limit` | integer | query |  | Maximum number of memories to return. 1–100. Defaults to `50`. |
+| `limit` | integer | query |  | Page size, from 1 to 100. Defaults to 50. 1–100. |
 
 #### Response
 

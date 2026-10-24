@@ -33,8 +33,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `taskId` | string | path | required | ID of the task. |
-| `cursor` | string | query |  | `nextCursor` from the previous page. |
-| `limit` | integer | query |  | Runs per page, 1 to 200. 1–200. Defaults to `50`. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
+| `limit` | integer | query |  | Page size, from 1 to 200. Defaults to 50. 1–200. |
 
 #### Response
 
@@ -274,8 +274,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 | `taskId` | string | path | required | ID of the task. |
 | `runId` | string | path | required | ID of the task run. |
 | `after` | string | query |  | `latestCursor` from an earlier response. Returns only messages newer than it. |
-| `cursor` | string | query |  | `nextCursor` from the previous page. Walks back to older messages. |
-| `limit` | integer | query |  | Messages per page, 1 to 200. 1–200. Defaults to `50`. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
+| `limit` | integer | query |  | Page size, from 1 to 200. Defaults to 50. 1–200. |
 
 #### Response
 
