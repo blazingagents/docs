@@ -9,7 +9,7 @@ These are the limits Blazing Agents enforces today. Use them to validate input
 before you send it and to plan capacity. They are not billing entitlements or
 recommended batch sizes.
 
-Last verified: 2026-10-22.
+Last verified: 2026-10-24.
 
 ## Contract [#contract]
 
@@ -65,7 +65,7 @@ described in [Usage and quotas](/platform/usage-and-quotas).
 | <span id="file-glob-output">File glob output</span>                                 | 1,000 paths                                                                                                    | one `glob` Tool call      | extra paths are truncated                                       | fixed                   |
 | <span id="artifacts"></span><span id="artifact-file">Artifact file</span>           | 10 MiB                                                                                                         | one `publish_artifacts` path | Tool error output                                             | fixed                   |
 | <span id="artifact-batch">Artifact batch</span>                                     | 10 paths                                                                                                       | one `publish_artifacts` call | Tool validation error                                        | fixed                   |
-| <span id="artifacts-per-session">Artifacts per Session</span>                       | 100                                                                                                            | Session                   | [`artifact_session_cap_reached`](/api-reference/protocols/errors#artifact_session_cap_reached) while recording                  | fixed                   |
+| <span id="artifacts-per-session">Artifacts per Session</span>                       | 50                                                                                                             | Session                   | [`artifact_session_cap_reached`](/api-reference/protocols/errors#artifact_session_cap_reached) while recording                  | fixed                   |
 | <span id="artifact-download-url">Artifact download URL</span> | valid for 5 minutes | one download URL | the URL stops working; create a new one | fixed |
 | <span id="memories-per-agent">Memories per Agent</span> | 500 across all end users | Agent | saving another note removes the least recently used one; a [scoped save](/platform/tenancy-and-attribution#user-labels-and-user-scope) removes only that user's notes and returns `invalid_request` when other notes fill the agent | fixed |
 | <span id="memory-text">Memory text</span>                                           | 10 KiB UTF-8 bytes                                                                                             | Memory                    | `validation_failed`                                             | fixed                   |
