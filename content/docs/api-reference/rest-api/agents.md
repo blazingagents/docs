@@ -251,7 +251,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `approvalInChat.overrides` | object[] | body |  | Defaults to `[]`. |
 | `approvalInChat.overrides[].tool` | object | body | required |  |
 | `approvalInChat.overrides[].tool.type` | string | body | required |  |
-| `approvalInChat.overrides[].tool.name` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `builtin`. One of `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts`, `write_todos`, `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory`, `web_search`, `activate_skill`. |
+| `approvalInChat.overrides[].tool.name` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `builtin`. One of `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts`, `write_todos`, `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory`, `web_search`, `web_fetch`, `activate_skill`. |
 | `approvalInChat.overrides[].tool.name` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `mcp`. |
 | `approvalInChat.overrides[].tool.connectionId` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `mcp`. `mcp_…` ID. |
 | `approvalInChat.overrides[].decision` | string | body | required | One of `full`, `deny`, `manual`, `auto`. |
@@ -260,7 +260,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `approvalInTasks.overrides` | object[] | body |  | Defaults to `[]`. |
 | `approvalInTasks.overrides[].tool` | object | body | required |  |
 | `approvalInTasks.overrides[].tool.type` | string | body | required |  |
-| `approvalInTasks.overrides[].tool.name` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `builtin`. One of `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts`, `write_todos`, `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory`, `web_search`, `activate_skill`. |
+| `approvalInTasks.overrides[].tool.name` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `builtin`. One of `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts`, `write_todos`, `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory`, `web_search`, `web_fetch`, `activate_skill`. |
 | `approvalInTasks.overrides[].tool.name` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `mcp`. |
 | `approvalInTasks.overrides[].tool.connectionId` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `mcp`. `mcp_…` ID. |
 | `approvalInTasks.overrides[].decision` | string | body | required | One of `full`, `deny`, `manual`, `auto`. |
@@ -553,7 +553,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `approvalInChat.overrides` | object[] | body |  | Defaults to `[]`. |
 | `approvalInChat.overrides[].tool` | object | body | required |  |
 | `approvalInChat.overrides[].tool.type` | string | body | required |  |
-| `approvalInChat.overrides[].tool.name` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `builtin`. One of `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts`, `write_todos`, `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory`, `web_search`, `activate_skill`. |
+| `approvalInChat.overrides[].tool.name` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `builtin`. One of `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts`, `write_todos`, `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory`, `web_search`, `web_fetch`, `activate_skill`. |
 | `approvalInChat.overrides[].tool.name` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `mcp`. |
 | `approvalInChat.overrides[].tool.connectionId` | string | body | required | Only when `approvalInChat.overrides[].tool.type` is `mcp`. `mcp_…` ID. |
 | `approvalInChat.overrides[].decision` | string | body | required | One of `full`, `deny`, `manual`, `auto`. |
@@ -562,7 +562,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `approvalInTasks.overrides` | object[] | body |  | Defaults to `[]`. |
 | `approvalInTasks.overrides[].tool` | object | body | required |  |
 | `approvalInTasks.overrides[].tool.type` | string | body | required |  |
-| `approvalInTasks.overrides[].tool.name` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `builtin`. One of `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts`, `write_todos`, `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory`, `web_search`, `activate_skill`. |
+| `approvalInTasks.overrides[].tool.name` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `builtin`. One of `read`, `write`, `edit`, `grep`, `glob`, `bash`, `publish_artifacts`, `write_todos`, `save_memory`, `get_memory`, `search_memories`, `update_memory`, `delete_memory`, `web_search`, `web_fetch`, `activate_skill`. |
 | `approvalInTasks.overrides[].tool.name` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `mcp`. |
 | `approvalInTasks.overrides[].tool.connectionId` | string | body | required | Only when `approvalInTasks.overrides[].tool.type` is `mcp`. `mcp_…` ID. |
 | `approvalInTasks.overrides[].decision` | string | body | required | One of `full`, `deny`, `manual`, `auto`. |
