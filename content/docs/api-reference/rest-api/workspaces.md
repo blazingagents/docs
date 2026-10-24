@@ -27,7 +27,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `cursor` | string | query |  | `nextCursor` from the previous page. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
 | `limit` | integer | query |  | Page size, from 1 to 200. Defaults to 50. 1–200. |
 | `userId` | string | query |  | Return only workspaces with this exact `userId`. Send `""` for tenant-level workspaces. |
 
