@@ -259,8 +259,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `userId` | string | query |  | Return only the binding for this end user. |
-| `cursor` | string | query |  | The `nextCursor` from the previous page. |
-| `limit` | integer | query |  | Bindings per page, from 1 to 200. 1–200. Defaults to `50`. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
+| `limit` | integer | query |  | Page size, from 1 to 200. Defaults to 50. 1–200. |
 
 #### Response
 
@@ -406,8 +406,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `status` | string | query |  | Return only events with this delivery status. One of `pending`, `accepted`, `failed`, `incomplete`, `discarded`, `expired`. |
-| `cursor` | string | query |  | The `nextCursor` from the previous page. |
-| `limit` | integer | query |  | Events per page, from 1 to 200. 1–200. Defaults to `50`. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
+| `limit` | integer | query |  | Page size, from 1 to 200. Defaults to 50. 1–200. |
 
 #### Response
 

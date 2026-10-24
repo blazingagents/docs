@@ -33,7 +33,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
-| `limit` | integer | query |  | Maximum number of skills to return. 1–100. Defaults to `50`. |
+| `limit` | integer | query |  | Page size, from 1 to 100. Defaults to 50. 1–100. |
 
 #### Response
 
