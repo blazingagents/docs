@@ -135,7 +135,7 @@ A model spending stop sends the event with `code: "model_spending_limit_exceeded
 ```
 
 The scope is `agent`, `tenant`, or `both`. The reason is `exhausted` or `unpriced`;
-[handle a spending stop](/platform/usage-and-quotas#spending-limit-stops)
+[handle a spending stop](/platform/usage-and-spending-limits#spending-limit-stops)
 says what each one means and what to do. The following error ends the turn.
 
 Completion and object streams use plain text and do not carry this event.
@@ -144,7 +144,7 @@ final value raises `stream_error`. A rejection before streaming uses the
 normal HTTP error envelope with spending details.
 
 Keep completed output visible and do not automatically retry the request.
-Read the [current allowance and reset](/platform/usage-and-quotas#model-spending-limits)
+Read the [current allowance and reset](/platform/usage-and-spending-limits#model-spending-limits)
 before deciding what to do next. The same cost may count against both scopes;
 the two limits are not separate charges.
 

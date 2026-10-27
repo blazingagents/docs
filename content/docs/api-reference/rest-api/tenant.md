@@ -7,7 +7,7 @@ description: Read and change your tenant settings.
 
 ## Overview [#overview]
 
-Read or change your tenant's display name, monthly quota, model spending limit, and monetization setting. These are tenant operations, so a [user-scoped request](/api-reference/rest-api/authentication#end-user-scope) gets `403 forbidden`.
+Read or change your tenant's display name, model spending limit, and monetization setting. These are tenant operations, so a [user-scoped request](/api-reference/rest-api/authentication#end-user-scope) gets `403 forbidden`.
 
 ## Endpoints [#endpoints]
 
@@ -15,7 +15,7 @@ Read or change your tenant's display name, monthly quota, model spending limit, 
 
 Get tenant settings.
 
-Returns your tenant's display name, monthly quota, and monetization setting. A `null` quota means usage is unlimited. `deletion` is `null` unless your tenant is scheduled for deletion, when it holds the request and deletion times.
+Returns your tenant's display name and monetization setting. `deletion` is `null` unless your tenant is scheduled for deletion, when it holds the request and deletion times.
 
 #### Request
 
@@ -32,11 +32,6 @@ Response schema: `TenantSettings`.
 ```json
 {
   "name": "Acme",
-  "quota": {
-    "monthlyTokenLimit": 5000000,
-    "monthlyRequestLimit": 10000,
-    "resetDay": 1
-  },
   "monetizationEnabled": false,
   "deletion": null
 }
@@ -64,7 +59,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tenant" \
 
 Update tenant settings.
 
-Updates your tenant's display name, monthly quota, or monetization setting. Send at least one field; the ones you leave out keep their values. A `quota` replaces the whole quota, so send all three of its fields with at least one limit set, or send `null` to remove it. Turning `monetizationEnabled` off drops usage events your merchant has not yet accepted.
+Updates your tenant's display name or monetization setting. Send at least one field; the ones you leave out keep their values. Turning `monetizationEnabled` off drops usage events your merchant has not yet accepted.
 
 #### Request
 
@@ -74,10 +69,6 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | --- | --- | --- | --- | --- |
 | `monetizationEnabled` | boolean | body |  | Bill usage to your end users through your merchant account. Turning it off drops usage events your merchant has not yet accepted. |
 | `name` | string | body |  | Display name of your tenant. 1–80 characters. |
-| `quota` | object \| null | body |  | The whole monthly quota, replacing the current one, or `null` to remove it. Send `monthlyTokenLimit`, `monthlyRequestLimit`, and `resetDay`, with at least one limit set. |
-| `quota.monthlyTokenLimit` | integer \| null | body | required | More than 0. |
-| `quota.monthlyRequestLimit` | integer \| null | body | required | More than 0. |
-| `quota.resetDay` | integer | body | required | 1–28. |
 
 #### Response
 
@@ -88,11 +79,6 @@ Response schema: `TenantSettings`.
 ```json
 {
   "name": "Acme",
-  "quota": {
-    "monthlyTokenLimit": 5000000,
-    "monthlyRequestLimit": null,
-    "resetDay": 1
-  },
   "monetizationEnabled": false,
   "deletion": null
 }
@@ -115,7 +101,7 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/tenant" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
-  --data '{"quota":{"monthlyTokenLimit":5000000,"monthlyRequestLimit":null,"resetDay":1}}'
+  --data '{"name":"Acme"}'
 ```
 
 ### GET /v1/tenant/spending-limit [#get-tenant-spending-limit]
@@ -215,5 +201,5 @@ curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/tenant/spending-limit" \
 
 ## Next [#next]
 
-- [Usage and quotas](/platform/usage-and-quotas) to choose quota values.
-- [Usage API](/api-reference/rest-api/usage) to compare usage with your quota.
+- [Usage and spending limits](/platform/usage-and-spending-limits) to choose a spending limit.
+- [Usage API](/api-reference/rest-api/usage) to compare usage with your spending limit.

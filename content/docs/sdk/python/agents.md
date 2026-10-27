@@ -279,7 +279,7 @@ client.agents.update_spending_limit(
 
 **Signature:** `update_spending_limit(agent_id: str, *, spending_limit: SpendingLimitInput | None) -> SpendingLimitResponse`
 
-See [model spending limits](/platform/usage-and-quotas#model-spending-limits). Raises `validation_failed` or `not_found`. Tenant client only.
+See [model spending limits](/platform/usage-and-spending-limits#model-spending-limits). Raises `validation_failed` or `not_found`. Tenant client only.
 
 ## Response models [#response-models]
 

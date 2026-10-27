@@ -339,7 +339,7 @@ client
 
 **Signature:** `update_spending_limit(agent_id: impl Into<AgentId>, limit: Option<SpendingLimitInput>) -> Call<UpdateAgentSpendingLimit>`
 
-See [model spending limits](/platform/usage-and-quotas#model-spending-limits). Awaiting returns `SpendingLimitStatus`.
+See [model spending limits](/platform/usage-and-spending-limits#model-spending-limits). Awaiting returns `SpendingLimitStatus`.
 
 ## Response models [#response-models]
 

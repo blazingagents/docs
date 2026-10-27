@@ -139,5 +139,5 @@ Each `UsageBucket` has `input_tokens`, `output_tokens`, `request_count`, `durati
 
 ## Next [#next]
 
-- [Usage and quotas](/platform/usage-and-quotas)
+- [Usage and spending limits](/platform/usage-and-spending-limits)
 - [Tenant](/sdk/rust/tenant)

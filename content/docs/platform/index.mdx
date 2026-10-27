@@ -13,7 +13,7 @@ Everything around the agent that you need in production: conversations that pers
   <Card title="Sessions and turns" href="/platform/sessions-and-turns" description="Keep a conversation going across requests and read its history." />
   <Card title="Tenancy and attribution" href="/platform/tenancy-and-attribution" description="Label activity with your own user IDs to filter and report per user." />
   <Card title="Security and credentials" href="/platform/security-and-credentials" description="Keep your API key on your server and rotate it safely." />
-  <Card title="Usage and quotas" href="/platform/usage-and-quotas" description="See what every turn used and set monthly safety ceilings." />
+  <Card title="Usage and spending limits" href="/platform/usage-and-spending-limits" description="See what every turn used and set a dollar spending limit." />
   <Card title="Bill your users for model tokens" href="/platform/monetization" description="Charge your customers for tokens through your own Polar or Dodo account." />
   <Card title="Limits and reliability" href="/platform/limits-and-reliability" description="Retry safely, handle cancellation, and debug failures by symptom." />
   <Card title="Slack and Telegram" href="/platform/chat-integrations" description="Put your agent in Slack or Telegram with your own bot." />
@@ -24,7 +24,7 @@ Everything around the agent that you need in production: conversations that pers
 1. Your backend signs in the user, checks what they may access, and calls Blazing Agents with your API key.
 2. You can pass a `userId` to label the work for reporting. It does not grant access.
 3. The agent runs a turn, inside a session if you want history, and its usage is recorded.
-4. Quotas and service limits decide whether the turn starts, and the error code tells you whether to retry.
+4. Spending limits and service limits decide whether the turn starts, and the error code tells you whether to retry.
 
 ## Next [#next]
 

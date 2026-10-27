@@ -141,8 +141,7 @@ The server URL must use HTTPS and cannot contain credentials, a query string, or
 | --- | --- | --- |
 | `none` | The server needs no credentials. | Nothing extra. |
 | `bearer` | The server takes a static token. | `bearerToken` |
-| `oauth_client_credentials` | The server issues tokens to a machine client. | `clientId`, `clientSecret`, and optional `scope` |
-| `oauth_authorization_code` | A person has to sign in and grant access. | Nothing extra; finish sign-in in the dashboard. |
+| `oauth_authorization_code` | A person has to sign in and grant access. | Optionally `clientId` and `clientSecret` together, and `scope`; finish sign-in in the dashboard. |
 
 For every type except `oauth_authorization_code`, Blazing Agents checks the server before it saves the connection. If the check fails, nothing is saved.
 
@@ -162,7 +161,7 @@ Each connection has a `status`: `connected`, `needs_auth`, or `error`. Treat `ne
 
 | Code | What it means |
 | --- | --- |
-| `MCP_CONNECTION_AUTHENTICATION_FAILED` | The server refused the token, client credentials, or OAuth sign-in. Get valid credentials, then `reconnect()`. |
+| `MCP_CONNECTION_AUTHENTICATION_FAILED` | The server refused the token or OAuth sign-in. Get valid credentials, then `reconnect()`. |
 | `MCP_CONNECTION_INVALID` | The URL is not the full `https://` address of the server's MCP endpoint. |
 | `MCP_CONNECTION_UNREACHABLE` | The server is down, the address is wrong, or the server does not accept connections from the internet. |
 | `MCP_CONNECTION_DISCOVERY_FAILED` | The server answered, but listing its tools, or finding its OAuth sign-in, failed. |
@@ -197,7 +196,7 @@ An [approval rule](/agents/tools/tool-approvals) names an MCP tool by the server
 
 ## Reconnect or delete [#reconnect-or-delete]
 
-`reconnect()` replaces a connection's URL and credentials under the same ID. With a token or client credentials, the new details are checked first, and the old ones stay in use if the check fails. With an authorization code, the old credentials are dropped right away and the connection returns to `needs_auth` until someone signs in again.
+`reconnect()` replaces a connection's URL and credentials under the same ID. With a bearer token or no authentication, the new details are checked first, and the old ones stay in use if the check fails. With an authorization code, the old credentials are dropped right away and the connection returns to `needs_auth` until someone signs in again.
 
 A session or task run saves the connection ID, while the connection details and credentials remain current. Reconnecting changes what existing work uses too. Detach a connection from every agent before deleting it.
 

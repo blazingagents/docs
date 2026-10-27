@@ -32,7 +32,6 @@ println!("{} {}", connection.id, connection.status);
 | `None` | `none` | `name`, `url` |
 | `Bearer` | `bearer` | `name`, `url`, `bearer_token` |
 | `OAuthAuthorizationCode` | `oauth_authorization_code` | `name`, `url`, optional `client` (`OAuthClient::new(id, secret)`), optional `scope` |
-| `OAuthClientCredentials` | `oauth_client_credentials` | `name`, `url`, `client`, optional `scope` |
 
 The URL is the server's streamable HTTP endpoint. With the authorization code flow the connection is saved with `McpConnectionStatus::NeedsAuth` until an administrator signs in to the upstream service in the [dashboard](https://www.blazingagents.com/app); there is no SDK method for that step. `url` is the MCP server URL in every case.
 
@@ -68,7 +67,7 @@ let connection = client
 
 **Signature:** `create(connection: NewMcpConnection) -> Call<CreateMcpConnection>`
 
-For `None`, `Bearer`, and `OAuthClientCredentials`, Blazing Agents checks the live server before it saves the connection. `OAuthAuthorizationCode` is saved as `needs_auth` without a check, and an admin finishes sign-in from the dashboard. A failed create saves nothing.
+For `None` and `Bearer`, Blazing Agents checks the live server before it saves the connection. `OAuthAuthorizationCode` is saved as `needs_auth` without a check, and an admin finishes sign-in from the dashboard. A failed create saves nothing.
 
 Awaiting returns [`McpConnection`](#mcpconnection). Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`mcp_connection_name_conflict`](/api-reference/protocols/errors#mcp_connection_name_conflict), [`mcp_connection_limit_reached`](/api-reference/protocols/errors#mcp_connection_limit_reached), or [`mcp_connection_invalid`](/api-reference/protocols/errors#mcp_connection_invalid). A failed live check fails with [`mcp_connection_authentication_failed`](/api-reference/protocols/errors#mcp_connection_authentication_failed) when the server rejects the credentials, [`mcp_connection_unreachable`](/api-reference/protocols/errors#mcp_connection_unreachable) when it cannot be reached, or [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) when its tool list cannot be read. If a response ever echoes credential material back, the call fails client-side with `Error::CredentialEcho` and the body is discarded.
 

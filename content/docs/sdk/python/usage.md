@@ -138,6 +138,6 @@ Fields that do not match the grouping are `None`.
 
 ## Next [#next]
 
-- [Usage and quotas](/platform/usage-and-quotas)
-- [Tenant quota](/sdk/python/tenant#update)
+- [Usage and spending limits](/platform/usage-and-spending-limits)
+- [Tenant spending limit](/sdk/python/tenant#update-spending-limit)
 - [Tenancy and attribution](/platform/tenancy-and-attribution)

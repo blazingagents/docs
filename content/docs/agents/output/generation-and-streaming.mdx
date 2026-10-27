@@ -407,10 +407,10 @@ The old answer stays until the new one succeeds. If regeneration fails or you st
 ## Stops, errors, and what gets saved [#stops-errors-and-what-gets-saved]
 
 - **Stopping.** Pass an `AbortSignal` as `abortSignal`, or cancel the stream you are reading. The turn stops, and usage up to that point is recorded.
-- **Errors before streaming.** Problems such as an unknown agent, a bad request, or an exhausted quota reject the call with a typed error. Nothing is saved and nothing is charged.
+- **Errors before streaming.** Problems such as an unknown agent, a bad request, or an exhausted spending limit reject the call with a typed error. Nothing is saved and nothing is charged.
 - **Time limit.** A turn still running at the [turn deadline](/api-reference/protocols/service-limits#turn-deadline) is stopped like a cancelled one, and the history stays as it was.
 - **Errors during streaming.** A chat stream ends with an `{ type: "error", errorText }` event, which AI SDK clients already understand. For completion, `textStream` throws, and `await result.text` rejects with a `stream_error`.
-- **Saved history.** A successful chat turn adds the exchange to the session. A failed or stopped turn leaves the history as it was. The exception is a turn that a [model spending limit](/platform/usage-and-quotas#spending-limit-stops) stops partway, which keeps the output it finished. Completion never saves history.
+- **Saved history.** A successful chat turn adds the exchange to the session. A failed or stopped turn leaves the history as it was. The exception is a turn that a [model spending limit](/platform/usage-and-spending-limits#spending-limit-stops) stops partway, which keeps the output it finished. Completion never saves history.
 
 Tools that need [approval](/agents/tools/tool-approvals) cannot wait for a person during `client.completion()`, because there is no session to resume. Those calls are blocked, and the agent carries on with the work it is allowed to do.
 

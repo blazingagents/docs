@@ -25,7 +25,7 @@ print(run.status)
 
 ## Runs and their status [#runs-and-their-status]
 
-A run moves from `"queued"` to `"running"`, then ends as `"succeeded"`, `"failed"`, `"canceled"`, or `"blocked"`. `"blocked"` means the run was not allowed to start, for example because your tenant's quota or a model spending limit ran out; it is not an execution failure. A task has [one active run](/api-reference/protocols/service-limits#active-task-run) at a time, and a scheduled run that would overlap an active one is skipped.
+A run moves from `"queued"` to `"running"`, then ends as `"succeeded"`, `"failed"`, `"canceled"`, or `"blocked"`. `"blocked"` means the run was not allowed to start, for example because a model spending limit ran out; it is not an execution failure. A task has [one active run](/api-reference/protocols/service-limits#active-task-run) at a time, and a scheduled run that would overlap an active one is skipped.
 
 Each run gets a fresh session. `session_id` stays `None` until that session exists, and `turn_id` identifies the run's metered turn.
 
@@ -273,7 +273,7 @@ A queued run is canceled right away. A running one stops at its next safe point,
 | `turn_id` | `str \| None` | The run's metered turn, once started |
 | `status` | `str` | `queued`, `running`, `blocked`, `succeeded`, `failed`, or `canceled` |
 | `error` | `str \| None` | Failure reason |
-| `error_code` | `str \| None` | The API error code a `blocked` or `failed` run ended with, such as `quota_exceeded`. `None` for other runs and for a failure without a code |
+| `error_code` | `str \| None` | The API error code a `blocked` or `failed` run ended with, such as `usage_credit_required`. `None` for other runs and for a failure without a code |
 | `user_id`, `metadata` | `str`, `dict[str, object]` | Copied from the task |
 | `started_at`, `finished_at` | `datetime \| None` | Lifecycle times |
 | `cancel_requested_at`, `canceled_at` | `datetime \| None` | Cancellation times |

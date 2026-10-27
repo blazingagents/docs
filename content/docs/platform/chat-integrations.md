@@ -168,7 +168,6 @@ If Blazing Agents refuses a turn before it starts, nothing runs and the bot tell
 | `subscription_required` | Your account has no active subscription. |
 | `usage_credit_required` | Your account is out of usage credit. |
 | `model_spending_limit_exceeded` | The agent reached its spending limit; try again once it resets. |
-| `quota_exceeded` | The agent reached its usage limit for now; try again later. |
 | `rate_limited` | The agent is handling too many conversations; try again in a few minutes. |
 | `merchant_subscription_required` | The person needs an active subscription to talk to the agent. |
 | `merchant_balance_required` | The person's balance has run out. |

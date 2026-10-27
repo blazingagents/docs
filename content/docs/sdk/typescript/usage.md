@@ -5,7 +5,7 @@ description: Read token, request, and duration usage by day, agent, model, sessi
 
 # Usage
 
-`client.usage` tells you how many tokens and requests your agents used, and for whom. Use it to build a usage dashboard, show one end user their consumption, or find the sessions that used the most tokens. To learn how usage is counted and how quotas stop runaway spend, read [Usage and quotas](/platform/usage-and-quotas).
+`client.usage` tells you how many tokens and requests your agents used, and for whom. Use it to build a usage dashboard, show one end user their consumption, or find the sessions that used the most tokens. To learn how usage is counted and how spending limits stop runaway spend, read [Usage and spending limits](/platform/usage-and-spending-limits).
 
 This tenant-level report ranks every end user:
 
@@ -175,5 +175,5 @@ The package exports `UsageBucket`, `UsageTotals`, `UsageOverviewQuery`, `UsageOv
 
 ## Next [#next]
 
-- [Usage and quotas](/platform/usage-and-quotas)
+- [Usage and spending limits](/platform/usage-and-spending-limits)
 - [Tenant reference](/sdk/typescript/tenant#patch)

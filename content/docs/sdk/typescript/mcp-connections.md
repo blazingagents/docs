@@ -28,7 +28,6 @@ Every method takes one input object and accepts an optional `abortSignal`. Crede
 | --- | --- | --- |
 | `"none"` | none | Blazing Agents connects to the server to check it |
 | `"bearer"` | `bearerToken` | Checks the server with the token |
-| `"oauth_client_credentials"` | `clientId`, `clientSecret`, optional `scope` | Gets a token and checks the server |
 | `"oauth_authorization_code"` | optional `clientId` and `clientSecret` together, optional `scope` | Saves with `status: "needs_auth"` until a person signs in from the [dashboard](https://www.blazingagents.com/app) |
 
 If the check fails, nothing is saved and the call throws. The `url` must be `http` or `https` without credentials, a query string, or a fragment. Servers must speak Streamable HTTP.
@@ -57,7 +56,7 @@ Saves a connection and, except for authorization-code OAuth, checks that the ser
 const connection = await client.mcpConnections.create({
   name: "Analytics",
   url: "https://mcp.example.com/mcp",
-  authType: "oauth_client_credentials",
+  authType: "oauth_authorization_code",
   clientId: process.env.MCP_CLIENT_ID!,
   clientSecret: process.env.MCP_CLIENT_SECRET!,
   scope: "tools.read",
@@ -70,8 +69,8 @@ const connection = await client.mcpConnections.create({
 | `url` | `string` | yes | The server's MCP endpoint |
 | `authType` | `McpConnectionAuthType` | yes | See [authentication types](#authentication-types) |
 | `bearerToken` | `string` | for `"bearer"` | The token |
-| `clientId`, `clientSecret` | `string` | for `"oauth_client_credentials"` | OAuth client credentials |
-| `scope` | `string` | no | OAuth scope |
+| `clientId`, `clientSecret` | `string` | no | Send both or neither, only with `"oauth_authorization_code"` |
+| `scope` | `string` | no | OAuth scope, only with `"oauth_authorization_code"` |
 
 Returns [`McpConnectionResponse`](#mcpconnectionresponse) with `status: "connected"`, or `"needs_auth"` for authorization-code OAuth. Your tenant can hold up to 50 connections. Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`mcp_connection_name_conflict`](/api-reference/protocols/errors#mcp_connection_name_conflict), [`mcp_connection_limit_reached`](/api-reference/protocols/errors#mcp_connection_limit_reached), and the [check errors](#errors).
 

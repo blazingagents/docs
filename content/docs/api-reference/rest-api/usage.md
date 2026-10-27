@@ -358,5 +358,5 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/usage/sessions" \
 
 ## Next [#next]
 
-- [Usage and quotas](/platform/usage-and-quotas) to track spend and set a quota.
-- [Tenant API](/api-reference/rest-api/tenant#update-tenant-settings) to change your quota.
+- [Usage and spending limits](/platform/usage-and-spending-limits) to track spend and set a spending limit.
+- [Tenant API](/api-reference/rest-api/tenant#update-tenant-spending-limit) to change your spending limit.

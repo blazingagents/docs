@@ -89,18 +89,21 @@ describe("REST API reference request fields", () => {
     );
   });
 
-  it("joins the discriminator values a field shares", () => {
+  it("scopes a field only some variants have to their discriminator value", () => {
     expect(row("create-mcp-connection", "scope").description).toContain(
-      "Only when `authType` is `oauth_authorization_code` or `oauth_client_credentials`."
+      "Only when `authType` is `oauth_authorization_code`."
     );
   });
 
   it("keeps a field's rows together when its variants differ", () => {
-    const names = operation("create-mcp-connection").parameters.map(
+    const names = operation("create-chat-connection").parameters.map(
       (entry) => entry.name
     );
-    const first = names.indexOf("clientId");
-    expect(names.slice(first, first + 2)).toEqual(["clientId", "clientId"]);
+    const first = names.indexOf("credentials.botToken");
+    expect(names.slice(first, first + 2)).toEqual([
+      "credentials.botToken",
+      "credentials.botToken",
+    ]);
   });
 
   it("lists the variants of a nested oneOf field", () => {

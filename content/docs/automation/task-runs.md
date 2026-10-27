@@ -165,9 +165,9 @@ A run moves from `queued` to `running`, then ends in one of four final statuses:
 | `succeeded` | The agent finished. Its last assistant message is the result. |
 | `failed` | The run did not finish. Read `error`, but treat it as sensitive and redact it before you log it. |
 | `canceled` | You cancelled the run before it finished. |
-| `blocked` | The agent did not run because a quota, plan, usage credit, [monetization guard](/platform/monetization#guard-rules), or model spending limit check refused it. It is not a failure. See [usage and quotas](/platform/usage-and-quotas). |
+| `blocked` | The agent did not run because a plan, usage credit, [monetization guard](/platform/monetization#guard-rules), or model spending limit check refused it. It is not a failure. See [usage and spending limits](/platform/usage-and-spending-limits). |
 
-A limit that stops a run after the agent started working ends the run as `failed`, not `blocked`. If a [model spending limit](/platform/usage-and-quotas#spending-limit-stops) runs out during the run, the messages that finished stay in its transcript. If the run reaches the [turn deadline](/api-reference/protocols/service-limits#turn-deadline), its `error` is `Task run deadline exceeded`.
+A limit that stops a run after the agent started working ends the run as `failed`, not `blocked`. If a [model spending limit](/platform/usage-and-spending-limits#spending-limit-stops) runs out during the run, the messages that finished stay in its transcript. If the run reaches the [turn deadline](/api-reference/protocols/service-limits#turn-deadline), its `error` is `Task run deadline exceeded`.
 
 Each run that executes gets a fresh [session](/platform/sessions-and-turns), so the transcript holds only this run. A run blocked before its session was created has an empty transcript. Use `client.tasks.getRun()` when you need the run's timestamps, session ID, or its saved `agentConfig`.
 
@@ -198,7 +198,7 @@ Cancelling asks the run to stop at its next safe point. Keep checking until you 
 - A run's turn executes at most once. If the platform restarts mid-run, an unfinished run ends as `failed` instead of repeating model or tool calls. Check for side effects before you start the work again.
 - No one can approve a tool call during a run. See [tool approvals in tasks](/automation/tasks#tool-approvals-in-tasks).
 - Alert when a run stays `queued` or `running` longer than you expect, or does not finish after you cancel it.
-- A `blocked` run frees the task, so its next scheduled time can run once the quota or plan allows.
+- A `blocked` run frees the task, so its next scheduled time can run once the plan or usage credit allows.
 
 ## Next [#next]
 

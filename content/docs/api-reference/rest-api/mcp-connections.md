@@ -72,7 +72,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections" \
 
 Create an MCP connection.
 
-Creates an MCP connection you can attach to any agent in your tenant. Names are unique within your tenant, and credentials are never returned. The fields you send depend on `authType`: `bearerToken` is required for `bearer`; `clientId` and `clientSecret` are required together for `oauth_client_credentials`; for `oauth_authorization_code` they are optional but go together. For `none`, `bearer`, and `oauth_client_credentials`, Blazing Agents checks the live server before saving and returns `status: "connected"`. For `oauth_authorization_code`, it saves the connection as `needs_auth`, and an administrator finishes sign-in from the dashboard. A failed create saves nothing.
+Creates an MCP connection you can attach to any agent in your tenant. Names are unique within your tenant, and credentials are never returned. The fields you send depend on `authType`: `bearerToken` is required for `bearer`; for `oauth_authorization_code`, `clientId` and `clientSecret` are optional but go together. For `none` and `bearer`, Blazing Agents checks the live server before saving and returns `status: "connected"`. For `oauth_authorization_code`, it saves the connection as `needs_auth`, and an administrator finishes sign-in from the dashboard. A failed create saves nothing.
 
 #### Request
 
@@ -82,13 +82,11 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | --- | --- | --- | --- | --- |
 | `name` | string | body | required | Display name of the connection, unique within your tenant. 1–80 characters. |
 | `url` | string | body | required | Streamable HTTP URL of the MCP server. Use `https`, with no credentials, query, or fragment. Up to 2048 characters. |
-| `authType` | string | body | required | How Blazing Agents authenticates to the MCP server: `none`, `bearer`, `oauth_client_credentials`, or `oauth_authorization_code`. The other fields you send depend on it. |
+| `authType` | string | body | required | How Blazing Agents authenticates to the MCP server: `none`, `bearer`, or `oauth_authorization_code`. The other fields you send depend on it. |
 | `bearerToken` | string | body | required | Only when `authType` is `bearer`. Token sent as `Authorization: Bearer <token>` to the MCP server. Required when `authType` is `bearer`. Never returned. 1–8192 characters. |
-| `clientId` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client ID. Required with `clientSecret` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientSecret`. 1–2048 characters. |
-| `clientId` | string | body | required | Only when `authType` is `oauth_client_credentials`. OAuth client ID. Required with `clientSecret` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientSecret`. 1–2048 characters. |
-| `clientSecret` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client secret. Required with `clientId` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientId`. Never returned. 1–8192 characters. |
-| `clientSecret` | string | body | required | Only when `authType` is `oauth_client_credentials`. OAuth client secret. Required with `clientId` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientId`. Never returned. 1–8192 characters. |
-| `scope` | string | body |  | Only when `authType` is `oauth_authorization_code` or `oauth_client_credentials`. OAuth scope to request. Optional for either OAuth type. 1–2048 characters. |
+| `clientId` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client ID. Optional, but send it together with `clientSecret`. 1–2048 characters. |
+| `clientSecret` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client secret. Optional, but send it together with `clientId`. Never returned. 1–8192 characters. |
+| `scope` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth scope to request. Optional. 1–2048 characters. |
 
 #### Response
 
@@ -193,7 +191,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890A
 
 Reconnect an MCP connection.
 
-Replaces an MCP connection's server URL and credentials. The fields you send depend on `authType`, as when you create a connection: `bearerToken` is required for `bearer`; `clientId` and `clientSecret` are required together for `oauth_client_credentials`; for `oauth_authorization_code` they are optional but go together. For `none`, `bearer`, and `oauth_client_credentials`, Blazing Agents checks the live server before replacing anything and returns `status: "connected"`; a failed check leaves the existing configuration as it was. For `oauth_authorization_code`, it saves the replacement as `needs_auth`, and an administrator finishes sign-in from the dashboard.
+Replaces an MCP connection's server URL and credentials. The fields you send depend on `authType`, as when you create a connection: `bearerToken` is required for `bearer`; for `oauth_authorization_code`, `clientId` and `clientSecret` are optional but go together. For `none` and `bearer`, Blazing Agents checks the live server before replacing anything and returns `status: "connected"`; a failed check leaves the existing configuration as it was. For `oauth_authorization_code`, it saves the replacement as `needs_auth`, and an administrator finishes sign-in from the dashboard.
 
 #### Request
 
@@ -202,14 +200,12 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `id` | string | path | required | ID of the MCP connection. |
-| `authType` | string | body | required | How Blazing Agents authenticates to the MCP server: `none`, `bearer`, `oauth_client_credentials`, or `oauth_authorization_code`. The other fields you send depend on it. |
+| `authType` | string | body | required | How Blazing Agents authenticates to the MCP server: `none`, `bearer`, or `oauth_authorization_code`. The other fields you send depend on it. |
 | `url` | string | body | required | Streamable HTTP URL of the MCP server. Use `https`, with no credentials, query, or fragment. Up to 2048 characters. |
 | `bearerToken` | string | body | required | Only when `authType` is `bearer`. Token sent as `Authorization: Bearer <token>` to the MCP server. Required when `authType` is `bearer`. Never returned. 1–8192 characters. |
-| `clientId` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client ID. Required with `clientSecret` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientSecret`. 1–2048 characters. |
-| `clientId` | string | body | required | Only when `authType` is `oauth_client_credentials`. OAuth client ID. Required with `clientSecret` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientSecret`. 1–2048 characters. |
-| `clientSecret` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client secret. Required with `clientId` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientId`. Never returned. 1–8192 characters. |
-| `clientSecret` | string | body | required | Only when `authType` is `oauth_client_credentials`. OAuth client secret. Required with `clientId` for `oauth_client_credentials`. Optional for `oauth_authorization_code`, but send it together with `clientId`. Never returned. 1–8192 characters. |
-| `scope` | string | body |  | Only when `authType` is `oauth_authorization_code` or `oauth_client_credentials`. OAuth scope to request. Optional for either OAuth type. 1–2048 characters. |
+| `clientId` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client ID. Optional, but send it together with `clientSecret`. 1–2048 characters. |
+| `clientSecret` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth client secret. Optional, but send it together with `clientId`. Never returned. 1–8192 characters. |
+| `scope` | string | body |  | Only when `authType` is `oauth_authorization_code`. OAuth scope to request. Optional. 1–2048 characters. |
 
 #### Response
 

@@ -1,15 +1,15 @@
 ---
-title: Usage and quotas
-description: Track model usage and set token quotas or dollar spending limits for your account and agents.
+title: Usage and spending limits
+description: Track model usage and set dollar spending limits for your account and agents.
 ---
 
-# Usage and quotas
+# Usage and spending limits
 
-See how many tokens and requests your agents use, broken down the way you need, and set a token quota or a dollar spending limit so a runaway loop cannot burn through your model budget. Blazing Agents records usage for every turn automatically. A quota is an optional safety limit you set, separate from your plan and billing.
+See how many tokens and requests your agents use, broken down the way you need, and set a dollar spending limit so a runaway loop cannot burn through your model budget. Blazing Agents records usage for every turn automatically. A spending limit is an optional safety limit you set, separate from your plan and billing.
 
-## Query usage and set a quota [#query-usage-and-set-a-quota]
+## Query usage [#query-usage]
 
-This example prints token totals per agent for July, then caps the account at one million tokens a month:
+This example prints token totals per agent for July:
 
 ```typescript tab="TypeScript"
 import { BlazingAgents } from "@blazingagents/sdk";
@@ -26,11 +26,6 @@ const report = await client.usage.get({
 for (const bucket of report.buckets) {
   console.log(bucket.agentId, bucket.inputTokens + bucket.outputTokens);
 }
-
-const settings = await client.tenant.patch({
-  quota: { monthlyTokenLimit: 1_000_000, monthlyRequestLimit: null, resetDay: 1 },
-});
-console.log(settings.quota);
 ```
 
 ```python tab="Python"
@@ -41,15 +36,9 @@ client = BlazingAgents()
 report = client.usage.get(from_="2026-07-01", to="2026-07-31", group_by="agent")
 for bucket in report.buckets:
     print(bucket.agent_id, bucket.input_tokens + bucket.output_tokens)
-
-settings = client.tenant.update(
-    quota={"monthly_token_limit": 1_000_000, "monthly_request_limit": None, "reset_day": 1}
-)
-print(settings.quota)
 ```
 
 ```rust tab="Rust"
-use blazing_agents::tenant::QuotaInput;
 use blazing_agents::usage::UsageGroupBy;
 use blazing_agents::Client;
 
@@ -70,13 +59,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             bucket.input_tokens + bucket.output_tokens
         );
     }
-
-    let settings = client
-        .tenant()
-        .update()
-        .quota(QuotaInput::new(1).monthly_token_limit(1_000_000))
-        .await?;
-    println!("{:?}", settings.quota);
     Ok(())
 }
 ```
@@ -115,20 +97,10 @@ func main() {
 			fmt.Println(*bucket.AgentID, bucket.InputTokens+bucket.OutputTokens)
 		}
 	}
-
-	settings, err := client.Tenant.Update(ctx, ba.UpdateTenantParams{
-		Quota: ba.Value(ba.QuotaInput{ResetDay: 1, MonthlyTokenLimit: new(1_000_000)}),
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	if quota := settings.Quota; quota != nil && quota.MonthlyTokenLimit != nil {
-		fmt.Println(*quota.MonthlyTokenLimit, quota.ResetDay)
-	}
 }
 ```
 
-You see one line per agent that ran in July, then the saved quota: a token ceiling of `1000000`, no request ceiling, and a window that resets on the 1st of each month.
+You see one line per agent that ran in July.
 
 ## Set a model spending limit [#model-spending-limits]
 
@@ -285,20 +257,13 @@ These reports show model usage, not the compute, network, and web search charges
 
 Dates are UTC and inclusive. Pass both `from` and `to`, or neither for the [default window](/api-reference/protocols/service-limits#usage-query-window). Usage includes finished turns, not one still running. See [`usage.get()`](/sdk/typescript/usage#get) for ranges and limits.
 
-## How quotas work [#how-quotas-work]
-
-A quota sets a monthly token ceiling, a request ceiling, or both, plus the [day of the month](/api-reference/protocols/service-limits#quota-reset-day) when the window resets. Update it with `client.tenant.patch()` in TypeScript, `client.tenant.update()` in Python, `client.tenant().update().quota(QuotaInput::new(reset_day)...)` in Rust, or `client.Tenant.Update()` with a `Quota` in Go; remove it with `quota: null` (`quota=None` in Python, `.clear_quota()` in Rust, `ba.Null[ba.QuotaInput]()` in Go). With no quota, usage is unlimited.
-
-Blazing Agents checks the current window before each turn starts. It does not stop a turn that crosses the ceiling while running, and several turns running at once can overshoot before their usage lands. Leave headroom.
-
-## Quota and capacity outcomes [#quota-and-capacity-outcomes]
+## Limit and capacity outcomes [#limit-and-capacity-outcomes]
 
 | Situation | What you see |
 | --- | --- |
-| A chat or generation call starts while usage is over the ceiling | HTTP `429` with [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded) |
+| A chat or generation call starts while a model spending limit has nothing left | HTTP `429` with [`model_spending_limit_exceeded`](/api-reference/protocols/errors#model_spending_limit_exceeded) |
 | Any call without an active plan, reads included | HTTP `402` with [`subscription_required`](/api-reference/protocols/errors#subscription_required). Tenant settings, chat connections, stopping a turn, and cancelling a task run still work |
 | A chat or generation call starts without usage credit | HTTP `402` with [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required) |
-| A task run starts while usage is over the ceiling | The run ends as `blocked`, not `failed`, without running |
 | A task run lacks a required subscription or usage credit | The run ends as `blocked` |
 | A task run starts while a model spending limit has nothing left | The run ends as `blocked`, without running |
 | A task run starts while your [monetization guard](/platform/monetization) refuses the end user | The run ends as `blocked`, without running |
@@ -308,14 +273,13 @@ Blazing Agents checks the current window before each turn starts. It does not st
 | You create agents, tasks, or workspaces faster than the [creation rate](/api-reference/protocols/service-limits#tenant-resource-creation-rate) | HTTP `429` with `rate_limited` and a `Retry-After` header |
 | More task runs are active than your plan's [concurrent task run limit](/api-reference/protocols/service-limits#concurrent-task-runs) | Extra runs wait as `queued` until a slot frees up |
 
-A `blocked` run's `errorCode` names the check that stopped it, such as `quota_exceeded`, `usage_credit_required`, `model_spending_limit_exceeded`, `merchant_balance_required`, or `tenant_deleting`. A blocked task run frees the task for its next scheduled time, which runs normally once the quota allows.
+A `blocked` run's `errorCode` names the check that stopped it, such as `usage_credit_required`, `model_spending_limit_exceeded`, `merchant_balance_required`, or `tenant_deleting`. A blocked task run frees the task for its next scheduled time, which runs normally once the limit allows.
 
 ## Production notes [#production-notes]
 
-- Watch real usage for a while before you set ceilings, and alert well before you reach them.
-- Work out your window from the reset day, not the calendar month.
+- Watch real usage for a while before you set a spending limit, and alert well before you reach it.
 - Keep failed and cancelled turns in your reports. They cost tokens too.
-- A quota is only a token and request limit. Your plan and its charges are separate.
+- A spending limit covers model tokens only. Your plan and its other charges are separate.
 
 ## Next [#next]
 

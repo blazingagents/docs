@@ -260,7 +260,7 @@ It succeeds whenever the task exists, even if the run is missing or already fini
 | `turn_id` | `Option<TurnId>` | The run's metered turn |
 | `status` | `TaskRunStatus` | `Queued` through `Canceled` |
 | `error` | `Option<String>` | Why a failed or blocked run did not complete |
-| `error_code` | `Option<ErrorCode>` | The error code a blocked or failed run ended with, such as `ErrorCode::QuotaExceeded`; `None` for other runs and for a failure without a code |
+| `error_code` | `Option<ErrorCode>` | The error code a blocked or failed run ended with, such as `ErrorCode::UsageCreditRequired`; `None` for other runs and for a failure without a code |
 | `user_id` | `String` | End user, copied from the task |
 | `metadata` | `Metadata` | Your own data |
 | `started_at`, `finished_at`, `cancel_requested_at`, `canceled_at`, `created_at`, `updated_at` | `Option<Timestamp>`, `Timestamp` | Lifecycle timestamps |

@@ -1,6 +1,6 @@
 ---
 title: Tenant
-description: Read and change your tenant's name, monthly usage quota, and model spending limit with the Go SDK.
+description: Read and change your tenant's name, billing switch, and model spending limit with the Go SDK.
 ---
 
 # Tenant
@@ -23,7 +23,7 @@ return nil
 | Method | Description | Returns |
 | --- | --- | --- |
 | [`Tenant.Get`](#get) | Get the tenant's settings | [`*TenantSettings`](#tenantsettings) |
-| [`Tenant.Update`](#update) | Change name, quota, or monetization | [`*TenantSettings`](#tenantsettings) |
+| [`Tenant.Update`](#update) | Change name or monetization | [`*TenantSettings`](#tenantsettings) |
 | [`SpendingLimits.GetTenant`](#get-spending-limit) | Get the account's model spending limit | `*ModelSpendingLimitStatus` |
 | [`SpendingLimits.UpdateTenant`](#update-spending-limit) | Set or turn off the account's model spending limit | `*ModelSpendingLimitStatus` |
 
@@ -65,20 +65,6 @@ return nil
 | --- | --- | --- |
 | `Name` | `*string` | A new display name, within the [name limit](/api-reference/protocols/service-limits#tenant-display-name) |
 | `MonetizationEnabled` | `*bool` | Bills usage to your end users through your merchant account. Turning it off drops usage events your merchant has not yet accepted |
-| `Quota` | `ba.Nullable[ba.QuotaInput]` | `ba.Value(quota)` replaces the whole monthly quota; `ba.Null[ba.QuotaInput]()` removes it |
-
-```go
-tenant, err := client.Tenant.Update(ctx, ba.UpdateTenantParams{
-	Quota: ba.Value(ba.QuotaInput{ResetDay: 1, MonthlyRequestLimit: new(10_000)}),
-})
-if err != nil {
-	return err
-}
-fmt.Println(tenant.Quota != nil)
-return nil
-```
-
-`ba.QuotaInput` takes `ResetDay`, the day of each month the quota resets (see the [reset day limit](/api-reference/protocols/service-limits#quota-reset-day)), and the `MonthlyTokenLimit` and `MonthlyRequestLimit` pointers. Every field is always sent; a nil limit goes out as `null`, which means unlimited. Set at least one limit, or the update fails with `validation_failed`. To remove the quota, send `ba.Null[ba.QuotaInput]()`.
 
 Returns [`*ba.TenantSettings`](#tenantsettings). Fails with `*ba.APIError` whose `Code` is [`validation_failed`](/api-reference/protocols/errors#validation_failed).
 
@@ -118,13 +104,9 @@ return err
 
 **Signature:** `func (s *SpendingLimitsService) UpdateTenant(ctx context.Context, params UpdateSpendingLimitParams, opts ...RequestOption) (*ModelSpendingLimitStatus, error)`
 
-`ba.ModelSpendingLimit` takes a USD `AmountUSD`, a UTC `ResetStartDate`, and a `ResetInterval` of `ba.ResetIntervalDaily`, `ba.ResetIntervalWeekly`, `ba.ResetIntervalBiweekly`, or `ba.ResetIntervalMonthly`. See [model spending limits](/platform/usage-and-quotas#model-spending-limits). Returns `*ba.ModelSpendingLimitStatus`. Fails with `validation_failed`.
+`ba.ModelSpendingLimit` takes a USD `AmountUSD`, a UTC `ResetStartDate`, and a `ResetInterval` of `ba.ResetIntervalDaily`, `ba.ResetIntervalWeekly`, `ba.ResetIntervalBiweekly`, or `ba.ResetIntervalMonthly`. See [model spending limits](/platform/usage-and-spending-limits#model-spending-limits). Returns `*ba.ModelSpendingLimitStatus`. Fails with `validation_failed`.
 
-## How quotas apply [#how-quotas-apply]
-
-Blazing Agents checks usage in the current quota period before each turn starts. When a limit is reached, new turns fail with [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded), and task runs end as blocked instead of failed. A turn that is already running is never cut off, so usage can go past a limit, especially with turns running at the same time. With no quota, or a quota removed with `ba.Null[ba.QuotaInput]()`, that measure is unlimited.
-
-A quota is your own safety setting. It is not a plan limit, credit balance, or bill.
+## Pause billing [#pause-billing]
 
 To pause billing, turn monetization off with `client.Tenant.Update(ctx, ba.UpdateTenantParams{MonetizationEnabled: new(false)})`. This drops usage events your merchant has not yet accepted. See [Monetization](/platform/monetization) before you change it.
 
@@ -135,11 +117,10 @@ To pause billing, turn monetization off with `client.Tenant.Update(ctx, ba.Updat
 | Field | Type | Description |
 | --- | --- | --- |
 | `Name` | `string` | Display name |
-| `Quota` | `*ba.TenantQuota` | The monthly quota (`MonthlyTokenLimit`, `MonthlyRequestLimit`, `ResetDay`), or nil |
 | `Deletion` | `*ba.TenantDeletion` | A scheduled deletion (`DeletesAt`, `RequestedAt`), or nil |
 | `MonetizationEnabled` | `bool` | Whether usage is billed to your end users |
 
 ## Next [#next]
 
-- [Usage and quotas](/platform/usage-and-quotas)
+- [Usage and spending limits](/platform/usage-and-spending-limits)
 - [Usage](/sdk/go/usage)

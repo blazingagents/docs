@@ -13,5 +13,5 @@ With a [user-scoped request](/api-reference/rest-api/authentication#end-user-sco
 
 ## Next [#next]
 
-- [Usage and quotas](/platform/usage-and-quotas) to track spend and set a quota.
-- [Tenant API](/api-reference/rest-api/tenant#update-tenant-settings) to change your quota.
+- [Usage and spending limits](/platform/usage-and-spending-limits) to track spend and set a spending limit.
+- [Tenant API](/api-reference/rest-api/tenant#update-tenant-spending-limit) to change your spending limit.

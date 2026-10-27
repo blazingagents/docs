@@ -315,4 +315,4 @@ return nil
 
 - [Sessions and turns](/platform/sessions-and-turns) to continue and reload conversations.
 - [Tasks and schedules](/automation/tasks) to run agents in the background.
-- [Usage and quotas](/platform/usage-and-quotas) to track spend per user.
+- [Usage and spending limits](/platform/usage-and-spending-limits) to track spend per user.

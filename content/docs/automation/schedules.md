@@ -142,7 +142,7 @@ If you disable the task's agent, scheduled times pass without creating runs. Rec
 - **One run at a time.** If a run is still active when the next time arrives, that time is skipped.
 - **No catch-up.** Missed cron and interval times are skipped, not run in a burst later. Intervals continue at their next regular time.
 - **One-time schedules in the past.** A `once` schedule runs right away if its `at` time has already passed when you save it, or when you enable a task whose one-time run has not happened yet. After the run happens or is skipped, enabling the task again does not run it a second time. Save a new schedule to run it again. A one-time run that a platform delay held up starts as soon as the platform recovers.
-- **Blocked runs.** If your quota is exhausted, a scheduled run ends as `blocked` and the next scheduled time tries again. See [usage and quotas](/platform/usage-and-quotas).
+- **Blocked runs.** If your model spending limit is exhausted, a scheduled run ends as `blocked` and the next scheduled time tries again. See [usage and spending limits](/platform/usage-and-spending-limits).
 
 ## Next [#next]
 

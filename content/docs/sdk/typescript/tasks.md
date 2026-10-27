@@ -26,7 +26,7 @@ Every method takes one input object and accepts an optional `abortSignal`.
 
 ## Runs [#runs]
 
-A task has at most [one active run](/api-reference/protocols/service-limits#active-task-run) at a time. A run moves from `queued` to `running`, then ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a quota or a model spending limit ran out; `error` says why.
+A task has at most [one active run](/api-reference/protocols/service-limits#active-task-run) at a time. A run moves from `queued` to `running`, then ends as `succeeded`, `failed`, `canceled`, or `blocked`. `blocked` means the run was not allowed to start, for example because a model spending limit ran out; `error` says why.
 
 Runs use the agent's `approvalInTasks` policy. Nobody is there to approve a call, so tool calls that would need a person are denied and the agent is told so. See [tool approvals](/agents/tools/tool-approvals).
 
@@ -282,7 +282,7 @@ interface TasksListResponse {
 | `turnId` | `string \| null` | The turn in your usage records, once started |
 | `status` | `TaskRunStatus` | Where the run is |
 | `error` | `string \| null` | Why it failed or was blocked |
-| `errorCode` | `BlazingAgentsErrorCode \| null` | The API error code when the run ended `blocked` or `failed`, such as `quota_exceeded`; `null` otherwise or when the failure has no code |
+| `errorCode` | `BlazingAgentsErrorCode \| null` | The API error code when the run ended `blocked` or `failed`, such as `usage_credit_required`; `null` otherwise or when the failure has no code |
 | `userId` | `string` | The task's end user when the run was created |
 | `metadata` | `Record<string, unknown>` | The task's metadata when the run was created |
 | `startedAt`, `finishedAt` | `string \| null` | When it started and ended |

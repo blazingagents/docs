@@ -21,7 +21,7 @@ Here is what a team usually ends up building:
 - **MCP tools** from remote servers, including OAuth sign-in and token refresh.
 - **Tool approvals** so a person, or a reviewing model, can allow or block a risky call before it runs.
 - **Background tasks and schedules** that run the agent with no user present, once, on an interval, or on a cron.
-- **Usage metering** per turn, per agent, and per end user, with token quotas and dollar spending limits as safety ceilings.
+- **Usage metering** per turn, per agent, and per end user, with dollar spending limits as a safety ceiling.
 - **Billing your own users** for the model tokens they consume.
 - **Slack and Telegram** bots that talk to the same agent.
 - **Saved agent configuration** so an agent edit does not change a conversation or job already in progress.
@@ -38,7 +38,7 @@ Blazing Agents ships each of these today.
 | Keeping each end user to their own agents, sessions, files, and memories when you call as that user | Roles and permissions inside your product |
 | Skills, memory, MCP connections, and tool approvals | Which agents each user gets |
 | Tasks, task runs, and schedules | When to start work, and what to do with the result |
-| Usage records, quotas, and token billing events | Your prices, plans, and invoices, through your own Polar or Dodo account |
+| Usage records, spending limits, and token billing events | Your prices, plans, and invoices, through your own Polar or Dodo account |
 
 Your backend is the only thing that talks to Blazing Agents. It signs the user in, then calls the API with your key as that user, through `client.forUser(userId)` in TypeScript. Blazing Agents limits those calls to the user's own agents, sessions, files, and memories, and answers `404` when one user asks for another user's records. You keep no table of which user owns which conversation. A call made without a user reaches your whole tenant. See [tenancy and attribution](/platform/tenancy-and-attribution).
 
@@ -56,7 +56,7 @@ This table compares building on a plain model SDK with your own database and san
 | [MCP tools](/agents/tools/mcp-tools) | Run an MCP client, store credentials, implement OAuth and token refresh | Create a connection once and attach it to any agent |
 | [Tool approvals](/agents/tools/tool-approvals) | Pause the agent loop, persist the pending call, resume after a decision | Set a policy per tool: allow, deny, ask a person, or let the model review |
 | [Background work](/automation/tasks) | Run a job queue, retries, idempotency, and a scheduler | Create a task and a run, or attach a [schedule](/automation/schedules) |
-| [Usage and quotas](/platform/usage-and-quotas) | Record tokens per call and aggregate by user, agent, and model | Query `client.usage` grouped by day, agent, model, session, or user |
+| [Usage and spending limits](/platform/usage-and-spending-limits) | Record tokens per call and aggregate by user, agent, and model | Query `client.usage` grouped by day, agent, model, session, or user |
 | [Bill your users](/platform/monetization) | Meter tokens per user and deliver events to your billing provider reliably | Connect Polar or Dodo, bind each `userId` to a customer |
 | [Slack and Telegram](/platform/chat-integrations) | Handle webhooks, threads, history, and approval buttons for each platform | Create a chat connection with your bot credentials |
 | [Configuration snapshots](/agents/configuration-snapshots) | Copy the agent's settings into each conversation and job so later edits do not change work in progress | Each session and task run keeps the settings it started with. Read them with `sessions.get()` or `tasks.getRun()`. |

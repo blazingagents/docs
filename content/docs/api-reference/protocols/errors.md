@@ -25,7 +25,7 @@ Each code links to its own entry. You can link straight to one, for example
 | [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`session_turn_unresponsive`](#session_turn_unresponsive), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`input_idempotency_conflict`](#input_idempotency_conflict), [`steer_not_available`](#steer_not_available), [`message_id_conflict`](#message_id_conflict), [`message_not_found`](#message_not_found), [`tool_approval_continuation_settled`](#tool_approval_continuation_settled), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict), [`session_fork_unavailable`](#session_fork_unavailable), [`session_fork_deleted`](#session_fork_deleted) |
 | [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
 | [Tasks](#tasks) | [`task_active_run_exists`](#task_active_run_exists) |
-| [Quotas and billing](#quotas-and-billing) | [`quota_exceeded`](#quota_exceeded), [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`subscription_already_paid`](#subscription_already_paid), [`subscription_not_cancelled`](#subscription_not_cancelled), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_connection_in_use`](#merchant_connection_in_use), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable), [`model_spending_limit_exceeded`](#model_spending_limit_exceeded) |
+| [Plan and billing](#plan-and-billing) | [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`subscription_already_paid`](#subscription_already_paid), [`subscription_not_cancelled`](#subscription_not_cancelled), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_connection_in_use`](#merchant_connection_in_use), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable), [`model_spending_limit_exceeded`](#model_spending_limit_exceeded) |
 | [Workspaces and artifacts](#workspaces-and-artifacts) | [`workspace_not_found`](#workspace_not_found), [`workspace_in_use`](#workspace_in_use), [`workspace_busy`](#workspace_busy), [`artifact_session_cap_reached`](#artifact_session_cap_reached) |
 | [Service](#service) | [`internal`](#internal), [`service_unavailable`](#service_unavailable) |
 
@@ -149,7 +149,7 @@ async function inspectTaskError() {
       status: error.status,
     });
 
-    if (error.code === "quota_exceeded") return;
+    if (error.code === "model_spending_limit_exceeded") return;
     if (error.code === "request_aborted") return;
     throw error;
   }
@@ -171,7 +171,7 @@ def inspect_task_error() -> None:
                 "status": error.status_code,
             }
         )
-        if error.code != "quota_exceeded":
+        if error.code != "model_spending_limit_exceeded":
             raise
 ```
 
@@ -192,7 +192,7 @@ async fn inspect_task_error(
                     "status": error.status(),
                 })
             );
-            if error.code() != &ErrorCode::QuotaExceeded {
+            if error.code() != &ErrorCode::ModelSpendingLimitExceeded {
                 return Err(error.into());
             }
             Ok(())
@@ -217,7 +217,7 @@ inspectTaskError := func(taskID ba.TaskID) error {
 		"requestId", apiErr.Meta.RequestID,
 		"status", apiErr.Status,
 	)
-	if apiErr.Code == ba.ErrorCodeQuotaExceeded {
+	if apiErr.Code == ba.ErrorCodeModelSpendingLimitExceeded {
 		return nil
 	}
 	return err
@@ -886,13 +886,13 @@ To fix it:
 
 **The MCP server rejected the credential.**
 
-The bearer token, client credentials, or OAuth sign-in was refused when Blazing Agents connected to the server. Nothing was saved.
+The bearer token or OAuth sign-in was refused when Blazing Agents connected to the server. Nothing was saved.
 
 HTTP `400`. Retrying the same request fails the same way until you fix the cause.
 
 To fix it:
 
-- Check the token or client secret with the server's owner, or sign in again.
+- Check the token with the server's owner, or sign in again.
 - Reconnect with the new credential. See [MCP tools](/agents/tools/mcp-tools#choose-how-to-sign-in).
 
 ### `mcp_connection_in_use` [#mcp_connection_in_use]
@@ -1060,21 +1060,9 @@ To fix it:
 
 - Wait for the active run to finish, or cancel it, then try again. See [task runs](/automation/task-runs).
 
-## Quotas and billing [#quotas-and-billing]
+## Plan and billing [#plan-and-billing]
 
-Your quota, your plan, and billing your own users.
-
-### `quota_exceeded` [#quota_exceeded]
-
-**Your tenant reached the quota you set.**
-
-The current window's token or request usage is at or above your quota ceiling, so the turn did not start. Task runs in the same situation end as `blocked` instead.
-
-HTTP `429`. Retrying the same request fails the same way until you fix the cause.
-
-To fix it:
-
-- Wait for the window to reset on your reset day, or raise or remove the quota. See [how quotas work](/platform/usage-and-quotas#how-quotas-work).
+Your plan, your usage credit, and billing your own users.
 
 ### `rate_limited` [#rate_limited]
 
@@ -1087,7 +1075,7 @@ HTTP `429`. Retrying the same request can succeed.
 To fix it:
 
 - Wait for the time in the `Retry-After` header when it is present.
-- Otherwise retry with backoff and jitter, and limit how many turns you run at once. See [quota and capacity outcomes](/platform/usage-and-quotas#quota-and-capacity-outcomes).
+- Otherwise retry with backoff and jitter, and limit how many turns you run at once. See [limit and capacity outcomes](/platform/usage-and-spending-limits#limit-and-capacity-outcomes).
 
 ### `subscription_required` [#subscription_required]
 
@@ -1309,7 +1297,7 @@ To fix it:
 
 - Do not retry automatically. Read the limit to see `spentUsd`, `availableUsd`, and `nextResetAt`.
 - For `exhausted`, wait for the next reset or raise the amount.
-- For `unpriced`, switch the agent to a model with a known price, or turn off the limit. See [handle a spending stop](/platform/usage-and-quotas#spending-limit-stops).
+- For `unpriced`, switch the agent to a model with a known price, or turn off the limit. See [handle a spending stop](/platform/usage-and-spending-limits#spending-limit-stops).
 
 ## Workspaces and artifacts [#workspaces-and-artifacts]
 

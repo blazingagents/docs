@@ -168,7 +168,7 @@ The first line prints `true`: the new session carries the user's label. The seco
 
 ## What carries a user label [#what-carries-a-user-label]
 
-Agents, workspaces, prompts, sessions, and tasks accept `userId` and `metadata`. Memories accept `userId` only. Task runs, artifacts, and usage records inherit those labels from the work that creates them. A skill takes its agent's label. Account-wide settings such as API keys, providers, and quotas have no user label.
+Agents, workspaces, prompts, sessions, and tasks accept `userId` and `metadata`. Memories accept `userId` only. Task runs, artifacts, and usage records inherit those labels from the work that creates them. A skill takes its agent's label. Account-wide settings such as API keys, providers, and spending limits have no user label.
 
 Labels flow to the work they produce:
 
@@ -180,7 +180,7 @@ Once set, a `userId` never changes. Some resources let you update `metadata` lat
 
 ## Filter and report [#filter-and-report]
 
-Session lists, task lists, and usage queries accept a `userId` filter. Usage can also be grouped by `user`, and the usage overview ranks your top users. See [usage and quotas](/platform/usage-and-quotas).
+Session lists, task lists, and usage queries accept a `userId` filter. Usage can also be grouped by `user`, and the usage overview ranks your top users. See [usage and spending limits](/platform/usage-and-spending-limits).
 
 The filter has three modes:
 
@@ -484,6 +484,6 @@ return nil
 
 ## Next [#next]
 
-- [Usage and quotas](/platform/usage-and-quotas) to report per user and set monthly ceilings.
+- [Usage and spending limits](/platform/usage-and-spending-limits) to report per user and set a spending limit.
 - [Security and credentials](/platform/security-and-credentials) to keep your API key on the server.
 - [Bill your users for model tokens](/platform/monetization) using the same `userId`.

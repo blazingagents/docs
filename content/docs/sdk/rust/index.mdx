@@ -26,7 +26,7 @@ cargo add schemars@1
 
 ```toml
 [dependencies]
-blazing-agents = "0.5.0"
+blazing-agents = "0.6.0"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 futures-util = "0.3"
 serde = { version = "1", features = ["derive"] }
@@ -68,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 | [`tasks()`](/sdk/rust/tasks) | Background and scheduled agent work |
 | [`prompts()`](/sdk/rust/prompts) | Reusable message templates |
 | [`usage()`](/sdk/rust/usage) | Token and request usage |
-| [`tenant()`](/sdk/rust/tenant) | Tenant name and quota |
+| [`tenant()`](/sdk/rust/tenant) | Tenant name and billing switch |
 | [`chat_connections()`](/sdk/rust/chat-integrations) | Slack and Telegram bots |
 | [`merchant_connection()`, `merchant_bindings()`, `merchant_usage_events()`](/sdk/rust/merchant) | Billing your end users through your Polar or Dodo account |
 

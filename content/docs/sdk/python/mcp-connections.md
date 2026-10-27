@@ -29,7 +29,6 @@ client.agents.update("ag_0123456789abcdef", mcp_connection_ids=[connection.id])
 | --- | --- |
 | `"none"` | None |
 | `"bearer"` | `bearer_token` |
-| `"oauth_client_credentials"` | `client_id` and `client_secret`, optional `scope` |
 | `"oauth_authorization_code"` | Optional `client_id` and `client_secret` together, optional `scope` |
 
 The `url` must be an HTTP or HTTPS Streamable HTTP endpoint without credentials, a query string, or a fragment. For every type except `"oauth_authorization_code"`, Blazing Agents connects to the server before saving and saves nothing if that fails. An authorization-code connection is saved with `status == "needs_auth"` until an administrator signs in to the upstream service from the [dashboard](https://www.blazingagents.com/app).
@@ -56,7 +55,7 @@ Saves a connection. Unless it uses authorization-code OAuth, Blazing Agents chec
 connection = client.mcp_connections.create(
     name="Search",
     url="https://search.example.com/mcp",
-    auth_type="oauth_client_credentials",
+    auth_type="oauth_authorization_code",
     client_id=os.environ["MCP_CLIENT_ID"],
     client_secret=os.environ["MCP_CLIENT_SECRET"],
     scope="tools.read",

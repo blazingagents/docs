@@ -31,9 +31,9 @@
       "summary": "Task runs."
     },
     {
-      "id": "quotas-and-billing",
-      "title": "Quotas and billing",
-      "summary": "Your quota, your plan, and billing your own users."
+      "id": "plan-and-billing",
+      "title": "Plan and billing",
+      "summary": "Your plan, your usage credit, and billing your own users."
     },
     {
       "id": "workspaces-and-artifacts",
@@ -555,9 +555,9 @@
       "group": "tools-and-mcp",
       "statuses": [400],
       "title": "The MCP server rejected the credential.",
-      "whatHappened": "The bearer token, client credentials, or OAuth sign-in was refused when Blazing Agents connected to the server. Nothing was saved.",
+      "whatHappened": "The bearer token or OAuth sign-in was refused when Blazing Agents connected to the server. Nothing was saved.",
       "howToFix": [
-        "Check the token or client secret with the server's owner, or sign in again.",
+        "Check the token with the server's owner, or sign in again.",
         "Reconnect with the new credential. See [MCP tools](/agents/tools/mcp-tools#choose-how-to-sign-in)."
       ],
       "retryable": false
@@ -711,31 +711,20 @@
       "retryable": true
     },
     {
-      "code": "quota_exceeded",
-      "group": "quotas-and-billing",
-      "statuses": [429],
-      "title": "Your tenant reached the quota you set.",
-      "whatHappened": "The current window's token or request usage is at or above your quota ceiling, so the turn did not start. Task runs in the same situation end as `blocked` instead.",
-      "howToFix": [
-        "Wait for the window to reset on your reset day, or raise or remove the quota. See [how quotas work](/platform/usage-and-quotas#how-quotas-work)."
-      ],
-      "retryable": false
-    },
-    {
       "code": "rate_limited",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [429],
       "title": "Too many requests at once.",
       "whatHappened": "Either more turns are running at once than your plan's [concurrent turn limit](/api-reference/protocols/service-limits#concurrent-turns) allows, or you created agents, tasks, or workspaces faster than the [creation rate limit](/api-reference/protocols/service-limits#tenant-resource-creation-rate) allows.",
       "howToFix": [
         "Wait for the time in the `Retry-After` header when it is present.",
-        "Otherwise retry with backoff and jitter, and limit how many turns you run at once. See [quota and capacity outcomes](/platform/usage-and-quotas#quota-and-capacity-outcomes)."
+        "Otherwise retry with backoff and jitter, and limit how many turns you run at once. See [limit and capacity outcomes](/platform/usage-and-spending-limits#limit-and-capacity-outcomes)."
       ],
       "retryable": true
     },
     {
       "code": "subscription_required",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [402],
       "title": "Your account has no active paid plan.",
       "whatHappened": "Most endpoints and every turn need an active plan. Account, billing, and API key endpoints still work without one.",
@@ -746,7 +735,7 @@
     },
     {
       "code": "usage_credit_required",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [402],
       "title": "Your account has no usage credit left.",
       "whatHappened": "Your plan is active, but its usage credit balance is used up, so the turn did not start.",
@@ -757,7 +746,7 @@
     },
     {
       "code": "subscription_already_paid",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [409],
       "title": "Your account already pays for a plan.",
       "whatHappened": "Your account already has an active plan, so no new checkout was opened and you were not charged again. Checkout never changes a plan.",
@@ -769,7 +758,7 @@
     },
     {
       "code": "subscription_not_cancelled",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [409],
       "title": "Cancel your subscription before you delete your account.",
       "whatHappened": "You asked to delete your account while its subscription still renews. No deletion was scheduled.",
@@ -780,7 +769,7 @@
     },
     {
       "code": "merchant_connection_not_found",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [404],
       "title": "You have not connected a billing account.",
       "whatHappened": "Monetization calls need a connection to your Polar or Dodo account, and none exists.",
@@ -791,7 +780,7 @@
     },
     {
       "code": "merchant_connection_in_use",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [409],
       "title": "Your billing connection still has running requests or pending usage.",
       "whatHappened": "You cannot remove or replace your merchant connection while a turn or task run that started on this connection is still running, or while one of its usage events is `pending`. Removing the connection now would lose that usage.",
@@ -803,7 +792,7 @@
     },
     {
       "code": "merchant_credential_invalid",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [422],
       "title": "Your billing provider rejected the credential.",
       "whatHappened": "Blazing Agents checks the credential with Polar or Dodo before saving it, and the provider refused it. Nothing was saved.",
@@ -814,7 +803,7 @@
     },
     {
       "code": "merchant_provider_unavailable",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [503],
       "title": "Your billing provider could not be reached.",
       "whatHappened": "Blazing Agents needed to check something with Polar or Dodo, such as a credential or a customer, and the provider did not answer. Nothing was saved.",
@@ -825,7 +814,7 @@
     },
     {
       "code": "merchant_customer_not_found",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [422],
       "title": "Your billing provider has no such customer.",
       "whatHappened": "You linked a user to a `customerId` that Polar or Dodo does not know in the connected account and environment. Nothing was linked.",
@@ -837,7 +826,7 @@
     },
     {
       "code": "merchant_binding_not_found",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [404],
       "title": "This user is not linked to a customer.",
       "whatHappened": "You read or removed the customer link for a `userId` that has none.",
@@ -848,7 +837,7 @@
     },
     {
       "code": "merchant_account_mismatch",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [409],
       "title": "The new credential belongs to a different billing account.",
       "whatHappened": "A connection stays tied to the Polar or Dodo account it was created with. The replacement credential is for another account, so it was not saved.",
@@ -860,7 +849,7 @@
     },
     {
       "code": "merchant_event_not_found",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [404],
       "title": "The usage event does not exist.",
       "whatHappened": "The `mev_` event ID is wrong, or the event belongs to another tenant.",
@@ -871,7 +860,7 @@
     },
     {
       "code": "merchant_event_state_conflict",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [409],
       "title": "The usage event's status does not allow this action.",
       "whatHappened": "Retry works on `failed` events and on `pending` events whose automatic delivery gave up. Discard works only on events your provider has not accepted.",
@@ -882,7 +871,7 @@
     },
     {
       "code": "merchant_customer_unmapped",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [403],
       "title": "This user is not linked to a customer, so the guard refused the turn.",
       "whatHappened": "Your monetization guard is on, and the turn's `userId` has no linked customer. The turn did not start. Task runs in the same situation end as `blocked`.",
@@ -893,7 +882,7 @@
     },
     {
       "code": "merchant_subscription_required",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [402],
       "title": "Your customer has no active subscription to a required product.",
       "whatHappened": "Your monetization guard requires one of its `productIds`, and your provider reports no active subscription to any of them for this user's customer. The turn did not start.",
@@ -904,7 +893,7 @@
     },
     {
       "code": "merchant_balance_required",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [402],
       "title": "Your customer's balance is used up.",
       "whatHappened": "Your monetization guard requires a positive balance on its `meterId`, and your provider reports none for this user's customer. The turn did not start.",
@@ -915,7 +904,7 @@
     },
     {
       "code": "merchant_eligibility_unavailable",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [503],
       "title": "Your customer's plan could not be checked.",
       "whatHappened": "Your monetization guard is on, and your billing provider did not answer in time. The guard refuses the turn rather than guess.",
@@ -1016,14 +1005,14 @@
     },
     {
       "code": "model_spending_limit_exceeded",
-      "group": "quotas-and-billing",
+      "group": "plan-and-billing",
       "statuses": [429],
       "title": "A model spending limit stopped the request.",
       "whatHappened": "The agent's or the account's dollar limit for model tokens has no allowance left for this request. `details.scope` names the limit (`agent`, `tenant`, or `both`). `details.reason` says why: the period's spending reached the limit (`exhausted`), or the cost of the model or of one of its responses is unknown (`unpriced`).",
       "howToFix": [
         "Do not retry automatically. Read the limit to see `spentUsd`, `availableUsd`, and `nextResetAt`.",
         "For `exhausted`, wait for the next reset or raise the amount.",
-        "For `unpriced`, switch the agent to a model with a known price, or turn off the limit. See [handle a spending stop](/platform/usage-and-quotas#spending-limit-stops)."
+        "For `unpriced`, switch the agent to a model with a known price, or turn off the limit. See [handle a spending stop](/platform/usage-and-spending-limits#spending-limit-stops)."
       ],
       "retryable": false
     }

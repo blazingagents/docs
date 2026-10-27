@@ -387,7 +387,7 @@ return err
 
 **Signature:** `func (s *SpendingLimitsService) UpdateAgent(ctx context.Context, agentID AgentID, params UpdateSpendingLimitParams, opts ...RequestOption) (*ModelSpendingLimitStatus, error)`
 
-See [model spending limits](/platform/usage-and-quotas#model-spending-limits). Returns `*ba.ModelSpendingLimitStatus`.
+See [model spending limits](/platform/usage-and-spending-limits#model-spending-limits). Returns `*ba.ModelSpendingLimitStatus`.
 
 ## Response models [#response-models]
 

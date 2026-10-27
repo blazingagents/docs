@@ -31,7 +31,6 @@ return nil
 | `ba.MCPAuthNone{}` | `none` | none |
 | `ba.MCPAuthBearer` | `bearer` | `Token` |
 | `ba.MCPAuthOAuthAuthorizationCode` | `oauth_authorization_code` | optional `ClientID`, optional `ClientSecret`, optional `Scope` |
-| `ba.MCPAuthOAuthClientCredentials` | `oauth_client_credentials` | `ClientID`, `ClientSecret`, optional `Scope` |
 
 Tokens and client secrets are `ba.Secret` values made with `ba.NewSecret`. The URL is the server's streamable HTTP endpoint. With the authorization code flow the connection is saved with status `needs_auth` until an administrator signs in to the upstream service in the [dashboard](https://www.blazingagents.com/app); there is no SDK method for that step. A nil `Auth` fails client-side with `*ba.ArgumentError`.
 

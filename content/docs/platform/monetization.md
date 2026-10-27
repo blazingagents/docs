@@ -281,4 +281,4 @@ Events never change after they are created. Before you retry a `failed` event, y
 ## Next [#next]
 
 - [Tenancy and attribution](/platform/tenancy-and-attribution) to choose stable `userId` values.
-- [Usage and quotas](/platform/usage-and-quotas) to see the same usage in Blazing Agents.
+- [Usage and spending limits](/platform/usage-and-spending-limits) to see the same usage in Blazing Agents.

@@ -44,8 +44,7 @@ it. See [Attribution](#attribution).
 | [TaskRun](#taskrun)                                                   | queued-to-terminal execution state                       | cooperative cancel only                            | `startedAt`, `finishedAt`, `cancelRequestedAt`, `canceledAt`, `createdAt`, `updatedAt`                                 | Session, error, and lifecycle times follow state                           |
 | [Prompt](#prompt)                                                     | template and inferred variables                          | name, template, metadata                           | `createdAt`, `updatedAt`                                                                                               | omitted updates are unchanged                                              |
 | [UsageResponse](#usageresponse)                                       | buckets and totals                                       | none                                               | none                                                                                                                   | grouping keys may be `null`                                                |
-| [Tenant](#tenant) | settings and deletion state | name, quota, and `monetizationEnabled` | none | Quota and deletion may be `null`; omitted updates are unchanged |
-| [Quota](#quota)                                                       | monthly request/token ceilings                           | Tenant settings update                             | none                                                                                                                   | each ceiling may be `null`; absent Quota is unlimited                      |
+| [Tenant](#tenant) | settings and deletion state | name and `monetizationEnabled` | none | deletion may be `null`; omitted updates are unchanged |
 | [Attribution](#attribution)                                           | `userId` and metadata                                    | resource-specific metadata                         | none                                                                                                                   | `userId: ""` means tenant-level                                            |
 
 #### Public state vocabulary
@@ -56,7 +55,7 @@ it. See [Attribution](#attribution).
 | `usageSummarySchema.status` | `succeeded`, `cancelled`, `failed` |
 | `chatModeSchema` | `create`, `resume` |
 | `chatTriggerSchema` | `submit-message`, `regenerate-message` |
-| `mcpConnectionAuthTypeSchema` | `none`, `bearer`, `oauth_authorization_code`, `oauth_client_credentials` |
+| `mcpConnectionAuthTypeSchema` | `none`, `bearer`, `oauth_authorization_code` |
 | `mcpConnectionStatusSchema` | `connected`, `needs_auth`, `error` |
 | `mcpConnectionTestErrorCodeSchema` | `MCP_CONNECTION_AUTHENTICATION_FAILED`, `MCP_CONNECTION_INVALID`, `MCP_CONNECTION_UNREACHABLE`, `MCP_CONNECTION_DISCOVERY_FAILED` |
 | `providerTypeSchema` | `openai`, `anthropic`, `openrouter`, `google`, `vercel_ai_gateway`, `custom` |
@@ -205,7 +204,7 @@ step usage, and Attribution.
 
 See [SDK Session messages](/sdk/typescript/sessions#messages),
 [REST Session messages](/api-reference/rest-api/sessions#list-session-messages),
-and [Usage and quotas](/platform/usage-and-quotas).
+and [Usage and spending limits](/platform/usage-and-spending-limits).
 
 ### BlazingAgentsChatMessageMetadata [#blazingagentschatmessagemetadata]
 
@@ -275,7 +274,7 @@ See [SDK Providers](/sdk/typescript/providers),
 <span id="mcp-connection-response"></span><span id="mcp-connections-response"></span><span id="mcp-connection-test-response"></span><span id="mcp-connection-oauth-connect-response"></span><span id="mcp-connection-reconnect-result"></span><span id="mcp-oauth-authorization-launch-response"></span>
 
 `mcpConnectionResponseSchema` uses auth type `none`, `bearer`,
-`oauth_authorization_code`, or `oauth_client_credentials`, and status
+or `oauth_authorization_code`, and status
 `connected`, `needs_auth`, or `error`. Credentials are redacted. Ordinary
 update changes the name; reconnect replaces URL/auth material. Connection
 tests and `lastAuthErrorCode` use
@@ -397,7 +396,7 @@ nullable: stateless usage returns `sessionId: null`, while a tenant-level
 
 See [SDK Usage](/sdk/typescript/usage),
 [REST Usage](/api-reference/rest-api/usage), and
-[Usage and quotas](/platform/usage-and-quotas).
+[Usage and spending limits](/platform/usage-and-spending-limits).
 
 ### UsageOverviewResponse [#usageoverviewresponse]
 
@@ -424,23 +423,12 @@ See [TypeScript Usage](/sdk/typescript/usage#overview-method),
 <span id="tenant-response"></span><span id="tenant-settings-response"></span>
 
 `tenantSettingsResponseSchema` / `TenantSettingsResponse` holds your Tenant's
-`name`, nullable `quota`, `monetizationEnabled`, and nullable `deletion`. Patch
-may change the name or `monetizationEnabled`, or set `quota` to a Quota object
-or `null`; omitted settings remain unchanged.
+`name`, `monetizationEnabled`, and nullable `deletion`. Patch
+may change the name or `monetizationEnabled`; omitted settings remain unchanged.
 
 See [SDK Tenant settings](/sdk/typescript/tenant),
 [REST Tenant endpoints](/api-reference/rest-api/tenant), and
 [Tenancy and attribution](/platform/tenancy-and-attribution).
-
-### Quota [#quota]
-
-`quotaSchema` / `Quota` holds a monthly token ceiling, a monthly request
-ceiling, and a [reset day](/api-reference/protocols/service-limits#quota-reset-day). Each ceiling is a positive integer, or
-`null` for no limit. A tenant with `quota: null` has no quota.
-
-See [SDK Tenant settings](/sdk/typescript/tenant#patch),
-[REST Tenant settings](/api-reference/rest-api/tenant#update-tenant-settings), and
-[Usage and quotas](/platform/usage-and-quotas).
 
 ### Attribution [#attribution]
 

@@ -160,5 +160,5 @@ Each `ba.UsageBucket` has `InputTokens`, `OutputTokens`, `RequestCount` (each an
 
 ## Next [#next]
 
-- [Usage and quotas](/platform/usage-and-quotas)
+- [Usage and spending limits](/platform/usage-and-spending-limits)
 - [Tenant](/sdk/go/tenant)

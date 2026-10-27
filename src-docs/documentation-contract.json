@@ -1490,7 +1490,7 @@
         "/platform/sessions-and-turns",
         "/platform/tenancy-and-attribution",
         "/platform/security-and-credentials",
-        "/platform/usage-and-quotas",
+        "/platform/usage-and-spending-limits",
         "/platform/monetization",
         "/platform/limits-and-reliability",
         "/platform/chat-integrations"
@@ -1844,7 +1844,7 @@
           }
         ]
       },
-      "file": "platform/usage-and-quotas.md",
+      "file": "platform/usage-and-spending-limits.md",
       "filesTree": [],
       "recipe": "Canonical documentation",
       "steps": []
@@ -6535,7 +6535,6 @@
           "UsageResponse",
           "UsageOverviewResponse",
           "Tenant",
-          "Quota",
           "Attribution"
         ],
         "assignedIds": [
@@ -6563,7 +6562,6 @@
           "usageresponse",
           "usageoverviewresponse",
           "tenant",
-          "quota",
           "attribution"
         ],
         "kind": "schemas",
@@ -6592,7 +6590,6 @@
           "usageResponseSchema",
           "usageOverviewResponseSchema",
           "tenantSchema",
-          "quotaSchema",
           "attributionCreateInputSchema"
         ]
       },
@@ -7065,11 +7062,11 @@
       "url": "/platform/security-and-credentials"
     },
     {
-      "file": "platform/usage-and-quotas.md",
-      "name": "Usage and quotas",
+      "file": "platform/usage-and-spending-limits.md",
+      "name": "Usage and spending limits",
       "publishable": true,
-      "title": "Usage and quotas",
-      "url": "/platform/usage-and-quotas"
+      "title": "Usage and spending limits",
+      "url": "/platform/usage-and-spending-limits"
     },
     {
       "file": "platform/limits-and-reliability.md",

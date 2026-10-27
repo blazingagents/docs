@@ -1,6 +1,6 @@
 ---
 title: Service limits
-description: Design around current resource, payload, query, execution, and tenant quota bounds.
+description: Design around current resource, payload, query, execution, and tenant resource bounds.
 ---
 
 # Service limits
@@ -14,9 +14,9 @@ Last verified: 2026-10-24.
 ## Contract [#contract]
 
 Fixed limits apply to every tenant. Limits marked platform default are set by
-Blazing Agents and can change within the range shown. A tenant quota is a ceiling you set yourself
-to protect against runaway token or request use; billing is separate and
-described in [Usage and quotas](/platform/usage-and-quotas).
+Blazing Agents and can change within the range shown. A model spending limit is a ceiling you set yourself
+to protect against runaway model spend; billing is separate and
+described in [Usage and spending limits](/platform/usage-and-spending-limits).
 
 | Limit                                                                               | Current value                                                                                                  | Scope                     | On exceed                                                       | Kind                    |
 | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------- | ----------------------- |
@@ -86,8 +86,6 @@ described in [Usage and quotas](/platform/usage-and-quotas).
 | <span id="usage-session-top-n">Usage Session top-N</span>                           | default 50; max 200                                                                                            | `groupBy=session`         | `validation_failed`                                             | fixed                   |
 | <span id="usage-exact-session-batch">Exact session usage batch</span>               | 1 to 100 distinct session IDs                                                                                  | request                   | `validation_failed`                                             | fixed                   |
 | <span id="usage-overview-top-n">Usage overview top-N</span>                         | default 5; max 20                                                                                              | Agent, End-user, and model ranking | `validation_failed`                                     | fixed                   |
-| <span id="quota-reset-day">Quota reset day</span>                                   | 1 to 28                                                                                                           | Tenant Quota              | `validation_failed`                                             | Tenant-configurable     |
-| <span id="quota-ceilings">Quota ceilings</span>                                     | positive token or request counts, or `null` for no limit                                            | Tenant                    | Turn returns [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded); a task run ends as `blocked` | Tenant-configurable     |
 | <span id="spending-limit-amount">Spending limit amount</span> | more than 0 and up to 1,000,000,000 USD | tenant or agent spending limit | `validation_failed` | fixed |
 | <span id="tenant-display-name">Tenant display name</span>                           | 80 characters                                                                                                  | Tenant settings           | `validation_failed`                                             | fixed                   |
 | <span id="monetization-guard-products">Monetization guard products</span> | 100 product IDs | merchant connection guard | `validation_failed` | fixed |
@@ -111,75 +109,50 @@ off, cannot shrink a single oversized input, or fails. A turn deadline does not
 undo work a tool has already sent to an external system.
 
 Session turns, stateless generation, and task runs are all metered turns.
-Memories do not count toward durable storage. Your tenant quota is neither a
+Memories do not count toward durable storage. Your model spending limit is neither a
 billing plan nor a rate limit.
 
 ## Examples [#examples]
 
-Warn when request usage nears your own ceiling:
+Warn when spending nears your own limit:
 
 ```typescript tab="TypeScript"
-const [usage, settings] = await Promise.all([
-  client.usage.get({ from: "2026-07-01", to: "2026-07-20" }),
-  client.tenant.get(),
-]);
+const { spendingLimit, period } = await client.tenant.getSpendingLimit();
 
-const ceiling = settings.quota?.monthlyRequestLimit;
-if (ceiling !== null && ceiling !== undefined) {
-  const remaining = ceiling - usage.totals.requestCount;
-  if (remaining < ceiling * 0.1) console.warn("Request quota is nearly used");
+if (spendingLimit && period) {
+  if (period.availableUsd < spendingLimit.amountUsd * 0.1) {
+    console.warn("Model spending limit is nearly used");
+  }
 }
 ```
 
 ```python tab="Python"
-usage = client.usage.get(from_="2026-07-01", to="2026-07-20")
-settings = client.tenant.get()
+budget = client.tenant.get_spending_limit()
 
-ceiling = settings.quota.monthly_request_limit if settings.quota else None
-if ceiling is not None:
-    remaining = ceiling - usage.totals.request_count
-    if remaining < ceiling * 0.1:
-        print("Request quota is nearly used")
+if budget.spending_limit and budget.period:
+    if budget.period.available_usd < budget.spending_limit.amount_usd * 0.1:
+        print("Model spending limit is nearly used")
 ```
 
 ```rust tab="Rust"
-let usage = client
-    .usage()
-    .get()
-    .range("2026-07-01", "2026-07-20")
-    .await?;
-let settings = client.tenant().get().await?;
+let budget = client.tenant().get_spending_limit().await?;
 
-if let Some(quota) = &settings.quota {
-    if let Some(ceiling) = quota.monthly_request_limit {
-        let remaining = ceiling.saturating_sub(usage.totals.request_count);
-        if remaining * 10 < ceiling {
-            println!("Request quota is nearly used");
-        }
+if let (Some(limit), Some(period)) = (&budget.spending_limit, &budget.period) {
+    if period.available_usd < limit.amount_usd * 0.1 {
+        println!("Model spending limit is nearly used");
     }
 }
 ```
 
 ```go tab="Go"
-usage, err := client.Usage.Get(ctx, ba.UsageParams{
-	DateRange: &ba.DateRange{
-		From: ba.Date{Year: 2026, Month: time.July, Day: 1},
-		To:   ba.Date{Year: 2026, Month: time.July, Day: 20},
-	},
-})
-if err != nil {
-	return err
-}
-settings, err := client.Tenant.Get(ctx)
+budget, err := client.SpendingLimits.GetTenant(ctx)
 if err != nil {
 	return err
 }
 
-if settings.Quota != nil && settings.Quota.MonthlyRequestLimit != nil {
-	ceiling := *settings.Quota.MonthlyRequestLimit
-	remaining := ceiling - usage.Totals.RequestCount
-	if remaining*10 < ceiling {
-		fmt.Println("Request quota is nearly used")
+if budget.SpendingLimit != nil && budget.Period != nil {
+	if budget.Period.AvailableUSD < budget.SpendingLimit.AmountUSD*0.1 {
+		fmt.Println("Model spending limit is nearly used")
 	}
 }
 return nil
@@ -189,4 +162,4 @@ return nil
 
 - [Errors](/api-reference/protocols/errors) for the codes these limits return.
 - [Limits and reliability](/platform/limits-and-reliability) for retries and timeouts.
-- [Usage and quotas](/platform/usage-and-quotas) to set a tenant quota.
+- [Usage and spending limits](/platform/usage-and-spending-limits) to set a model spending limit.

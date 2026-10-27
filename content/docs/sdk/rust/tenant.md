@@ -1,6 +1,6 @@
 ---
 title: Tenant
-description: Read and change your tenant's name, monthly usage quota, and model spending limit with the Rust SDK.
+description: Read and change your tenant's name, billing switch, and model spending limit with the Rust SDK.
 ---
 
 # Tenant
@@ -19,7 +19,7 @@ println!("{}", tenant.name);
 | Method | Description | Returns |
 | --- | --- | --- |
 | [`get()`](#get) | Get the tenant's settings | [`TenantSettings`](#tenantsettings) |
-| [`update()`](#update) | Change name, quota, or monetization | [`TenantSettings`](#tenantsettings) |
+| [`update()`](#update) | Change name or monetization | [`TenantSettings`](#tenantsettings) |
 | [`get_spending_limit()`](#get-spending-limit) | Get the account's model spending limit | `SpendingLimitStatus` |
 | [`update_spending_limit()`](#update-spending-limit) | Set or turn off the account's model spending limit | `SpendingLimitStatus` |
 
@@ -51,20 +51,6 @@ let tenant = client.tenant().update().name("Acme agents").await?;
 | --- | --- |
 | `name(name)` | A new display name, within the [display name limit](/api-reference/protocols/service-limits#tenant-display-name) |
 | `monetization_enabled(enabled)` | Bills usage to your end users through your merchant account. Turning it off drops usage events your merchant has not yet accepted |
-| `quota(quota)` | Replaces the whole monthly quota |
-| `clear_quota()` | Removes the monthly quota |
-
-```rust
-use blazing_agents::tenant::QuotaInput;
-
-let tenant = client
-    .tenant()
-    .update()
-    .quota(QuotaInput::new(1).monthly_request_limit(10_000))
-    .await?;
-```
-
-`QuotaInput::new(reset_day)` takes the reset day of each month, within the [reset day range](/api-reference/protocols/service-limits#quota-reset-day). Set at least one limit with `monthly_token_limit()` or `monthly_request_limit()`, or the update fails with `validation_failed`. Every field is always sent; a limit you do not set goes out as `null`, which means unlimited. To remove the whole quota, call `clear_quota()` instead.
 
 Awaiting returns [`TenantSettings`](#tenantsettings). Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed).
 
@@ -99,13 +85,9 @@ client
 
 **Signature:** `update_spending_limit(limit: Option<SpendingLimitInput>) -> Call<UpdateTenantSpendingLimit>`
 
-`SpendingLimitInput::new(amount_usd, reset_start_date, reset_interval)` takes a USD amount, a UTC `YYYY-MM-DD` start day, and a `ResetInterval` of `Daily`, `Weekly`, `Biweekly`, or `Monthly`. See [model spending limits](/platform/usage-and-quotas#model-spending-limits). Awaiting returns `SpendingLimitStatus`. Fails with `validation_failed`.
+`SpendingLimitInput::new(amount_usd, reset_start_date, reset_interval)` takes a USD amount, a UTC `YYYY-MM-DD` start day, and a `ResetInterval` of `Daily`, `Weekly`, `Biweekly`, or `Monthly`. See [model spending limits](/platform/usage-and-spending-limits#model-spending-limits). Awaiting returns `SpendingLimitStatus`. Fails with `validation_failed`.
 
-## How quotas apply [#how-quotas-apply]
-
-Blazing Agents checks usage in the current quota period before each turn starts. When a limit is reached, new turns fail with [`quota_exceeded`](/api-reference/protocols/errors#quota_exceeded), and task runs end as `Blocked` instead of `Failed`. A turn that is already running is never cut off, so usage can go past a limit, especially with turns running at the same time. With no quota, or a limit removed by `clear_quota()`, that measure is unlimited.
-
-A quota is your own safety setting. It is not a plan limit, credit balance, or bill.
+## Pause billing [#pause-billing]
 
 To pause billing your users, turn monetization off with `client.tenant().update().monetization_enabled(false)`. This drops usage events your merchant has not yet accepted. See [Monetization](/platform/monetization) before you change it.
 
@@ -116,11 +98,10 @@ To pause billing your users, turn monetization off with `client.tenant().update(
 | Field | Type | Description |
 | --- | --- | --- |
 | `name` | `String` | Display name |
-| `quota` | `Option<Quota>` | The monthly quota (`monthly_token_limit`, `monthly_request_limit`, `reset_day`), or `None` |
 | `deletion` | `Option<TenantDeletion>` | A scheduled deletion (`deletes_at`, `requested_at`), or `None` |
 | `monetization_enabled` | `bool` | Whether usage is billed to your end users |
 
 ## Next [#next]
 
-- [Usage and quotas](/platform/usage-and-quotas)
+- [Usage and spending limits](/platform/usage-and-spending-limits)
 - [Usage](/sdk/rust/usage)
