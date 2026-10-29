@@ -128,7 +128,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `trigger` | string | body |  | `submit-message` (the default) sends a new message. `regenerate-message` generates the answer again and is allowed only when continuing a session. One of `submit-message`, `regenerate-message`. Defaults to `submit-message`. |
 | `messageId` | string | body |  | With `regenerate-message`, the message to cut the conversation back to before the answer is generated again. |
 | `userId` | string | body |  | Your end user's ID. Starting a session records it on the session, and every turn in that session keeps the session's end user. Defaults to `""`. |
-| `metadata` | object | body |  | Your own key-value data. Recorded on a new session and on the turn's usage. Defaults to `{}`. |
+| `metadata` | object | body |  | Your own key-value data. Recorded on a new session and on the turn's usage. An omitted value records the session's metadata on the turn's usage. |
 | `functions` | object | body |  | Caller-local functions the model may call during this turn, keyed by name; each entry has a `description` and a JSON Schema `inputSchema`. Your backend claims and answers each call through the function-call endpoints. |
 
 #### Response
@@ -327,7 +327,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `trigger` | string | body |  | `submit-message` (the default) sends a new message. `regenerate-message` generates the answer again and is allowed only when continuing a session. One of `submit-message`, `regenerate-message`. Defaults to `submit-message`. |
 | `messageId` | string | body |  | With `regenerate-message`, the message to cut the conversation back to before the answer is generated again. |
 | `userId` | string | body |  | Your end user's ID. Starting a session records it on the session, and every turn in that session keeps the session's end user. Defaults to `""`. |
-| `metadata` | object | body |  | Your own key-value data. Recorded on a new session and on the turn's usage. Defaults to `{}`. |
+| `metadata` | object | body |  | Your own key-value data. Recorded on a new session and on the turn's usage. An omitted value records the session's metadata on the turn's usage. |
 | `functions` | object | body |  | Caller-local functions the model may call during this turn, keyed by name; each entry has a `description` and a JSON Schema `inputSchema`. Your backend claims and answers each call through the function-call endpoints. |
 
 #### Response
