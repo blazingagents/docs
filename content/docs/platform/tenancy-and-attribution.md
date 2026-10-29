@@ -173,6 +173,7 @@ Agents, workspaces, prompts, sessions, and tasks accept `userId` and `metadata`.
 Labels flow to the work they produce:
 
 - A session takes the `userId` and `metadata` of its first turn, and that turn's usage record gets the same values.
+- A later turn's usage record keeps the session's `userId` and gets the `metadata` its request sends. A turn that sends none, including one that continues after a tool approval, gets the session's `metadata`. Send `metadata: {}` to record an empty object.
 - A task run takes its task's label, and so do the run's session, usage, and artifacts.
 - An artifact saved during a chat takes the session's label.
 
