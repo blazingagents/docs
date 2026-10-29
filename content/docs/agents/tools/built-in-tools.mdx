@@ -153,7 +153,7 @@ These tools work on the agent's [memory](/agents/memory). You can also add saved
 | --- | --- |
 | `web_search` | Search the public web and return matching pages. |
 
-The agent sends a `query` of 1 to 1,024 characters and an optional `limit`. It gets back up to 10 results, which is also the default. Each result has a `url`, a `title`, and usually a `description` snippet. The tool does not fetch full page contents. When the results are too large to return whole, the tool returns the ones that fit and adds `truncated: true`.
+The agent sends a `query` of 1 to 1,024 characters and an optional `limit`. It gets back up to 10 results, which is also the default. Each result has a `url`, a `title`, usually a `description` snippet, and a `publishedDate` (`YYYY-MM-DD`) when the page's date is known. The tool does not fetch full page contents. When the results are too large to return whole, the tool returns the ones that fit and adds `truncated: true`.
 
 Each successful search uses usage credit. A failed search is free. Blazing Agents bills web search itself, so it uses credit even when your model runs on your own provider key.
 
