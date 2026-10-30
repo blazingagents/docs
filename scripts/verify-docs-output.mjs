@@ -5,6 +5,7 @@ import { gzipSync } from "node:zlib";
 import { PUBLIC_SITE_ORIGIN } from "../brand.ts";
 import { documentationCatalog } from "../src-docs/lib/documentation-catalog.ts";
 import {
+  cloudflarePagesHeaders,
   cloudflarePagesRedirects,
   documentationNotFoundHtml,
 } from "../src-docs/lib/hosting.ts";
@@ -33,7 +34,9 @@ if (missingHtml.length > 0 || missingMarkdown.length > 0) {
 
 for (const path of [
   "404.html",
+  "_headers",
   "_redirects",
+  "openapi.json",
   "api/search",
   "llms.txt",
   "llms-full.txt",
@@ -53,6 +56,21 @@ if (redirectOutput !== cloudflarePagesRedirects) {
   throw new Error(
     "Built Cloudflare Pages redirects do not match the canonical redirect map."
   );
+}
+if (
+  readFileSync(resolve(outputDirectory, "_headers"), "utf8") !==
+  cloudflarePagesHeaders
+) {
+  throw new Error(
+    "Built Cloudflare Pages headers do not match the canonical header rules."
+  );
+}
+if (
+  !readFileSync(resolve(outputDirectory, "openapi.json")).equals(
+    readFileSync(resolve(webappDirectory, "openapi/openapi.json"))
+  )
+) {
+  throw new Error("Built /openapi.json differs from openapi/openapi.json.");
 }
 const redirectRules = new Map(
   redirectOutput

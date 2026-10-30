@@ -34,8 +34,9 @@ Every endpoint in this reference accepts an API key and says which
 [access level](/api-reference/rest-api/authentication#access-levels) it needs
 and whether it accepts an
 [end-user scope](/api-reference/rest-api/authentication#end-user-scope). The
-pages are generated from the platform's OpenAPI contract, which is also served
-at `/openapi.json`. Endpoints that only the dashboard can call, such as API key
+pages are generated from the platform's OpenAPI contract. To generate a client
+or load the endpoints into a tool, [download the OpenAPI
+contract](https://docs.blazingagents.com/openapi.json). Endpoints that only the dashboard can call, such as API key
 management, are not listed here.
 
 Every response carries an `X-Request-Id` header in `req_…` format. Log it with

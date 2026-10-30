@@ -6,6 +6,12 @@ export const cloudflarePagesRedirects = `${documentationCatalog.redirects
   .map(([source, destination]) => `${source} ${destination} ${REDIRECT_STATUS}`)
   .join("\n")}\n`;
 
+/** The contract is static output, so tools fetch it as `/openapi.json`; the API does not serve it. */
+export const cloudflarePagesHeaders = `/openapi.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=300
+`;
+
 export const documentationNotFoundHtml = `<!doctype html>
 <html lang="en">
   <head>
