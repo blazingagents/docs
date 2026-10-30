@@ -7,6 +7,6 @@ export const DEFAULT_DESCRIPTION =
 export const PUBLIC_SITE_ORIGIN = "https://blazingagents.com";
 export const DOCUMENTATION_ORIGIN = "https://docs.blazingagents.com";
 export const SOCIAL_TITLE = "Ship production agents. Skip the plumbing.";
-export const SOCIAL_IMAGE_URL = `${PUBLIC_SITE_ORIGIN}/brand/social-card-v3.jpg`;
+export const SOCIAL_IMAGE_URL = `${PUBLIC_SITE_ORIGIN}/brand/social-card-v5.jpg`;
 export const SOCIAL_IMAGE_ALT =
-  "Blazing Agents multi-tenant agent infrastructure control plane.";
+  "Blazing Agents: 51 production features behind one SDK call, by area, with the SDK code that switches them on.";
