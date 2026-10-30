@@ -1,12 +1,33 @@
 <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
   <title>Blazing Agents</title>
   <rect fill="#f5c400" height="64" rx="14" width="64" />
-  <path
-    d="M17.5 20.5 36 10v18h-5c-2.8 0-4.5 1.7-4.5 4.5H21c-4.6 0-7-2.5-7-6.8v-1.1c0-1.7 1.2-3.1 3.5-4.1Z"
-    fill="#111208"
-  />
-  <path
-    d="M46.5 43.5 28 54V36h5c2.8 0 4.5-1.7 4.5-4.5H43c4.6 0 7 2.5 7 6.8v1.1c0 1.7-1.2 3.1-3.5 4.1Z"
-    fill="#111208"
-  />
+  <g transform="matrix(1 0 -.2126 1 6.8 0)">
+    <path
+      d="M8 26h5M4 32h7M8 38h4"
+      stroke="#111208"
+      stroke-linecap="round"
+      stroke-width="3"
+    />
+    <path
+      d="M17 11h19c8 0 12.5 4.2 12.5 10.5 0 4-2 7-5.2 8.6 4.6 1.4 7.7 5 7.7 10.6 0 7.6-5.4 12.3-14 12.3H17Z"
+      fill="#b88f00"
+      transform="matrix(.5 0 0 .5 9 18.5)"
+    />
+    <path
+      d="M11 54 27 10h10l16 44H43L32 22 21 54Z"
+      fill="#b88f00"
+      transform="matrix(.5 0 0 .5 32 18.5)"
+    />
+    <g transform="matrix(.5 0 0 .5 6.5 16)">
+      <path
+        d="M17 11h19c8 0 12.5 4.2 12.5 10.5 0 4-2 7-5.2 8.6 4.6 1.4 7.7 5 7.7 10.6 0 7.6-5.4 12.3-14 12.3H17Z"
+        fill="#111208"
+      />
+      <path d="M36 15 26.5 33H33l-3.5 16L41 29.5h-6.5L38 15Z" fill="#f5c400" />
+    </g>
+    <g transform="matrix(.5 0 0 .5 29.5 16)">
+      <path d="M11 54 27 10h10l16 44H43L32 22 21 54Z" fill="#111208" />
+      <path d="M-3 24h31M-6 40h26" stroke="#f5c400" stroke-width="4" />
+    </g>
+  </g>
 </svg>
