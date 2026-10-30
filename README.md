@@ -114,6 +114,10 @@ sync with its navigation order. Follow the [style guide](STYLE.md), and run
 The production build is written to `.output/public` for deployment to
 `docs.blazingagents.com`.
 
+The build also publishes `openapi/openapi.json` at
+`https://docs.blazingagents.com/openapi.json`, with the headers in
+`.output/public/_headers`. The platform API no longer serves its own copy.
+
 ## Updating the API contract
 
 `openapi/openapi.json` is a committed copy of the platform's public API

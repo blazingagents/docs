@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { Server } from "node:http";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -7,6 +8,7 @@ import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
 import { documentationCatalog } from "./src-docs/lib/documentation-catalog.ts";
 import {
+  cloudflarePagesHeaders,
   cloudflarePagesRedirects,
   documentationNotFoundHtml,
 } from "./src-docs/lib/hosting.ts";
@@ -68,6 +70,16 @@ export default defineConfig({
         this.emitFile({
           fileName: "_redirects",
           source: cloudflarePagesRedirects,
+          type: "asset",
+        });
+        this.emitFile({
+          fileName: "_headers",
+          source: cloudflarePagesHeaders,
+          type: "asset",
+        });
+        this.emitFile({
+          fileName: "openapi.json",
+          source: readFileSync("openapi/openapi.json"),
           type: "asset",
         });
         this.emitFile({
