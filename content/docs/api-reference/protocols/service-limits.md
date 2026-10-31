@@ -92,7 +92,8 @@ described in [Usage and spending limits](/platform/usage-and-spending-limits).
 | <span id="merchant-page">Customer binding and usage event page</span> | default 50; max 200 | list request | `validation_failed` | fixed |
 | <span id="merchant-usage-summary-days">Usage event summary window</span> | default 14 days; max 90 | summary request | `validation_failed` | fixed |
 | <span id="agent-loop-steps">Agent loop steps</span>                                 | 64                                                                                                             | Turn                      | the turn ends after its 64th step                                 | fixed                   |
-| <span id="task-run-lifetime"></span><span id="turn-deadline">Turn deadline</span> | 30 minutes after the turn starts; no setting changes it | session turn, generation, or task run | the turn stops and its reply is not saved; a task run ends as `failed` | fixed |
+| <span id="turn-deadline">Turn deadline</span> | 30 minutes after the turn starts; no setting changes it | session turn or generation | the turn stops and its reply is not saved | fixed |
+| <span id="task-run-lifetime">Task run lifetime</span> | 30 minutes after the run starts `running`; no setting changes it | task run | the run stops and ends as `failed` with the error `Task run deadline exceeded` | fixed |
 | <span id="mcp-runtime-timeouts">MCP runtime timeouts</span>                         | connect 10 s (1 to 30); auth 10 s (1 to 30); discovery 15 s (1 to 60); tool 60 s (1 to 300); cleanup 5 s (0.1 to 10)          | MCP operation             | the MCP call fails                                          | platform default |
 
 Byte values use binary units (`1 MiB = 1,048,576 bytes`). Other length limits
