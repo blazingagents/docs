@@ -122,7 +122,7 @@ In TypeScript, a broken connection after streaming starts raises `stream_error`,
 
 ## Cancellation and deadlines [#cancellation-and-deadlines]
 
-Cancelling a task run asks it to stop. The run stops at its next safe point, so keep checking until it reaches a final status. A turn that reaches the [turn deadline](/api-reference/protocols/service-limits#turn-deadline) also stops, and a task run then ends as `failed`.
+Cancelling a task run asks it to stop. The run stops at its next safe point, so keep checking until it reaches a final status. A turn that reaches the [turn deadline](/api-reference/protocols/service-limits#turn-deadline) also stops, and a task run that reaches its [lifetime](/api-reference/protocols/service-limits#task-run-lifetime) ends as `failed`.
 
 A workspace command or file operation that has already started may finish after cancellation. Files it changed, and effects on remote systems, stay in place. Plan to clean up or reverse external effects yourself.
 
