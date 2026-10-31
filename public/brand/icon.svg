@@ -1,5 +1,10 @@
 <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
   <title>Blazing Agents</title>
+  <defs>
+    <filter height="220%" id="streak-shadow" width="140%" x="-20%" y="-60%">
+      <feGaussianBlur stdDeviation="1.2" />
+    </filter>
+  </defs>
   <rect fill="#f5c400" height="64" rx="14" width="64" />
   <g transform="matrix(1 0 -.2126 1 6.8 0)">
     <path
@@ -27,6 +32,14 @@
     </g>
     <g transform="matrix(.5 0 0 .5 29.5 16)">
       <path d="M11 54 27 10h10l16 44H43L32 22 21 54Z" fill="#111208" />
+      <path
+        d="M-3 24h31M-6 40h26"
+        filter="url(#streak-shadow)"
+        stroke="#000"
+        stroke-opacity=".5"
+        stroke-width="4"
+        transform="translate(1.5 3.5)"
+      />
       <path d="M-3 24h31M-6 40h26" stroke="#f5c400" stroke-width="4" />
     </g>
   </g>
