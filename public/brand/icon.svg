@@ -6,7 +6,7 @@
     </filter>
   </defs>
   <rect fill="#f5c400" height="64" rx="14" width="64" />
-  <g transform="matrix(1 0 -.2126 1 6.8 0)">
+  <g transform="matrix(1 0 -.2126 1 9.75 -1.25)">
     <path
       d="M8 26h5M4 32h7M8 38h4"
       stroke="#111208"
