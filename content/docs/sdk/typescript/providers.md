@@ -113,7 +113,7 @@ if (known && levels.includes("high")) {
 }
 ```
 
-Returns `{ known: boolean; levels: string[] }`. When `known` is `true`, `levels` lists every accepted value, and an empty list means only the provider default (`null`) works. When `known` is `false`, Blazing Agents does not know the model, so any value is accepted but the provider may reject it during a turn. It works for any model ID, including custom providers. Errors: `validation_failed`, `provider_not_found`.
+Returns `{ known: boolean; levels: string[] }`. When `known` is `true`, `levels` lists every accepted value, and an empty list means only the provider default (`null`) works. When `known` is `false`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time, except on a `vercel_ai_gateway` model whose ID does not start with `openai/`, `anthropic/` or `google/`. That model takes only `off`, `minimal`, `low`, `medium`, `high`, `xhigh` and `max`, and saving any other string fails with `invalid_request`. It works for any model ID, including custom providers. Errors: `validation_failed`, `provider_not_found`.
 
 ### `update()` [#update]
 

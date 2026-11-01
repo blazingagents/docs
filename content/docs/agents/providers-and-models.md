@@ -183,7 +183,7 @@ const { known, levels } = await client.providers.getThinkingLevels({
   providerId: provider.id,
   model: "openai/gpt-6-luna",
 });
-console.log(known ? levels : "Levels unknown; any non-empty value is accepted");
+console.log(known ? levels : "Levels unknown");
 
 if (known && levels.length > 0) {
   await client.agents.update({
@@ -200,7 +200,7 @@ choices = client.providers.get_thinking_levels(
 print(
     choices.levels
     if choices.known
-    else "Levels unknown; any non-empty value is accepted"
+    else "Levels unknown"
 )
 
 if choices.known and choices.levels:
@@ -216,7 +216,7 @@ let choices = client
 if choices.known {
     println!("{:?}", choices.levels);
 } else {
-    println!("Levels unknown; any non-empty value is accepted");
+    println!("Levels unknown");
 }
 
 if choices.known && !choices.levels.is_empty() {
@@ -237,7 +237,7 @@ if err != nil {
 if choices.Known {
 	fmt.Println(choices.Levels)
 } else {
-	fmt.Println("Levels unknown; any non-empty value is accepted")
+	fmt.Println("Levels unknown")
 }
 
 if choices.Known && len(choices.Levels) > 0 {
@@ -248,7 +248,7 @@ if choices.Known && len(choices.Levels) > 0 {
 return err
 ```
 
-When the levels are known, Blazing Agents rejects any other value and lists the valid choices in the error. When they are unknown, it accepts any non-empty string, and a value the model does not understand fails when the agent runs. Blazing Agents never swaps in another level or retries without one.
+When the levels are known, Blazing Agents rejects any other value with `invalid_request` and lists the valid choices in `details.supportedLevels`. When they are unknown, it accepts any non-empty string, and a value the model does not understand fails when the agent runs. The exception is a `vercel_ai_gateway` model whose ID does not start with `openai/`, `anthropic/` or `google/`. It takes only `off`, `minimal`, `low`, `medium`, `high`, `xhigh` and `max`, even when its levels are unknown, so any other string is rejected when you save the agent. Blazing Agents never swaps in another level or retries without one.
 
 A thinking level is not a token or cost cap, and the same level can behave differently on different models. In the dashboard, changing the provider or model resets the level to the provider default.
 
