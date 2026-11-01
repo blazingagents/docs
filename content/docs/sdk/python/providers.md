@@ -112,7 +112,7 @@ if levels.known and "high" in levels.levels:
 
 **Signature:** `get_thinking_levels(provider_id: str, *, model: str) -> ThinkingLevels`
 
-Returns `ThinkingLevels` with `known: bool` and `levels: list[str]`. When `known` is `True`, only the listed levels are accepted, and an empty list means the model supports only the provider default (`thinking_level=None`). When `known` is `False`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time. Raises `validation_failed` or `provider_not_found`.
+Returns `ThinkingLevels` with `known: bool` and `levels: list[str]`. When `known` is `True`, only the listed levels are accepted, and an empty list means the model supports only the provider default (`thinking_level=None`). When `known` is `False`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time, except on a `vercel_ai_gateway` model whose ID does not start with `openai/`, `anthropic/` or `google/`. That model takes only `off`, `minimal`, `low`, `medium`, `high`, `xhigh` and `max`, and saving any other string fails with `invalid_request`. Raises `validation_failed` or `provider_not_found`.
 
 ### `update()` [#update]
 

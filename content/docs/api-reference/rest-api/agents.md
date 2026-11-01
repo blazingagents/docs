@@ -27,10 +27,14 @@ summaries work, what they cost, and what happens when they fail.
 `POST` and `PUT` accept `thinkingLevel: string | null`. It defaults to `null`
 on create. Leave it out of an update to keep it, or send `null` to clear it. A
 non-null value must be non-empty and needs a configured provider and model.
-Agent responses include it. A level the model is known not to
-support returns `validation_failed` with the valid choices, and nothing is
-saved. On the [admin agent](/agents/agents#the-admin-agent) you can change the
-thinking level along with its provider and model, but nothing else.
+Agent responses include it. A level the model cannot be sent returns
+`400 invalid_request` with `param` set to `/thinkingLevel` and the valid
+choices in `details.supportedLevels`, and nothing is saved. A model whose levels
+are unknown accepts any string, except a `vercel_ai_gateway` model whose ID does
+not start with `openai/`, `anthropic/` or `google/`. That model takes only `off`,
+`minimal`, `low`, `medium`, `high`, `xhigh` and `max`. On the
+[admin agent](/agents/agents#the-admin-agent) you can change the thinking level
+along with its provider and model, but nothing else.
 
 ## Tool approval configuration [#tool-approval-configuration]
 
