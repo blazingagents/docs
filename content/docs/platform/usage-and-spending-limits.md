@@ -269,7 +269,7 @@ Dates are UTC and inclusive. Pass both `from` and `to`, or neither for the [defa
 | A task run starts while your [monetization guard](/platform/monetization) refuses the end user | The run ends as `blocked`, without running |
 | A task run starts after you requested account deletion | The run ends as `blocked`, without running |
 | Billing status cannot be checked | The run ends as `failed` |
-| More turns run at once than your plan's [concurrent turn limit](/api-reference/protocols/service-limits#concurrent-turns) | HTTP `429` with [`rate_limited`](/api-reference/protocols/errors#rate_limited) |
+| More turns run at once than your plan's [concurrent turn limit](/api-reference/protocols/service-limits#concurrent-turns) | HTTP `429` with [`rate_limited`](/api-reference/protocols/errors#rate_limited) and no `Retry-After`; retry with backoff |
 | You create agents, tasks, or workspaces faster than the [creation rate](/api-reference/protocols/service-limits#tenant-resource-creation-rate) | HTTP `429` with `rate_limited` and a `Retry-After` header |
 | More task runs are active than your plan's [concurrent task run limit](/api-reference/protocols/service-limits#concurrent-task-runs) | Extra runs wait as `queued` until a slot frees up |
 
