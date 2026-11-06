@@ -42,7 +42,7 @@ The SDK owns four headers. It always sets `Authorization` from your tenant API k
 
 A `Client` is cheap to clone, and clones share the connection pool. There is no `close()`; drop the client when you are done.
 
-The timeout covers the request and reading the response body. For a streaming response, and for `completion()` and `object()`, which stream internally, it covers only the wait for headers; reading the stream has no deadline. `with_timeout` and `without_timeout` adjust this per call. Backend function claims and result submissions retry transient failures until the call's deadline. Other requests are not retried automatically.
+The timeout covers the request and reading the response body. For a streaming response, and for `completion()` and `object()`, which stream internally, it covers only the wait for headers; reading the stream has no deadline. `with_timeout` and `without_timeout` adjust this per call. Backend function claims retry transient failures until the call's deadline and result submissions until 30 seconds after it. Other requests are not retried automatically.
 
 ### `agent()` [#agent]
 
@@ -285,7 +285,7 @@ let functions = Functions::builder()
 
 The handler also gets a `FunctionContext`: `idempotency_key()` to make side effects idempotent across retries, `deadline()` for when the platform stops waiting, `cancelled()` which resolves when the deadline passes or the stream is dropped, and `is_cancelled()`. Input that does not decode, an `Err`, or a result that is not plain JSON becomes a sanitized tool error; the handler's own error text never reaches the agent. A result over the [function limits](/api-reference/protocols/service-limits#backend-functions) becomes an invalid-result error.
 
-Build one `Functions` value and attach it to every chat call with the `functions` setter; it is cheap to clone. Claims and result submissions retry transient failures with the same body until the call's deadline. See [backend functions](/agents/tools/backend-functions).
+Build one `Functions` value and attach it to every chat call with the `functions` setter; it is cheap to clone. Claims retry transient failures until the call's deadline and result submissions until 30 seconds after it, with the same body. See [backend functions](/agents/tools/backend-functions).
 
 ### `continue_chat()` [#continue-chat]
 

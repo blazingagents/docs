@@ -118,8 +118,11 @@ Relay responses built by the SDK keep the original request ID.
 
 Each entry on this page says whether retrying the same request can succeed.
 That does not make a retry safe: a request that timed out may still have taken
-effect. The SDK never retries for you, so retry only calls that are safe to
-repeat, and wait for the `Retry-After` header when it is present. See
+effect. The SDK does not retry ordinary requests, but it does retry a backend
+function's claim and result submission after a network error, HTTP 408, HTTP 429,
+or a 5xx, honoring `Retry-After`, without running your handler again: the claim
+until the call's deadline, the result until 30 seconds after it. Retry only calls that are
+safe to repeat, and wait for the `Retry-After` header when it is present. See
 [decide whether to retry](/platform/limits-and-reliability#decide-whether-to-retry).
 
 ## Request correlation [#request-correlation]

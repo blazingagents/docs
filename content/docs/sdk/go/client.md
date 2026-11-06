@@ -58,7 +58,7 @@ The SDK owns eight headers: `Authorization`, `X-BA-User-Id`, `X-Request-Id`, `X-
 
 A `*ba.Client` is safe for concurrent use. Copies made by `ForUser` and `WithClientRequestID` share its connection pool. There is no `Close`; drop the client when you are done.
 
-The timeout covers the request and reading the response body. For a streaming response, and for `Completion` and `ba.Object`, which stream internally, it covers only the wait for headers; reading the stream is bounded by your context, `Close`, and the optional idle timeout. `ba.WithRequestTimeout` changes the timeout for one call, and `0` turns it off. Backend function claims and result submissions retry transient failures until the call's deadline. Other requests are not retried automatically.
+The timeout covers the request and reading the response body. For a streaming response, and for `Completion` and `ba.Object`, which stream internally, it covers only the wait for headers; reading the stream is bounded by your context, `Close`, and the optional idle timeout. `ba.WithRequestTimeout` changes the timeout for one call, and `0` turns it off. Backend function claims retry transient failures until the call's deadline and result submissions until 30 seconds after it. Other requests are not retried automatically.
 
 ### `WithClientRequestID` [#with-client-request-id]
 
@@ -343,7 +343,7 @@ return nil
 
 The handler also gets a `ba.FunctionCall`: `ID` to make side effects idempotent across retries, `Name`, and `Deadline` for when the platform stops waiting. Its context is canceled at the deadline, when you close the stream, or when the chat call's context ends. Input that does not decode, a returned error, a panic, or a result that is not plain JSON becomes a sanitized tool error; the handler's own error text never reaches the agent. A result over the [function limits](/api-reference/protocols/service-limits#backend-functions) becomes an invalid-result error.
 
-Build one `*ba.Functions` value and attach it to every chat call with the `Functions` field; it is immutable and safe to share across goroutines. Claims and result submissions retry transient failures with the same body until the call's deadline. A permanent failure ends the stream with a `*ba.StreamError` whose `Kind` is `ba.StreamFunctionCall`. See [backend functions](/agents/tools/backend-functions).
+Build one `*ba.Functions` value and attach it to every chat call with the `Functions` field; it is immutable and safe to share across goroutines. Claims retry transient failures until the call's deadline and result submissions until 30 seconds after it, with the same body. A permanent failure ends the stream with a `*ba.StreamError` whose `Kind` is `ba.StreamFunctionCall`. See [backend functions](/agents/tools/backend-functions).
 
 ### `Chat.Continue` [#continue-chat]
 

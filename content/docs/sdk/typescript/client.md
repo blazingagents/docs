@@ -261,7 +261,7 @@ Errors before streaming throw from `chat()` itself. Reading the body twice raise
 
 The exported `defineFunction({ description, inputSchema, execute })` helper declares a backend function. `inputSchema` is a Zod schema for an object. The handler receives the parsed input and a context with `idempotencyKey: string` and `signal: AbortSignal`. It returns a plain JSON value or a promise of one.
 
-Function names start with a letter and contain up to 64 letters, digits, underscores, or hyphens. Built-in names and the `mcp__` prefix are reserved. Functions follow `approvalInChat.default` and are available only in interactive chat.
+Function names start with a letter and contain up to 64 letters, digits, underscores, or hyphens. Built-in names and the `mcp__` prefix are reserved. Functions follow `approvalInChat.default` and are available only in interactive chat. Claims retry transient failures until the call's deadline and result submissions until 30 seconds after it, with the same body; a retry does not run your handler again. See [cancellation and retries](/agents/tools/backend-functions#handle-cancellation-and-retries).
 
 ### `continueChat()` [#continue-chat]
 
