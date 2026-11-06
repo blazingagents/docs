@@ -1,6 +1,6 @@
 ---
 title: Built-in tools
-description: Switch on file and shell tools, a to-do list, memory, or web search for your agent, one tool at a time.
+description: Switch on file and shell tools, a to-do list, memory, web search, or page reading for your agent, one tool at a time.
 ---
 
 # Built-in tools
@@ -147,13 +147,16 @@ An agent with [skills](/agents/skills) also gets `activate_skill` and `read`, wh
 
 These tools work on the agent's [memory](/agents/memory). You can also add saved notes to every turn without any tool through `memoryInjectionEnabled`.
 
-## Web search [#web-search]
+## Web [#web-search]
 
 | Tool | What it does |
 | --- | --- |
 | `web_search` | Search the public web and return matching pages. |
+| `web_fetch` | Read a public web page or text document by URL. The result is markdown. |
 
-The agent sends a `query` of 1 to 1,024 characters and an optional `limit`. It gets back up to 10 results, which is also the default. Each result has a `url`, a `title`, usually a `description` snippet, and a `publishedDate` (`YYYY-MM-DD`) when the page's date is known. The tool does not fetch full page contents. When the results are too large to return whole, the tool returns the ones that fit and adds `truncated: true`.
+`web_search` sends a `query` of 1 to 1,024 characters and an optional `limit`. It gets back up to 10 results, which is also the default. Each result has a `url`, a `title`, usually a `description` snippet, and a `publishedDate` (`YYYY-MM-DD`) when the page's date is known. `web_search` does not fetch full page contents. When the results are too large to return whole, the tool returns the ones that fit and adds `truncated: true`.
+
+`web_fetch` reads one URL and returns markdown. It does not need a workspace.
 
 Each successful search uses usage credit. A failed search is free. Blazing Agents bills web search itself, so it uses credit even when your model runs on your own provider key.
 
@@ -166,7 +169,7 @@ File changes are not undone when a turn fails or is stopped, and turns that shar
 ## Production checklist [#production-checklist]
 
 - Turn on only the tools the agent needs. Selecting a tool gives the agent that ability; it does not check who the user is. For example, `read`, `grep`, and `glob` let the agent look at files without changing them.
-- Keep secrets out of prompts, commands, files, and tool arguments, including web search queries.
+- Keep secrets out of prompts, commands, files, and tool arguments, including web search queries and URLs passed to `web_fetch`.
 - Treat files, commands, and summaries the agent produces as untrusted until your application checks them.
 - Put a person in front of risky calls such as `bash` with [tool approvals](/agents/tools/tool-approvals).
 - Expect limits on input and output size, file operations, and compute. See [limits and reliability](/platform/limits-and-reliability).
