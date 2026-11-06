@@ -1068,14 +1068,14 @@ Your plan, your usage credit, and billing your own users.
 
 **Too many requests at once.**
 
-Either more turns are running at once than your plan's [concurrent turn limit](/api-reference/protocols/service-limits#concurrent-turns) allows, or you created agents, tasks, or workspaces faster than the [creation rate limit](/api-reference/protocols/service-limits#tenant-resource-creation-rate) allows.
+Either more turns are running at once than your plan's [concurrent turn limit](/api-reference/protocols/service-limits#concurrent-turns) allows, or you created agents, tasks, or workspaces faster than the [creation rate limit](/api-reference/protocols/service-limits#tenant-resource-creation-rate) allows. Concurrent turn overflow has no `Retry-After`. Creation-rate overflow sends `Retry-After` with the whole seconds to wait.
 
 HTTP `429`. Retrying the same request can succeed.
 
 To fix it:
 
-- Wait for the time in the `Retry-After` header when it is present.
-- Otherwise retry with backoff and jitter, and limit how many turns you run at once. See [limit and capacity outcomes](/platform/usage-and-spending-limits#limit-and-capacity-outcomes).
+- For creation-rate overflow, wait for the time in the `Retry-After` header.
+- For concurrent turn overflow, or when `Retry-After` is absent, retry with backoff and jitter, and limit how many turns you run at once. See [limit and capacity outcomes](/platform/usage-and-spending-limits#limit-and-capacity-outcomes).
 
 ### `subscription_required` [#subscription_required]
 
