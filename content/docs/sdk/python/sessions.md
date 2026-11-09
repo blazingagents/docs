@@ -144,7 +144,7 @@ client.sessions.delete(agent_id=agent_id, session_id=session_id, delete_artifact
 
 **Signature:** `delete(*, agent_id: str, session_id: str, delete_artifacts: bool) -> None`
 
-`delete_artifacts` is required: `True` also deletes artifacts published in the session, and `False` keeps them. Raises [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn is running or a recorded approval continuation is still open, or [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) when the last turn stopped responding; wait for `Retry-After`. Also raises `validation_failed` or `not_found`.
+`delete_artifacts` is required: `True` also deletes artifacts published in the session, and `False` keeps them. Raises [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn or an approval continuation is running, or [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) when the last turn stopped responding; wait for `Retry-After`. Also raises `validation_failed` or `not_found`. A waiting approval round fails when you delete its session. Deleting a deleted session succeeds, so call it again to finish a delete that failed part way.
 
 ### `submit_input()` [#submit-input]
 

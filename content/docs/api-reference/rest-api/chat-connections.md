@@ -123,7 +123,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/chat-connections" \
 
 Create a chat connection.
 
-Connects one of your agents to a Slack app or Telegram bot. Blazing Agents checks the credentials with the chat platform and reads the bot identity from the token before saving, and returns the `webhookUrl` to configure on the platform. Each bot installation belongs to one connection. Slack needs `botToken` and `signingSecret`; Telegram needs only `botToken`. Creating an enabled Telegram connection registers its webhook for you. If that registration fails, the connection is saved disabled and its `webhook_url` health check fails; fix the bot and call enable. The platform-managed agent cannot be connected.
+Connects one of your agents to a Slack app or Telegram bot. Blazing Agents checks the credentials with the chat platform and reads the bot identity from the token before saving, and returns the `webhookUrl` to configure on the platform. Each bot installation belongs to one connection. Slack needs `botToken` and `signingSecret`; Telegram needs only `botToken`. Creating an enabled Telegram connection registers its webhook for you. If that registration fails, the connection is saved disabled and its `webhook_secret` health check fails; fix the bot and call enable. The platform-managed agent cannot be connected.
 
 #### Request
 
@@ -439,7 +439,7 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_123456789
 
 Rotate chat connection credentials.
 
-Replaces a connection's credentials. Send `platform` matching the connection and the complete credentials for the same bot installation: Slack needs `botToken` and `signingSecret`, and Telegram needs `botToken`. The new credentials are checked with the chat platform and must identify the same bot. The enabled state and sessions are kept. On an enabled Telegram connection, Blazing Agents re-registers the webhook with a new secret. If that fails, the new credentials are still saved and the request returns an error; call enable to retry. [Manage and troubleshoot](https://docs.blazingagents.com/platform/chat-integrations#manage-and-troubleshoot) covers what happens to running turns and waiting messages.
+Replaces a connection's credentials. Send `platform` matching the connection and the complete credentials for the same bot installation: Slack needs `botToken` and `signingSecret`, and Telegram needs `botToken`. The new credentials are checked with the chat platform and must identify the same bot. The enabled state and sessions are kept. For Telegram, Blazing Agents re-registers the webhook with a new secret when the connection is enabled, or when it is disabled and the bot still delivers to it. If that fails, the new credentials are still saved, the `webhook_secret` health check fails, and the request returns an error; call enable to retry. [Manage and troubleshoot](https://docs.blazingagents.com/platform/chat-integrations#manage-and-troubleshoot) covers what happens to running turns and waiting messages.
 
 #### Request
 
@@ -702,7 +702,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
 
 Enable a chat connection.
 
-Starts accepting new messages. Messages sent while the connection was disabled are not replayed. For Telegram, Blazing Agents registers the webhook first. If the bot already sends updates to a webhook outside Blazing Agents, the request returns `chat_webhook_conflict`; remove that webhook and try again. If registration fails for another reason, the request returns `chat_webhook_registration_failed` and the connection stays disabled.
+Starts accepting new messages. Messages sent while the connection was disabled are not replayed. For Telegram, Blazing Agents registers the webhook first. If the bot already sends updates to a webhook outside Blazing Agents, the request returns `chat_webhook_conflict`; remove that webhook and try again. If registration fails for another reason, the request returns `chat_webhook_registration_failed` and the connection stays disabled. A disable that lands while this request runs wins, and the response shows the connection disabled. The response carries freshly checked `health`.
 
 #### Request
 

@@ -655,7 +655,7 @@ curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
 
 Delete an agent.
 
-Permanently deletes an agent. Its workspace is kept. Set `includeArtifacts` to choose whether its artifacts are deleted too. The platform-managed agent cannot be deleted. An agent cannot be deleted while it has a running turn or a queued or running task run: the call returns `409 agent_busy`, so stop that work or wait for it to finish, then delete again.
+Permanently deletes an agent. Its workspace is kept. Set `includeArtifacts` to choose whether its artifacts are deleted too. The platform-managed agent cannot be deleted. An agent cannot be deleted while it has a running turn or a queued or running task run: the call returns `409 agent_busy`, so stop that work or wait for it to finish, then delete again. While a delete that includes artifacts runs, new turns and task runs for the agent fail with `409 agent_deleting`. If that delete fails, they keep failing until you send the delete again, which finishes it.
 
 #### Request
 

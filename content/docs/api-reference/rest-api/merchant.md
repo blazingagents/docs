@@ -305,7 +305,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/merchant-connection/bindings" \
 
 Set a merchant binding.
 
-Links one of your end users to a customer in your billing provider, or changes the customer an existing link points to. Blazing Agents checks that the customer exists first. Usage for that user is then sent to this customer.
+Links one of your end users to a customer in your billing provider, or changes the customer an existing link points to. Blazing Agents checks that the customer exists first. Usage for that user is then sent to this customer. If your merchant connection is replaced or removed while the request runs, nothing is saved and the request fails with `merchant_eligibility_unavailable`; retry it to check the customer against the current connection.
 
 #### Request
 
@@ -343,7 +343,7 @@ Response schema: `MerchantBindingResponse`.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
 | `422` | [`merchant_customer_not_found`](/api-reference/protocols/errors#merchant_customer_not_found) | The request was understood but rejected |
-| `503` | [`merchant_provider_unavailable`](/api-reference/protocols/errors#merchant_provider_unavailable) | The service is temporarily unavailable |
+| `503` | [`merchant_provider_unavailable`](/api-reference/protocols/errors#merchant_provider_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
