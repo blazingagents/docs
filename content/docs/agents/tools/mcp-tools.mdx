@@ -170,7 +170,12 @@ Run it again after you change credentials or the server changes, because tools a
 
 ## What happens during a turn [#what-happens-during-a-turn]
 
-At the start of each turn, Blazing Agents connects to every attached server and lists its tools. A connection that needs sign-in fails the turn, and so can a server that cannot be reached or a tool that fails. Blazing Agents does not quietly run the turn with fewer tools. MCP tools that require the MCP task protocol are not offered to the agent.
+At the start of each turn, Blazing Agents connects to every attached server and lists its tools. Blazing Agents does not quietly run the turn with fewer tools, so a failing connection fails the turn before the model runs, and the error message names the connection:
+
+- A connection with status `needs_auth` fails the turn with [`mcp_connection_needs_auth`](/api-reference/protocols/errors#mcp_connection_needs_auth) (`409`). `details.connections` lists each such connection. Retrying does not help until someone [signs in again](#sign-in-with-an-authorization-code) or you `reconnect()` it, and a task run that fails this way ends as `blocked`.
+- A server that cannot be reached, or a tool list that fails, fails the turn with [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) (`502`). A retry can succeed once the server responds.
+
+MCP tools that require the MCP task protocol are not offered to the agent.
 
 Requests to the server use HTTPS, follow only safe redirects, and have [time limits](/api-reference/protocols/service-limits#mcp-runtime-timeouts) and [size limits](/api-reference/protocols/service-limits#mcp-payloads). Tool results have a size limit too, and a result that echoes a stored credential is rejected.
 

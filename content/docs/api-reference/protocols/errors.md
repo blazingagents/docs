@@ -23,7 +23,7 @@ Each code links to its own entry. You can link straight to one, for example
 | [Requests and validation](#requests-and-validation) | [`invalid_request`](#invalid_request), [`idempotency_conflict`](#idempotency_conflict), [`validation_failed`](#validation_failed), [`not_found`](#not_found), [`invalid_cursor`](#invalid_cursor) |
 | [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`agent_busy`](#agent_busy), [`agent_deleting`](#agent_deleting), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
 | [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`session_turn_unresponsive`](#session_turn_unresponsive), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`input_idempotency_conflict`](#input_idempotency_conflict), [`steer_not_available`](#steer_not_available), [`message_id_conflict`](#message_id_conflict), [`message_not_found`](#message_not_found), [`tool_approval_continuation_settled`](#tool_approval_continuation_settled), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict), [`session_fork_unavailable`](#session_fork_unavailable), [`session_fork_deleted`](#session_fork_deleted) |
-| [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
+| [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`mcp_connection_needs_auth`](#mcp_connection_needs_auth), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
 | [Tasks](#tasks) | [`task_active_run_exists`](#task_active_run_exists) |
 | [Plan and billing](#plan-and-billing) | [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`subscription_already_paid`](#subscription_already_paid), [`subscription_not_cancelled`](#subscription_not_cancelled), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_connection_in_use`](#merchant_connection_in_use), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable), [`model_spending_limit_exceeded`](#model_spending_limit_exceeded) |
 | [Workspaces and artifacts](#workspaces-and-artifacts) | [`workspace_not_found`](#workspace_not_found), [`workspace_in_use`](#workspace_in_use), [`workspace_busy`](#workspace_busy), [`artifact_session_cap_reached`](#artifact_session_cap_reached) |
@@ -355,7 +355,7 @@ To fix it:
 
 **Your account is scheduled for deletion.**
 
-While a deletion is scheduled, you cannot start turns or task runs, and some billing actions are refused. Work that was already running finishes.
+While a deletion is scheduled, you cannot start turns or task runs, open a checkout, or resume your subscription. Work that was already running finishes.
 
 HTTP `409`. Retrying the same request fails the same way until you fix the cause.
 
@@ -940,7 +940,7 @@ To fix it:
 
 **The MCP server's tools or sign-in could not be discovered.**
 
-`400`: Blazing Agents reached the server, but listing its tools or finding its OAuth sign-in failed, so nothing was saved. `502`: a turn could not load the tools of an MCP connection attached to the agent, so the turn did not start.
+`400`: Blazing Agents reached the server, but listing its tools or finding its OAuth sign-in failed, so nothing was saved. `502`: a turn could not load the tools of an MCP connection attached to the agent, so the turn did not start. When one connection caused it, the message names that connection, and `details.connections` lists it as `connectionId` with `status` `error`.
 
 HTTP `400`, or `502`. Retrying the same request can succeed.
 
@@ -949,6 +949,19 @@ To fix it:
 - Test the connection to see its current result. See [check a connection](/agents/tools/mcp-tools#check-a-connection).
 - Check that the server implements tool listing, and OAuth discovery if you use OAuth.
 - For a turn, retry once the connection tests cleanly, or detach it from the agent.
+
+### `mcp_connection_needs_auth` [#mcp_connection_needs_auth]
+
+**An MCP connection attached to the agent needs to be reconnected.**
+
+A turn could not start because an MCP connection attached to the agent has status `needs_auth`: its sign-in has not finished, or it no longer works. The message names the connection, and `details.connections` lists each such connection as `connectionId` with `status` `needs_auth`. The model did not run. A task run that fails this way ends as `blocked`.
+
+HTTP `409`. Retrying the same request fails the same way until you fix the cause.
+
+To fix it:
+
+- Reconnect each connection in `details.connections`. For `oauth_authorization_code`, a tenant administrator signs in from the MCP connections page in the dashboard; otherwise call `reconnect()` with new credentials. See [sign in with an authorization code](/agents/tools/mcp-tools#sign-in-with-an-authorization-code).
+- To keep the agent working meanwhile, detach the connection from the agent.
 
 ### `skill_invalid_archive` [#skill_invalid_archive]
 

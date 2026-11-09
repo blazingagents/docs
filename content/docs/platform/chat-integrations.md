@@ -161,9 +161,11 @@ If Blazing Agents refuses a turn before it starts, nothing runs and the bot tell
 | Error code | What the bot says |
 | --- | --- |
 | `agent_disabled` | The agent has been turned off. |
+| `agent_deleting` | The agent is being deleted. |
 | `tenant_deleting` | The agent is being shut down. |
 | `provider_required`, `provider_not_found` | No AI model is set up for the agent. |
 | `mcp_connection_discovery_failed` | One of the agent's connected tools is unavailable. |
+| `mcp_connection_needs_auth` | One of the agent's connected tools needs to be reconnected. |
 | `workspace_not_found` | The agent's workspace is missing. |
 | `subscription_required` | Your account has no active subscription. |
 | `usage_credit_required` | Your account is out of usage credit. |

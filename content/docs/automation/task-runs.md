@@ -165,7 +165,7 @@ A run moves from `queued` to `running`, then ends in one of four final statuses:
 | `succeeded` | The agent finished. Its last assistant message is the result. |
 | `failed` | The run did not finish. Read `error`, but treat it as sensitive and redact it before you log it. |
 | `canceled` | You cancelled the run before it finished. |
-| `blocked` | The agent did not run because a check refused it: a plan, usage credit, [monetization guard](/platform/monetization#guard-rules), or model spending limit check, a disabled agent, or a tenant being deleted. It is not a failure. Its `errorCode` names the check. See [usage and spending limits](/platform/usage-and-spending-limits). |
+| `blocked` | The agent did not run because a check refused it: a plan, usage credit, [monetization guard](/platform/monetization#guard-rules), or model spending limit check, a disabled agent, a tenant being deleted, or an attached [MCP connection that needs sign-in](/agents/tools/mcp-tools#what-happens-during-a-turn). It is not a failure. Its `errorCode` names the check. See [usage and spending limits](/platform/usage-and-spending-limits). |
 
 A limit that stops a run after the agent started working ends the run as `failed`, not `blocked`. If a [model spending limit](/platform/usage-and-spending-limits#spending-limit-stops) runs out during the run, the messages that finished stay in its transcript. If the run is still going 30 minutes after it started [running](/api-reference/protocols/service-limits#task-run-lifetime), it stops and its `error` is `Task run deadline exceeded`.
 
