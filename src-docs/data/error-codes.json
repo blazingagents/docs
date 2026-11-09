@@ -602,11 +602,12 @@
       "group": "tools-and-mcp",
       "statuses": [400, 502],
       "title": "The MCP server's tools or sign-in could not be discovered.",
-      "whatHappened": "`400`: Blazing Agents reached the server, but listing its tools or finding its OAuth sign-in failed, so nothing was saved. `502`: a turn could not load the tools of an MCP connection attached to the agent, so the turn did not start. When one connection caused it, the message names that connection, and `details.connections` lists it as `connectionId` with `status` `error`.",
+      "whatHappened": "`400`: Blazing Agents reached the server, but listing its tools or finding its OAuth sign-in failed, so nothing was saved. `502`: a turn could not load the tools of an MCP connection attached to the agent, so the turn did not start. When one connection caused it, the message names that connection, and `details.connections` lists it as `connectionId` with `status` `error`. When the agent's connections together expose more than 256 tools, the message says so, `details` names no connection, and retrying does not help.",
       "howToFix": [
         "Test the connection to see its current result. See [check a connection](/agents/tools/mcp-tools#check-a-connection).",
         "Check that the server implements tool listing, and OAuth discovery if you use OAuth.",
-        "For a turn, retry once the connection tests cleanly, or detach it from the agent."
+        "For a turn, retry once the connection tests cleanly, or detach it from the agent.",
+        "Over the 256-tool limit, detach an MCP connection from the agent, or remove tools from its server. See [service limits](/api-reference/protocols/service-limits#mcp-tools)."
       ],
       "retryable": true
     },
