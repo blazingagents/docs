@@ -250,7 +250,7 @@ On Polar, `meterId` is the meter shown in the customer's state. On Dodo, it is t
 
 When you save an enabled guard, Blazing Agents looks up each product and meter ID with your provider. An ID your provider does not know fails the request with [`validation_failed`](/api-reference/protocols/errors#validation_failed), and one issue with the code `merchant_guard_id_unknown` for each unknown ID.
 
-The guard checks only when a turn starts. A turn can still run past a balance while it runs. If your provider cannot be reached, the turn is refused with [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable). A task run that the guard refuses for a missing customer link, subscription, or balance ends as `blocked`, and its `errorCode` names the refusal.
+The guard checks only when a turn starts. A turn can still run past a balance while it runs. If your provider cannot be reached, or your merchant connection is replaced or removed while the turn starts, the turn is refused with [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable). A task run that the guard refuses for a missing customer link, subscription, or balance ends as `blocked`, and its `errorCode` names the refusal.
 
 ## Delivery states [#delivery-states]
 

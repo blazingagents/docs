@@ -21,7 +21,7 @@ Each code links to its own entry. You can link straight to one, for example
 | --- | --- |
 | [Auth and access](#auth-and-access) | [`unauthorized`](#unauthorized), [`forbidden`](#forbidden), [`insufficient_scope`](#insufficient_scope), [`api_key_limit_reached`](#api_key_limit_reached), [`tenant_deleting`](#tenant_deleting), [`tenant_deletion_in_progress`](#tenant_deletion_in_progress), [`tenant_deletion_not_ready`](#tenant_deletion_not_ready), [`tenant_not_deleting`](#tenant_not_deleting) |
 | [Requests and validation](#requests-and-validation) | [`invalid_request`](#invalid_request), [`idempotency_conflict`](#idempotency_conflict), [`validation_failed`](#validation_failed), [`not_found`](#not_found), [`invalid_cursor`](#invalid_cursor) |
-| [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`agent_busy`](#agent_busy), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
+| [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`agent_busy`](#agent_busy), [`agent_deleting`](#agent_deleting), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
 | [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`session_turn_unresponsive`](#session_turn_unresponsive), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`input_idempotency_conflict`](#input_idempotency_conflict), [`steer_not_available`](#steer_not_available), [`message_id_conflict`](#message_id_conflict), [`message_not_found`](#message_not_found), [`tool_approval_continuation_settled`](#tool_approval_continuation_settled), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict), [`session_fork_unavailable`](#session_fork_unavailable), [`session_fork_deleted`](#session_fork_deleted) |
 | [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
 | [Tasks](#tasks) | [`task_active_run_exists`](#task_active_run_exists) |
@@ -511,6 +511,19 @@ To fix it:
 
 - Stop the running turn or cancel the task run, or wait for them to finish, then delete the agent again.
 
+### `agent_deleting` [#agent_deleting]
+
+**The agent is being deleted.**
+
+A delete of this agent that also deletes its artifacts is running, or it failed before it finished. Until the delete finishes, the agent refuses new turns and task runs.
+
+HTTP `409`. Retrying the same request fails the same way until you fix the cause.
+
+To fix it:
+
+- Stop sending work to this agent.
+- If the delete did not finish, send the same delete again. It finishes the deletion. See [delete an agent](/agents/agents#delete-an-agent).
+
 ### `provider_required` [#provider_required]
 
 **The agent configuration has no provider and model.**
@@ -656,7 +669,7 @@ Running turns, regenerating answers, and tool approvals.
 
 **The session is busy with another operation.**
 
-A turn is running, a tool approval is waiting for a decision, or an approval continuation is already running, so the session cannot start new work. New chat turns, regeneration, and deletion are refused until that work ends. Retrying an approval continuation that is already running also returns this code. `details.reason` names the cause: `turn_running` when another turn holds the session, `approval_pending` when a tool approval waits for a decision, or `continuation_waiting` when an approval round is decided but its continuation has not run. A turn that stopped responding looks busy for a short time, then the session returns [`session_turn_unresponsive`](#session_turn_unresponsive).
+A turn is running, a tool approval is waiting for a decision, or an approval continuation is already running, so the session cannot start new work. New chat turns and regeneration are refused until that work ends. Deleting the session is refused only while a turn or a continuation is running. Retrying an approval continuation that is already running also returns this code. `details.reason` names the cause: `turn_running` when another turn holds the session, `approval_pending` when a tool approval waits for a decision, or `continuation_waiting` when an approval round is decided but its continuation has not run. A turn that stopped responding looks busy for a short time, then the session returns [`session_turn_unresponsive`](#session_turn_unresponsive).
 
 HTTP `409`. Retrying the same request can succeed.
 
@@ -1278,15 +1291,16 @@ To fix it:
 
 ### `merchant_eligibility_unavailable` [#merchant_eligibility_unavailable]
 
-**Your customer's plan could not be checked.**
+**Your customer could not be checked with your billing provider.**
 
-Your monetization guard is on, and your billing provider did not answer in time. The guard refuses the turn rather than guess.
+Your monetization guard is on and your billing provider did not answer in time, or your merchant connection was replaced or removed while the request ran. Blazing Agents refuses the request rather than guess.
 
 HTTP `503`. Retrying the same request can succeed.
 
 To fix it:
 
-- Retry after a short wait, and check your provider's status page if it keeps failing.
+- Retry after a short wait. A retry checks the customer against your current merchant connection.
+- If it keeps failing, check your provider's status page.
 
 ### `model_spending_limit_exceeded` [#model_spending_limit_exceeded]
 

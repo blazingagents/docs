@@ -272,7 +272,7 @@ Pass `userId` and `metadata` on the first turn to label the session with your en
 
 ## Busy and concurrent sessions [#busy-and-concurrent-sessions]
 
-`client.chat()` on an existing session returns [`session_busy`](/api-reference/protocols/errors#session_busy) (HTTP `409`) while a turn is running, a [tool approval](/agents/tools/tool-approvals) is waiting for a decision, or an approval continuation is already running. Deleting a session also returns `session_busy` while a turn runs or an approval continuation is still open.
+`client.chat()` on an existing session returns [`session_busy`](/api-reference/protocols/errors#session_busy) (HTTP `409`) while a turn is running, a [tool approval](/agents/tools/tool-approvals) is waiting for a decision, or an approval continuation is already running. Deleting a session returns `session_busy` only while a turn or an approval continuation is running. Deleting a session whose approval round is waiting for a continue call fails that round. Deleting a session that is already deleted succeeds, so if a delete fails part way, for example while deleting its artifacts, send it again to finish.
 
 The error's `details.reason` says what holds the session, so your app can tell the user what to do:
 

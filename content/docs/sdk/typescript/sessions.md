@@ -138,7 +138,7 @@ Deletes a session and its messages for good. You choose whether its artifacts go
 await client.forUser(verifiedUserId).sessions.delete({ agentId, sessionId, deleteArtifacts: false });
 ```
 
-`deleteArtifacts: true` also deletes the files the agent published in this session; `false` keeps them. Errors: `validation_failed`, `not_found`, [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn is running or an approval continuation is still open, or [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) when the last turn stopped responding; wait for `Retry-After`.
+`deleteArtifacts: true` also deletes the files the agent published in this session; `false` keeps them. Errors: `validation_failed`, `not_found`, [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn or an approval continuation is running, or [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) when the last turn stopped responding; wait for `Retry-After`. A waiting approval round fails when you delete its session. Deleting a deleted session succeeds, so call it again to finish a delete that failed part way.
 
 ### `toolApprovals()` [#tool-approvals]
 

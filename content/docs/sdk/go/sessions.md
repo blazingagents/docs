@@ -179,7 +179,7 @@ return client.Sessions.Delete(ctx, agentID, sessionID, ba.DeleteSessionParams{De
 
 **Signature:** `func (s *SessionsService) Delete(ctx context.Context, agentID AgentID, sessionID SessionID, params DeleteSessionParams, opts ...RequestOption) error`
 
-`DeleteArtifacts` is always sent. Fails with [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn is running or an approval continuation is still open. Fails with [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) when the last turn stopped responding; repeat the call after `apiErr.RetryAfter`. Also fails with `validation_failed` or `not_found`.
+`DeleteArtifacts` is always sent. Fails with [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn or an approval continuation is running. Fails with [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) when the last turn stopped responding; repeat the call after `apiErr.RetryAfter`. Also fails with `validation_failed` or `not_found`. A waiting approval round fails when you delete its session. Deleting a deleted session succeeds, so call it again to finish a delete that failed part way.
 
 ### `SubmitInput` [#submit-input]
 

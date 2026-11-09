@@ -150,7 +150,7 @@ user.sessions()
 
 **Signature:** `delete(agent_id: impl Into<AgentId>, session_id: impl Into<SessionId>, delete_artifacts: bool) -> Call<DeleteSession>`
 
-Fails with [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn is running or an approval continuation is still open, `validation_failed`, or `not_found`. If the session's last turn stopped responding, it fails with [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive); wait for `ApiError::retry_after()`, then delete again.
+Fails with [`session_busy`](/api-reference/protocols/errors#session_busy) while a turn or an approval continuation is running, `validation_failed`, or `not_found`. If the session's last turn stopped responding, it fails with [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive); wait for `ApiError::retry_after()`, then delete again. A waiting approval round fails when you delete its session. Deleting a deleted session succeeds, so call it again to finish a delete that failed part way.
 
 ### `submit_input()` [#submit-input]
 
