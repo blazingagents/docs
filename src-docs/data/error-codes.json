@@ -100,7 +100,7 @@
       "group": "auth-and-access",
       "statuses": [409],
       "title": "Your account is scheduled for deletion.",
-      "whatHappened": "While a deletion is scheduled, you cannot start turns or task runs, and some billing actions are refused. Work that was already running finishes.",
+      "whatHappened": "While a deletion is scheduled, you cannot start turns or task runs, open a checkout, or resume your subscription. Work that was already running finishes.",
       "howToFix": [
         "Cancel the deletion from the dashboard before its scheduled time if you want to keep the account. Your subscription stays cancelled until you resume it in **Settings → Subscription**.",
         "Otherwise, stop sending new work."
@@ -602,13 +602,25 @@
       "group": "tools-and-mcp",
       "statuses": [400, 502],
       "title": "The MCP server's tools or sign-in could not be discovered.",
-      "whatHappened": "`400`: Blazing Agents reached the server, but listing its tools or finding its OAuth sign-in failed, so nothing was saved. `502`: a turn could not load the tools of an MCP connection attached to the agent, so the turn did not start.",
+      "whatHappened": "`400`: Blazing Agents reached the server, but listing its tools or finding its OAuth sign-in failed, so nothing was saved. `502`: a turn could not load the tools of an MCP connection attached to the agent, so the turn did not start. When one connection caused it, the message names that connection, and `details.connections` lists it as `connectionId` with `status` `error`.",
       "howToFix": [
         "Test the connection to see its current result. See [check a connection](/agents/tools/mcp-tools#check-a-connection).",
         "Check that the server implements tool listing, and OAuth discovery if you use OAuth.",
         "For a turn, retry once the connection tests cleanly, or detach it from the agent."
       ],
       "retryable": true
+    },
+    {
+      "code": "mcp_connection_needs_auth",
+      "group": "tools-and-mcp",
+      "statuses": [409],
+      "title": "An MCP connection attached to the agent needs to be reconnected.",
+      "whatHappened": "A turn could not start because an MCP connection attached to the agent has status `needs_auth`: its sign-in has not finished, or it no longer works. The message names the connection, and `details.connections` lists each such connection as `connectionId` with `status` `needs_auth`. The model did not run. A task run that fails this way ends as `blocked`.",
+      "howToFix": [
+        "Reconnect each connection in `details.connections`. For `oauth_authorization_code`, a tenant administrator signs in from the MCP connections page in the dashboard; otherwise call `reconnect()` with new credentials. See [sign in with an authorization code](/agents/tools/mcp-tools#sign-in-with-an-authorization-code).",
+        "To keep the agent working meanwhile, detach the connection from the agent."
+      ],
+      "retryable": false
     },
     {
       "code": "skill_invalid_archive",
