@@ -57,8 +57,9 @@ Open Settings, choose Security, and select Reset password.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required), [`usage_credit_required`](/api-reference/protocols/errors#usage_credit_required), [`merchant_subscription_required`](/api-reference/protocols/errors#merchant_subscription_required), [`merchant_balance_required`](/api-reference/protocols/errors#merchant_balance_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`merchant_customer_unmapped`](/api-reference/protocols/errors#merchant_customer_unmapped) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
-| `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`agent_deleting`](/api-reference/protocols/errors#agent_deleting) | The request conflicts with the resource's current state |
+| `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`agent_deleting`](/api-reference/protocols/errors#agent_deleting), [`mcp_connection_needs_auth`](/api-reference/protocols/errors#mcp_connection_needs_auth) | The request conflicts with the resource's current state |
 | `429` | [`rate_limited`](/api-reference/protocols/errors#rate_limited), [`model_spending_limit_exceeded`](/api-reference/protocols/errors#model_spending_limit_exceeded) | Too many requests |
+| `502` | [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | An upstream service failed |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
