@@ -188,7 +188,7 @@ except APIConnectionError:
     ...
 ```
 
-`str(error)` for an `APIStatusError` starts with the code in brackets, such as `[model_validation_unavailable] Provider model discovery is unavailable`, so logs show the code without extra work. `error.code` holds the bare code, such as `model_validation_unavailable`.
+`error.message` for an `APIStatusError` is the API's message as it is, such as `Provider model discovery is unavailable`, so you can show it to a user. `str(error)` starts with the code in brackets, such as `[model_validation_unavailable] Provider model discovery is unavailable`, so logs show the code without extra work. `error.code` holds the bare code, such as `model_validation_unavailable`.
 
 Branch on `error.code`, not the message. Cancellation, `KeyboardInterrupt`, and `SystemExit` pass through unwrapped. Decide whether to retry from the operation, the status, and `retry_after`.
 
