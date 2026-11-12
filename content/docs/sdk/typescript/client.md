@@ -140,7 +140,7 @@ The SDK passes it to `fetch` as `signal`. Aborting throws `BlazingAgentsError` w
 
 Every failed request throws `BlazingAgentsError`. Branch on `code`, never on `message`.
 
-`message` starts with the code in brackets, such as `[model_validation_unavailable] Provider model discovery is unavailable`, so logs show the code without extra work. `error.code` holds the bare code, such as `model_validation_unavailable`.
+`message` is the API's message as it is, such as `Provider model discovery is unavailable`, so you can show it to a user. `error.code` holds the code, such as `model_validation_unavailable`. Node's `console.error` prints `code` with the error's other fields, so logs still show it.
 
 ```typescript
 import { BlazingAgentsError } from "@blazingagents/sdk";

@@ -73,9 +73,9 @@ when two copies of the package are installed. It exposes `code`, `status`,
 response the SDK could not read, `responseBody` holds a size-limited copy for
 diagnosis, and `responseBodyTruncated` says whether it was cut short.
 
-`message` starts with the code in brackets, such as
-`[model_validation_unavailable] Provider model discovery is unavailable`.
-`error.code` holds the bare code, such as `model_validation_unavailable`.
+`message` is the API's message as it is, such as
+`Provider model discovery is unavailable`, so you can show it to a user.
+`error.code` holds the code, such as `model_validation_unavailable`.
 
 `error.code` has the type `BlazingAgentsErrorCode`: every code on this page,
 plus five codes the SDK raises itself, plus any other string. The known codes
