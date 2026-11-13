@@ -742,9 +742,6 @@ handleChat := func(app App, w http.ResponseWriter, r *http.Request) {
 	defer stream.Close()
 
 	stream.SetRelayHeaders(w.Header())
-	if location := stream.Meta().Header.Get("Location"); location != "" {
-		w.Header().Set("Location", location)
-	}
 	stream.WriteTo(w)
 }
 _ = handleChat
