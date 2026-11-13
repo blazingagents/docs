@@ -1,47 +1,39 @@
 ---
 title: Build a chatbot
-description: Put a React chat UI on top of your chat endpoint.
+description: Put a React chat UI on top of your chat endpoint with useBlazingAgentsChat.
 ---
 
 # Build a chatbot
 
-Put a chat UI in front of your agent with the AI SDK `useChat` hook. Blazing Agents keeps the history, so the page only remembers the session ID.
+Put a chat UI in front of your agent with the `useBlazingAgentsChat` React hook. Blazing Agents keeps the history, and the hook keeps the session ID, shows the stored conversation again after a reload, and sends a message typed during a reply into the running turn.
 
 ## Before you begin [#before-you-begin]
 
 Finish [Connect Blazing Agents to your app](/getting-started/connect-your-app). This page talks to that `/api/chat` endpoint, which works the same whether you wrote it in TypeScript, Python, Rust, or Go.
 
-You need a React app served from the same origin as the endpoint, for example through your dev server's proxy. Install the chat hook:
+You need a React app served from the same origin as the endpoint, for example through your dev server's proxy. Install the SDK with React and the AI SDK React package:
 
 ```bash
-npm install @blazingagents/sdk ai zod @ai-sdk/react
+npm install @blazingagents/sdk ai zod react @ai-sdk/react
 ```
 
 ## Add the chat component [#sdk-native-example]
 
-`BlazingAgentsChatTransport` connects `useChat` to your endpoint. It sends only the newest message, picks up the new session ID from the first response, and sends that ID back on every later message.
+`useBlazingAgentsChat` posts to `/api/chat` with your user's token and returns the messages to render and a `send()` function.
 
 ```tsx title="Chat.tsx"
-import { useChat } from "@ai-sdk/react";
-import { BlazingAgentsChatTransport } from "@blazingagents/sdk";
+import { useBlazingAgentsChat } from "@blazingagents/sdk/react";
 import { useState } from "react";
 
 export function Chat({ token }: { token: string }) {
   const [input, setInput] = useState("");
-  const [transport] = useState(
-    () =>
-      new BlazingAgentsChatTransport({
-        api: "/api/chat",
-        headers: { authorization: `Bearer ${token}` },
-        sessionId: localStorage.getItem("chat-session") ?? undefined,
-        onSessionId: (id) => localStorage.setItem("chat-session", id),
-      }),
-  );
-  const { messages, sendMessage, status } = useChat({ transport });
+  const chat = useBlazingAgentsChat({
+    headers: { authorization: `Bearer ${token}` },
+  });
 
   return (
     <main>
-      {messages.map((message) => (
+      {chat.messages.map((message) => (
         <p key={message.id}>
           <strong>{message.role}:</strong>{" "}
           {message.parts.map((part) => (part.type === "text" ? part.text : ""))}
@@ -50,38 +42,35 @@ export function Chat({ token }: { token: string }) {
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          void sendMessage({ text: input });
+          void chat.send(input);
           setInput("");
         }}
       >
         <input value={input} onChange={(event) => setInput(event.target.value)} />
-        <button type="submit" disabled={status !== "ready"}>Send</button>
+        <button type="submit">Send</button>
       </form>
     </main>
   );
 }
 ```
 
-Render `<Chat token={...} />` with your user's sign-in token. With the demo endpoint from the previous page, that is the value of `DEMO_USER_TOKEN`. Send a message and the answer streams in. Reload the page and your next message continues the same conversation, because the session ID is in `localStorage`.
+Render `<Chat token={...} />` with your user's sign-in token. With the demo endpoint from the previous page, that is the value of `DEMO_USER_TOKEN`. Send a message and the answer streams in. Send another while it streams, and the agent reads it at its next step and answers in the same reply. Reload the page, and the conversation comes back and continues, because the hook keeps the session ID in `localStorage`.
 
 ## What to add next [#chatbot-faq]
 
-The component above is the smallest chat that works. Add the pieces your product needs, by hand or by asking your coding agent.
+The component above is the smallest chat that works. Add the pieces your product needs, by hand or by asking your coding agent. The [React chat hook reference](/sdk/typescript/use-blazing-agents-chat) describes each member.
 
-- **Stop.** Call `stop()` from `useChat` to cancel a turn. A cancelled turn adds nothing to the saved history. It cannot undo a tool call that already ran, and a resend can run that tool again.
-- **Roll back failed turns.** A turn that fails or is stopped is not saved by Blazing Agents, but `useChat` still shows it. Keep the messages from the last successful `onFinish` and restore them with `setMessages()` on error or stop. Leave the typed text in the input so the user can edit it and send again. Each send is a new attempt with a new message ID. There is no separate retry call.
-- **Show errors.** Render `error` from `useChat` and call `clearError()` before the next send.
-- **Regenerate.** Call `regenerate()` to replace the last saved answer. If it fails or is stopped, the old answer stays. Enable it only after a successful answer, because a prompt that failed was never saved.
-- **New conversation.** Remove `chat-session` from `localStorage`, create a new transport without a `sessionId`, and clear the messages. The next message starts a new session.
-- **History after a reload.** The component shows only the messages from the current page visit. Have your backend read earlier messages with `client.sessions.messages()` and pass them to `useChat` as `messages`. See [reading the transcript](/platform/sessions-and-turns#read-the-history).
-- **Dropped connections.** If the network drops after the agent finished, the answer may already be saved. Reload history before assuming it was lost.
-- **Busy sessions.** While a turn runs or a tool call waits for approval, new chat messages return a [`session_busy`](/api-reference/protocols/errors#session_busy) error. If two messages race in the same session, one of them fails rather than mixing the histories.
-- **Send while the agent works.** Keep messages typed during a turn in your app's own queue, one line each with a button to steer them into the running turn. Send the steer through a backend route that calls `client.sessions.submitInput()` for the signed-in user, as the [chat endpoint pattern](/platform/sessions-and-turns#chat-endpoint-pattern) describes. When no turn can take a steer, keep the message in the queue. After the turn finishes, take the waiting messages out and send them in one turn through `client.chat({ messages })`, and render its stream like any other answer. While a turn runs, show Stop when the input is empty and Send once the user types. See [send while the agent is working](/platform/sessions-and-turns#send-while-the-agent-is-working).
-- **Images.** Send them in the same message as extra file parts. See [send an image](/agents/output/generation-and-streaming#send-an-image).
-- **Tool approvals.** They arrive in the same stream when an agent needs a person to allow a tool call. With `addToolApprovalResponse` and `sendMessage()`, the transport posts the answered round to your endpoint. In the TypeScript endpoint, `createChatRelay` resumes the turn. The Python, Rust, and Go endpoints from the previous page do not handle approvals, so add a branch that sends the decisions and relays the resumed answer. See [list and decide an approval round](/agents/tools/tool-approvals#list-and-decide-an-approval) and [render the resumed answer](/agents/tools/tool-approvals#render-the-resumed-answer).
+- **Stop.** Show a Stop button while `chat.status` is `"running"` and call `chat.stop()`. The turn is cancelled, and the hook shows the stored conversation again. Stop cannot undo a tool call that already ran.
+- **Put a failed message back.** `chat.send()` resolves `false` when an error or Stop rolled the message back. Put its text back in the input so the user can edit it and send it again. Each send is a new attempt, so a tool that ran during the failed one can run again.
+- **Show errors.** Render `chat.error`. It is a `BlazingAgentsError` with the endpoint's `status` and `code`, and the next `send()` clears it.
+- **Regenerate.** Call `chat.regenerate()` to replace the last saved answer, and enable the button only while `chat.canRegenerate` is `true`. If the new answer fails or is stopped, the old one stays.
+- **New conversation.** Call `chat.newSession()`. The next message starts a new session.
+- **Pending messages.** `chat.pendingIds` holds the IDs of sent messages that are not stored yet, so you can style them as sending.
+- **Images.** Pass files with the text: `chat.send({ text, files })`, where each file is an AI SDK file part with an image media type and a `data:` URL. See [send an image](/agents/output/generation-and-streaming#send-an-image).
+- **Tool approvals.** When an agent needs a person to allow a tool call, the reply ends with a tool part in the `approval-requested` state. Render buttons that call `chat.addToolApprovalResponse({ id: part.approval.id, approved })`, and the rest of the turn streams in. The TypeScript endpoint resumes the turn for you. The Python, Rust, and Go endpoints from the previous page do not handle approvals, so add a branch that sends the decisions and relays the resumed answer. See [render the resumed answer](/agents/tools/tool-approvals#render-the-resumed-answer).
 
 ## Next [#next]
 
-- [Examples](https://github.com/blazingagents/examples) for complete Next.js, TanStack Start, Vite + Hono, Express, and FastAPI apps that use this chat component with stop, rollback, and regenerate.
+- [Examples](https://github.com/blazingagents/examples) for complete Next.js, TanStack Start, Vite + Hono, Express, and FastAPI apps built on this hook.
 - [Sessions and turns](/platform/sessions-and-turns) for history, busy sessions, and regeneration.
 - [Choose what to build next](/getting-started/next-steps)

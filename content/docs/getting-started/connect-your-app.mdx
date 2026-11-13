@@ -5,7 +5,7 @@ description: Add a chat endpoint to your backend that signs users in, gives each
 
 # Connect Blazing Agents to your app
 
-Add one chat endpoint to your backend. It checks who the user is, sends their message to that user's own agent, and streams the answer back. Blazing Agents keeps the conversation history and lets each user open only their own conversations, so your endpoint stores just one agent ID per user.
+Add one chat endpoint to your backend. It checks who the user is, sends their message to that user's own agent, and streams the answer back. The same endpoint returns the stored conversation and passes on messages the user sends while the agent works, which is everything the [React chat hook](/sdk/typescript/use-blazing-agents-chat) needs. Blazing Agents keeps the conversation history and lets each user open only their own conversations, so your endpoint stores just one agent ID per user.
 
 ## Before you begin [#before-you-begin]
 
@@ -134,19 +134,42 @@ The endpoint creates agents, so `BLAZING_AGENTS_API_KEY` must be the full-access
         token = request.headers.get("authorization", "").removeprefix("Bearer ")
         user_id = users.get(token)
         if user_id is None:
-            return JSONResponse({"error": "unauthorized"}, status_code=401)
+            return JSONResponse(
+                {"error": {"code": "unauthorized", "message": "Sign in first."}},
+                status_code=401,
+            )
 
+        user = client.for_user(user_id)
         body = await request.json()
-        session_id = body.get("sessionId")
         try:
-            stream = await client.for_user(user_id).chat(
-                agent_id=await agent_for(user_id),
+            agent_id = await agent_for(user_id)
+            if body["op"] == "history":
+                cursor = {"cursor": body["cursor"]} if "cursor" in body else {}
+                page = await user.sessions.messages(
+                    agent_id=agent_id, session_id=body["sessionId"], limit=200, **cursor
+                )
+                data = [m.model_dump(mode="json", by_alias=True, exclude_unset=True) for m in page.data]
+                return {"data": data, "nextCursor": page.next_cursor}
+            if body["op"] == "steer":
+                receipt = await user.sessions.submit_input(
+                    agent_id=agent_id,
+                    session_id=body["sessionId"],
+                    request_id=body["requestId"],
+                    message=body["message"],
+                )
+                return JSONResponse({"state": receipt.data.state}, status_code=202)
+            session = {"session_id": body["sessionId"]} if body.get("sessionId") else {}
+            stream = await user.chat(
+                agent_id=agent_id,
                 message=body["message"],
                 trigger=body.get("trigger", "submit-message"),
-                **({"session_id": session_id} if session_id else {}),
+                **session,
             )
         except APIStatusError as error:
-            return JSONResponse({"error": error.code}, status_code=error.status_code)
+            return JSONResponse(
+                {"error": {"code": error.code, "message": error.message}},
+                status_code=error.status_code,
+            )
         headers = {"cache-control": "no-cache", "x-vercel-ai-ui-message-stream": "v1"}
         if "location" in stream.headers:
             headers["location"] = stream.headers["location"]
@@ -162,18 +185,30 @@ The endpoint creates agents, so `BLAZING_AGENTS_API_KEY` must be the full-access
     use axum::{Json, Router};
     use blazing_agents::ids::AgentId;
     use blazing_agents::messages::UserMessage;
-    use blazing_agents::Client;
+    use blazing_agents::{Client, UserClient};
     use serde::Deserialize;
+    use serde_json::json;
     use std::collections::HashMap;
     use std::sync::{Arc, Mutex};
     use tokio::net::TcpListener;
 
     #[derive(Deserialize)]
-    #[serde(rename_all = "camelCase")]
-    struct ChatRequest {
-        message: UserMessage,
-        session_id: Option<String>,
-        trigger: Option<String>,
+    #[serde(tag = "op", rename_all = "lowercase", rename_all_fields = "camelCase")]
+    enum RelayRequest {
+        Chat {
+            message: UserMessage,
+            session_id: Option<String>,
+            trigger: Option<String>,
+        },
+        History {
+            session_id: String,
+            cursor: Option<String>,
+        },
+        Steer {
+            session_id: String,
+            request_id: String,
+            message: UserMessage,
+        },
     }
 
     struct AppState {
@@ -185,17 +220,18 @@ The endpoint creates agents, so `BLAZING_AGENTS_API_KEY` must be the full-access
     }
 
     fn error_response(error: blazing_agents::Error) -> Response {
-        error
-            .status()
-            .and_then(|status| StatusCode::from_u16(status).ok())
-            .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
-            .into_response()
+        let (status, code, message) = match &error {
+            blazing_agents::Error::Api(api) => (api.status(), api.code().to_string(), api.message().to_owned()),
+            _ => (502, "network_error".to_owned(), error.to_string()),
+        };
+        let status = StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY);
+        (status, Json(json!({ "error": { "code": code, "message": message } }))).into_response()
     }
 
     async fn chat(
         State(state): State<Arc<AppState>>,
         headers: HeaderMap,
-        Json(body): Json<ChatRequest>,
+        Json(body): Json<RelayRequest>,
     ) -> Result<Response, Response> {
         let token = headers
             .get("authorization")
@@ -203,11 +239,8 @@ The endpoint creates agents, so `BLAZING_AGENTS_API_KEY` must be the full-access
             .map(|value| value.trim_start_matches("Bearer "))
             .unwrap_or_default();
         let Some(user_id) = state.users.get(token).cloned() else {
-            return Err((
-                StatusCode::UNAUTHORIZED,
-                Json(serde_json::json!({ "error": "unauthorized" })),
-            )
-                .into_response());
+            let body = json!({ "error": { "code": "unauthorized", "message": "Sign in first." } });
+            return Err((StatusCode::UNAUTHORIZED, Json(body)).into_response());
         };
         let user = state
             .client
@@ -232,26 +265,49 @@ The endpoint creates agents, so `BLAZING_AGENTS_API_KEY` must be the full-access
                 agent.id
             }
         };
+        relay(&user, agent_id.as_str(), body)
+            .await
+            .map_err(error_response)
+    }
 
-        let result = match (body.trigger.as_deref(), body.session_id) {
-            (Some("regenerate-message"), Some(session_id)) => {
-                user.regenerate(&agent_id, session_id, body.message).await
+    async fn relay(
+        user: &UserClient,
+        agent_id: &str,
+        request: RelayRequest,
+    ) -> Result<Response, blazing_agents::Error> {
+        match request {
+            RelayRequest::Chat { message, session_id, trigger } => {
+                let stream = match (session_id, trigger.as_deref()) {
+                    (Some(id), Some("regenerate-message")) => user.regenerate(agent_id, id, message).await?,
+                    (Some(id), _) => user.chat(agent_id, message).session(id).await?,
+                    (None, _) => user.chat(agent_id, message).await?,
+                };
+                let location = stream.meta().headers().get("location").cloned();
+                let mut response = Response::new(Body::from_stream(stream));
+                let headers = response.headers_mut();
+                headers.insert("content-type", HeaderValue::from_static("text/event-stream"));
+                headers.insert("cache-control", HeaderValue::from_static("no-cache"));
+                headers.insert("x-vercel-ai-ui-message-stream", HeaderValue::from_static("v1"));
+                if let Some(location) = location {
+                    headers.insert("location", location);
+                }
+                Ok(response)
             }
-            (_, Some(session_id)) => user.chat(&agent_id, body.message).session(session_id).await,
-            (_, None) => user.chat(&agent_id, body.message).await,
-        };
-        let stream = result.map_err(error_response)?;
-
-        let location = stream.meta().headers().get("location").cloned();
-        let mut response = Response::new(Body::from_stream(stream));
-        let response_headers = response.headers_mut();
-        response_headers.insert("content-type", HeaderValue::from_static("text/event-stream"));
-        response_headers.insert("cache-control", HeaderValue::from_static("no-cache"));
-        response_headers.insert("x-vercel-ai-ui-message-stream", HeaderValue::from_static("v1"));
-        if let Some(location) = location {
-            response_headers.insert("location", location);
+            RelayRequest::History { session_id, cursor } => {
+                let mut page = user.sessions().messages(agent_id, session_id).limit(200);
+                if let Some(cursor) = cursor {
+                    page = page.cursor(cursor.into());
+                }
+                Ok(Json(page.await?).into_response())
+            }
+            RelayRequest::Steer { session_id, request_id, message } => {
+                let receipt = user
+                    .sessions()
+                    .submit_input(agent_id, session_id, request_id, message)
+                    .await?;
+                Ok((StatusCode::ACCEPTED, Json(json!({ "state": receipt.input.state }))).into_response())
+            }
         }
-        Ok(response)
     }
 
     #[tokio::main]
@@ -290,10 +346,13 @@ The endpoint creates agents, so `BLAZING_AGENTS_API_KEY` must be the full-access
     	ba "github.com/blazingagents/golang-sdk"
     )
 
-    type chatRequest struct {
+    type relayRequest struct {
+    	Op        string         `json:"op"`
     	Message   ba.UserMessage `json:"message"`
     	SessionID ba.SessionID   `json:"sessionId"`
     	Trigger   string         `json:"trigger"`
+    	Cursor    string         `json:"cursor"`
+    	RequestID string         `json:"requestId"`
     }
 
     type app struct {
@@ -305,19 +364,23 @@ The endpoint creates agents, so `BLAZING_AGENTS_API_KEY` must be the full-access
     	agentIDs map[string]ba.AgentID
     }
 
-    func writeError(w http.ResponseWriter, status int, message string) {
+    func writeJSON(w http.ResponseWriter, status int, body any) {
     	w.Header().Set("Content-Type", "application/json")
     	w.WriteHeader(status)
-    	json.NewEncoder(w).Encode(map[string]string{"error": message})
+    	json.NewEncoder(w).Encode(body)
+    }
+
+    func writeError(w http.ResponseWriter, status int, code, message string) {
+    	writeJSON(w, status, map[string]any{"error": map[string]string{"code": code, "message": message}})
     }
 
     func writeAPIError(w http.ResponseWriter, err error) {
-    	status := http.StatusInternalServerError
     	var apiErr *ba.APIError
     	if errors.As(err, &apiErr) {
-    		status = apiErr.Status
+    		writeError(w, apiErr.Status, string(apiErr.Code), apiErr.Message)
+    		return
     	}
-    	writeError(w, status, http.StatusText(status))
+    	writeError(w, http.StatusBadGateway, "network_error", err.Error())
     }
 
     func (a *app) agentFor(ctx context.Context, user *ba.UserClient, userID string) (ba.AgentID, error) {
@@ -345,7 +408,7 @@ The endpoint creates agents, so `BLAZING_AGENTS_API_KEY` must be the full-access
     	token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
     	userID, ok := a.users[token]
     	if !ok {
-    		writeError(w, http.StatusUnauthorized, "unauthorized")
+    		writeError(w, http.StatusUnauthorized, "unauthorized", "Sign in first.")
     		return
     	}
     	user, err := a.client.ForUser(userID)
@@ -354,9 +417,9 @@ The endpoint creates agents, so `BLAZING_AGENTS_API_KEY` must be the full-access
     		return
     	}
 
-    	var body chatRequest
+    	var body relayRequest
     	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-    		writeError(w, http.StatusBadRequest, "invalid request")
+    		writeError(w, http.StatusBadRequest, "invalid_request", "Invalid request body.")
     		return
     	}
     	agentID, err := a.agentFor(r.Context(), user, userID)
@@ -365,26 +428,53 @@ The endpoint creates agents, so `BLAZING_AGENTS_API_KEY` must be the full-access
     		return
     	}
 
-    	var stream *ba.ChatStream
-    	if body.Trigger == "regenerate-message" && body.SessionID != "" {
-    		stream, err = user.Chat.Regenerate(r.Context(), agentID, body.SessionID, body.Message,
-    			ba.RegenerateParams{})
-    	} else {
-    		stream, err = user.Chat.Send(r.Context(), agentID, ba.Messages(body.Message),
-    			ba.ChatParams{SessionID: body.SessionID})
-    	}
-    	if err != nil {
-    		writeAPIError(w, err)
-    		return
-    	}
-    	defer stream.Close()
+    	switch body.Op {
+    	case "history":
+    		limit := 200
+    		params := ba.ListSessionMessagesParams{Limit: &limit}
+    		if body.Cursor != "" {
+    			params.Cursor = &body.Cursor
+    		}
+    		page, err := user.Sessions.ListMessages(r.Context(), agentID, body.SessionID, params)
+    		if err != nil {
+    			writeAPIError(w, err)
+    			return
+    		}
+    		var next *string
+    		if page.NextCursor != "" {
+    			next = &page.NextCursor
+    		}
+    		writeJSON(w, http.StatusOK, map[string]any{"data": page.Data, "nextCursor": next})
+    	case "steer":
+    		receipt, err := user.Sessions.SubmitInput(r.Context(), agentID, body.SessionID,
+    			ba.SubmitSessionInputParams{RequestID: body.RequestID, Message: body.Message})
+    		if err != nil {
+    			writeAPIError(w, err)
+    			return
+    		}
+    		writeJSON(w, http.StatusAccepted, map[string]any{"state": receipt.Input.State})
+    	default:
+    		var stream *ba.ChatStream
+    		if body.Trigger == "regenerate-message" && body.SessionID != "" {
+    			stream, err = user.Chat.Regenerate(r.Context(), agentID, body.SessionID, body.Message,
+    				ba.RegenerateParams{})
+    		} else {
+    			stream, err = user.Chat.Send(r.Context(), agentID, ba.Messages(body.Message),
+    				ba.ChatParams{SessionID: body.SessionID})
+    		}
+    		if err != nil {
+    			writeAPIError(w, err)
+    			return
+    		}
+    		defer stream.Close()
 
-    	stream.SetRelayHeaders(w.Header())
-    	if location := stream.Meta().Header.Get("Location"); location != "" {
-    		w.Header().Set("Location", location)
-    	}
-    	if _, err := stream.WriteTo(w); err != nil {
-    		log.Printf("relay ended: %v", err)
+    		stream.SetRelayHeaders(w.Header())
+    		if location := stream.Meta().Header.Get("Location"); location != "" {
+    			w.Header().Set("Location", location)
+    		}
+    		if _, err := stream.WriteTo(w); err != nil {
+    			log.Printf("relay ended: %v", err)
+    		}
     	}
     }
 
@@ -419,7 +509,7 @@ The endpoint creates agents, so `BLAZING_AGENTS_API_KEY` must be the full-access
     curl -i -N http://localhost:8787/api/chat \
       -H "authorization: Bearer $DEMO_USER_TOKEN" \
       -H "content-type: application/json" \
-      -d '{"message":{"id":"m1","role":"user","parts":[{"type":"text","text":"Remember the word cobalt."}]}}'
+      -d '{"op":"chat","message":{"id":"m1","role":"user","parts":[{"type":"text","text":"Remember the word cobalt."}]}}'
     ```
 
     The answer streams in as `data: {...}` lines. Among the response headers is a `location` header that ends in the new `ss_...` session ID. Send it back with a follow-up question:
@@ -428,16 +518,25 @@ The endpoint creates agents, so `BLAZING_AGENTS_API_KEY` must be the full-access
     curl -N http://localhost:8787/api/chat \
       -H "authorization: Bearer $DEMO_USER_TOKEN" \
       -H "content-type: application/json" \
-      -d '{"sessionId":"ss_...","message":{"id":"m2","role":"user","parts":[{"type":"text","text":"Which word did I ask you to remember?"}]}}'
+      -d '{"op":"chat","sessionId":"ss_...","message":{"id":"m2","role":"user","parts":[{"type":"text","text":"Which word did I ask you to remember?"}]}}'
     ```
 
-    The agent answers "cobalt", because Blazing Agents kept the first exchange. Now send the same session ID as the other user:
+    The agent answers "cobalt", because Blazing Agents kept the first exchange. Read the stored conversation the way the browser does after a reload:
+
+    ```bash
+    curl http://localhost:8787/api/chat \
+      -H "authorization: Bearer $DEMO_USER_TOKEN" \
+      -H "content-type: application/json" \
+      -d '{"op":"history","sessionId":"ss_..."}'
+    ```
+
+    You get `{"data":[...],"nextCursor":null}`, with both questions and both answers in `data`. Now send the same session ID as the other user:
 
     ```bash
     curl -i http://localhost:8787/api/chat \
       -H "authorization: Bearer $OTHER_USER_TOKEN" \
       -H "content-type: application/json" \
-      -d '{"sessionId":"ss_...","message":{"id":"m3","role":"user","parts":[{"type":"text","text":"Which word did I ask you to remember?"}]}}'
+      -d '{"op":"chat","sessionId":"ss_...","message":{"id":"m3","role":"user","parts":[{"type":"text","text":"Which word did I ask you to remember?"}]}}'
     ```
 
     You get `404`, because the session belongs to the first user. Leave out the `authorization` header and you get `401`.
@@ -453,7 +552,7 @@ A request without a `sessionId` starts a new session that belongs to the user, a
 
 Each user gets their own agent because every turn of an agent runs in that agent's one workspace. If all your users chatted with one shared agent, their turns would share one workspace, and one user's files would be readable from another user's turns. See [tenancy and attribution](/platform/tenancy-and-attribution) for how agents, workspaces, and sessions belong to your users.
 
-In TypeScript, `createChatRelay` does the relay for you. It scopes each request to the `userId` that `resolveContext` returns, and it passes the request's abort signal along, so a user who closes the tab stops the turn. The Python, Rust, and Go endpoints do the same steps by hand with one chat call: they pass the session ID only when the request has one. The Rust and Go endpoints also route a `regenerate-message` trigger to `regenerate()` and `Chat.Regenerate()`.
+The request body's `op` says what the browser needs. `chat` runs a turn, `history` returns one page of the stored conversation, and `steer` sends a message into the turn that is running. In TypeScript, `createChatRelay` answers all three for you. It scopes each request to the `userId` that `resolveContext` returns, and it passes the request's abort signal along, so a user who presses Stop or closes the tab stops the turn. The Python, Rust, and Go endpoints answer the same three operations by hand, as the [browser chat relay](/api-reference/protocols/browser-relay) describes. They pass the session ID only when the request has one, route a `regenerate-message` trigger to a regeneration, and return API errors as `{"error":{"code","message"}}` with the API's status, so the browser can tell a deleted session from a turn that cannot take a steer.
 
 The agents this endpoint creates use the default approval policy, which runs every tool without asking, so no turn here waits for a person. If you turn on [human approval](/agents/tools/tool-approvals#human-approval-flow), `createChatRelay` already forwards the user's answers. In Python, Rust, and Go, add a branch that sends them through the same scoped client with `continue_chat()` in Python and Rust, or `Chat.Continue()` in Go.
 
@@ -463,6 +562,7 @@ The agents this endpoint creates use the default approval policy, which runs eve
 - Create each user's agent once, for example when the user signs up. [Creating agents is rate-limited](/api-reference/protocols/service-limits#tenant-resource-creation-rate) per tenant, so do not create one on every request.
 - Use a full-access key for a backend that creates agents. A backend that only runs agents that already exist can use a read-only key. See [API key access levels](/platform/security-and-credentials#api-key-access-levels).
 - Keep the session ID even when the first turn fails or the user stops it. The conversation exists; it is empty until a turn succeeds.
+- If the browser calls the endpoint from another origin, allow the `authorization` and `content-type` request headers in your CORS settings and expose the `Location` response header, so the browser can read the new session ID.
 - Streams must reach the browser unbuffered. The response already sets `Cache-Control: no-cache`; make sure every proxy in front of your backend passes the stream through as it arrives.
 
 ## Next [#next]
