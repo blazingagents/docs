@@ -189,6 +189,8 @@ const exampleEnv = {
   BLAZING_AGENTS_BASE_URL: baseUrl,
   BLAZING_AGENTS_API_KEY: apiKey,
   OPENROUTER_API_KEY: openRouterKey ?? PLACEHOLDER_OPENROUTER_KEY,
+  // Piped stdout is block-buffered in Python; a terminal shows lines in order.
+  PYTHONUNBUFFERED: "1",
 };
 const langs = {
   typescript: { dir: tsDir, ext: "ts", target: (file) => file, exec: (file) => [node, [file]] },
@@ -356,7 +358,7 @@ try {
         throw new Blocked("needs OPENROUTER_API_KEY (depends on step 2)");
       }
       const { output } = await runExample(lang, "quickstart", upTo(3));
-      expectLine(output, /^Provider: prv_[A-Za-z0-9]{16}\nAgent: ag_[A-Za-z0-9]{16}\nSession: ss_[A-Za-z0-9]{16}\ndata: \{"type":"start"/m, "Provider, Agent, Session, then data: {\"type\":\"start\"...");
+      expectLine(output, /^Provider: prv_[A-Za-z0-9]{16}\nAgent: ag_[A-Za-z0-9]{16}\nSession: ss_[A-Za-z0-9]{16}\n(?::[^\n]*\n|\n)*data: \{[^\n]*"type":"start"/m, "Provider, Agent, Session, then the stream's start event");
       expectLine(output, /^data: \{"type":"text-delta"/m, 'a data: {"type":"text-delta"...} line');
       expectLine(output, /^data: \[DONE\]$/m, "data: [DONE]");
     });
@@ -380,7 +382,14 @@ try {
         throw new Blocked('no "Quickstart agent" in this tenant; the quickstart step creates it');
       }
       const [serverCode] = pick(connect, "rust", ({ meta }) => meta.includes('title="src/bin/server.rs"'));
-      await serveRustServer(pointAtBaseUrl("rust", serverCode), agent.id);
+      const before = new Set((await listAllAgents()).map(({ id }) => id));
+      try {
+        await serveRustServer(pointAtBaseUrl("rust", serverCode), agent.providerId);
+      } finally {
+        for (const { id } of await listAllAgents()) {
+          if (!before.has(id)) cleanups.push({ label: `agent ${id}`, path: `/v1/agents/${id}?includeArtifacts=true` });
+        }
+      }
     });
   }
 
@@ -413,7 +422,7 @@ try {
   await rm(workdir, { recursive: true, force: true });
 }
 
-async function serveRustServer(code, agentId) {
+async function serveRustServer(code, providerId) {
   /* server.rs binds the hardcoded 0.0.0.0:8787, which is also the README's local
    * API base URL, so inject a free port like the route servers do. */
   const port = await freePort();
@@ -431,8 +440,9 @@ async function serveRustServer(code, agentId) {
     env: {
       ...baseEnv,
       ...exampleEnv,
-      BLAZING_AGENTS_AGENT_ID: agentId,
+      BLAZING_AGENTS_PROVIDER_ID: providerId,
       DEMO_USER_TOKEN: "demo-token",
+      OTHER_USER_TOKEN: "other-token",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -485,7 +495,7 @@ async function assertStream(response, log, expectLocation) {
   if (response.status !== 200 || !type.startsWith("text/event-stream")) {
     throw new Error(`expected 200 text/event-stream, got ${response.status} ${type}\n${body}\n${log}`);
   }
-  expectLine(body, /^data: \{"type":"start"/m, 'data: {"type":"start"...}');
+  expectLine(body, /^data: \{[^\n]*"type":"start"/m, 'data: {..."type":"start"...}');
   expectLine(body, /^data: \[DONE\]$/m, "data: [DONE]");
   if (!expectLocation) return undefined;
   const location = response.headers.get("location") ?? "";
