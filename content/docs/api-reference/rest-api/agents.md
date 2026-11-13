@@ -192,6 +192,7 @@ Response schema: `AgentList`.
       "model": "openai/gpt-6-luna",
       "thinkingLevel": null,
       "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+      "autoApprovalModel": null,
       "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
       "autoCompaction": true,
       "compactionReserveTokens": 16384,
@@ -272,6 +273,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `model` | string \| null | body |  | The provider's own model ID, such as `openai/gpt-6-luna`. Send it together with `providerId`. Defaults to `null`. |
 | `thinkingLevel` | string \| null | body |  | How much reasoning to request from the model, such as `high`. Needs a provider and model, and must be a level the model supports. Defaults to `null`. |
 | `providerId` | string \| null | body |  | ID of the provider whose key runs the model. Send it together with `model`. Defaults to `null`. |
+| `autoApprovalModel` | string \| null | body |  | Model ID, on the agent's provider, that reviews tool calls whose approval is `auto`. `null` uses the agent's model. Needs a provider and model. Changing `providerId` without sending this sets it to `null`. Defaults to `null`. |
 | `workspaceId` | string | body |  | ID of the workspace the agent reads and writes files in. Leave it out to create a new workspace for the agent, or send an existing one to share it. |
 | `autoCompaction` | boolean | body |  | Summarize older context automatically when a conversation nears the model's context limit. Defaults to `true`. |
 | `compactionReserveTokens` | integer | body |  | Tokens to keep free for the model's reply when deciding whether to compact. Minimum 0. Defaults to `16384`. |
@@ -304,6 +306,7 @@ Response schema: `Agent`.
   "model": "openai/gpt-6-luna",
   "thinkingLevel": null,
   "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "autoApprovalModel": null,
   "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
   "autoCompaction": true,
   "compactionReserveTokens": 16384,
@@ -497,6 +500,7 @@ Response schema: `Agent`.
   "model": "openai/gpt-6-luna",
   "thinkingLevel": null,
   "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "autoApprovalModel": null,
   "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
   "autoCompaction": true,
   "compactionReserveTokens": 16384,
@@ -574,6 +578,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `model` | string \| null | body |  | The provider's own model ID, such as `openai/gpt-6-luna`. Send it together with `providerId`. |
 | `thinkingLevel` | string \| null | body |  | How much reasoning to request from the model, such as `high`. Needs a provider and model, and must be a level the model supports. |
 | `providerId` | string \| null | body |  | ID of the provider whose key runs the model. Send it together with `model`. |
+| `autoApprovalModel` | string \| null | body |  | Model ID, on the agent's provider, that reviews tool calls whose approval is `auto`. `null` uses the agent's model. Needs a provider and model. Changing `providerId` without sending this sets it to `null`. |
 | `workspaceId` | string | body |  | ID of the workspace the agent reads and writes files in. |
 | `autoCompaction` | boolean | body |  | Summarize older context automatically when a conversation nears the model's context limit. |
 | `compactionReserveTokens` | integer | body |  | Tokens to keep free for the model's reply when deciding whether to compact. Minimum 0. |
@@ -605,6 +610,7 @@ Response schema: `Agent`.
   "model": "openai/gpt-6-luna",
   "thinkingLevel": null,
   "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "autoApprovalModel": null,
   "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
   "autoCompaction": true,
   "compactionReserveTokens": 16384,
@@ -726,6 +732,7 @@ Response schema: `Agent`.
   "model": "openai/gpt-6-luna",
   "thinkingLevel": null,
   "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "autoApprovalModel": null,
   "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
   "autoCompaction": true,
   "compactionReserveTokens": 16384,
@@ -805,6 +812,7 @@ Response schema: `Agent`.
   "model": "openai/gpt-6-luna",
   "thinkingLevel": null,
   "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "autoApprovalModel": null,
   "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
   "autoCompaction": true,
   "compactionReserveTokens": 16384,
@@ -885,6 +893,7 @@ Response schema: `Agent`.
   "model": "openai/gpt-6-luna",
   "thinkingLevel": null,
   "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "autoApprovalModel": null,
   "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
   "autoCompaction": true,
   "compactionReserveTokens": 16384,
@@ -966,6 +975,7 @@ Response schema: `Agent`.
   "model": "openai/gpt-6-luna",
   "thinkingLevel": null,
   "providerId": "prv_7Tn4Kd9QwE2sLx5R",
+  "autoApprovalModel": null,
   "workspaceId": "ws_3Vb8Ny6HpU1cGf4M",
   "autoCompaction": true,
   "compactionReserveTokens": 16384,
