@@ -5,6 +5,7 @@
     "client",
     "chat-transport",
     "use-blazing-agents-chat",
+    "blazing-agents-chat",
     "agents",
     "workspaces",
     "skills",

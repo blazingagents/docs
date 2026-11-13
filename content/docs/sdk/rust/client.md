@@ -406,87 +406,30 @@ let summary: Summary = stream.final_object().await?;
 
 ## Serve a browser chat [#browser-relay]
 
-[`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) in a React app sends every request to one endpoint on your backend, and the JSON body's `op` names what it needs: `chat` streams a turn, `history` reads one page of the stored conversation, and `steer` sends a message into the running turn. This handler answers all three for one signed-in user. The [browser chat relay](/api-reference/protocols/browser-relay) lists every field and error.
+The browser chat, [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) in React or [`BlazingAgentsChat`](/sdk/typescript/blazing-agents-chat) in another framework, sends every request to one endpoint on your backend. `ChatRelay` from `blazing_agents::relay` answers it as the signed-in user: it streams turns, returns the stored conversation, and steers the running turn. Your code adds only the sign-in. With axum:
 
 ```rust
-use axum::body::Body;
-use axum::http::{HeaderValue, StatusCode};
-use axum::response::{IntoResponse, Response};
-use axum::Json;
-use blazing_agents::messages::UserMessage;
-use blazing_agents::UserClient;
-use serde::Deserialize;
-use serde_json::json;
+use axum::Router;
+use axum::extract::{Request, State};
+use axum::response::Response;
+use axum::routing::post;
+use blazing_agents::relay::{ChatRelay, RelayBody, RelayContext};
 
-#[derive(Deserialize)]
-#[serde(tag = "op", rename_all = "lowercase", rename_all_fields = "camelCase")]
-enum RelayRequest {
-    Chat {
-        message: UserMessage,
-        session_id: Option<String>,
-        trigger: Option<String>,
-    },
-    History {
-        session_id: String,
-        cursor: Option<String>,
-    },
-    Steer {
-        session_id: String,
-        request_id: String,
-        message: UserMessage,
-    },
+async fn chat(State(relay): State<ChatRelay>, request: Request) -> Response<RelayBody> {
+    relay.handle(request).await
 }
 
-async fn relay(
-    user: &UserClient,
-    agent_id: &str,
-    request: RelayRequest,
-) -> Result<Response, blazing_agents::Error> {
-    match request {
-        RelayRequest::Chat { message, session_id, trigger } => {
-            let stream = match (session_id, trigger.as_deref()) {
-                (Some(id), Some("regenerate-message")) => user.regenerate(agent_id, id, message).await?,
-                (Some(id), _) => user.chat(agent_id, message).session(id).await?,
-                (None, _) => user.chat(agent_id, message).await?,
-            };
-            let location = stream.meta().headers().get("location").cloned();
-            let mut response = Response::new(Body::from_stream(stream));
-            let headers = response.headers_mut();
-            headers.insert("content-type", HeaderValue::from_static("text/event-stream"));
-            headers.insert("x-vercel-ai-ui-message-stream", HeaderValue::from_static("v1"));
-            if let Some(location) = location {
-                headers.insert("location", location);
-            }
-            Ok(response)
-        }
-        RelayRequest::History { session_id, cursor } => {
-            let mut page = user.sessions().messages(agent_id, session_id).limit(200);
-            if let Some(cursor) = cursor {
-                page = page.cursor(cursor.into());
-            }
-            Ok(Json(page.await?).into_response())
-        }
-        RelayRequest::Steer { session_id, request_id, message } => {
-            let receipt = user
-                .sessions()
-                .submit_input(agent_id, session_id, request_id, message)
-                .await?;
-            Ok((StatusCode::ACCEPTED, Json(json!({ "state": receipt.input.state }))).into_response())
-        }
-    }
-}
-
-fn error_response(error: blazing_agents::Error) -> Response {
-    let (status, code, message) = match &error {
-        blazing_agents::Error::Api(api) => (api.status(), api.code().to_string(), api.message().to_owned()),
-        _ => (502, "network_error".to_owned(), error.to_string()),
-    };
-    let status = StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY);
-    (status, Json(json!({ "error": { "code": code, "message": message } }))).into_response()
-}
+let relay = ChatRelay::new(client, |request| async move {
+    // Replace this with your sign-in check and the user's own agent.
+    let signed_in = request.headers().contains_key("authorization");
+    Ok(signed_in.then(|| RelayContext::new("ag_0123456789abcdef", "user_0123456789abcdef")))
+});
+let app: Router = Router::new().route("/api/chat", post(chat)).with_state(relay);
 ```
 
-Read the request body as `Json<RelayRequest>`, call `relay()` on the [scoped client](#for-user) with that user's agent, and answer an error with `error_response()`. The browser reads the API's status and code from it: a `404` forgets the stored session, and `steer_not_available` sends the message again once the turn ends. [Connect Blazing Agents to your app](/getting-started/connect-your-app) runs this handler in a complete server.
+The closure receives the request with its whole body. Return `Ok(None)` when nobody is signed in, and the relay answers `401`. Otherwise return a `RelayContext` with the user's agent and user ID; its `functions()` and `metadata()` methods add backend functions and your own data for the turn. Return an error when you cannot tell, such as a failed session lookup, and the relay answers `500`. The relay sends every API request through [`for_user()`](#for-user), so a session ID from another user answers `404`, and it never reads the user or the agent from the request body.
+
+`handle()` never fails. It answers every failure as `{"error": {"code", "message"}}` with the API's status and code, so the browser can tell a deleted session from a turn that cannot take a steer. `RelayBody` is both an `http_body::Body` and a byte stream, so axum and hyper serve it as is. A client that disconnects drops the response, which cancels the turn. The [browser chat relay](/api-reference/protocols/browser-relay) lists every request and error, and [Connect Blazing Agents to your app](/getting-started/connect-your-app) runs this relay in a complete server.
 
 ## Stream ownership and failures [#stream-ownership-and-failures]
 

@@ -1,11 +1,11 @@
 ---
 title: Browser chat relay
-description: Serve useBlazingAgentsChat and BlazingAgentsChatTransport from a Python, Rust, Go, or any other backend.
+description: The requests a browser chat sends to your backend, which every SDK's chat relay answers, for a relay in any other language.
 ---
 
 # Browser chat relay
 
-The browser holds no API key, so [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) and `BlazingAgentsChatTransport` reach Blazing Agents through one endpoint on your backend. In TypeScript, [`createChatRelay()`](/sdk/typescript/chat-transport#create-chat-relay) is that endpoint. A backend in Python, Rust, Go, or any other language serves the same browser code when it follows this page. Each SDK page shows the code: [Python](/sdk/python/client#browser-relay), [Rust](/sdk/rust/client#browser-relay), and [Go](/sdk/go/client#browser-relay).
+The browser holds no API key, so [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat), [`BlazingAgentsChat`](/sdk/typescript/blazing-agents-chat), and `BlazingAgentsChatTransport` reach Blazing Agents through one endpoint on your backend. Every SDK implements that endpoint, so with an SDK you write only the sign-in: [`createChatRelay()`](/sdk/typescript/chat-transport#create-chat-relay) in TypeScript, [`AsyncChatRelay` and `ChatRelay`](/sdk/python/client#browser-relay) in Python, [`ChatRelay`](/sdk/rust/client#browser-relay) in Rust, and [`ba.NewChatRelay`](/sdk/go/client#browser-relay) in Go. A backend in any other language serves the same browser code when it follows this page.
 
 ## Requests [#requests]
 
@@ -76,5 +76,6 @@ Pass the API's status and code through unchanged. The browser decides what to do
 ## Next [#next]
 
 - [React chat hook](/sdk/typescript/use-blazing-agents-chat)
+- [Chat in any framework](/sdk/typescript/blazing-agents-chat)
 - [Connect Blazing Agents to your app](/getting-started/connect-your-app)
 - [Sessions and turns](/platform/sessions-and-turns#send-while-the-agent-is-working)

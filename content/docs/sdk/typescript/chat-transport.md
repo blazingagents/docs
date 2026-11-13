@@ -1,11 +1,11 @@
 ---
 title: Chat transport and relays
-description: Serve a browser chat from your backend with createChatRelay, and connect it to React with useBlazingAgentsChat or to another framework with BlazingAgentsChatTransport.
+description: Serve a browser chat from your backend with createChatRelay, and connect it to React with useBlazingAgentsChat or to any other framework with BlazingAgentsChat.
 ---
 
 # Chat transport and relays
 
-A browser chat needs two pieces while your API key stays on your server. On the server, `createChatRelay()` answers the browser's requests as the signed-in end user: it streams turns, reads the stored history, and steers the running turn. In a React component, [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) talks to that relay. For a complete app, follow [Build a chatbot](/getting-started/chatbot).
+A browser chat needs two pieces while your API key stays on your server. On the server, `createChatRelay()` answers the browser's requests as the signed-in end user: it streams turns, reads the stored history, and steers the running turn. In the browser, [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) in React, or [`BlazingAgentsChat`](/sdk/typescript/blazing-agents-chat) in any other framework, talks to that relay. For a complete app, follow [Build a chatbot](/getting-started/chatbot).
 
 ```typescript title="server.ts"
 import { BlazingAgents, createChatRelay } from "@blazingagents/sdk";
@@ -54,7 +54,8 @@ export function Chat() {
 | [`createChatRelay()`](#create-chat-relay) | Your server | Handler for every chat request from the browser |
 | [`createCompletionRelay()`](#create-completion-relay) | Your server | Handler for `useCompletion` requests |
 | [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) | Browser | React hook that talks to your relay, from `@blazingagents/sdk/react` |
-| [`BlazingAgentsChatTransport`](#chat-transport) | Browser | AI SDK chat transport that talks to your relay, for a framework other than React |
+| [`BlazingAgentsChat`](/sdk/typescript/blazing-agents-chat) | Browser | The same chat for any other framework, or none |
+| [`BlazingAgentsChatTransport`](#chat-transport) | Browser | AI SDK chat transport that talks to your relay, for an AI SDK `Chat` you run yourself |
 | [`BlazingAgentsDirectChatTransport`](#direct-chat-transport) | Your server | AI SDK chat transport that calls the SDK in the same process |
 | `RelayContext` | Your server | The type `resolveContext()` returns |
 
@@ -79,7 +80,7 @@ Returns a handler that takes a standard `Request` and returns a `Response`, so y
 
 The relay calls `client.forUser(context.userId)` for every request, so each turn is a [scoped turn](/sdk/typescript/client#for-user). An agent or workspace that belongs to someone else answers `404` with `not_found` or `workspace_not_found`. A `sessionId` in the request body that is not that end user's session also answers `404`, so you do not need to record which user owns which session. A new session belongs to that end user.
 
-The request body's `op` names the operation. `useBlazingAgentsChat` and `BlazingAgentsChatTransport` send all three:
+The request body's `op` names the operation. `BlazingAgentsChat`, `useBlazingAgentsChat`, and `BlazingAgentsChatTransport` send all three:
 
 | `op` | Body | What the relay does |
 | --- | --- | --- |
@@ -87,7 +88,7 @@ The request body's `op` names the operation. `useBlazingAgentsChat` and `Blazing
 | `history` | `{ sessionId, cursor? }` | Returns one page of up to 200 stored messages from [`sessions.messages()`](/sdk/typescript/sessions#messages) as `{ data, nextCursor }` |
 | `steer` | `{ sessionId, requestId, message }` | Sends the user message into the running turn with [`sessions.submitInput()`](/sdk/typescript/sessions#submit-input) and answers `202` with `{ state }` |
 
-For `chat`, the relay passes the request's abort signal to the SDK call, so a Stop in the browser cancels the turn. It returns the SDK's streaming response, which keeps the `Location`, `x-ba-turn-id`, and `x-request-id` headers. If your own code posts to the relay, include `op`. A body without a known `op` answers `400`. The [browser chat relay](/api-reference/protocols/browser-relay) page describes every field, for a relay you write in another language.
+For `chat`, the relay passes the request's abort signal to the SDK call, so a Stop in the browser cancels the turn. It returns the SDK's streaming response, which keeps the `Location`, `x-ba-turn-id`, and `x-request-id` headers. If your own code posts to the relay, include `op`. A body without a known `op` answers `400`. The [Python](/sdk/python/client#browser-relay), [Rust](/sdk/rust/client#browser-relay), and [Go](/sdk/go/client#browser-relay) SDKs ship the same relay. The [browser chat relay](/api-reference/protocols/browser-relay) page describes every field, for a relay you write in another language.
 
 ### `createCompletionRelay()` [#create-completion-relay]
 
@@ -132,7 +133,7 @@ A `500` for an invalid `userId` sends nothing to the API. Fix the `resolveContex
 
 ### `BlazingAgentsChatTransport` [#chat-transport]
 
-An AI SDK chat transport that posts to your relay. `useBlazingAgentsChat` is built on it. Use it directly with an AI SDK `Chat` in a framework other than React.
+An AI SDK chat transport that posts to your relay. `BlazingAgentsChat` and `useBlazingAgentsChat` are built on it. Use it directly only with an AI SDK `Chat` that you run yourself.
 
 **Signature:** `new BlazingAgentsChatTransport(options?: BlazingAgentsChatTransportOptions)`
 
@@ -152,7 +153,7 @@ Each chat request carries `op: "chat"`, the newest user message, or the last ass
 | Member | Returns | Description |
 | --- | --- | --- |
 | `sessionId` | `string \| undefined` | The session the transport talks to: the one you passed, or the one the first chat started |
-| `loadHistory({ abortSignal? })` | `Promise<UIMessage[]>` | Reads the whole stored conversation through the relay's `history` operation, oldest first, and checks each message. Returns `[]` without a session. Throws the relay's error, such as `404 not_found` when the session is gone or belongs to another user |
+| `loadHistory({ abortSignal?, known? })` | `Promise<UIMessage[]>` | Reads the whole stored conversation through the relay's `history` operation, oldest first, and checks each message. Pass the stored messages you already hold, oldest first, as `known`, and the read stops at the first page whose oldest message is among them. Returns `[]` without a session. Throws the relay's error, such as `404 not_found` when the session is gone or belongs to another user |
 | `steer({ message, requestId, abortSignal? })` | `Promise<"accepted" \| "committed" \| "resend">` | Sends a user message into the running turn through the relay's `steer` operation. `accepted`: the turn holds it and may still read it. `committed`: it is stored with that turn. `resend`: it will never reach this turn, so send it as an ordinary chat message. Retrying with the same `requestId` and message returns the same answer |
 
 The transport cannot reconnect to a stream, so `reconnectToStream()` returns `null`. After a reload, pass the saved `sessionId` and call `loadHistory()` to show the stored conversation.
@@ -194,5 +195,5 @@ const transport = new BlazingAgentsDirectChatTransport({
 
 - [Build a chatbot](/getting-started/chatbot)
 - [React chat hook](/sdk/typescript/use-blazing-agents-chat)
+- [Chat in any framework](/sdk/typescript/blazing-agents-chat)
 - [Browser chat relay](/api-reference/protocols/browser-relay)
-- [Client reference](/sdk/typescript/client#for-user)

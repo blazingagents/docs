@@ -5,16 +5,16 @@ description: Put a React chat UI on top of your chat endpoint with useBlazingAge
 
 # Build a chatbot
 
-Put a chat UI in front of your agent with the `useBlazingAgentsChat` React hook. Blazing Agents keeps the history, and the hook keeps the session ID, shows the stored conversation again after a reload, and sends a message typed during a reply into the running turn.
+Put a chat UI in front of your agent with the `useBlazingAgentsChat` React hook. Blazing Agents keeps the history, and the hook keeps the session ID, shows the stored conversation again after a reload, and sends a message typed during a reply into the running turn. In Vue, Angular, or plain JavaScript, use [`BlazingAgentsChat`](/sdk/typescript/blazing-agents-chat) instead, which does the same without React.
 
 ## Before you begin [#before-you-begin]
 
 Finish [Connect Blazing Agents to your app](/getting-started/connect-your-app). This page talks to that `/api/chat` endpoint, which works the same whether you wrote it in TypeScript, Python, Rust, or Go.
 
-You need a React app served from the same origin as the endpoint, for example through your dev server's proxy. Install the SDK with React and the AI SDK React package:
+You need a React app served from the same origin as the endpoint, for example through your dev server's proxy. Install the SDK with React:
 
 ```bash
-npm install @blazingagents/sdk ai zod react @ai-sdk/react
+npm install @blazingagents/sdk ai zod react
 ```
 
 ## Add the chat component [#sdk-native-example]
@@ -67,7 +67,7 @@ The component above is the smallest chat that works. Add the pieces your product
 - **New conversation.** Call `chat.newSession()`. The next message starts a new session.
 - **Pending messages.** `chat.pendingIds` holds the IDs of sent messages that are not stored yet, so you can style them as sending.
 - **Images.** Pass files with the text: `chat.send({ text, files })`, where each file is an AI SDK file part with an image media type and a `data:` URL. See [send an image](/agents/output/generation-and-streaming#send-an-image).
-- **Tool approvals.** When an agent needs a person to allow a tool call, the reply ends with a tool part in the `approval-requested` state. Render buttons that call `chat.addToolApprovalResponse({ id: part.approval.id, approved })`, and the rest of the turn streams in. The TypeScript endpoint resumes the turn for you. The Python, Rust, and Go endpoints from the previous page do not handle approvals, so add a branch that sends the decisions and relays the resumed answer. See [render the resumed answer](/agents/tools/tool-approvals#render-the-resumed-answer).
+- **Tool approvals.** When an agent needs a person to allow a tool call, the reply ends with a tool part in the `approval-requested` state. Render buttons that call `chat.addToolApprovalResponse({ id: part.approval.id, approved })`, and the rest of the turn streams in. The endpoint from the previous page resumes the turn for you in every language. See [render the resumed answer](/agents/tools/tool-approvals#render-the-resumed-answer).
 
 ## Next [#next]
 
