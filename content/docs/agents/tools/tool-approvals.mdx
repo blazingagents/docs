@@ -260,9 +260,9 @@ Each decision carries the `approvalId`, an `approved` flag, and an optional `rea
 
 ## Render the resumed answer [#render-the-resumed-answer]
 
-Approvals use the AI SDK's [tool approval messages](https://ai-sdk.dev/docs/agents/tool-approvals) and UI message streams. Blazing Agents saves the decisions and resumes the agent, so send them through your backend route above rather than relying on `addToolApprovalResponse` alone.
+Approvals use the AI SDK's [tool approval messages](https://ai-sdk.dev/docs/agents/tool-approvals) and UI message streams. In React, [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) shows a pending call as a tool part in the `approval-requested` state. Answer it with the hook's `addToolApprovalResponse()`. Once every call of the round has an answer, the hook posts the round to your relay, where `createChatRelay` turns it into the `continueChat()` call, and the resumed answer streams into the same chat. The [React chat hook](/sdk/typescript/use-blazing-agents-chat#tool-approvals) shows a component with Allow and Deny buttons. `BlazingAgentsDirectChatTransport` makes the `continueChat()` call itself.
 
-In a custom UI, post the reviewer's decisions to that route. This prints the resumed answer as it streams in:
+Outside a chat, such as on a review page, post the reviewer's decisions to the route above. This prints the resumed answer as it streams in:
 
 ```typescript
 const response = await fetch("/api/tool-approval", {
@@ -277,13 +277,11 @@ if (response.body) {
 }
 ```
 
-With `useChat` and `addToolApprovalResponse`, the work happens in your backend instead. `BlazingAgentsChatTransport` posts the answered assistant message to your chat endpoint, where `createChatRelay` turns its approval responses into the `continueChat()` call and relays the stream. `BlazingAgentsDirectChatTransport` makes the `continueChat()` call itself. See [build a chatbot](/getting-started/chatbot).
-
-This is the smallest client that works. Add the pieces your UI needs next, by hand or by asking your coding agent:
+Add the pieces your review page needs next, by hand or by asking your coding agent:
 
 - **Decide the whole round.** Collect a decision for every pending call before you post. The calls in one round wait together, so keep all of their buttons on screen until every one is answered.
-- **Render the answer.** The body is an AI SDK UI message stream. Parse it with `parseJsonEventStream` and `uiMessageChunkSchema` from `ai`, forward the `value` of each successful result (throw its `error` otherwise), then pass the chunks to `readUIMessageStream` and replace the displayed message by its ID each time it updates. See [reading UI message streams](https://ai-sdk.dev/docs/ai-sdk-ui/reading-ui-message-streams), and [chat transports](https://ai-sdk.dev/docs/ai-sdk-ui/transport) to fit this into `useChat`.
-- **Show errors.** A status that is not OK means the decisions were not accepted. A failure in the resumed turn arrives as an `error` chunk at the end of the stream; pass `terminateOnError: true` to `readUIMessageStream` to stop there and show it.
+- **Show errors.** A status that is not OK means the decisions were not accepted. A failure in the resumed turn arrives as an `error` chunk at the end of the stream.
+- **Show the outcome.** Once the stream ends, reload the session's newest messages page to show the saved result.
 
 ## Retries and busy sessions [#retries-and-busy-sessions]
 
@@ -294,7 +292,7 @@ This is the smallest client that works. Add the pieces your UI needs next, by ha
 - Deleting the session while its round waits for a continue call fails the round.
 - If the session's previous turn stopped responding, the call returns [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) with a `Retry-After` header. Your decisions stay recorded, so send the same call again after that many seconds.
 - While approvals are pending or a continuation is running, new chat turns and regeneration return [`session_busy`](/api-reference/protocols/errors#session_busy). Its `details.reason` is `approval_pending` while a decision is missing, and `continuation_waiting` once the round is decided but not yet continued. Either clears when you send the round's decisions in one `continueChat()` call.
-- A turn that waits for a decision takes no steering, so [steer a running turn](/platform/sessions-and-turns#steer-a-running-turn) fails with `steer_not_available` while the pause lasts; keep those messages in your queue. Once a continuation is running, it accepts steering again.
+- A turn that waits for a decision takes no steering, so [steer a running turn](/platform/sessions-and-turns#steer-a-running-turn) fails with `steer_not_available` while the pause lasts; keep those messages in your queue. [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) holds them until the round is answered. Once a continuation is running, it accepts steering again.
 - Closing or cancelling the continuation stream cancels the resumed turn, the same as a chat turn. Forward your request's abort signal. A dropped stream cannot be rejoined, so read the outcome from the [history](/platform/sessions-and-turns#read-the-history).
 - The decisions and the continuation save their results into the assistant message that asked for approval. A history poll with `after` does not return that update, so reload the newest page without a cursor while a tool part is `approval-requested` or `approval-responded`.
 - A failed continuation reports its error in the stream or in the history. Retrying it does not run the tool a second time.

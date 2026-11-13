@@ -257,7 +257,7 @@ http.HandleFunc("POST /api/chat", func(w http.ResponseWriter, r *http.Request) {
 return nil
 ```
 
-Without a `sessionId`, the call starts a new session and the response carries its ID in the `location` header. On the frontend, `useChat` with `BlazingAgentsChatTransport` renders the stream, reads that header, and sends the session ID back on the next message. A session ID that belongs to another user returns [`not_found`](/api-reference/protocols/errors#not_found). [Build a chatbot](/getting-started/chatbot) shows the full frontend.
+Without a `sessionId`, the call starts a new session and the response carries its ID in the `location` header. On the frontend, [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) renders the stream, reads that header, and sends the session ID back on the next message. To restore the conversation after a reload and steer the running turn, the endpoint also answers the hook's `history` and `steer` requests, as the [browser chat relay](/api-reference/protocols/browser-relay) describes. A session ID that belongs to another user returns [`not_found`](/api-reference/protocols/errors#not_found). [Build a chatbot](/getting-started/chatbot) shows the full frontend.
 
 ### What to add next [#relay-what-to-add-next]
 
@@ -416,6 +416,6 @@ Tools that need [approval](/agents/tools/tool-approvals) cannot wait for a perso
 
 ## Next [#next]
 
-- [Build a chatbot](/getting-started/chatbot) to render the stream with `useChat`.
+- [Build a chatbot](/getting-started/chatbot) to render the stream with `useBlazingAgentsChat`.
 - [Sessions and turns](/platform/sessions-and-turns) to reload and continue conversations.
 - `chat()` and `completion()` in the [TypeScript SDK](/sdk/typescript/client#chat), [Python SDK](/sdk/python/client#chat), [Rust SDK](/sdk/rust/client#chat), and [Go SDK](/sdk/go/client#chat).

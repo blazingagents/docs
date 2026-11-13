@@ -55,7 +55,7 @@ export function Chat() {
 | [`createCompletionRelay()`](#create-completion-relay) | Your server | Handler for `useCompletion` requests |
 | [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) | Browser | React hook that talks to your relay, from `@blazingagents/sdk/react` |
 | [`BlazingAgentsChatTransport`](#chat-transport) | Browser | AI SDK chat transport that talks to your relay, for a framework other than React |
-| [`BlazingAgentsDirectChatTransport`](#direct-chat-transport) | Your server | `useChat` transport that calls the SDK in the same process |
+| [`BlazingAgentsDirectChatTransport`](#direct-chat-transport) | Your server | AI SDK chat transport that calls the SDK in the same process |
 | `RelayContext` | Your server | The type `resolveContext()` returns |
 
 ## Relays [#relays]
@@ -159,7 +159,7 @@ The transport cannot reconnect to a stream, so `reconnectToStream()` returns `nu
 
 ### `BlazingAgentsDirectChatTransport` [#direct-chat-transport]
 
-A `useChat` transport that calls [`chat()`](/sdk/typescript/client#chat) and [`continueChat()`](/sdk/typescript/client#continue-chat) on an SDK client in the same process, with no HTTP relay. Use it only where your code already holds the API key, such as a server-side chat runtime.
+An AI SDK chat transport that calls [`chat()`](/sdk/typescript/client#chat) and [`continueChat()`](/sdk/typescript/client#continue-chat) on an SDK client in the same process, with no HTTP relay. Use it only where your code already holds the API key, such as a server-side chat runtime.
 
 **Signature:** `new BlazingAgentsDirectChatTransport(options: BlazingAgentsDirectChatTransportOptions)`
 

@@ -5,7 +5,7 @@ description: Install the TypeScript client and find the method for every Blazing
 
 # TypeScript SDK
 
-`@blazingagents/sdk` gives your Node.js backend a typed client for every Blazing Agents operation. You configure agents and their resources through methods like `client.agents.create()`, and you run turns with `client.chat()`, which streams in the format the AI SDK `useChat` hook reads.
+`@blazingagents/sdk` gives your Node.js backend a typed client for every Blazing Agents operation. You configure agents and their resources through methods like `client.agents.create()`, and you run turns with `client.chat()`, which streams in the AI SDK UI message format. For a browser chat, [`createChatRelay()`](/sdk/typescript/chat-transport) serves that stream from your backend, and [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) from `@blazingagents/sdk/react` renders it.
 
 <Callout type="warn" title="Server-side only">
   Your API key can reach every resource in your tenant. Keep it in backend code

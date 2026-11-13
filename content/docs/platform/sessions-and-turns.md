@@ -252,7 +252,7 @@ Treat a turn as done only when its stream finishes normally. A `200` status or a
 - Keep using the session ID you received, even if that session is still empty.
 - Sending again can repeat a tool's side effects, such as a sent email.
 
-The [chatbot guide](/getting-started/chatbot) builds the send flow and lists how to add stop, edit, and regenerate.
+In a React app, [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) follows these rules for you. It settles each turn against the stored history and resolves `send()` with `false` when it rolled a message back, so you know when to put the draft back. The [chatbot guide](/getting-started/chatbot) builds the send flow and lists how to add Stop and regenerate.
 
 ## Read the history [#read-the-history]
 
@@ -286,7 +286,9 @@ To let users keep typing while the agent works, steer their message into the run
 
 ## Send while the agent is working [#send-while-the-agent-is-working]
 
-Blazing Agents stores no waiting messages, so your app owns the queue. While a turn runs, each new message has two homes: it can steer the running turn, or it can wait in your app. Once the turn ends, send the waiting messages as ordinary chat turns, one message per call or several in one call through `messages`. Each stays a separate user message in the history, in order.
+In a React app, [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) does all of this through your [relay](/api-reference/protocols/browser-relay). It steers a message typed during a reply into the running turn, holds a message the turn cannot take, and sends it once the turn ends. The rest of this section is for a client you build another way.
+
+Blazing Agents stores no waiting messages, so a client you build owns the queue. While a turn runs, each new message has two homes: it can steer the running turn, or it can wait in your app. Once the turn ends, send the waiting messages as ordinary chat turns, one message per call or several in one call through `messages`. Each stays a separate user message in the history, in order.
 
 Continuing the first example, this keeps a `waiting` list per session. While the turn runs, sending calls `submitInput()` (`submit_input()` in Python) to steer; when no turn can take a steer, the message joins `waiting` instead. After the turn's stream ends, `flushWaiting()` (`flush_waiting()` in Python) takes the waiting messages out of the queue and sends them in one turn:
 
@@ -487,7 +489,7 @@ A finished receipt also carries a `reason`: `stopped` (you stopped the turn), `f
 
 ### Stop a turn [#stop-a-turn]
 
-Stopping needs the ID of the turn you mean. The response that started the turn names it in its `X-BA-Turn-Id` header. The SDKs expose that header as `await result.turnId` in TypeScript, `stream.turn_id` in Python, `stream.turn_id()` in Rust, and `stream.TurnID()` in Go, and both chat transports pass it to `onTurnId`. Any other client, such as a second tab, reads the ID from the session's activity, as below. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to end. Keep reading your existing stream until it ends, then check the history.
+Stopping needs the ID of the turn you mean. The response that started the turn names it in its `X-BA-Turn-Id` header. The SDKs expose that header as `await result.turnId` in TypeScript, `stream.turn_id` in Python, `stream.turn_id()` in Rust, and `stream.TurnID()` in Go, and both chat transports pass it to `onTurnId`. Any other client, such as a second tab, reads the ID from the session's activity, as below. The call records the cancellation and returns as soon as it is saved; it does not wait for the turn to end. Keep reading your existing stream until it ends, then check the history. In the browser, [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) needs no turn ID. Its `stop()` aborts the request, and the relay cancels the turn.
 
 ```typescript tab="TypeScript"
 const { activity } = await client.sessions.inputs({ agentId, sessionId });
@@ -549,7 +551,7 @@ A retry with the same `turnId` never stops a later turn, and a turn you cannot s
 
 `sessions.inputs()` returns the steer receipts plus the session's activity: `idle`, `running`, `stopping`, or `approval`, with the running `turnId` when there is one. Poll it while the session is not idle or receipts are pending. Each poll returns the current state, so start from the first page every time.
 
-A dropped stream cannot be rejoined, whether it came from `client.chat()` or `continueChat()`. Its answer is in the history once the turn succeeds, so fetch new messages with the `after` cursor when activity shows the turn has ended. See [read the history](#read-the-history). Then send any messages still in your app's queue as ordinary chat.
+A dropped stream cannot be rejoined, whether it came from `client.chat()` or `continueChat()`. Its answer is in the history once the turn succeeds, so fetch new messages with the `after` cursor when activity shows the turn has ended. See [read the history](#read-the-history). Then send any messages still in your app's queue as ordinary chat. [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) reads the stored history again after a reload or a dropped stream, so a React app does not poll.
 
 ## Chat endpoint pattern [#chat-endpoint-pattern]
 
@@ -755,9 +757,9 @@ Give each user their own agent. One agent shared by all your users belongs to no
 
 Keep these rules in your handler:
 
-- Take the agent ID, session ID, and user ID from your own server-side state, never from the request body.
-- Accept only new user messages per request, one per send or several from the user's waiting queue. The session already holds the rest.
-- If your UI steers messages, lists receipts, stops turns, or reloads history, give each of those calls its own backend route and scope it with `forUser()` for the same user. Blazing Agents then checks that the session belongs to that user on chat, steer, receipts, and stop, and returns `not_found` for another user's session. With a tenant-wide client, check ownership yourself on every one of those routes.
+- Take the agent ID and user ID from your own server-side state, never from the request body. A session ID from the browser is safe to pass to a scoped client, which returns `not_found` for another user's session.
+- Accept only new user messages per request. The session already holds the rest.
+- Answer the browser's history and steer requests from the same endpoint, with a client scoped by `forUser()` to the same user. `createChatRelay()` does this in TypeScript, and the [browser chat relay](/api-reference/protocols/browser-relay) describes the requests for other languages. Blazing Agents then checks that the session belongs to that user on chat, history, and steer. With a tenant-wide client, check ownership yourself on every request.
 - Save the new session ID before you relay the stream. If two first requests for the same chat can arrive together, hold a lock until the ID is saved so you do not create two sessions.
 - Return `result.toResponse()` unchanged so the stream and its headers reach the browser intact, and forward the request's abort signal so a closed tab cancels the turn.
 
