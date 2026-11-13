@@ -25,6 +25,7 @@ const MODEL_ASSIGNMENT =
 const MODEL_FAMILY =
   /(?<![\w/.-])(?:[a-z-]+\/)?(?:gpt-[\w.-]+|claude-[\w.-]+|gemini-[\w.-]+|llama-?[\w.-]*|mistral-[\w.-]+)/gi;
 const UNPREFIXED_LUNA = /(?<!openai\/)\bgpt-6-luna\b/;
+const OPENAI_PROVIDER_ROW = /^\|\s*`openai`\s*\|/;
 const TYPESCRIPT_LANGUAGES = new Set(["ts", "typescript", "tsx", "mts", "cts"]);
 const TYPE_CAST = /\bas\s+(?!const\b)[A-Za-z_$[{(]/;
 const LINK = /\]\((\/[^)\s]*)\)|href=["'](\/[^"']*)["']/g;
@@ -126,7 +127,7 @@ export function lintFile(file, text, pages) {
     if (changelog) {
       report(number, "sdk-changelog", `"${changelog[0]}"`);
     }
-    if (UNPREFIXED_LUNA.test(line)) {
+    if (UNPREFIXED_LUNA.test(line) && !OPENAI_PROVIDER_ROW.test(line)) {
       report(number, "model-id", `gpt-6-luna must be written as ${EXAMPLE_MODEL}`);
     }
     if (language === undefined) {

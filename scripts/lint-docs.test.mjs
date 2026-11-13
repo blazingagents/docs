@@ -58,9 +58,11 @@ describe("lint-docs", () => {
           'client.chat({ model: "gpt-6-luna" });',
           "```",
           "Compare with gpt-5 in prose.",
+          "| `openai` | `gpt-6-luna` |",
+          "| `openrouter` | `gpt-6-luna` |",
         ].join("\n")
       )
-    ).toEqual(["1:model-id", "4:model-id", "5:model-id"]);
+    ).toEqual(["1:model-id", "4:model-id", "5:model-id", "9:model-id"]);
   });
 
   it("flags as casts only in TypeScript code", () => {
