@@ -3152,6 +3152,42 @@
     },
     {
       "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "Vue",
+              "title": "useChat.ts"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {
+              "tab": "Angular",
+              "title": "chat.component.ts"
+            }
+          }
+        ]
+      },
+      "file": "sdk/typescript/blazing-agents-chat.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
         "assignedIds": [
           "connection-get",
           "connection-create",
@@ -7276,6 +7312,13 @@
       "publishable": true,
       "title": "React chat hook",
       "url": "/sdk/typescript/use-blazing-agents-chat"
+    },
+    {
+      "file": "sdk/typescript/blazing-agents-chat.md",
+      "name": "Chat in any framework",
+      "publishable": true,
+      "title": "Chat in any framework",
+      "url": "/sdk/typescript/blazing-agents-chat"
     },
     {
       "file": "sdk/typescript/merchant.md",
