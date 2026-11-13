@@ -257,11 +257,11 @@ http.HandleFunc("POST /api/chat", func(w http.ResponseWriter, r *http.Request) {
 return nil
 ```
 
-Without a `sessionId`, the call starts a new session and the response carries its ID in the `location` header. On the frontend, [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) renders the stream, reads that header, and sends the session ID back on the next message. To restore the conversation after a reload and steer the running turn, the endpoint also answers the hook's `history` and `steer` requests, as the [browser chat relay](/api-reference/protocols/browser-relay) describes. A session ID that belongs to another user returns [`not_found`](/api-reference/protocols/errors#not_found). [Build a chatbot](/getting-started/chatbot) shows the full frontend.
+Without a `sessionId`, the call starts a new session and the response carries its ID in the `location` header. On the frontend, [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) renders the stream, reads that header, and sends the session ID back on the next message. To restore the conversation after a reload and steer the running turn, the endpoint also answers the hook's `history` and `steer` requests, as the [browser chat relay](/api-reference/protocols/browser-relay) describes. Each SDK's chat relay answers all of them for you. A session ID that belongs to another user returns [`not_found`](/api-reference/protocols/errors#not_found). [Build a chatbot](/getting-started/chatbot) shows the full frontend.
 
 ### What to add next [#relay-what-to-add-next]
 
-Before real users reach this endpoint, replace the demo pieces. In TypeScript, [`createChatRelay`](/sdk/typescript/chat-transport) does the relay part for you; [connect Blazing Agents to your app](/getting-started/connect-your-app) shows it, and the same endpoint in Python, Rust, and Go.
+Before real users reach this endpoint, replace the demo pieces. Each SDK's chat relay does the relay part for you; [connect Blazing Agents to your app](/getting-started/connect-your-app) shows it in TypeScript, Python, Rust, and Go.
 
 - **Sign-in.** Find out who the user is from your own sign-in, never from the request body, and reject the request if you cannot.
 - **One agent per user.** Create each user's agent once with the scoped client and store its ID with the user. A scoped turn needs an agent and workspace of that user's own, and one agent shared by every user would also share its files. See [what a scoped turn needs](/platform/tenancy-and-attribution#scoped-turn-requirements).

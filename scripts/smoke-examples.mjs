@@ -12,6 +12,8 @@
  * skipped when `cargo --version` fails.
  * Optional: SMOKE_RUST_SDK, a path to a local rust-sdk checkout used instead of
  * the pinned crates.io release (`cargo add blazing-agents --path ...`).
+ * Optional: SMOKE_GO, a go binary (default go). The Go steps are skipped when
+ * `go version` fails.
  */
 import { spawn } from "node:child_process";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -22,6 +24,7 @@ import { join } from "node:path";
 const root = new URL("..", import.meta.url).pathname;
 const SYSTEM_PYTHON = process.env.SMOKE_PYTHON ?? "python3";
 const CARGO = process.env.SMOKE_RUST ?? "cargo";
+const GO = process.env.SMOKE_GO ?? "go";
 const RUST_SDK = process.env.SMOKE_RUST_SDK;
 const PYTHON_SDK =
   process.env.SMOKE_PYTHON_SDK ?? "blazing-agents==0.34.0";
@@ -96,6 +99,16 @@ function pointAtBaseUrl(lang, code) {
     return code.replace(
       pattern,
       'Client::builder().base_url(std::env::var("BLAZING_AGENTS_BASE_URL")?).build()? /* SMOKE HARNESS: base URL injected */'
+    );
+  }
+  if (lang === "go") {
+    const count = code.split("ba.NewClient()").length - 1;
+    if (count !== 1) {
+      throw new Error(`expected one ba.NewClient() to point at the base URL, found ${count}`);
+    }
+    return code.replace(
+      "ba.NewClient()",
+      'ba.NewClient(ba.WithBaseURL(os.Getenv("BLAZING_AGENTS_BASE_URL"))) /* SMOKE HARNESS: base URL injected */'
     );
   }
   const pattern =
@@ -185,6 +198,7 @@ const python = join(workdir, "py/.venv/bin/python");
 const tsDir = join(workdir, "ts");
 const pyDir = join(workdir, "py");
 const rustDir = join(workdir, "rust");
+const goDir = join(workdir, "go");
 const exampleEnv = {
   BLAZING_AGENTS_BASE_URL: baseUrl,
   BLAZING_AGENTS_API_KEY: apiKey,
@@ -224,6 +238,33 @@ async function step(name, fn) {
   }
 }
 
+/** Where each language's chat endpoint lives, and how to start it on a free port. */
+const endpoints = {
+  python: {
+    title: "server.py",
+    async start(code, port) {
+      await writeFile(join(pyDir, "server.py"), code);
+      return [python, ["-m", "uvicorn", "server:app", "--host", "127.0.0.1", "--port", String(port)], pyDir];
+    },
+  },
+  rust: {
+    title: "src/bin/server.rs",
+    async start(code, port) {
+      await writeFile(join(rustDir, "src", "bin", "server.rs"), injectPort(code, '"0.0.0.0:8787"', `"0.0.0.0:${port}"`));
+      return [CARGO, ["run", "--quiet", "--bin", "server"], rustDir];
+    },
+  },
+  go: {
+    title: "server/main.go",
+    async start(code, port) {
+      await writeFile(join(goDir, "server", "main.go"), injectPort(code, '":8787"', `":${port}"`));
+      /* `go run` would leave the server running after the harness kills it, so run the binary itself. */
+      await run(GO, ["build", "-o", "server-bin", "./server"], { cwd: goDir });
+      return [join(goDir, "server-bin"), [], goDir];
+    },
+  },
+};
+
 class Blocked extends Error {}
 
 /** Deletions of resources the harness created, run newest first. */
@@ -250,6 +291,14 @@ try {
     console.log(`Cargo: ${output.trim()}\n`);
   } catch {
     console.log("SKIP     Rust steps (cargo unavailable; set SMOKE_RUST)");
+  }
+  let goAvailable = false;
+  try {
+    const { output } = await run(GO, ["version"]);
+    goAvailable = true;
+    console.log(`Go: ${output.trim()}\n`);
+  } catch {
+    console.log("SKIP     Go steps (go unavailable; set SMOKE_GO)");
   }
 
   await step(`Install TypeScript project (@blazingagents/sdk@${pkg.dependencies["@blazingagents/sdk"]}, ai@${pkg.devDependencies.ai}, Node ${process.version})`, async () => {
@@ -290,6 +339,22 @@ try {
       /* Build once so later `cargo run` calls fit the timeout. */
       await run(CARGO, ["build"], { cwd: rustDir });
       console.log(`        ${(await run(CARGO, ["--version"])).output.trim()}`);
+    });
+  }
+  if (goAvailable) {
+    await step("Install Go project", async () => {
+      await mkdir(join(goDir, "server"), { recursive: true });
+      const goLines = (await readFences("getting-started/setup.mdx"))
+        .filter((fence) => fence.lang === "bash" && fence.meta.includes('tab="Go"'))
+        .flatMap((fence) => fence.body.split("\n"))
+        .map((line) => line.trim())
+        .filter((line) => line.startsWith("go "));
+      for (const line of goLines) {
+        const [, ...args] = line.split(/\s+/);
+        await run(GO, args, { cwd: goDir });
+      }
+      /* Build the SDK once so the server build fits the timeout. */
+      await run(GO, ["build", "github.com/blazingagents/golang-sdk"], { cwd: goDir });
     });
   }
 
@@ -369,10 +434,13 @@ try {
   await runCleanups();
 
   const connect = await readFences("getting-started/connect-your-app.mdx");
-  const serverStep = "connect-your-app.mdx: serve the Rust chat endpoint";
-  if (!rustAvailable) {
-    record("SKIP", serverStep);
-  } else {
+  const available = { python: true, rust: rustAvailable, go: goAvailable };
+  for (const lang of Object.keys(endpoints)) {
+    const serverStep = `connect-your-app.mdx: serve the chat endpoint (${lang})`;
+    if (!available[lang]) {
+      record("SKIP", serverStep);
+      continue;
+    }
     await step(serverStep, async () => {
       if (!openRouterKey) {
         throw new Blocked("needs OPENROUTER_API_KEY: the endpoint needs an agent from the quickstart");
@@ -381,14 +449,15 @@ try {
       if (!agent) {
         throw new Blocked('no "Quickstart agent" in this tenant; the quickstart step creates it');
       }
-      const [serverCode] = pick(connect, "rust", ({ meta }) => meta.includes('title="src/bin/server.rs"'));
+      const [serverCode] = pick(connect, lang, ({ meta }) => meta.includes(`title="${endpoints[lang].title}"`));
       const before = new Set((await listAllAgents()).map(({ id }) => id));
       try {
-        await serveRustServer(pointAtBaseUrl("rust", serverCode), agent.providerId);
+        await serveEndpoint(lang, pointAtBaseUrl(lang, serverCode), agent.providerId);
       } finally {
         for (const { id } of await listAllAgents()) {
           if (!before.has(id)) cleanups.push({ label: `agent ${id}`, path: `/v1/agents/${id}?includeArtifacts=true` });
         }
+        await runCleanups();
       }
     });
   }
@@ -422,21 +491,20 @@ try {
   await rm(workdir, { recursive: true, force: true });
 }
 
-async function serveRustServer(code, providerId) {
-  /* server.rs binds the hardcoded 0.0.0.0:8787, which is also the README's local
-   * API base URL, so inject a free port like the route servers do. */
-  const port = await freePort();
-  const matches = code.match(/0\.0\.0\.0:8787/g) ?? [];
-  if (matches.length !== 1) {
-    throw new Error(`expected one "0.0.0.0:8787" in server.rs to inject the port, found ${matches.length}`);
+/** The page's server listens on 8787, which is also the README's local API base URL. */
+function injectPort(code, listen, replacement) {
+  const count = code.split(listen).length - 1;
+  if (count !== 1) {
+    throw new Error(`expected one ${listen} to inject the port, found ${count}`);
   }
-  code = code.replace(
-    '"0.0.0.0:8787"',
-    `"0.0.0.0:${port}" /* SMOKE HARNESS: port injected */`
-  );
-  await writeFile(join(rustDir, "src", "bin", "server.rs"), code);
-  const server = spawn(CARGO, ["run", "--quiet", "--bin", "server"], {
-    cwd: rustDir,
+  return code.replace(listen, `${replacement} /* SMOKE HARNESS: port injected */`);
+}
+
+async function serveEndpoint(lang, code, providerId) {
+  const port = await freePort();
+  const [command, args, cwd] = await endpoints[lang].start(code, port);
+  const server = spawn(command, args, {
+    cwd,
     env: {
       ...baseEnv,
       ...exampleEnv,
@@ -452,12 +520,12 @@ async function serveRustServer(code, providerId) {
   server.stdout.on("data", (chunk) => (log += chunk));
   server.stderr.on("data", (chunk) => (log += chunk));
   try {
-    const post = (body) =>
+    const post = (body, token = "demo-token") =>
       fetch(`http://127.0.0.1:${port}/api/chat`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          authorization: "Bearer demo-token",
+          ...(token ? { authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(body),
       });
@@ -484,6 +552,11 @@ async function serveRustServer(code, providerId) {
     if (history.status !== 200 || !page.data?.some(({ id }) => id === again.id) || page.nextCursor !== null) {
       throw new Error(`expected 200 with the second message stored and nextCursor null, got ${history.status} ${JSON.stringify(page)}\n${log}`);
     }
+    const otherUser = await post({ op: "chat", sessionId, message: message("Which word?") }, "other-token");
+    const signedOut = await post({ op: "history", sessionId }, null);
+    if (otherUser.status !== 404 || signedOut.status !== 401) {
+      throw new Error(`expected 404 for the other user and 401 without a token, got ${otherUser.status} and ${signedOut.status}\n${log}`);
+    }
   } finally {
     server.kill();
   }
@@ -492,8 +565,10 @@ async function serveRustServer(code, providerId) {
 async function assertStream(response, log, expectLocation) {
   const body = await response.text();
   const type = response.headers.get("content-type") ?? "";
-  if (response.status !== 200 || !type.startsWith("text/event-stream")) {
-    throw new Error(`expected 200 text/event-stream, got ${response.status} ${type}\n${body}\n${log}`);
+  /* The relay passes the API's status on: 201 for a new session, 200 for a later turn. */
+  const status = expectLocation ? 201 : 200;
+  if (response.status !== status || !type.startsWith("text/event-stream")) {
+    throw new Error(`expected ${status} text/event-stream, got ${response.status} ${type}\n${body}\n${log}`);
   }
   expectLine(body, /^data: \{[^\n]*"type":"start"/m, 'data: {..."type":"start"...}');
   expectLine(body, /^data: \[DONE\]$/m, "data: [DONE]");

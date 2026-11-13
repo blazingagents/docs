@@ -759,7 +759,7 @@ Keep these rules in your handler:
 
 - Take the agent ID and user ID from your own server-side state, never from the request body. A session ID from the browser is safe to pass to a scoped client, which returns `not_found` for another user's session.
 - Accept only new user messages per request. The session already holds the rest.
-- Answer the browser's history and steer requests from the same endpoint, with a client scoped by `forUser()` to the same user. `createChatRelay()` does this in TypeScript, and the [browser chat relay](/api-reference/protocols/browser-relay) describes the requests for other languages. Blazing Agents then checks that the session belongs to that user on chat, history, and steer. With a tenant-wide client, check ownership yourself on every request.
+- Answer the browser's history and steer requests from the same endpoint, with a client scoped by `forUser()` to the same user. Each SDK's chat relay does this: `createChatRelay()` in TypeScript, `AsyncChatRelay` in Python, `ChatRelay` in Rust, and `ba.NewChatRelay` in Go. The [browser chat relay](/api-reference/protocols/browser-relay) describes the requests for other languages. Blazing Agents then checks that the session belongs to that user on chat, history, and steer. With a tenant-wide client, check ownership yourself on every request.
 - Save the new session ID before you relay the stream. If two first requests for the same chat can arrive together, hold a lock until the ID is saved so you do not create two sessions.
 - Return `result.toResponse()` unchanged so the stream and its headers reach the browser intact, and forward the request's abort signal so a closed tab cancels the turn.
 

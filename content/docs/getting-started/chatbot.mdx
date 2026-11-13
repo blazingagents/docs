@@ -67,7 +67,7 @@ The component above is the smallest chat that works. Add the pieces your product
 - **New conversation.** Call `chat.newSession()`. The next message starts a new session.
 - **Pending messages.** `chat.pendingIds` holds the IDs of sent messages that are not stored yet, so you can style them as sending.
 - **Images.** Pass files with the text: `chat.send({ text, files })`, where each file is an AI SDK file part with an image media type and a `data:` URL. See [send an image](/agents/output/generation-and-streaming#send-an-image).
-- **Tool approvals.** When an agent needs a person to allow a tool call, the reply ends with a tool part in the `approval-requested` state. Render buttons that call `chat.addToolApprovalResponse({ id: part.approval.id, approved })`, and the rest of the turn streams in. The TypeScript endpoint resumes the turn for you. The Python, Rust, and Go endpoints from the previous page do not handle approvals, so add a branch that sends the decisions and relays the resumed answer. See [render the resumed answer](/agents/tools/tool-approvals#render-the-resumed-answer).
+- **Tool approvals.** When an agent needs a person to allow a tool call, the reply ends with a tool part in the `approval-requested` state. Render buttons that call `chat.addToolApprovalResponse({ id: part.approval.id, approved })`, and the rest of the turn streams in. The endpoint from the previous page resumes the turn for you in every language. See [render the resumed answer](/agents/tools/tool-approvals#render-the-resumed-answer).
 
 ## Next [#next]
 

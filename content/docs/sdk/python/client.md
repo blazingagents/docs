@@ -356,58 +356,34 @@ The exported helper takes a Pydantic-compatible input type that describes an obj
 
 ## Serve a browser chat [#browser-relay]
 
-[`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) in a React app sends every request to one endpoint on your backend, and the JSON body's `op` names what it needs: `chat` streams a turn, `history` reads one page of the stored conversation, and `steer` sends a message into the running turn. This FastAPI route answers all three for one signed-in user. The [browser chat relay](/api-reference/protocols/browser-relay) lists every field and error.
+The browser chat, [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) in React or [`BlazingAgentsChat`](/sdk/typescript/blazing-agents-chat) in another framework, sends every request to one endpoint on your backend. `AsyncChatRelay` answers it as the signed-in user: it streams turns, returns the stored conversation, and steers the running turn. Your code adds only the sign-in, in `resolve_context`. With FastAPI:
 
 ```python
-from blazing_agents import APIStatusError, AsyncBlazingAgents
+from blazing_agents import AsyncBlazingAgents, AsyncChatRelay, RelayContext
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 
 client = AsyncBlazingAgents()
 app = FastAPI()
 
 
-@app.post("/api/chat")
-async def relay(request: Request):
+async def resolve_context(request: Request) -> RelayContext | None:
     # Replace these with your sign-in check and the user's own agent.
-    user = client.for_user("user_0123456789abcdef")
-    agent_id = "ag_0123456789abcdef"
-    body = await request.json()
-    try:
-        if body["op"] == "history":
-            cursor = {"cursor": body["cursor"]} if "cursor" in body else {}
-            page = await user.sessions.messages(
-                agent_id=agent_id, session_id=body["sessionId"], limit=200, **cursor
-            )
-            data = [m.model_dump(mode="json", by_alias=True, exclude_unset=True) for m in page.data]
-            return {"data": data, "nextCursor": page.next_cursor}
-        if body["op"] == "steer":
-            receipt = await user.sessions.submit_input(
-                agent_id=agent_id,
-                session_id=body["sessionId"],
-                request_id=body["requestId"],
-                message=body["message"],
-            )
-            return JSONResponse({"state": receipt.data.state}, status_code=202)
-        session = {"session_id": body["sessionId"]} if body.get("sessionId") else {}
-        stream = await user.chat(
-            agent_id=agent_id,
-            message=body["message"],
-            trigger=body.get("trigger", "submit-message"),
-            **session,
-        )
-    except APIStatusError as error:
-        return JSONResponse(
-            {"error": {"code": error.code, "message": error.message}},
-            status_code=error.status_code,
-        )
-    headers = {"cache-control": "no-cache", "x-vercel-ai-ui-message-stream": "v1"}
-    if "location" in stream.headers:
-        headers["location"] = stream.headers["location"]
-    return StreamingResponse(stream, media_type="text/event-stream", headers=headers)
+    return RelayContext(agent_id="ag_0123456789abcdef", user_id="user_0123456789abcdef")
+
+
+relay = AsyncChatRelay(client=client, resolve_context=resolve_context)
+
+
+@app.post("/api/chat")
+async def chat(request: Request) -> StreamingResponse:
+    answer = await relay.handle(request, await request.body())
+    return StreamingResponse(answer, status_code=answer.status_code, headers=answer.headers)
 ```
 
-`history` passes one page through, and `chat` relays the stream with its `location` header, which names a new session. The `except` branch passes the API's status and code to the browser: a `404` forgets the stored session, and `steer_not_available` sends the message again once the turn ends. [Connect Blazing Agents to your app](/getting-started/connect-your-app) runs this route in a complete server.
+`resolve_context` receives the request you pass to `handle()`. Return `None` when nobody is signed in, and the relay answers `401`. Otherwise return a `RelayContext` with the user's `agent_id` and `user_id`, plus optional `functions` and `metadata` for the turn. The relay sends every API request through [`for_user(user_id)`](#for-user), so a session ID from another user answers `404`, and it never reads the user or the agent from the request body.
+
+`handle()` never raises. It answers every failure as `{"error": {"code", "message"}}` with the API's status and code, so the browser can tell a deleted session from a turn that cannot take a steer. When the browser disconnects, the framework stops reading the answer and closes it, which cancels the turn. `ChatRelay` is the blocking version for frameworks such as Flask, with the same `handle(request, body)`. The [browser chat relay](/api-reference/protocols/browser-relay) lists every request and error, and [Connect Blazing Agents to your app](/getting-started/connect-your-app) runs this relay in a complete server.
 
 ## Stream ownership and failures [#stream-ownership-and-failures]
 
