@@ -532,15 +532,21 @@ async function serveRustServer(code, agentId) {
     let response;
     for (let attempt = 0; !response; attempt++) {
       try {
-        response = await post({ message: message("Say hello in one short sentence.") });
+        response = await post({ op: "chat", message: message("Say hello in one short sentence.") });
       } catch {
         if (exited || attempt > 300) throw new Error(`the server did not answer\n${log}`);
         await new Promise((resolve) => setTimeout(resolve, 200));
       }
     }
     const sessionId = await assertStream(response, log, true);
-    const next = await post({ message: message("Say it again."), sessionId });
+    const again = message("Say it again.");
+    const next = await post({ op: "chat", message: again, sessionId });
     await assertStream(next, log, false);
+    const history = await post({ op: "history", sessionId });
+    const page = await history.json();
+    if (history.status !== 200 || !page.data?.some(({ id }) => id === again.id) || page.nextCursor !== null) {
+      throw new Error(`expected 200 with the second message stored and nextCursor null, got ${history.status} ${JSON.stringify(page)}\n${log}`);
+    }
   } finally {
     server.kill();
   }
