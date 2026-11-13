@@ -3114,6 +3114,44 @@
     },
     {
       "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": [
+          {
+            "language": "bash",
+            "metadata": {}
+          },
+          {
+            "language": "tsx",
+            "metadata": {
+              "title": "Chat.tsx"
+            }
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "tsx",
+            "metadata": {
+              "title": "Approvals.tsx"
+            }
+          }
+        ]
+      },
+      "file": "sdk/typescript/use-blazing-agents-chat.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
         "assignedIds": [
           "connection-get",
           "connection-create",
@@ -6510,6 +6548,23 @@
     },
     {
       "anchors": {
+        "assignedIds": [],
+        "kind": "h2"
+      },
+      "cards": [],
+      "callout": null,
+      "componentCounts": {},
+      "fences": {
+        "endpointCurls": false,
+        "items": []
+      },
+      "file": "api-reference/protocols/browser-relay.md",
+      "filesTree": [],
+      "recipe": "Canonical documentation",
+      "steps": []
+    },
+    {
+      "anchors": {
         "assignedHeadings": [
           "Agent",
           "Workspace",
@@ -7216,6 +7271,13 @@
       "url": "/sdk/typescript/chat-transport"
     },
     {
+      "file": "sdk/typescript/use-blazing-agents-chat.md",
+      "name": "React chat hook",
+      "publishable": true,
+      "title": "React chat hook",
+      "url": "/sdk/typescript/use-blazing-agents-chat"
+    },
+    {
       "file": "sdk/typescript/merchant.md",
       "name": "Merchant",
       "publishable": true,
@@ -7690,6 +7752,13 @@
       "publishable": true,
       "title": "Streaming protocol",
       "url": "/api-reference/protocols/streaming"
+    },
+    {
+      "file": "api-reference/protocols/browser-relay.md",
+      "name": "Browser chat relay",
+      "publishable": true,
+      "title": "Browser chat relay",
+      "url": "/api-reference/protocols/browser-relay"
     },
     {
       "file": "api-reference/protocols/objects-and-schemas.md",

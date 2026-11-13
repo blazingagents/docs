@@ -3,6 +3,7 @@
   "pages": [
     "index",
     "streaming",
+    "browser-relay",
     "objects-and-schemas",
     "errors",
     "resource-ids",

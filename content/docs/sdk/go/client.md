@@ -232,46 +232,9 @@ With an empty `SessionID`, `Send` starts a new session. Its `ss_...` ID is avail
 | `Metadata` | `ba.Metadata` | Your own data, stored with the turn |
 | `Functions` | `*ba.Functions` | Backend functions the agent may call during the turn |
 
-`Events()` yields one complete event per iteration as a fresh byte slice. `WriteTo(w)` relays every remaining event to an `io.Writer` and flushes after each one, and `SetRelayHeaders(h)` sets the stream headers a browser `useChat` transport expects; together they relay a turn from an `http.Handler`.
+`Events()` yields one complete event per iteration as a fresh byte slice. `WriteTo(w)` relays every remaining event to an `io.Writer` and flushes after each one, and `SetRelayHeaders(h)` sets the stream headers the browser chat expects; together they relay a turn from an `http.Handler`.
 
-`SetRelayHeaders` does not copy `Location`. When the call starts a new session, copy `stream.Meta().Header.Get("Location")` to your response, so a browser transport such as the TypeScript SDK's `BlazingAgentsChatTransport` learns the new session ID and sends it back on the next message. On the scoped client, a session ID from the browser is safe to pass on: another user's session fails with `not_found`.
-
-```go
-type chatRequest struct {
-	Message   ba.UserMessage `json:"message"`
-	SessionID ba.SessionID   `json:"sessionId"`
-}
-
-http.HandleFunc("POST /api/chat", func(w http.ResponseWriter, r *http.Request) {
-	var body chatRequest
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		http.Error(w, "invalid request", http.StatusBadRequest)
-		return
-	}
-	user, err := client.ForUser("user_0123456789abcdef")
-	if err != nil {
-		http.Error(w, "invalid user", http.StatusBadRequest)
-		return
-	}
-	stream, err := user.Chat.Send(r.Context(), agentID, ba.Messages(body.Message),
-		ba.ChatParams{SessionID: body.SessionID})
-	if err != nil {
-		http.Error(w, "the agent call failed", http.StatusBadGateway)
-		return
-	}
-	defer stream.Close()
-	stream.SetRelayHeaders(w.Header())
-	if location := stream.Meta().Header.Get("Location"); location != "" {
-		w.Header().Set("Location", location)
-	}
-	if _, err := stream.WriteTo(w); err != nil {
-		log.Printf("relay ended: %v", err)
-	}
-})
-return nil
-```
-
-Replace the placeholder with the user ID from your sign-in check. The [`chat_relay` example](https://github.com/blazingagents/golang-sdk/tree/main/examples/chat_relay) adds regeneration and a demo sign-in.
+`SetRelayHeaders` does not copy `Location`. When the call starts a new session, copy `stream.Meta().Header.Get("Location")` to your response, so the browser learns the new session ID and sends it back on the next message. [Serve a browser chat](#browser-relay) shows a complete handler. On the scoped client, a session ID from the browser is safe to pass on: another user's session fails with `not_found`.
 
 `ba.TextMessage(text)` builds a text message with a random ID. `ba.NewUserMessage(id, first, rest...)` sets the ID and parts: `ba.TextPart{Text: ...}`, or `ba.FilePart{MediaType: ..., URL: ...}` to attach a file, such as an image, as a `data:` URL or a fetchable URL. Keep the message and resend it to retry safely. A batch sends several waiting messages in one turn, and each stays a separate user message in order:
 
@@ -459,6 +422,101 @@ if err != nil {
 fmt.Println(summary.Title)
 return nil
 ```
+
+## Serve a browser chat [#browser-relay]
+
+[`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) in a React app sends every request to one endpoint on your backend, and the JSON body's `op` names what it needs: `chat` streams a turn, `history` reads one page of the stored conversation, and `steer` sends a message into the running turn. This handler answers all three for one signed-in user. The [browser chat relay](/api-reference/protocols/browser-relay) lists every field and error.
+
+```go
+type relayRequest struct {
+	Op        string         `json:"op"`
+	Message   ba.UserMessage `json:"message"`
+	SessionID ba.SessionID   `json:"sessionId"`
+	Trigger   string         `json:"trigger"`
+	Cursor    string         `json:"cursor"`
+	RequestID string         `json:"requestId"`
+}
+
+writeJSON := func(w http.ResponseWriter, status int, body any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(body)
+}
+writeError := func(w http.ResponseWriter, err error) {
+	status, code, message := http.StatusBadGateway, "network_error", err.Error()
+	var apiErr *ba.APIError
+	if errors.As(err, &apiErr) {
+		status, code, message = apiErr.Status, string(apiErr.Code), apiErr.Message
+	}
+	writeJSON(w, status, map[string]any{"error": map[string]string{"code": code, "message": message}})
+}
+
+http.HandleFunc("POST /api/chat", func(w http.ResponseWriter, r *http.Request) {
+	// Replace the placeholder with the user ID from your sign-in check.
+	user, err := client.ForUser("user_0123456789abcdef")
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	var body relayRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{
+			"error": map[string]string{"code": "invalid_request", "message": "Invalid request body."},
+		})
+		return
+	}
+	switch body.Op {
+	case "history":
+		limit := 200
+		params := ba.ListSessionMessagesParams{Limit: &limit}
+		if body.Cursor != "" {
+			params.Cursor = &body.Cursor
+		}
+		page, err := user.Sessions.ListMessages(r.Context(), agentID, body.SessionID, params)
+		if err != nil {
+			writeError(w, err)
+			return
+		}
+		var next *string
+		if page.NextCursor != "" {
+			next = &page.NextCursor
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"data": page.Data, "nextCursor": next})
+	case "steer":
+		receipt, err := user.Sessions.SubmitInput(r.Context(), agentID, body.SessionID,
+			ba.SubmitSessionInputParams{RequestID: body.RequestID, Message: body.Message})
+		if err != nil {
+			writeError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusAccepted, map[string]any{"state": receipt.Input.State})
+	default:
+		var stream *ba.ChatStream
+		if body.Trigger == "regenerate-message" && body.SessionID != "" {
+			stream, err = user.Chat.Regenerate(r.Context(), agentID, body.SessionID, body.Message,
+				ba.RegenerateParams{})
+		} else {
+			stream, err = user.Chat.Send(r.Context(), agentID, ba.Messages(body.Message),
+				ba.ChatParams{SessionID: body.SessionID})
+		}
+		if err != nil {
+			writeError(w, err)
+			return
+		}
+		defer stream.Close()
+		stream.SetRelayHeaders(w.Header())
+		if location := stream.Meta().Header.Get("Location"); location != "" {
+			w.Header().Set("Location", location)
+		}
+		if _, err := stream.WriteTo(w); err != nil {
+			log.Printf("relay ended: %v", err)
+		}
+	}
+})
+return nil
+```
+
+`history` passes one page through and sends `null` instead of an empty `NextCursor`, so the browser knows it reached the oldest page. `writeError` passes the API's status and code to the browser: a `404` forgets the stored session, and `steer_not_available` sends the message again once the turn ends.
 
 ## Stream ownership and failures [#stream-ownership-and-failures]
 

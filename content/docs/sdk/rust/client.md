@@ -404,6 +404,90 @@ while let Some(delta) = stream.try_next().await? {
 let summary: Summary = stream.final_object().await?;
 ```
 
+## Serve a browser chat [#browser-relay]
+
+[`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) in a React app sends every request to one endpoint on your backend, and the JSON body's `op` names what it needs: `chat` streams a turn, `history` reads one page of the stored conversation, and `steer` sends a message into the running turn. This handler answers all three for one signed-in user. The [browser chat relay](/api-reference/protocols/browser-relay) lists every field and error.
+
+```rust
+use axum::body::Body;
+use axum::http::{HeaderValue, StatusCode};
+use axum::response::{IntoResponse, Response};
+use axum::Json;
+use blazing_agents::messages::UserMessage;
+use blazing_agents::UserClient;
+use serde::Deserialize;
+use serde_json::json;
+
+#[derive(Deserialize)]
+#[serde(tag = "op", rename_all = "lowercase", rename_all_fields = "camelCase")]
+enum RelayRequest {
+    Chat {
+        message: UserMessage,
+        session_id: Option<String>,
+        trigger: Option<String>,
+    },
+    History {
+        session_id: String,
+        cursor: Option<String>,
+    },
+    Steer {
+        session_id: String,
+        request_id: String,
+        message: UserMessage,
+    },
+}
+
+async fn relay(
+    user: &UserClient,
+    agent_id: &str,
+    request: RelayRequest,
+) -> Result<Response, blazing_agents::Error> {
+    match request {
+        RelayRequest::Chat { message, session_id, trigger } => {
+            let stream = match (session_id, trigger.as_deref()) {
+                (Some(id), Some("regenerate-message")) => user.regenerate(agent_id, id, message).await?,
+                (Some(id), _) => user.chat(agent_id, message).session(id).await?,
+                (None, _) => user.chat(agent_id, message).await?,
+            };
+            let location = stream.meta().headers().get("location").cloned();
+            let mut response = Response::new(Body::from_stream(stream));
+            let headers = response.headers_mut();
+            headers.insert("content-type", HeaderValue::from_static("text/event-stream"));
+            headers.insert("x-vercel-ai-ui-message-stream", HeaderValue::from_static("v1"));
+            if let Some(location) = location {
+                headers.insert("location", location);
+            }
+            Ok(response)
+        }
+        RelayRequest::History { session_id, cursor } => {
+            let mut page = user.sessions().messages(agent_id, session_id).limit(200);
+            if let Some(cursor) = cursor {
+                page = page.cursor(cursor.into());
+            }
+            Ok(Json(page.await?).into_response())
+        }
+        RelayRequest::Steer { session_id, request_id, message } => {
+            let receipt = user
+                .sessions()
+                .submit_input(agent_id, session_id, request_id, message)
+                .await?;
+            Ok((StatusCode::ACCEPTED, Json(json!({ "state": receipt.input.state }))).into_response())
+        }
+    }
+}
+
+fn error_response(error: blazing_agents::Error) -> Response {
+    let (status, code, message) = match &error {
+        blazing_agents::Error::Api(api) => (api.status(), api.code().to_string(), api.message().to_owned()),
+        _ => (502, "network_error".to_owned(), error.to_string()),
+    };
+    let status = StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY);
+    (status, Json(json!({ "error": { "code": code, "message": message } }))).into_response()
+}
+```
+
+Read the request body as `Json<RelayRequest>`, call `relay()` on the [scoped client](#for-user) with that user's agent, and answer an error with `error_response()`. The browser reads the API's status and code from it: a `404` forgets the stored session, and `steer_not_available` sends the message again once the turn ends. [Connect Blazing Agents to your app](/getting-started/connect-your-app) runs this handler in a complete server.
+
 ## Stream ownership and failures [#stream-ownership-and-failures]
 
 Each chat, completion, and object stream has exactly one consumer, by ownership: streams do not implement `Clone`, and `final_text()` and `final_object()` consume the stream. Drop a stream to stop early; dropping closes the connection, and dropping a `ChatStream` cancels its running function handlers. A failed body read, a missing or malformed session or turn header, a malformed function-call event, or a body that ends early fails the stream with `Error::Stream`; object streams report the more specific `Error::Object`.

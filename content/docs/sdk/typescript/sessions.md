@@ -97,7 +97,7 @@ Returns `SessionResponse`, the session summary plus required `agentConfig`. Erro
 
 ### `messages()` [#messages]
 
-Loads a session's stored messages in the AI SDK `UIMessage` shape, so you can pass them to `useChat` as initial messages.
+Loads a session's stored messages in the AI SDK `UIMessage` shape. In a browser chat, [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) reads them through your relay after a reload, so you do not call this yourself.
 
 **Signature:** `messages(input: { agentId: string; sessionId: string } & SessionMessagesOptions): Promise<SessionMessagesResponse>`
 
@@ -181,7 +181,7 @@ const { data: input, activity } = await client.sessions.submitInput({
 | `requestId` | `string` | yes | Your ID for this steer; see the [steer `requestId` rules](/api-reference/protocols/service-limits#steer-request-id) |
 | `message` | `UIMessage` | yes | A user message with text and image parts |
 
-Resending the same `requestId` with the same message returns the same receipt, so retry with the original values after a timeout. A call that cannot steer, because no turn is running or can take one, fails with [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and saves nothing; keep the message in your app's own queue and send it later as an ordinary `chat()` message. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `validation_failed`, `not_found`, [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `requestId` or `message.id` was already used for different content.
+Resending the same `requestId` with the same message returns the same receipt, so retry with the original values after a timeout. A call that cannot steer, because no turn is running or can take one, fails with [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) and saves nothing; send the message later as an ordinary `chat()` message. In a browser chat, [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) steers through your relay and resends such a message for you. Returns [`SessionInputResponse`](#sessioninputresponse). Errors: `validation_failed`, `not_found`, [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict) when the `requestId` or `message.id` was already used for different content.
 
 ### `inputs()` [#inputs]
 
@@ -392,7 +392,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | --- | --- |
 | `invalid_cursor` | Start paging again without the cursor |
 | `not_found` | No such session or turn for this agent, or a scoped client asked for another end user's session |
-| `steer_not_available` | No turn can take the message now; keep it in your own queue |
+| `steer_not_available` | No turn can take the message now; send it as an ordinary chat message once the turn ends |
 | `tool_approval_decision_conflict` | The call was already decided differently; reload the approvals |
 | `tool_approval_continuation_settled` | The approval round already finished; read the history |
 | `session_busy` | A turn or approval continuation is in progress; wait for it |
