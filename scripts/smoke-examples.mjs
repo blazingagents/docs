@@ -385,32 +385,23 @@ try {
   }
 
   const home = await readFences("index.mdx");
-  for (const lang of ["typescript", "python"]) {
-    await step(`index.mdx: create the agent and serve the chat route (${lang})`, async () => {
-      const [createAgent] = pick(home, lang, ({ section }) => section === "create-the-agent");
-      const [route] = pick(home, lang, ({ section }) => section === "add-the-chat-route");
-      if (!openRouterKey) {
-        throw new Blocked('needs OPENROUTER_API_KEY: "Run once" calls agents.create, which validates the model with OpenRouter');
-      }
-      const agents = await listAllAgents();
-      if (agents.some(({ name }) => name === "Support agent")) {
-        throw new Error('the tenant already has a "Support agent"; the "Run once" script would fail. Delete it and rerun.');
-      }
-      const agentsBefore = new Set(agents.map(({ id }) => id));
-      const providersBefore = new Set((await api("GET", "/v1/providers")).providers.map(({ id }) => id));
+  for (const lang of Object.keys(langs)) {
+    const saveStep = `index.mdx: save the provider (${lang})`;
+    if (lang === "rust" && !rustAvailable) {
+      record("SKIP", saveStep);
+      continue;
+    }
+    await step(saveStep, async () => {
+      const [code] = pick(home, lang, ({ section }) => section === "save-the-provider");
+      const before = new Set((await api("GET", "/v1/providers")).providers.map(({ id }) => id));
       try {
-        const agentId = expectLine((await runExample(lang, "create-agent", createAgent)).output, /^BLAZING_AGENTS_AGENT_ID=(ag_[A-Za-z0-9]{16})$/m, "BLAZING_AGENTS_AGENT_ID=ag_...")[1];
-        await serveAndPost(lang, route, agentId);
+        const { output } = await runExample(lang, "save-provider", code);
+        expectLine(output, /^BLAZING_AGENTS_PROVIDER_ID=prv_[A-Za-z0-9]{16}$/m, "BLAZING_AGENTS_PROVIDER_ID=prv_...");
       } finally {
-        /** The "Run once" script may fail after creating either resource, so find what it left by name. */
+        /** The script may fail after creating the provider, so find what it left by name. */
         for (const { id, name } of (await api("GET", "/v1/providers")).providers) {
-          if (name === "OpenRouter" && !providersBefore.has(id)) {
+          if (name === "OpenRouter" && !before.has(id)) {
             cleanups.push({ label: `provider ${id}`, path: `/v1/providers/${id}` });
-          }
-        }
-        for (const { id, name } of await listAllAgents()) {
-          if (name === "Support agent" && !agentsBefore.has(id)) {
-            cleanups.push({ label: `agent ${id}`, path: `/v1/agents/${id}?includeArtifacts=true` });
           }
         }
         await runCleanups();
@@ -420,70 +411,6 @@ try {
 } finally {
   await runCleanups();
   await rm(workdir, { recursive: true, force: true });
-}
-
-async function serveAndPost(lang, route, agentId) {
-  const { dir } = langs[lang];
-  const port = await freePort();
-  let command;
-  let args;
-  if (lang === "typescript") {
-    await writeFile(join(dir, "route.ts"), pointAtBaseUrl(lang, route));
-    await writeFile(
-      join(dir, "server.mjs"),
-      `import { createServer } from "node:http";
-import { Readable } from "node:stream";
-import { POST } from "./route.ts";
-
-createServer(async (req, res) => {
-  const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
-  const response = await POST(new Request(\`http://localhost\${req.url}\`, {
-    method: req.method,
-    headers: { "content-type": req.headers["content-type"] ?? "" },
-    body: Buffer.concat(chunks),
-  })).catch((error) => new Response(String(error.stack), { status: 500 }));
-  res.writeHead(response.status, Object.fromEntries(response.headers));
-  if (response.body) Readable.fromWeb(response.body).pipe(res);
-  else res.end();
-}).listen(${port});
-`
-    );
-    [command, args] = [node, ["server.mjs"]];
-  } else {
-    await writeFile(join(dir, "main.py"), pointAtBaseUrl(lang, route));
-    [command, args] = [python, ["-m", "uvicorn", "main:app", "--port", String(port)]];
-  }
-  const url = `http://127.0.0.1:${port}${lang === "python" ? "/api/chat" : "/"}`;
-  const server = spawn(command, args, {
-    cwd: dir,
-    env: { ...baseEnv, ...exampleEnv, BLAZING_AGENTS_AGENT_ID: agentId },
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  let log = "";
-  let exited = false;
-  server.on("exit", () => (exited = true));
-  server.stdout.on("data", (chunk) => (log += chunk));
-  server.stderr.on("data", (chunk) => (log += chunk));
-  try {
-    const post = (body) =>
-      fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-    const message = (text) => ({ id: crypto.randomUUID(), role: "user", parts: [{ type: "text", text }] });
-    let response;
-    for (let attempt = 0; !response; attempt++) {
-      try {
-        response = await post({ message: message("Say hello in one short sentence.") });
-      } catch {
-        if (exited || attempt > 100) throw new Error(`the route server did not answer\n${log}`);
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
-    }
-    const sessionId = await assertStream(response, log, true);
-    const next = await post({ message: message("Say it again."), sessionId });
-    await assertStream(next, log, false);
-  } finally {
-    server.kill();
-  }
 }
 
 async function serveRustServer(code, agentId) {
