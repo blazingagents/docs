@@ -471,12 +471,14 @@ The program is safe to run again and again. It looks up the provider and agent b
     }
     ```
 
-    Run the file once more. After the IDs, the raw stream prints as it arrives:
+    Run the file once more. After the IDs, the raw stream prints as it arrives. Lines that start with `:`, such as `: stream-open` and `: keep-alive`, are server-sent event comments that carry no data:
 
     ```text
     Provider: prv_...
     Agent: ag_...
     Session: ss_...
+    : stream-open
+
     data: {"type":"start",...}
 
     data: {"type":"text-delta","id":"...","delta":"Hello"}
