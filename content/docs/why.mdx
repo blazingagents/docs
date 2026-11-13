@@ -69,7 +69,7 @@ Blazing Agents sits behind your backend:
 2. **Your backend** signs in the user and calls Blazing Agents as that user through the [TypeScript SDK](/sdk/typescript), [Python SDK](/sdk/python), [Rust SDK](/sdk/rust), or [Go SDK](/sdk/go).
 3. **Blazing Agents** runs the turn and streams the answer back through your backend.
 
-The stream uses the Vercel AI SDK UI message format, so `useChat` from `@ai-sdk/react` renders it with no custom parsing. The [chatbot guide](/getting-started/chatbot) builds the send flow and lists how to add stop, edit, and regenerate.
+The stream uses the Vercel AI SDK UI message format, so the React hook [`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) renders it with no custom parsing. The [chatbot guide](/getting-started/chatbot) builds the send flow and lists how to add Stop and regenerate.
 
 ## When Blazing Agents is not the right fit [#when-blazing-agents-is-not-the-right-fit]
 

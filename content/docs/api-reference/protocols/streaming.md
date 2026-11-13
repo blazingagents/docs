@@ -98,7 +98,9 @@ data: {"type":"data-ba-steer-consumed","transient":true,"data":{"requestId":"req
 The event means the running turn picked up the message, not that the message
 is saved. Render it and deduplicate by `message.id`, then confirm from the history after
 the turn ends. The receipt in `GET /inputs` turns `committed` once the message
-is saved in the history.
+is saved in the history. In a React app,
+[`useBlazingAgentsChat`](/sdk/typescript/use-blazing-agents-chat) reads this
+event and confirms the message from the history for you.
 
 ## Error events [#error-events]
 
@@ -263,5 +265,6 @@ await result.text;
 ## Next [#next]
 
 - [Generation and streaming](/agents/output/generation-and-streaming) to relay streams into a frontend.
+- [Browser chat relay](/api-reference/protocols/browser-relay) to serve the React chat hook from any backend.
 - [Sessions and turns](/platform/sessions-and-turns) to continue and stop conversations.
 - [Tool approvals](/agents/tools/tool-approvals) to pause for human review.

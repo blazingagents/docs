@@ -4,6 +4,7 @@
     "index",
     "client",
     "chat-transport",
+    "use-blazing-agents-chat",
     "agents",
     "workspaces",
     "skills",

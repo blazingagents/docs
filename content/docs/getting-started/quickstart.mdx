@@ -488,7 +488,7 @@ The program is safe to run again and again. It looks up the provider and agent b
     data: [DONE]
     ```
 
-    These lines are AI SDK UI message events. In a web app your backend returns `result.toResponse()`, and the AI SDK `useChat` hook renders them as chat messages. Each run starts a new session, so you see a new `ss_...` ID every time.
+    These lines are AI SDK UI message events. In a web app your backend returns `result.toResponse()`, and the React hook `useBlazingAgentsChat` renders them as chat messages. Each run starts a new session, so you see a new `ss_...` ID every time.
 
   </Step>
 </Steps>
@@ -497,7 +497,7 @@ The program is safe to run again and again. It looks up the provider and agent b
 
 `client.chat()` without a `sessionId` starts a new session, a conversation that Blazing Agents keeps for you. You get the session ID before the answer finishes streaming, so you can save it right away. Pass it back as `sessionId` (`session_id` in Python, `.session()` on the chat call in Rust, `ChatParams.SessionID` in Go) on the next call and the agent sees the whole conversation so far.
 
-The answer arrives as a stream of server-sent events in the AI SDK UI message format, and the program prints them untouched. The stream is yours: relay it to your app, parse it, or store it. In a web app, return `result.toResponse()` from your backend and the AI SDK `useChat` hook renders it for you.
+The answer arrives as a stream of server-sent events in the AI SDK UI message format, and the program prints them untouched. The stream is yours: relay it to your app, parse it, or store it. In a web app, return `result.toResponse()` from your backend and the React hook `useBlazingAgentsChat` renders it for you.
 
 ## Next [#next]
 
