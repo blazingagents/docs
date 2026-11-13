@@ -16,7 +16,7 @@ Each agent has two policies: `approvalInChat` for chat and stateless generation,
 | `full` | Runs without approval. This is the default. |
 | `deny` | Is blocked. |
 | `manual` | Waits for a person to approve or deny it. |
-| `auto` | The agent's model allows it, denies it, or asks a person. If the review fails, the call is blocked. |
+| `auto` | A [review model](#review-model) allows it, denies it, or asks a person. If the review fails, the call is blocked. |
 
 This example lets chat tools run freely except `bash`, which needs a person, and lets tasks use only `read`. The agent needs `bash` and `read` in its `tools` for these rules to be valid:
 
@@ -96,7 +96,24 @@ To target an MCP tool, use `{ type: "mcp", connectionId, name }` with the tool's
 Sending a policy replaces it, and leaving one out keeps it as it is. Each session and task run saves its approval policy in [agent configuration](/agents/configuration-snapshots). Later policy edits apply to new work.
 
 <span id="review-availability"></span>
-Only interactive chat can wait for a person. In tasks and stateless generation, there is nobody to ask, so `manual` calls and `auto` calls that need a person are blocked, and the agent carries on with the work it is allowed to do. Automatic review uses the agent's model, so it counts toward the turn's usage.
+Only interactive chat can wait for a person. In tasks and stateless generation, there is nobody to ask, so `manual` calls and `auto` calls that need a person are blocked, and the agent carries on with the work it is allowed to do.
+
+## Choose the review model [#review-model]
+
+Automatic review uses the agent's own model unless you set `autoApprovalModel` (`auto_approval_model` in Python). Set it to a smaller model from the same provider to pay less for each review, or to `null` to use the agent's model again.
+
+Set a provider and a model on the agent first. The platform checks the review model against the provider's model list, the same way it checks `model`. If you change the agent's `providerId` without sending `autoApprovalModel`, it resets to `null`. Review tokens count toward the turn's usage and its [model spending limits](/platform/usage-and-spending-limits#model-spending-limits).
+
+We recommend these review models:
+
+| Provider type | Review model |
+| --- | --- |
+| `openai` | `gpt-6-luna` |
+| `anthropic` | `claude-haiku-5-5` |
+| `openrouter` | `openai/gpt-6-luna` or `anthropic/claude-haiku-5.5` |
+| `vercel_ai_gateway` | `openai/gpt-6-luna` or `anthropic/claude-haiku-5.5` |
+
+For `google` and `custom` providers, pick a small, fast model that your provider lists. We update this table when vendors ship new small models. An agent keeps the review model you set, so a change here never changes your agents.
 
 <span id="when-a-tool-needs-approval"></span>
 <span id="approval-and-continuation-lifecycle"></span>
