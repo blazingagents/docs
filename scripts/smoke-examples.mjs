@@ -27,7 +27,7 @@ const CARGO = process.env.SMOKE_RUST ?? "cargo";
 const GO = process.env.SMOKE_GO ?? "go";
 const RUST_SDK = process.env.SMOKE_RUST_SDK;
 const PYTHON_SDK =
-  process.env.SMOKE_PYTHON_SDK ?? "blazing-agents==0.35.0";
+  process.env.SMOKE_PYTHON_SDK ?? "blazing-agents==0.35.1";
 const PYTHON_SERVER_DEPS = ["fastapi==0.141.1", "uvicorn==0.53.0"];
 const PLACEHOLDER_OPENROUTER_KEY = "sk-or-smoke-placeholder";
 const TIMEOUT_MS = 180_000;
