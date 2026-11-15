@@ -297,7 +297,7 @@ if (response.body) {
 Add the pieces your review page needs next, by hand or by asking your coding agent:
 
 - **Decide the whole round.** Collect a decision for every pending call before you post. The calls in one round wait together, so keep all of their buttons on screen until every one is answered.
-- **Show errors.** A status that is not OK means the decisions were not accepted. A failure in the resumed turn arrives as an `error` chunk at the end of the stream.
+- **Show errors.** A status that is not OK means the resumed turn did not start, and [retries and busy sessions](#retries-and-busy-sessions) says which calls to send again. A failure in the resumed turn arrives as an `error` chunk at the end of the stream.
 - **Show the outcome.** Once the stream ends, reload the session's newest messages page to show the saved result.
 
 ## Retries and busy sessions [#retries-and-busy-sessions]
@@ -305,7 +305,8 @@ Add the pieces your review page needs next, by hand or by asking your coding age
 - Sending the same decisions again is safe; the first recorded reason wins. Reversing a decision returns [`tool_approval_decision_conflict`](/api-reference/protocols/errors#tool_approval_decision_conflict).
 - Retrying after the round already finished returns [`tool_approval_continuation_settled`](/api-reference/protocols/errors#tool_approval_continuation_settled). Read the history for the outcome instead of sending again.
 - Retrying while a continuation for the round is already running returns `session_busy`.
-- An error from finding the session, agent, or provider, such as `not_found`, `agent_disabled`, or `tenant_deleting`, leaves the round waiting, so send the same call again once it is fixed. A billing, rate, or spending refusal, such as `usage_credit_required`, `rate_limited`, or `model_spending_limit_exceeded`, or a failure after the turn starts, fails the round, and a retry returns `tool_approval_continuation_settled`.
+- A refusal before the turn starts leaves the round waiting with your decisions recorded. Send the same call again once the cause is gone, and the approved tool runs then, so nobody has to ask or approve again. This covers an error from finding the session, agent, or provider, such as `not_found`, `agent_disabled`, or `tenant_deleting`, and a billing, rate, or spending refusal, such as `usage_credit_required`, `rate_limited`, or `model_spending_limit_exceeded`. Until that call goes through, new chat turns keep returning `session_busy`.
+- A failure after the turn starts fails the round, and a retry returns `tool_approval_continuation_settled`.
 - Deleting the session while its round waits for a continue call fails the round.
 - If the session's previous turn stopped responding, the call returns [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) with a `Retry-After` header. Your decisions stay recorded, so send the same call again after that many seconds.
 - While approvals are pending or a continuation is running, new chat turns and regeneration return [`session_busy`](/api-reference/protocols/errors#session_busy). Its `details.reason` is `approval_pending` while a decision is missing, and `continuation_waiting` once the round is decided but not yet continued. Either clears when you send the round's decisions in one `continueChat()` call.
