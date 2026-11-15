@@ -811,7 +811,7 @@
       "whatHappened": "You cannot remove or replace your merchant connection while a turn or task run that started on this connection is still running, or while one of its usage events is `pending`. Removing the connection now would lose that usage.",
       "howToFix": [
         "Wait for running turns and task runs to finish and for pending events to be delivered, then try again.",
-        "If a `pending` event's `nextAction` is `retry`, its automatic delivery gave up. Retry it. It ends `accepted` or `failed`, and a `failed` event no longer blocks removal."
+        "If a `pending` event's `nextAction` is `retry`, its delivery stopped. Blazing Agents retries it on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner. After the fourth automatic retry it blocks until you retry it. A retried event ends `accepted` or `failed`, and a `failed` event no longer blocks removal."
       ],
       "retryable": true
     },
@@ -888,7 +888,7 @@
       "group": "plan-and-billing",
       "statuses": [409],
       "title": "The usage event's status does not allow this action.",
-      "whatHappened": "Retry works on `failed` events and on `pending` events whose automatic delivery gave up. Discard works only on events your provider has not accepted.",
+      "whatHappened": "Retry works on `failed` events and on `pending` events whose delivery stopped, which have `nextAction` `retry`. Discard works only on events your provider has not accepted.",
       "howToFix": [
         "Read the event's `status` and `nextAction`, and take the suggested action. See [delivery states](/platform/monetization#delivery-states)."
       ],

@@ -88,7 +88,7 @@ Setters you do not call keep their values. Fails with `validation_failed`, [`mer
 
 **Signature:** `merchant_connection().retire() -> Call<RetireMerchantConnection>`
 
-Retires the connection. Its `Failed` events are discarded and its credential is deleted at once, so nothing more is delivered through it. Fails with `merchant_connection_not_found`, or with `merchant_connection_in_use` while a turn or task run that started on it is still running or one of its events is `Pending`. Try again once they finish; a `Pending` event whose `next_action` is `Retry` also blocks until you [retry](#retry-event) it.
+Retires the connection. Its `Failed` events are discarded and its credential is deleted at once, so nothing more is delivered through it. Fails with `merchant_connection_not_found`, or with `merchant_connection_in_use` while a turn or task run that started on it is still running or one of its events is `Pending`. Try again once they finish. A `Pending` event whose `next_action` is `Retry` also blocks. Blazing Agents retries it on its own after 5, 10, 20 and 40 minutes, and you can [retry](#retry-event) it sooner; after the fourth automatic retry it blocks until you retry it.
 
 ## Bindings [#bindings]
 
@@ -136,7 +136,7 @@ Shows whether usage is reaching your provider. The `days` setter sets how many U
 
 **Signature:** `merchant_usage_events().retry(event_id: impl Into<MerchantUsageEventId>) -> Call<RetryMerchantUsageEvent>`
 
-Sends a `Failed` event again, or a `Pending` event whose `next_action` is `Retry` because automatic delivery gave up. The event goes back to `Pending` with the same payload. Retrying is safe, because your provider drops duplicates by event ID. Fix the cause of a `Failed` event, such as a revoked credential, first. Fails with `validation_failed`, `merchant_event_not_found`, or [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict) for any other status.
+Sends a `Failed` event again, or a `Pending` event whose `next_action` is `Retry` because its delivery stopped. Blazing Agents retries a stopped delivery on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner; after the fourth automatic retry the event stays `Pending` until you retry it. The event goes back to `Pending` with the same payload. Retrying is safe, because your provider drops duplicates by event ID. Fix the cause of a `Failed` event, such as a revoked credential, first. Fails with `validation_failed`, `merchant_event_not_found`, or [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict) for any other status.
 
 ### `discard()` [#discard-event]
 

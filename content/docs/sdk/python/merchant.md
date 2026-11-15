@@ -106,7 +106,7 @@ client.merchant_connection.retire()
 
 **Signature:** `retire() -> None`
 
-The connection's `failed` events are discarded and its credential is deleted at once. Raises `merchant_connection_not_found`, or `merchant_connection_in_use` while a turn or task run that started on it is still running or one of its events is `pending`. A `pending` event whose `next_action` is `"retry"` also blocks removal until you retry it.
+The connection's `failed` events are discarded and its credential is deleted at once. Raises `merchant_connection_not_found`, or `merchant_connection_in_use` while a turn or task run that started on it is still running or one of its events is `pending`. A `pending` event whose `next_action` is `"retry"` also blocks removal. Blazing Agents retries it on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner; after the fourth automatic retry it blocks until you retry it.
 
 ## Customer links [#bindings]
 
@@ -221,7 +221,7 @@ print(summary.counts.failed, summary.oldest_pending_occurred_at)
 
 ### `merchant_usage_events.retry()` [#events-retry]
 
-Sends a `failed` event again, or a `pending` event whose automatic delivery gave up. The event goes back to `pending` with the same payload.
+Sends a `failed` event again, or a `pending` event whose delivery stopped. Blazing Agents retries a stopped delivery on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner; after the fourth automatic retry the event stays `pending` until you retry it. The event goes back to `pending` with the same payload.
 
 ```python
 event = client.merchant_usage_events.retry("mev_0123456789abcdef").event
@@ -298,7 +298,7 @@ A connection response that contains a credential raises `CredentialEchoError`. S
 | `accepted_at` | `datetime \| None` | When your provider accepted the event |
 | `next_action` | `str` | `"none"`, `"wait"`, `"retry"`, `"investigate"`, or `"discard"` |
 
-`next_action` is `"retry"` for a `failed` event and for a `pending` event whose automatic delivery gave up, and `"wait"` for any other `pending` event.
+`next_action` is `"retry"` for a `failed` event and for a `pending` event whose delivery stopped, and `"wait"` for any other `pending` event.
 
 ### `MerchantUsageSummaryResponse` [#merchantusagesummaryresponse]
 
