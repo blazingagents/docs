@@ -214,7 +214,7 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/merchant-connection" \
 
 Retire the merchant connection.
 
-Retires your current merchant connection. While a turn or task run that started on the connection is still running or one of its usage events is `pending`, the connection cannot be retired and the request fails with `merchant_connection_in_use`; try again once those requests finish and those events are delivered. A `pending` event whose automatic delivery gave up also blocks until you retry it. When the connection is retired, its `failed` events are discarded and Blazing Agents deletes its credential at once, so nothing more is delivered through it. New usage is no longer recorded against a retired connection. Create a new connection to start again.
+Retires your current merchant connection. While a turn or task run that started on the connection is still running or one of its usage events is `pending`, the connection cannot be retired and the request fails with `merchant_connection_in_use`; try again once those requests finish and those events are delivered. A `pending` event whose delivery stopped also blocks. Blazing Agents retries it on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner; after the fourth automatic retry it blocks until you retry it. When the connection is retired, its `failed` events are discarded and Blazing Agents deletes its credential at once, so nothing more is delivered through it. New usage is no longer recorded against a retired connection. Create a new connection to start again.
 
 #### Request
 
@@ -397,7 +397,7 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/merchant-connection/bindings/
 
 List merchant usage events.
 
-Lists the usage events Blazing Agents records for your billing provider, one per turn, newest first. Each event has a delivery `status` and a suggested `nextAction`: `wait`, `retry`, `investigate`, `discard`, or `none`. A `pending` event whose automatic delivery has given up has `nextAction` `retry`. Pass `nextCursor` as `cursor` to get the next page; it is `null` on the last page.
+Lists the usage events Blazing Agents records for your billing provider, one per turn, newest first. Each event has a delivery `status` and a suggested `nextAction`: `wait`, `retry`, `investigate`, `discard`, or `none`. A `pending` event whose delivery stopped has `nextAction` `retry`. Blazing Agents retries it on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner; after the fourth automatic retry it stays `pending` until you retry it. Pass `nextCursor` as `cursor` to get the next page; it is `null` on the last page.
 
 #### Request
 
@@ -678,7 +678,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/merchant-usage-events/mev_1234567890ABCDEF" \
 
 Retry a merchant usage event.
 
-Sends a `failed` event to your provider again, or a `pending` event that automatic delivery gave up on. The event goes back to `pending` with the same payload. Retrying is safe: your provider drops duplicates by the event ID. Fix the cause of a `failed` event, such as a revoked credential, before you retry it.
+Sends a `failed` event to your provider again, or a `pending` event whose delivery stopped. Blazing Agents retries a stopped delivery on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner; after the fourth automatic retry the event stays `pending` until you retry it. The event goes back to `pending` with the same payload. Retrying is safe: your provider drops duplicates by the event ID. Fix the cause of a `failed` event, such as a revoked credential, before you retry it.
 
 #### Request
 
