@@ -1179,7 +1179,7 @@ HTTP `409`. Retrying the same request can succeed.
 To fix it:
 
 - Wait for running turns and task runs to finish and for pending events to be delivered, then try again.
-- If a `pending` event's `nextAction` is `retry`, its automatic delivery gave up. Retry it. It ends `accepted` or `failed`, and a `failed` event no longer blocks removal.
+- If a `pending` event's `nextAction` is `retry`, its delivery stopped. Blazing Agents retries it on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner. After the fourth automatic retry it blocks until you retry it. A retried event ends `accepted` or `failed`, and a `failed` event no longer blocks removal.
 
 ### `merchant_credential_invalid` [#merchant_credential_invalid]
 
@@ -1259,7 +1259,7 @@ To fix it:
 
 **The usage event's status does not allow this action.**
 
-Retry works on `failed` events and on `pending` events whose automatic delivery gave up. Discard works only on events your provider has not accepted.
+Retry works on `failed` events and on `pending` events whose delivery stopped, which have `nextAction` `retry`. Discard works only on events your provider has not accepted.
 
 HTTP `409`. Retrying the same request fails the same way until you fix the cause.
 

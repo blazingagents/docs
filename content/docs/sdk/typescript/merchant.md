@@ -104,7 +104,7 @@ Removes your connection. Nothing more is delivered through it, and new usage is 
 await client.merchantConnection.retire();
 ```
 
-The connection's `failed` events are discarded and its credential is deleted at once. Errors: `merchant_connection_not_found`, and `merchant_connection_in_use` while a turn or task run that started on it is still running or one of its events is `pending`. A `pending` event whose `nextAction` is `retry` also blocks removal until you retry it.
+The connection's `failed` events are discarded and its credential is deleted at once. Errors: `merchant_connection_not_found`, and `merchant_connection_in_use` while a turn or task run that started on it is still running or one of its events is `pending`. A `pending` event whose `nextAction` is `retry` also blocks removal. Blazing Agents retries it on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner; after the fourth automatic retry it blocks until you retry it.
 
 ## Customer links [#bindings]
 
@@ -202,7 +202,7 @@ console.log(summary.counts.failed, summary.oldestPendingOccurredAt);
 
 ### `merchantUsageEvents.retry()` [#events-retry]
 
-Sends a `failed` event again, or a `pending` event whose automatic delivery gave up. The event goes back to `pending` with the same payload.
+Sends a `failed` event again, or a `pending` event whose delivery stopped. Blazing Agents retries a stopped delivery on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner; after the fourth automatic retry the event stays `pending` until you retry it. The event goes back to `pending` with the same payload.
 
 **Signature:** `retry(input: { eventId: string } & ResourceRequestOptions): Promise<MerchantUsageEventResponse>`
 
@@ -318,7 +318,7 @@ type MerchantUsageEventStatus =
   | "expired";
 ```
 
-`nextAction` is `retry` for a `failed` event and for a `pending` event whose automatic delivery gave up, and `wait` for any other `pending` event. `sessionId` is `null` for turns without a session. `lastErrorCode` is the code of the last failed delivery attempt, or `null`.
+`nextAction` is `retry` for a `failed` event and for a `pending` event whose delivery stopped, and `wait` for any other `pending` event. `sessionId` is `null` for turns without a session. `lastErrorCode` is the code of the last failed delivery attempt, or `null`.
 
 ### `MerchantUsageSummaryResponse` [#merchantusagesummaryresponse]
 

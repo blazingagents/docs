@@ -258,7 +258,7 @@ The guard checks only when a turn starts. A turn can still run past a balance wh
 
 | Status | Meaning | Next action |
 | ------ | ------- | ----------- |
-| `pending` | Waiting or being delivered | `wait`, or `retry` once automatic delivery gives up |
+| `pending` | Waiting or being delivered | `wait`, or `retry` when its delivery stopped. Blazing Agents retries a stopped delivery on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner. After the fourth automatic retry the event stays `pending` until you retry it |
 | `accepted` | Your provider confirmed it | none |
 | `failed` | Your provider rejected it, for example because of a revoked credential, or delivery ran out of retries | `retry` after you fix the cause. A retry is safe because duplicates are dropped |
 | `incomplete` | The turn's usage was not fully measured | `investigate` |
