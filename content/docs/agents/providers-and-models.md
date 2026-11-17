@@ -174,7 +174,7 @@ With `vercel_ai_gateway`, you store only your Gateway key. Vercel handles the un
 
 ## Thinking level [#thinking-level]
 
-Reasoning models can think before they answer. An agent's `thinkingLevel` picks how much. Leave it `null` to use the provider's default, which sends no reasoning setting at all. `"off"` turns thinking off where the model supports that, which is not the same as the default.
+Reasoning models can think before they answer. An agent's `thinkingLevel` picks how much. Leave it `null` to use the provider's default, which sends no reasoning setting at all. `"off"` turns thinking off where the model supports that, which is not the same as the default. Google models are the exception: a `null` level sends a Gemini model the same setting as `"off"`, or its lowest level when the model cannot stop thinking.
 
 Ask which levels a model supports before you set one:
 
@@ -248,7 +248,7 @@ if choices.Known && len(choices.Levels) > 0 {
 return err
 ```
 
-When the levels are known, Blazing Agents rejects any other value with `invalid_request` and lists the valid choices in `details.supportedLevels`. When they are unknown, it accepts any non-empty string, and a value the model does not understand fails when the agent runs. The exception is a `vercel_ai_gateway` model whose ID does not start with `openai/`, `anthropic/` or `google/`. It takes only `off`, `minimal`, `low`, `medium`, `high`, `xhigh` and `max`, even when its levels are unknown, so any other string is rejected when you save the agent. Blazing Agents never swaps in another level or retries without one.
+When the levels are known, Blazing Agents rejects any other value with `invalid_request` and lists the valid choices in `details.supportedLevels`. When they are unknown, it accepts any non-empty string, and a value the model does not understand fails when the agent runs. The exception is a model on an `anthropic`, `google` or `vercel_ai_gateway` provider. It takes only `off`, `minimal`, `low`, `medium` and `high` when its levels are unknown, so any other string is rejected when you save the agent. Blazing Agents never swaps in another level or retries without one.
 
 A thinking level is not a token or cost cap, and the same level can behave differently on different models. In the dashboard, changing the provider or model resets the level to the provider default.
 
