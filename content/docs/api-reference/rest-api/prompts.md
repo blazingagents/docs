@@ -70,6 +70,9 @@ Response schema: `PromptList`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -133,6 +136,9 @@ Response schema: `Prompt`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -194,6 +200,9 @@ Response schema: `Prompt`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -258,6 +267,9 @@ Response schema: `Prompt`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -297,6 +309,9 @@ Returns `204 No Content`. The prompt was deleted.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

@@ -57,6 +57,9 @@ Response schema: `ProviderList`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -111,6 +114,9 @@ Response schema: `Provider`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `409` | [`provider_name_conflict`](/api-reference/protocols/errors#provider_name_conflict) | The request conflicts with the resource's current state |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -163,7 +169,9 @@ Response schema: `ProviderModelList`.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
 | `422` | [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported) | The request was understood but rejected |
-| `503` | [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable) | The service is temporarily unavailable |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -216,6 +224,9 @@ Response schema: `ProviderThinkingLevels`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -267,6 +278,9 @@ Response schema: `Provider`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -320,6 +334,9 @@ Response schema: `Provider`.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
 | `409` | [`provider_name_conflict`](/api-reference/protocols/errors#provider_name_conflict) | The request conflicts with the resource's current state |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -361,6 +378,9 @@ Returns `204 No Content`. The provider was deleted.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
 | `409` | [`provider_in_use`](/api-reference/protocols/errors#provider_in_use), [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) | The request conflicts with the resource's current state |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

@@ -99,6 +99,9 @@ Response schema: `SessionList`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -146,8 +149,9 @@ Returns `201 Created` as `text/event-stream`. Server-sent events, each carrying 
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
 | `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`agent_deleting`](/api-reference/protocols/errors#agent_deleting), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting), [`mcp_connection_needs_auth`](/api-reference/protocols/errors#mcp_connection_needs_auth) | The request conflicts with the resource's current state |
 | `429` | [`rate_limited`](/api-reference/protocols/errors#rate_limited), [`model_spending_limit_exceeded`](/api-reference/protocols/errors#model_spending_limit_exceeded) | Too many requests |
-| `502` | [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | An upstream service failed |
-| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -214,6 +218,9 @@ Response schema: `LatestSessionList`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -298,6 +305,9 @@ Response schema: `Session`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -346,8 +356,9 @@ Returns `200 OK` as `text/event-stream`. Server-sent events, each carrying one A
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`message_not_found`](/api-reference/protocols/errors#message_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
 | `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`agent_deleting`](/api-reference/protocols/errors#agent_deleting), [`session_busy`](/api-reference/protocols/errors#session_busy), [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive), [`message_id_conflict`](/api-reference/protocols/errors#message_id_conflict), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting), [`mcp_connection_needs_auth`](/api-reference/protocols/errors#mcp_connection_needs_auth) | The request conflicts with the resource's current state |
 | `429` | [`rate_limited`](/api-reference/protocols/errors#rate_limited), [`model_spending_limit_exceeded`](/api-reference/protocols/errors#model_spending_limit_exceeded) | Too many requests |
-| `502` | [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | An upstream service failed |
-| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -390,6 +401,9 @@ Returns `204 No Content`. The session was deleted.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`session_busy`](/api-reference/protocols/errors#session_busy), [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive) | The request conflicts with the resource's current state |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -532,6 +546,9 @@ Response schema: `Session`.
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict), [`session_fork_unavailable`](/api-reference/protocols/errors#session_fork_unavailable) | The request conflicts with the resource's current state |
 | `410` | [`session_fork_deleted`](/api-reference/protocols/errors#session_fork_deleted) | The resource was deleted |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -608,6 +625,9 @@ Response schema: `SessionMessageList`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -676,6 +696,9 @@ Response schema: `ToolApprovalList`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -721,8 +744,9 @@ Returns `200 OK` as `text/event-stream`. The continuation as an ordinary AI SDK 
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
 | `409` | [`session_busy`](/api-reference/protocols/errors#session_busy), [`session_turn_unresponsive`](/api-reference/protocols/errors#session_turn_unresponsive), [`tool_approval_decision_conflict`](/api-reference/protocols/errors#tool_approval_decision_conflict), [`tool_approval_continuation_settled`](/api-reference/protocols/errors#tool_approval_continuation_settled), [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`agent_deleting`](/api-reference/protocols/errors#agent_deleting), [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting), [`mcp_connection_needs_auth`](/api-reference/protocols/errors#mcp_connection_needs_auth) | The request conflicts with the resource's current state |
 | `429` | [`rate_limited`](/api-reference/protocols/errors#rate_limited), [`model_spending_limit_exceeded`](/api-reference/protocols/errors#model_spending_limit_exceeded) | Too many requests |
-| `502` | [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | An upstream service failed |
-| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -772,6 +796,9 @@ Returns `200 OK` as `application/json`. The claim was granted to this `claimRequ
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`function_call_conflict`](/api-reference/protocols/errors#function_call_conflict) | The request conflicts with the resource's current state |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -825,6 +852,9 @@ Returns `200 OK` as `application/json`. The outcome was accepted.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`function_call_conflict`](/api-reference/protocols/errors#function_call_conflict) | The request conflicts with the resource's current state |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -899,6 +929,9 @@ Returns `200 OK` as `application/json`. Inputs in arrival order and the session'
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -968,6 +1001,9 @@ Returns `202 Accepted` as `application/json`. The steer receipt and the session'
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`input_idempotency_conflict`](/api-reference/protocols/errors#input_idempotency_conflict), [`steer_not_available`](/api-reference/protocols/errors#steer_not_available) | The request conflicts with the resource's current state |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -1018,6 +1054,9 @@ Returns `200 OK` as `application/json`. The stopped turn's ID and the session's 
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

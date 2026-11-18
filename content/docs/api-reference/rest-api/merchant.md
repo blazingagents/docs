@@ -61,6 +61,9 @@ Response schema: `MerchantConnectionResponse`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -127,7 +130,9 @@ Response schema: `MerchantConnectionResponse`.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `409` | [`merchant_connection_in_use`](/api-reference/protocols/errors#merchant_connection_in_use) | The request conflicts with the resource's current state |
 | `422` | [`merchant_credential_invalid`](/api-reference/protocols/errors#merchant_credential_invalid) | The request was understood but rejected |
-| `503` | [`merchant_provider_unavailable`](/api-reference/protocols/errors#merchant_provider_unavailable) | The service is temporarily unavailable |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal), [`merchant_provider_unavailable`](/api-reference/protocols/errors#merchant_provider_unavailable) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -197,7 +202,9 @@ Response schema: `MerchantConnectionResponse`.
 | `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
 | `409` | [`merchant_account_mismatch`](/api-reference/protocols/errors#merchant_account_mismatch) | The request conflicts with the resource's current state |
 | `422` | [`merchant_credential_invalid`](/api-reference/protocols/errors#merchant_credential_invalid) | The request was understood but rejected |
-| `503` | [`merchant_provider_unavailable`](/api-reference/protocols/errors#merchant_provider_unavailable) | The service is temporarily unavailable |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal), [`merchant_provider_unavailable`](/api-reference/protocols/errors#merchant_provider_unavailable) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -236,6 +243,9 @@ Returns `204 No Content`. The connection was retired.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
 | `409` | [`merchant_connection_in_use`](/api-reference/protocols/errors#merchant_connection_in_use) | The request conflicts with the resource's current state |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -291,6 +301,9 @@ Response schema: `MerchantBindingList`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -343,7 +356,9 @@ Response schema: `MerchantBindingResponse`.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
 | `422` | [`merchant_customer_not_found`](/api-reference/protocols/errors#merchant_customer_not_found) | The request was understood but rejected |
-| `503` | [`merchant_provider_unavailable`](/api-reference/protocols/errors#merchant_provider_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal), [`merchant_provider_unavailable`](/api-reference/protocols/errors#merchant_provider_unavailable), [`merchant_eligibility_unavailable`](/api-reference/protocols/errors#merchant_eligibility_unavailable) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -383,6 +398,9 @@ Returns `204 No Content`. The binding was deleted.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found), [`merchant_binding_not_found`](/api-reference/protocols/errors#merchant_binding_not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -504,6 +522,9 @@ Response schema: `MerchantUsageEventList`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -573,6 +594,9 @@ Response schema: `MerchantUsageSummary`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -664,6 +688,9 @@ Response schema: `MerchantUsageEventResponse`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`merchant_event_not_found`](/api-reference/protocols/errors#merchant_event_not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -756,6 +783,9 @@ Response schema: `MerchantUsageEventResponse`.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`merchant_event_not_found`](/api-reference/protocols/errors#merchant_event_not_found) | The resource was not found |
 | `409` | [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict) | The request conflicts with the resource's current state |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -848,6 +878,9 @@ Response schema: `MerchantUsageEventResponse`.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`merchant_event_not_found`](/api-reference/protocols/errors#merchant_event_not_found) | The resource was not found |
 | `409` | [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict) | The request conflicts with the resource's current state |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 

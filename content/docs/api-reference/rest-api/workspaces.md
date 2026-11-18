@@ -71,6 +71,9 @@ Response schema: `WorkspaceList`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -137,7 +140,9 @@ Response schema: `Workspace`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `429` | [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
-| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable) | The service is temporarily unavailable |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -200,6 +205,9 @@ Response schema: `Workspace`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
 | `404` | [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -263,7 +271,9 @@ Response schema: `Workspace`.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
 | `409` | [`workspace_busy`](/api-reference/protocols/errors#workspace_busy) | The request conflicts with the resource's current state |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
@@ -304,6 +314,9 @@ Returns `204 No Content`. The workspace was deleted.
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
 | `409` | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use) | The request conflicts with the resource's current state |
+| `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
+| `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
+| `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
 
 See [REST errors](/api-reference/protocols/errors) for the error envelope and shared codes.
 
