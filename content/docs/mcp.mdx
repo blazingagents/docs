@@ -118,7 +118,9 @@ The server checks the key before any tool runs. A missing or unknown key gets HT
 
 An account without an active subscription can still connect, list its tools, and cancel a task run with `taskRuns_cancelById`. Every other tool returns a [`subscription_required`](/api-reference/protocols/errors#subscription_required) error.
 
-A refused or failed call returns a tool error, not a protocol error. The error carries the same code as the REST API, such as [`not_found`](/api-reference/protocols/errors#not_found) or [`validation_failed`](/api-reference/protocols/errors#validation_failed). See [errors](/api-reference/protocols/errors) for every code.
+A refused or failed call returns a tool error, not a protocol error. An error from Blazing Agents carries the same code as the REST API, such as [`not_found`](/api-reference/protocols/errors#not_found). See [errors](/api-reference/protocols/errors) for every code.
+
+Arguments that a tool's input schema refuses are the exception. The tool does not run, and its error is a plain-text `Input validation error` message with no code. This check comes first, so an account without an active subscription gets it too.
 
 ## Next [#next]
 
