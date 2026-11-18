@@ -495,6 +495,17 @@
       "retryable": false
     },
     {
+      "code": "tool_approval_outdated",
+      "group": "sessions-and-turns",
+      "statuses": [],
+      "title": "The agent changed while the approval waited.",
+      "whatHappened": "A connection, skill, or workspace of the agent changed after the agent asked for this approval. The approved tool did not run, and the approval round ended as failed.",
+      "howToFix": [
+        "Send the message again. The agent asks for approval again when it calls the tool. See [tool approvals](/agents/tools/tool-approvals#retries-and-busy-sessions)."
+      ],
+      "retryable": false
+    },
+    {
       "code": "agent_mcp_connection_not_found",
       "group": "tools-and-mcp",
       "statuses": [400],
