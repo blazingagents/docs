@@ -17,6 +17,10 @@ reads them at `/.ba-agents/{agentId}/skills/{skillId}/{relativePath}` with its
 `read` tool; that path is not a real file in the workspace. JSON skill
 responses include the skill's metadata and its current list of files.
 
+Create, upload, and copy take an optional `Idempotency-Key` header, so a retry
+after a lost response returns the skill the first request created instead of
+`skill_name_conflict`. See [retry a create safely](/agents/skills#retry-a-create).
+
 ## Endpoints [#endpoints]
 
 ### GET /v1/agents/:agentId/skills [#list-skills]

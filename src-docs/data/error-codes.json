@@ -157,10 +157,11 @@
       "group": "requests-and-validation",
       "statuses": [409],
       "title": "This idempotency key belongs to a different request.",
-      "whatHappened": "A task create request reused a key with different task fields, or the original task was deleted. No new task or run was created. A session fork reused a key with a different selected message.",
+      "whatHappened": "A task create request reused a key with different task fields, or the original task was deleted. No new task or run was created. A session fork reused a key with a different selected message. A skill create or upload reused a key with different files, or a skill copy reused a key that already made a copy of a different skill on that destination. No skill was created.",
       "howToFix": [
         "Retry with the original request fields, or use a new key for a different task.",
-        "For a fork retry, keep the original source, message ID, and key. Use a new key only for a separate fork request."
+        "For a fork retry, keep the original source, message ID, and key. Use a new key only for a separate fork request.",
+        "For a skill retry, send the same files, or copy the same source skill, with the original key. Use a new key for a different skill."
       ],
       "retryable": false
     },
@@ -675,7 +676,8 @@
       "title": "The agent already has a skill with this name.",
       "whatHappened": "Skill names are unique within each agent. Nothing was created or changed.",
       "howToFix": [
-        "Rename the skill, or update the existing skill instead."
+        "Rename the skill, or update the existing skill instead.",
+        "If you are retrying a create that timed out or failed with a `5xx`, the first request may have created the skill. Send an `Idempotency-Key` header with each create so a retry returns that skill. See [retry a create safely](/agents/skills#retry-a-create)."
       ],
       "retryable": false
     },

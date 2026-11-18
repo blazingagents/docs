@@ -421,7 +421,7 @@ To fix it:
 
 **This idempotency key belongs to a different request.**
 
-A task create request reused a key with different task fields, or the original task was deleted. No new task or run was created. A session fork reused a key with a different selected message.
+A task create request reused a key with different task fields, or the original task was deleted. No new task or run was created. A session fork reused a key with a different selected message. A skill create or upload reused a key with different files, or a skill copy reused a key that already made a copy of a different skill on that destination. No skill was created.
 
 HTTP `409`. Retrying the same request fails the same way until you fix the cause.
 
@@ -429,6 +429,7 @@ To fix it:
 
 - Retry with the original request fields, or use a new key for a different task.
 - For a fork retry, keep the original source, message ID, and key. Use a new key only for a separate fork request.
+- For a skill retry, send the same files, or copy the same source skill, with the original key. Use a new key for a different skill.
 
 ### `validation_failed` [#validation_failed]
 
@@ -1024,6 +1025,7 @@ HTTP `409`. Retrying the same request fails the same way until you fix the cause
 To fix it:
 
 - Rename the skill, or update the existing skill instead.
+- If you are retrying a create that timed out or failed with a `5xx`, the first request may have created the skill. Send an `Idempotency-Key` header with each create so a retry returns that skill. See [retry a create safely](/agents/skills#retry-a-create).
 
 ### `skill_not_found` [#skill_not_found]
 

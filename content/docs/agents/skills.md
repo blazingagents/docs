@@ -226,6 +226,10 @@ Skill files are read-only to the agent and are not part of its [workspace](/agen
 
 Each agent can have a [limited number of skills](/api-reference/protocols/service-limits#skills-per-agent). Treat skill content like code: review changes, and keep secrets out of it. For every method, see the [TypeScript](/sdk/typescript/skills), [Python](/sdk/python/skills), [Rust](/sdk/rust/skills), or [Go](/sdk/go/skills) SDK.
 
+## Retry a create safely [#retry-a-create]
+
+A create can time out or fail with a `5xx` after the skill was saved, and a plain retry then fails with [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict). To retry safely, send an `Idempotency-Key` header with [create](/api-reference/rest-api/skills#create-skill), [upload](/api-reference/rest-api/skills#upload-skill), or [copy](/api-reference/rest-api/skills#copy-skill), and retry with the same key and the same request. The retry returns `201` with the skill the first request created, and a copy retry returns each destination's existing copy as `created`. The same key with different files fails with [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict). For a copy, a destination where the key already made a copy of a different skill is `failed` with that code. A key belongs to one agent and lasts as long as its skill, so deleting the skill frees it.
+
 ## Skills for your coding assistant [#skills-for-your-coding-assistant]
 
 The [Blazing Agents skill catalog](https://skills.sh/blazingagents/skills) is a different thing: skills that help your local coding assistant write code against Blazing Agents. Installing one sets up your assistant and does not add anything to your agents.
