@@ -166,7 +166,7 @@ A download URL works for five minutes.
 
 Your API key can read every artifact in your account, so check in your backend that the signed-in user may see an artifact before you create its download URL. Treat the URL like a password and keep it out of logs.
 
-Treat filenames, media types, and contents as untrusted, because the agent produced them. Downloads are always served as attachments, but your application should still validate what it opens or displays.
+Treat filenames, media types, and contents as untrusted, because the agent produced them. A download URL always answers as an attachment with the artifact's filename, so a browser saves the file instead of opening it. Your application should still validate what it opens or displays.
 
 Deleting an artifact is permanent. When you delete an agent or a session, you choose whether its artifacts are deleted or kept.
 

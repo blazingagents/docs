@@ -28,9 +28,9 @@ non-null value must be non-empty and needs a configured provider and model.
 Agent responses include it. A level the model cannot be sent returns
 `400 invalid_request` with `param` set to `/thinkingLevel` and the valid
 choices in `details.supportedLevels`, and nothing is saved. A model whose levels
-are unknown accepts any string, except a `vercel_ai_gateway` model whose ID does
-not start with `openai/`, `anthropic/` or `google/`. That model takes only `off`,
-`minimal`, `low`, `medium`, `high`, `xhigh` and `max`. On the
+are unknown accepts any string on an `openai`, `openrouter` or `custom`
+provider. On an `anthropic`, `google` or `vercel_ai_gateway` provider it takes
+only `off`, `minimal`, `low`, `medium` and `high`. On the
 [admin agent](/agents/agents#the-admin-agent) you can change the thinking level
 along with its provider and model, but nothing else.
 
