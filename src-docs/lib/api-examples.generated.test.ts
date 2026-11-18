@@ -197,8 +197,9 @@ describe("generated REST API examples", () => {
       "403",
       "404",
       "429",
-      "503",
       "500",
+      "502",
+      "503",
     ]);
     expect(JSON.parse(errors[0]?.code ?? "")).toEqual({
       error: { code: "invalid_request", message: "The request is invalid." },
@@ -209,7 +210,7 @@ describe("generated REST API examples", () => {
       error: { code: "forbidden" },
     });
     expect(byStatus("500")).toEqual({
-      error: { code: "internal", message: "Internal Server Error" },
+      error: { code: "internal", message: "The request failed on our side." },
     });
     for (const candidate of operations) {
       for (const status of ["401", "500", "503"]) {

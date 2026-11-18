@@ -1391,9 +1391,9 @@ Failures on the Blazing Agents side.
 
 **Something failed on the Blazing Agents side.**
 
-The failure has no specific code you can act on. The status hints at the cause: `500` is an unexpected error, `502` and `503` mean a part of the service did not respond, and `400` or `409` mean an internal step found conflicting state, often because two requests raced.
+The failure has no specific code you can act on. The status hints at the cause: `500` is an unexpected error, and `502` and `503` mean a part of the service did not respond.
 
-HTTP `400`, `409`, `500`, `502`, or `503`. Retrying the same request can succeed.
+HTTP `500`, `502`, or `503`. Retrying the same request can succeed.
 
 To fix it:
 
