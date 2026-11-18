@@ -248,7 +248,7 @@ if choices.Known && len(choices.Levels) > 0 {
 return err
 ```
 
-When the levels are known, Blazing Agents rejects any other value with `invalid_request` and lists the valid choices in `details.supportedLevels`. When they are unknown, it accepts any non-empty string, and a value the model does not understand fails when the agent runs. The exception is a model on an `anthropic`, `google` or `vercel_ai_gateway` provider. It takes only `off`, `minimal`, `low`, `medium` and `high` when its levels are unknown, so any other string is rejected when you save the agent. Blazing Agents never swaps in another level or retries without one.
+When the levels are known, Blazing Agents rejects any other value with `invalid_request` and lists the valid choices in `details.supportedLevels`. When they are unknown, it accepts any non-empty string, and a value the model does not understand fails when the agent runs. The exception is a model on a `google` or `vercel_ai_gateway` provider. It takes only `off`, `minimal`, `low`, `medium` and `high` when its levels are unknown, so any other string is rejected when you save the agent. Blazing Agents never swaps in another level or retries without one.
 
 A thinking level is not a token or cost cap, and the same level can behave differently on different models. In the dashboard, changing the provider or model resets the level to the provider default.
 

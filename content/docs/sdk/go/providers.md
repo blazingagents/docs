@@ -136,7 +136,7 @@ return nil
 
 **Signature:** `func (s *ProvidersService) ThinkingLevels(ctx context.Context, providerID ProviderID, model string, opts ...RequestOption) (*ProviderThinkingLevels, error)`
 
-Returns `*ba.ProviderThinkingLevels`: `Known` says whether the provider knows this model's levels, and `Levels` lists the supported ones. When `Known` is `false`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time, except on an `anthropic`, `google` or `vercel_ai_gateway` provider. There the model takes only `off`, `minimal`, `low`, `medium` and `high`, and saving any other string fails with `invalid_request`. Fails with `validation_failed` or `provider_not_found`.
+Returns `*ba.ProviderThinkingLevels`: `Known` says whether the provider knows this model's levels, and `Levels` lists the supported ones. When `Known` is `false`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time, except on a `google` or `vercel_ai_gateway` provider. There the model takes only `off`, `minimal`, `low`, `medium` and `high`, and saving any other string fails with `invalid_request`. Fails with `validation_failed` or `provider_not_found`.
 
 ### `Update` [#update]
 
