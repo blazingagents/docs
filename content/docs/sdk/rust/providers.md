@@ -122,7 +122,7 @@ if levels.known {
 
 **Signature:** `get_thinking_levels(provider_id: impl Into<ProviderId>, model: impl Into<String>) -> Call<ListThinkingLevels>`
 
-Awaiting returns `ProviderThinkingLevels`: `known` says whether the provider knows this model's levels, and `levels` lists the supported ones. When `known` is `false`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time, except on an `anthropic`, `google` or `vercel_ai_gateway` provider. There the model takes only `off`, `minimal`, `low`, `medium` and `high`, and saving any other string fails with `invalid_request`. Fails with `validation_failed` or `provider_not_found`.
+Awaiting returns `ProviderThinkingLevels`: `known` says whether the provider knows this model's levels, and `levels` lists the supported ones. When `known` is `false`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time, except on a `google` or `vercel_ai_gateway` provider. There the model takes only `off`, `minimal`, `low`, `medium` and `high`, and saving any other string fails with `invalid_request`. Fails with `validation_failed` or `provider_not_found`.
 
 ### `update()` [#update]
 
