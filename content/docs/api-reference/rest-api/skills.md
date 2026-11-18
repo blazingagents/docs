@@ -87,7 +87,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skills" \
 
 Create a skill.
 
-Creates a skill on the agent from a `SKILL.md` document and returns it with its file list. The frontmatter's `name` must be unique among the agent's skills. An agent can have up to 100 skills.
+Creates a skill on the agent from a `SKILL.md` document and returns it with its file list. The frontmatter's `name` must be unique among the agent's skills. An agent can have up to 100 skills. Send an `Idempotency-Key` header to retry safely: a retry with the same key and the same content returns the skill the first request created, and the same key with different content fails with `idempotency_conflict`. A key is remembered for as long as its skill exists.
 
 #### Request
 
@@ -96,6 +96,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
+| `idempotency-key` | string | header |  | Unique key for this request. Reuse it when retrying the same request, and the skill the first attempt created is returned. 1–200 characters. |
 | `path` | string | body | required | Always `SKILL.md`. |
 | `content` | string | body | required | The `SKILL.md` document. It must start with YAML frontmatter that sets `name` and `description`. |
 
@@ -135,7 +136,7 @@ Response schema: `Skill`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
-| `409` | [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict) | The request conflicts with the resource's current state |
+| `409` | [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict), [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict) | The request conflicts with the resource's current state |
 | `413` | [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large) | The request body is too large |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
@@ -156,7 +157,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/skil
 
 Upload a skill archive.
 
-Creates a skill on the agent from a `zip`, `tar`, or `tar.gz` archive and returns it with its file list. Set `type` to the archive's format. The archive must contain `SKILL.md` at its root, and its frontmatter's `name` must be unique among the agent's skills. An archive can be up to 10 MiB and hold up to 100 files totalling up to 10 MiB unpacked, without links or special files. An agent can have up to 100 skills.
+Creates a skill on the agent from a `zip`, `tar`, or `tar.gz` archive and returns it with its file list. Set `type` to the archive's format. The archive must contain `SKILL.md` at its root, and its frontmatter's `name` must be unique among the agent's skills. An archive can be up to 10 MiB and hold up to 100 files totalling up to 10 MiB unpacked, without links or special files. An agent can have up to 100 skills. Send an `Idempotency-Key` header to retry safely: a retry with the same key and the same files returns the skill the first request created, and the same key with different files fails with `idempotency_conflict`. A key is remembered for as long as its skill exists.
 
 #### Request
 
@@ -165,6 +166,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a m
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
+| `idempotency-key` | string | header |  | Unique key for this request. Reuse it when retrying the same request, and the skill the first attempt created is returned. 1–200 characters. |
 | `type` | string | form | required | Format of the archive in `file`. One of `zip`, `tar`, `tar.gz`. |
 | `file` | file | form | required | The skill archive. It must contain `SKILL.md` at its root. |
 
@@ -208,7 +210,7 @@ Response schema: `Skill`.
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
 | `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
-| `409` | [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict) | The request conflicts with the resource's current state |
+| `409` | [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict), [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict) | The request conflicts with the resource's current state |
 | `413` | [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large) | The request body is too large |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
@@ -519,7 +521,7 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sk
 
 Copy a skill to other agents.
 
-Copies a skill, with all its files, to each agent in `agentIds`. Each copy is a new skill with its own ID. The response has one result per destination, in request order: `created` with the new skill, or `failed` with an error such as `skill_name_conflict` or `skill_limit_reached`. One failed destination does not stop the others.
+Copies a skill, with all its files, to each agent in `agentIds`. Each copy is a new skill with its own ID. The response has one result per destination, in request order: `created` with the new skill, or `failed` with an error such as `skill_name_conflict` or `skill_limit_reached`. One failed destination does not stop the others. Send an `Idempotency-Key` header to retry safely: a retry with the same key returns the copy each destination already has as `created`, and a destination where the key created a different skill is `failed` with `idempotency_conflict`. A key is remembered for as long as its copy exists.
 
 #### Request
 
@@ -529,6 +531,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
 | `skillId` | string | path | required | ID of the skill. |
+| `idempotency-key` | string | header |  | Unique key for this request. Reuse it when retrying the same request, and the skill the first attempt created is returned. 1–200 characters. |
 | `agentIds` | string[] | body | required | IDs of the agents to copy the skill to, each listed once. Send 1 to 30. 1–30 items. |
 
 #### Response
