@@ -987,9 +987,9 @@
     {
       "code": "internal",
       "group": "service",
-      "statuses": [400, 409, 500, 502, 503],
+      "statuses": [500, 502, 503],
       "title": "Something failed on the Blazing Agents side.",
-      "whatHappened": "The failure has no specific code you can act on. The status hints at the cause: `500` is an unexpected error, `502` and `503` mean a part of the service did not respond, and `400` or `409` mean an internal step found conflicting state, often because two requests raced.",
+      "whatHappened": "The failure has no specific code you can act on. The status hints at the cause: `500` is an unexpected error, and `502` and `503` mean a part of the service did not respond.",
       "howToFix": [
         "Retry with backoff if the call is safe to repeat.",
         "If it keeps failing, contact support with the `X-Request-Id` header value."
