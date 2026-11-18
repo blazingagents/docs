@@ -150,6 +150,18 @@ Read the [current allowance and reset](/platform/usage-and-spending-limits#model
 before deciding what to do next. The same cost may count against both scopes;
 the two limits are not separate charges.
 
+### Outdated approvals [#outdated-approval-events]
+
+An approval continuation sends the event with `code: "tool_approval_outdated"` when a connection, skill, or workspace of the agent changed while the approval waited:
+
+```text
+data: {"type":"data-ba-error","transient":true,"data":{"code":"tool_approval_outdated","message":"The Agent's Connections, Skills or Workspace changed while this approval waited, so the approved Tool did not run. Send the message again."}}
+
+data: {"type":"error","errorText":"The Agent's Connections, Skills or Workspace changed while this approval waited, so the approved Tool did not run. Send the message again."}
+```
+
+The approved tool did not run, and the approval round ended as failed. Send the message again, and the agent asks for approval again when it calls the tool. No HTTP error returns this code.
+
 ### Interruptions [#interruption-events]
 
 A stream can be cut after it starts, for example when the platform restarts or loses its connection to the running turn. Instead of ending as if the answer were complete, the stream sends the event with `code: "turn_interrupted"`, then an error chunk, then `data: [DONE]`:

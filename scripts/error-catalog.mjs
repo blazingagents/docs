@@ -24,7 +24,8 @@ const errorCatalogSchema = z
           group: z.string(),
           howToFix: z.array(z.string().min(1)).min(1),
           retryable: z.boolean(),
-          statuses: z.array(z.number().int().min(400).max(599)).min(1),
+          /** Empty for a code that only a stream's error event carries. */
+          statuses: z.array(z.number().int().min(400).max(599)),
           title: z.string().min(1),
           whatHappened: z.string().min(1),
         })
@@ -86,7 +87,11 @@ function renderEntry(entry) {
     `### \`${entry.code}\` [#${entry.code}]`,
     `**${entry.title}**`,
     entry.whatHappened,
-    `HTTP ${listStatuses(entry.statuses)}. ${
+    `${
+      entry.statuses.length > 0
+        ? `HTTP ${listStatuses(entry.statuses)}.`
+        : "Sent only in a stream's [error event](/api-reference/protocols/streaming#error-events). No HTTP response returns it."
+    } ${
       entry.retryable
         ? "Retrying the same request can succeed."
         : "Retrying the same request fails the same way until you fix the cause."
