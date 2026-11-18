@@ -114,9 +114,11 @@ The tools act on your whole account. There is no end-user scope, so session and 
 
 ## Errors [#errors]
 
-The server checks the key before any tool runs. A missing or unknown key gets HTTP 401 with [`unauthorized`](/api-reference/protocols/errors#unauthorized), and an account without an active subscription gets HTTP 402 with [`subscription_required`](/api-reference/protocols/errors#subscription_required). Dashboard sign-in tokens are refused, because the server accepts only API keys.
+The server checks the key before any tool runs. A missing or unknown key gets HTTP 401 with [`unauthorized`](/api-reference/protocols/errors#unauthorized). Dashboard sign-in tokens are refused, because the server accepts only API keys.
 
-After that, a refused or failed call returns a tool error, not a protocol error. The error carries the same code as the REST API, such as [`not_found`](/api-reference/protocols/errors#not_found) or [`validation_failed`](/api-reference/protocols/errors#validation_failed). See [errors](/api-reference/protocols/errors) for every code.
+An account without an active subscription can still connect, list its tools, and cancel a task run with `taskRuns_cancelById`. Every other tool returns a [`subscription_required`](/api-reference/protocols/errors#subscription_required) error.
+
+A refused or failed call returns a tool error, not a protocol error. The error carries the same code as the REST API, such as [`not_found`](/api-reference/protocols/errors#not_found) or [`validation_failed`](/api-reference/protocols/errors#validation_failed). See [errors](/api-reference/protocols/errors) for every code.
 
 ## Next [#next]
 

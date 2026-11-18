@@ -177,7 +177,9 @@ At the start of each turn, Blazing Agents connects to every attached server and 
 
 MCP tools that require the MCP task protocol are not offered to the agent.
 
-Requests to the server use HTTPS, follow only safe redirects, and have [time limits](/api-reference/protocols/service-limits#mcp-runtime-timeouts) and [size limits](/api-reference/protocols/service-limits#mcp-payloads). Tool results have a size limit too, and a result that echoes a stored credential is rejected.
+Requests to the server use HTTPS and have [time limits](/api-reference/protocols/service-limits#mcp-runtime-timeouts) and [size limits](/api-reference/protocols/service-limits#mcp-payloads). Tool results have a size limit too, and a result that echoes a stored credential is rejected.
+
+A redirect is followed only when it stays on the same origin and keeps the request's method. Any other redirect fails the request. If your server moved, `reconnect()` the connection with its new URL.
 
 Each attachment decides what end-user context the server receives. Turn on forwarding of the turn's `userId` or selected `metadata` keys with `agents.updateMcpAttachment()` (`update_mcp_attachment()` in Python and Rust, `UpdateMCPAttachment()` in Go). The server receives that context as information only. It does not grant access.
 
@@ -197,13 +199,19 @@ With forwarding on, every tool list and tool call request carries the context in
 The context has a [size limit](/api-reference/protocols/service-limits#mcp-payloads). A turn whose context is larger fails.
 
 <span id="approval-rules-and-server-changes"></span>
-An [approval rule](/agents/tools/tool-approvals) names an MCP tool by the server's tool name. If the server renames or removes that tool, every turn of the agent fails with [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) until you remove or change the rule. Update approval rules before you deploy a server change that renames or removes a tool.
+An [approval rule](/agents/tools/tool-approvals) names an MCP tool by the server's tool name. If the server renames or removes that tool, every turn of the agent is refused with [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) (`400`) before the model runs, until you remove or change the rule. `details.issues` names the rule, the connection, and the tool. A session keeps the rule it saved, so its turns are refused until the server lists the tool again or you detach the connection. Update approval rules before you deploy a server change that renames or removes a tool.
 
 ## Reconnect or delete [#reconnect-or-delete]
 
 `reconnect()` replaces a connection's URL and credentials under the same ID. With a bearer token or no authentication, the new details are checked first, and the old ones stay in use if the check fails. With an authorization code, the old credentials are dropped right away and the connection returns to `needs_auth` until someone signs in again.
 
-A session or task run saves the connection ID, while the connection details and credentials remain current. Reconnecting changes what existing work uses too. Detach a connection from every agent before deleting it.
+A session or task run saves the connection IDs it starts with. The attachment, the connection details, and the credentials stay current, so these changes reach existing work at its next turn:
+
+- Reconnecting changes the URL and credentials existing sessions and task runs use.
+- Detaching a connection takes its tools away from existing sessions and queued task runs. A saved [approval rule](/agents/tools/tool-approvals) for one of its tools is skipped while the connection is detached. Attach it again to give the tools back, with forwarding off until you turn it on again.
+- A forwarding change applies to every session.
+
+A connection you attach later reaches only new sessions and task runs. Detach a connection from every agent before deleting it.
 
 ## Production checklist [#production-checklist]
 

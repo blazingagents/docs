@@ -952,7 +952,7 @@ To fix it:
 
 **The MCP server's tools or sign-in could not be discovered.**
 
-`400`: Blazing Agents reached the server, but listing its tools or finding its OAuth sign-in failed, so nothing was saved. `502`: a turn could not load the tools of an MCP connection attached to the agent, so the turn did not start. When one connection caused it, the message names that connection, and `details.connections` lists it as `connectionId` with `status` `error`. When the agent's connections together expose more than 256 tools, the message says so, `details` names no connection, and retrying does not help.
+`400` when you save a connection or an agent: Blazing Agents reached the server, but listing its tools or finding its OAuth sign-in failed, so nothing was saved. `400` on a turn: an approval rule the turn uses names a tool that its connection no longer lists, so the turn was refused before the model ran, and `details.issues` names the rule, the connection, and the tool. `502`: a turn could not load the tools of an MCP connection attached to the agent, so the turn did not start. When one connection caused it, the message names that connection, and `details.connections` lists it as `connectionId` with `status` `error`. When the agent's connections together expose more than 256 tools, the message says so, `details` names no connection, and retrying does not help.
 
 HTTP `400`, or `502`. Retrying the same request can succeed.
 
@@ -960,7 +960,8 @@ To fix it:
 
 - Test the connection to see its current result. See [check a connection](/agents/tools/mcp-tools#check-a-connection).
 - Check that the server implements tool listing, and OAuth discovery if you use OAuth.
-- For a turn, retry once the connection tests cleanly, or detach it from the agent.
+- For a `502` on a turn, retry once the connection tests cleanly, or detach it from the agent.
+- For a `400` on a turn, have the server list the tool again, or change the approval rule and start a new session. An existing session keeps its saved rule, so detach the connection to let it run without those tools. See [approval rules and server changes](/agents/tools/mcp-tools#approval-rules-and-server-changes).
 - Over the 256-tool limit, detach an MCP connection from the agent, or remove tools from its server. See [service limits](/api-reference/protocols/service-limits#mcp-tools).
 
 ### `mcp_connection_needs_auth` [#mcp_connection_needs_auth]
@@ -1123,7 +1124,7 @@ To fix it:
 
 **Your account has no active paid plan.**
 
-Most endpoints and every turn need an active plan. Account, billing, and API key endpoints still work without one.
+Most endpoints and every turn need an active plan. Account, billing, and API key endpoints still work without one, and you can still stop a turn or cancel a task run. The [BA MCP server](/mcp#errors) returns this code as a tool error.
 
 HTTP `402`. Retrying the same request fails the same way until you fix the cause.
 

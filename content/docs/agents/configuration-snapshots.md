@@ -154,7 +154,13 @@ A task edit changes future runs. A run keeps its saved configuration even if it 
 
 `agentConfig` includes the agent's name, provider and model IDs, thinking level, instructions, built-in tools, MCP connection IDs, approval policies, compaction settings, memory injection setting, and metadata. It does not include the agent's identity, status, avatar, workspace attachment, or credentials.
 
-The provider key, MCP credentials and connection details, attached workspace, skills, and memories use their current state. A saved provider ID therefore cannot keep a deleted provider available. Local SDK callback functions are supplied with each request; the snapshot does not store executable handlers or function definitions. The backend supplies them again on every call, including a tool approval continuation.
+The provider key, MCP attachments, MCP credentials and connection details, attached workspace, skills, and memories use their current state. A saved provider ID therefore cannot keep a deleted provider available.
+
+The saved MCP connection IDs are the most a session can receive. A turn gets a saved connection only while the agent still attaches it, with the attachment's current forwarding settings. Detach a connection and existing sessions lose its tools at their next turn. A connection you attach later reaches only new sessions and task runs. See [MCP tools](/agents/tools/mcp-tools#reconnect-or-delete).
+
+A saved approval rule can name a tool that no longer has a source: `activate_skill`, or `read` on an agent that does not select it, after the agent's last skill is deleted, or a tool of a connection that is detached or deleted. The turn skips that rule and does not offer the tool. `agentConfig` still shows the rule, and it applies again once the agent has a skill or attaches the connection again.
+
+Local SDK callback functions are supplied with each request; the snapshot does not store executable handlers or function definitions. The backend supplies them again on every call, including a tool approval continuation.
 
 ## Enable and disable [#enable-and-disable]
 
