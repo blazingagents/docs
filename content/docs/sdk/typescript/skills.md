@@ -48,7 +48,7 @@ In a route that serves a signed-in end user, select the agent on the [scoped cli
 
 Creates a skill from the text of its `SKILL.md`.
 
-**Signature:** `create(input: CreateSkillBody & ResourceRequestOptions): Promise<SkillDetail>`
+**Signature:** `create(input: CreateSkillBody & { idempotencyKey?: string } & ResourceRequestOptions): Promise<SkillDetail>`
 
 ```typescript
 const skill = await client.agent({ agentId }).skills.create({
@@ -61,6 +61,7 @@ const skill = await client.agent({ agentId }).skills.create({
 | --- | --- | --- | --- |
 | `path` | `"SKILL.md"` | yes | Always `"SKILL.md"` |
 | `content` | `string` | yes | The file text, starting with frontmatter |
+| `idempotencyKey` | `string` | no | Makes a retry return the skill the first request created; see [retry a create safely](/agents/skills#retry-a-create) |
 
 Add supporting files afterwards with [`putFile()`](#put-file). Returns [`SkillDetail`](#skilldetail). Errors: [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict), [`skill_limit_reached`](/api-reference/protocols/errors#skill_limit_reached), [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large), [`validation_failed`](/api-reference/protocols/errors#validation_failed), and [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
 
@@ -68,7 +69,7 @@ Add supporting files afterwards with [`putFile()`](#put-file). Returns [`SkillDe
 
 Creates a skill from a `zip`, `tar`, or `tar.gz` archive with `SKILL.md` at its root.
 
-**Signature:** `upload(input: { source: { file: Blob | Uint8Array; type: SkillArchiveType } } & ResourceRequestOptions): Promise<SkillDetail>`
+**Signature:** `upload(input: { idempotencyKey?: string; source: { file: Blob | Uint8Array; type: SkillArchiveType } } & ResourceRequestOptions): Promise<SkillDetail>`
 
 ```typescript
 import { readFile } from "node:fs/promises";
@@ -82,6 +83,7 @@ const skill = await client.agent({ agentId }).skills.upload({
 | --- | --- | --- | --- |
 | `source.file` | `Blob \| Uint8Array` | yes | Archive bytes, within the [skill bundle limits](/api-reference/protocols/service-limits#skill-bundle) |
 | `source.type` | `"zip" \| "tar" \| "tar.gz"` | yes | Archive format |
+| `idempotencyKey` | `string` | no | Makes a retry return the skill the first request created; see [retry a create safely](/agents/skills#retry-a-create) |
 
 Returns [`SkillDetail`](#skilldetail). Errors: `validation_failed`, [`skill_invalid_archive`](/api-reference/protocols/errors#skill_invalid_archive), `skill_invalid_markdown`, `skill_name_conflict`, `skill_limit_reached`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), `skill_uncompressed_too_large`, and `not_found` when the agent does not exist.
 
@@ -165,7 +167,7 @@ You cannot delete `SKILL.md`; that fails with [`invalid_request`](/api-reference
 
 Copies a skill to other agents. Each copy is independent of the original.
 
-**Signature:** `copy(input: { skillId: string; to: { agentIds: string[] } } & ResourceRequestOptions): Promise<SkillCopyResults>`
+**Signature:** `copy(input: { idempotencyKey?: string; skillId: string; to: { agentIds: string[] } } & ResourceRequestOptions): Promise<SkillCopyResults>`
 
 ```typescript
 const results = await client.agent({ agentId }).skills.copy({
@@ -177,7 +179,7 @@ for (const result of results) {
 }
 ```
 
-`to.agentIds` lists different agents, up to the [copy destination limit](/api-reference/protocols/service-limits#skill-copy). One failed destination does not stop the others, so check each result. Results come back in the order you listed the agents. Returns [`SkillCopyResults`](#skillcopyresults). Errors for the whole call: `validation_failed`, `not_found`, `skill_not_found`.
+`to.agentIds` lists different agents, up to the [copy destination limit](/api-reference/protocols/service-limits#skill-copy). One failed destination does not stop the others, so check each result. Results come back in the order you listed the agents. With an `idempotencyKey`, a retry returns each destination's existing copy as `created`; see [retry a create safely](/agents/skills#retry-a-create). Returns [`SkillCopyResults`](#skillcopyresults). Errors for the whole call: `validation_failed`, `not_found`, `skill_not_found`.
 
 ### `delete()` [#delete]
 

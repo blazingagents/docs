@@ -230,6 +230,87 @@ Each agent can have a [limited number of skills](/api-reference/protocols/servic
 
 A create can time out or fail with a `5xx` after the skill was saved, and a plain retry then fails with [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict). To retry safely, send an `Idempotency-Key` header with [create](/api-reference/rest-api/skills#create-skill), [upload](/api-reference/rest-api/skills#upload-skill), or [copy](/api-reference/rest-api/skills#copy-skill), and retry with the same key and the same request. The retry returns `201` with the skill the first request created, and a copy retry returns each destination's existing copy as `created`. The same key with different files fails with [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict). For a copy, a destination where the key already made a copy of a different skill is `failed` with that code. A key belongs to one agent and lasts as long as its skill, so deleting the skill frees it.
 
+Each SDK takes the key as an option on create, upload, and copy. The second call here stands in for a retry and returns the first call's skill:
+
+```typescript tab="TypeScript" tab-group="sdk-language"
+const skills = client.agent({ agentId }).skills;
+const content = `---
+name: bug-triage
+description: Sort bug reports by severity.
+---
+
+Label each report Critical, Major, or Minor.
+`;
+const idempotencyKey = "bug-triage-v1";
+
+const first = await skills.create({ path: "SKILL.md", content, idempotencyKey });
+const retry = await skills.create({ path: "SKILL.md", content, idempotencyKey });
+console.log(first.id === retry.id); // true
+```
+
+```python tab="Python"
+skills = client.agent(agent_id).skills
+content = """---
+name: bug-triage
+description: Sort bug reports by severity.
+---
+
+Label each report Critical, Major, or Minor.
+"""
+idempotency_key = "bug-triage-v1"
+
+first = skills.create(path="SKILL.md", content=content, idempotency_key=idempotency_key)
+retry = skills.create(path="SKILL.md", content=content, idempotency_key=idempotency_key)
+print(first.id == retry.id)  # True
+```
+
+```rust tab="Rust"
+let agent = client.agent(agent_id);
+let skills = agent.skills();
+let content = r#"---
+name: bug-triage
+description: Sort bug reports by severity.
+---
+
+Label each report Critical, Major, or Minor.
+"#;
+let idempotency_key = "bug-triage-v1";
+
+let first = skills
+    .create("SKILL.md", content)
+    .idempotency_key(idempotency_key)
+    .await?;
+let retry = skills
+    .create("SKILL.md", content)
+    .idempotency_key(idempotency_key)
+    .await?;
+println!("{}", first.id == retry.id); // true
+```
+
+```go tab="Go"
+params := ba.CreateSkillParams{
+	Content: `---
+name: bug-triage
+description: Sort bug reports by severity.
+---
+
+Label each report Critical, Major, or Minor.
+`,
+	IdempotencyKey: "bug-triage-v1",
+}
+
+first, err := client.Skills.Create(ctx, agentID, params)
+if err != nil {
+	return err
+}
+retry, err := client.Skills.Create(ctx, agentID, params)
+if err != nil {
+	return err
+}
+fmt.Println(first.ID == retry.ID) // true
+return nil
+```
+
 ## Skills for your coding assistant [#skills-for-your-coding-assistant]
 
 The [Blazing Agents skill catalog](https://skills.sh/blazingagents/skills) is a different thing: skills that help your local coding assistant write code against Blazing Agents. Installing one sets up your assistant and does not add anything to your agents.

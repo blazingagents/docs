@@ -55,9 +55,9 @@ skill = client.agent(agent.id).skills.create(
 )
 ```
 
-**Signature:** `create(*, path: Literal["SKILL.md"], content: str) -> SkillDetail`
+**Signature:** `create(*, path: Literal["SKILL.md"], content: str, idempotency_key: str | None = None) -> SkillDetail`
 
-`path` must be `"SKILL.md"`; the API rejects any other value with `validation_failed`. The frontmatter needs a `name` (lowercase letters, digits, and hyphens, not `anthropic` or `claude`) and a `description`, both within the [frontmatter limits](/api-reference/protocols/service-limits#skill-frontmatter). The name must be unique among the agent's skills.
+`path` must be `"SKILL.md"`; the API rejects any other value with `validation_failed`. The frontmatter needs a `name` (lowercase letters, digits, and hyphens, not `anthropic` or `claude`) and a `description`, both within the [frontmatter limits](/api-reference/protocols/service-limits#skill-frontmatter). The name must be unique among the agent's skills. With an `idempotency_key`, a retry returns the skill the first request created; see [retry a create safely](/agents/skills#retry-a-create).
 
 Returns [`SkillDetail`](#skill-and-skilldetail). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict), [`skill_limit_reached`](/api-reference/protocols/errors#skill_limit_reached), or [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large), and [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
 
@@ -74,9 +74,9 @@ skill = client.agent(agent.id).skills.upload(
 )
 ```
 
-**Signature:** `upload(*, archive_type: SkillArchiveType, file: UploadFile, filename: str | None = None) -> SkillDetail`
+**Signature:** `upload(*, archive_type: SkillArchiveType, file: UploadFile, filename: str | None = None, idempotency_key: str | None = None) -> SkillDetail`
 
-`file` is bytes, a file path, or an open binary file. The SDK opens and closes paths itself and never closes a file object you pass. `filename` overrides the name taken from a path or file object; otherwise bytes are sent as `skill.<archive_type>`. An unsupported `archive_type` raises `validation_failed`.
+`file` is bytes, a file path, or an open binary file. The SDK opens and closes paths itself and never closes a file object you pass. `filename` overrides the name taken from a path or file object; otherwise bytes are sent as `skill.<archive_type>`. An unsupported `archive_type` raises `validation_failed`. `idempotency_key` works as on [`create()`](#create).
 
 Returns [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed`, [`skill_invalid_archive`](/api-reference/protocols/errors#skill_invalid_archive), `skill_invalid_markdown`, `skill_name_conflict`, `skill_limit_reached`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), or `skill_uncompressed_too_large`, and `not_found` when the agent does not exist.
 
@@ -195,9 +195,9 @@ for result in results:
         print(result.agent_id, result.error.code)
 ```
 
-**Signature:** `copy(*, skill_id: str, destination_agent_ids: Sequence[str]) -> list[SkillCopyResult]`
+**Signature:** `copy(*, skill_id: str, destination_agent_ids: Sequence[str], idempotency_key: str | None = None) -> list[SkillCopyResult]`
 
-Pass unique agent IDs, within the [copy destination limit](/api-reference/protocols/service-limits#skill-copy). Results come back in the same order. A failed destination does not undo the others; it appears as a `"failed"` result instead of raising. The whole call raises only `validation_failed`, `not_found`, or `skill_not_found`.
+Pass unique agent IDs, within the [copy destination limit](/api-reference/protocols/service-limits#skill-copy). Results come back in the same order. A failed destination does not undo the others; it appears as a `"failed"` result instead of raising. With an `idempotency_key`, a retry returns each destination's existing copy as `"created"`. The whole call raises only `validation_failed`, `not_found`, or `skill_not_found`.
 
 ## Response types [#response-types]
 

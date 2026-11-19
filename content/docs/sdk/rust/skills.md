@@ -56,6 +56,8 @@ let skill = client
 
 **Signature:** `create(path: impl Into<String>, content: impl Into<String>) -> Call<CreateSkill>`
 
+Chain `.idempotency_key(key)` so a retry returns the skill the first request created; see [retry a create safely](/agents/skills#retry-a-create). [`upload()`](#upload) and [`copy()`](#copy) take the same setter.
+
 Awaiting returns [`SkillDetail`](#skill-and-skilldetail). Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict), [`skill_limit_reached`](/api-reference/protocols/errors#skill_limit_reached), or [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
 
 ### `upload()` [#upload]
