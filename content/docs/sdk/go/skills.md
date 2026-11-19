@@ -55,6 +55,8 @@ return nil
 
 **Signature:** `func (s *SkillsService) Create(ctx context.Context, agentID AgentID, params CreateSkillParams, opts ...RequestOption) (*Skill, error)`
 
+Set `IdempotencyKey` so a retry returns the skill the first request created; see [retry a create safely](/agents/skills#retry-a-create). `UploadSkillParams` and `CopySkillParams` have the same field.
+
 Returns [`*ba.Skill`](#skill-and-skilldetail). Fails with `*ba.APIError` whose `Code` is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`skill_invalid_markdown`](/api-reference/protocols/errors#skill_invalid_markdown), [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict), [`skill_limit_reached`](/api-reference/protocols/errors#skill_limit_reached), or [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
 
 ### `Upload` [#upload]
