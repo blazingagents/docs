@@ -126,7 +126,7 @@ return nil
 
 **Signature:** `func (s *SkillsService) Get(ctx context.Context, agentID AgentID, skillID SkillID, opts ...RequestOption) (*Skill, error)`
 
-Returns [`*ba.Skill`](#skill-and-skilldetail). Fails with `validation_failed` or [`skill_not_found`](/api-reference/protocols/errors#skill_not_found).
+Returns [`*ba.Skill`](#skill-and-skilldetail). Fails with `validation_failed` or `not_found`.
 
 ### `Delete` [#delete]
 
@@ -138,7 +138,7 @@ return client.Skills.Delete(ctx, agentID, "skill_0123456789abcdef")
 
 **Signature:** `func (s *SkillsService) Delete(ctx context.Context, agentID AgentID, skillID SkillID, opts ...RequestOption) error`
 
-Fails with `validation_failed` or `skill_not_found`.
+Fails with `validation_failed` or `not_found`.
 
 ### `ReadFile` [#read-file]
 
@@ -160,7 +160,7 @@ return nil
 
 **Signature:** `func (s *SkillsService) ReadFile(ctx context.Context, agentID AgentID, skillID SkillID, path string, opts ...RequestOption) (*Download, error)`
 
-Returns a `*ba.Download`, an `io.ReadCloser` over the file's bytes. `ContentType()`, `ContentLength()` (`-1` when unknown), and `Meta()` describe the response, and `Close` ends the connection. A read that fails, or a body shorter than its declared length, returns a `*ba.StreamError`. Fails with `validation_failed` or `skill_not_found`.
+Returns a `*ba.Download`, an `io.ReadCloser` over the file's bytes. `ContentType()`, `ContentLength()` (`-1` when unknown), and `Meta()` describe the response, and `Close` ends the connection. A read that fails, or a body shorter than its declared length, returns a `*ba.StreamError`. Fails with `validation_failed` or `not_found`.
 
 ### `ReplaceFile` [#replace-file]
 
@@ -182,7 +182,7 @@ return nil
 
 **Signature:** `func (s *SkillsService) ReplaceFile(ctx context.Context, agentID AgentID, skillID SkillID, path string, content io.Reader, opts ...RequestOption) (*Skill, error)`
 
-The content is sent as raw bytes whatever the file's name. Returns [`*ba.Skill`](#skill-and-skilldetail). Fails with `validation_failed`, `skill_invalid_markdown`, `skill_name_conflict`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large), or `skill_not_found`.
+The content is sent as raw bytes whatever the file's name. Returns [`*ba.Skill`](#skill-and-skilldetail). Fails with `validation_failed`, `skill_invalid_markdown`, `skill_name_conflict`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large), or `not_found`.
 
 ### `DeleteFile` [#delete-file]
 
@@ -199,7 +199,7 @@ return nil
 
 **Signature:** `func (s *SkillsService) DeleteFile(ctx context.Context, agentID AgentID, skillID SkillID, path string, opts ...RequestOption) (*Skill, error)`
 
-Returns [`*ba.Skill`](#skill-and-skilldetail). Fails with [`invalid_request`](/api-reference/protocols/errors#invalid_request), `validation_failed`, or `skill_not_found`.
+Returns [`*ba.Skill`](#skill-and-skilldetail). Fails with [`invalid_request`](/api-reference/protocols/errors#invalid_request), `validation_failed`, or `not_found`.
 
 ### `Copy` [#copy]
 
@@ -225,7 +225,7 @@ return nil
 
 **Signature:** `func (s *SkillsService) Copy(ctx context.Context, agentID AgentID, skillID SkillID, params CopySkillParams, opts ...RequestOption) ([]SkillCopyResult, error)`
 
-Returns one `ba.SkillCopyResult` per destination, in request order. A `ba.SkillCopyCreated` result carries the destination `AgentID` and the new `Skill`; a `ba.SkillCopyFailed` result carries the `AgentID` and a `ba.SkillCopyError` with `Code`, `Message`, and `Details`, so one bad destination does not fail the call. A status this version does not know arrives as `ba.UnknownSkillCopyResult`. An empty `AgentIDs` fails client-side with `*ba.ArgumentError`. The call itself fails only with `validation_failed` or `skill_not_found`.
+Returns one `ba.SkillCopyResult` per destination, in request order. A `ba.SkillCopyCreated` result carries the destination `AgentID` and the new `Skill`; a `ba.SkillCopyFailed` result carries the `AgentID` and a `ba.SkillCopyError` with `Code`, `Message`, and `Details`, so one bad destination does not fail the call. A status this version does not know arrives as `ba.UnknownSkillCopyResult`. An empty `AgentIDs` fails client-side with `*ba.ArgumentError`. The call itself fails only with `validation_failed` or `not_found`.
 
 ## Response models [#response-models]
 
@@ -246,7 +246,7 @@ Returns one `ba.SkillCopyResult` per destination, in request order. A `ba.SkillC
 
 | Code | Meaning |
 | --- | --- |
-| `skill_not_found` | The skill does not belong to this agent |
+| `not_found` | The agent does not exist, or the skill does not belong to it |
 | `skill_invalid_markdown` | `SKILL.md` frontmatter is missing or invalid |
 | `skill_invalid_archive` | The archive is invalid or contains unsafe paths |
 | `skill_name_conflict` | The agent already has a skill with that name |

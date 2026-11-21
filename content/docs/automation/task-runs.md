@@ -78,7 +78,7 @@ func main() {
 	taskID := ba.TaskID(os.Getenv("TASK_ID"))
 
 	run, err := client.Tasks.Submit(ctx, taskID, ba.SubmitTaskParams{
-		IdempotencyKey: new("weekly-report:2026-07-20"),
+		IdempotencyKey: "weekly-report:2026-07-20",
 	})
 	if err != nil {
 		log.Fatal(err)

@@ -184,6 +184,7 @@ return nil
 | Field | Type | Description |
 | --- | --- | --- |
 | `ID` | `ba.MCPConnectionID` | Connection ID (`mcp_...`) |
+| `TenantID` | `ba.TenantID` | Your tenant ID |
 | `Name` | `string` | Display name |
 | `URL` | `string` | MCP server URL |
 | `AuthType` | `ba.MCPAuthType` | How Blazing Agents authenticates |

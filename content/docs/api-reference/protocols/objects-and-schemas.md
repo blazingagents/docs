@@ -122,7 +122,7 @@ See [Configuration snapshots and lifecycle](/agents/configuration-snapshots).
 
 <span id="sessions-list-response"></span>
 
-`sessionListItemSchema` / `SessionListItem` contains `id`, message count, nullable last-message preview, Attribution, and
+`sessionListItemSchema` / `SessionListItem` contains `id`, `tenantId`, message count, nullable last-message preview, Attribution, and
 timestamps. A session is created once its first turn is accepted, before the
 model runs. If that turn fails or you cancel it, nothing is added to the
 history, so the session can be empty. You can still use it. Sessions have no update operation, and
@@ -259,10 +259,10 @@ See [SDK Tool approvals](/sdk/typescript/sessions#tool-approvals),
 returned. Ordinary update accepts only `name`. Provider type,
 credential, and base URL are immutable; create a replacement Provider to
 change them.
-`providersResponseSchema` returns `{ providers: ProviderListItem[] }`; each list item contains only
-`id`, `name`, `providerType`, `createdAt`, and `updatedAt`. Use Get Provider for `baseUrl` and `keyFragment`.
+`providersResponseSchema` returns `{ data: ProviderListItem[] }`; each list item contains only
+`id`, `tenantId`, `name`, `providerType`, `createdAt`, and `updatedAt`. Use Get Provider for `baseUrl` and `keyFragment`.
 
-Model discovery returns `{ models: Array<{ id: string }> }` through
+Model discovery returns `{ data: Array<{ id: string }> }` through
 `providerModelsResponseSchema`.
 
 See [SDK Providers](/sdk/typescript/providers),

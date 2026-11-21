@@ -76,12 +76,12 @@ Awaiting returns [`McpConnection`](#mcpconnection). Fails with `Error::Api` whos
 Lists MCP connections.
 
 ```rust
-let connections = client.mcp_connections().list().await?.mcp_connections;
+let connections = client.mcp_connections().list().await?.data;
 ```
 
 **Signature:** `list() -> Call<ListMcpConnections>`
 
-Awaiting returns [`McpConnectionList`](#mcpconnection) with `mcp_connections: Vec<McpConnection>`.
+Awaiting returns [`McpConnectionList`](#mcpconnection) with `data: Vec<McpConnection>`.
 
 ### `get()` [#get]
 
@@ -178,6 +178,7 @@ let result = client
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `McpConnectionId` | Connection ID (`mcp_...`) |
+| `tenant_id` | `TenantId` | Your tenant ID |
 | `name` | `String` | Display name |
 | `url` | `String` | MCP server URL |
 | `auth_type` | `McpAuthType` | How Blazing Agents authenticates |

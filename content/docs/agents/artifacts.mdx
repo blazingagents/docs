@@ -33,7 +33,7 @@ const artifact = data.find((item) => item.filename === "release.md");
 if (!artifact) throw new Error("release.md was not published");
 
 const { url } = await client.artifacts.createDownloadUrl({
-  artifactId: artifact.artifactId,
+  artifactId: artifact.id,
 });
 console.log(await (await fetch(url)).text());
 ```
@@ -63,7 +63,7 @@ artifact = next((a for a in page.data if a.filename == "release.md"), None)
 if artifact is None:
     raise RuntimeError("release.md was not published")
 
-download = client.artifacts.create_download_url(artifact_id=artifact.artifact_id)
+download = client.artifacts.create_download_url(artifact_id=artifact.id)
 print(httpx.get(str(download.url)).text)
 ```
 
@@ -96,7 +96,7 @@ let artifact = artifacts
 
 let download = client
     .artifacts()
-    .create_download_url(&artifact.artifact_id)
+    .create_download_url(&artifact.id)
     .await?;
 println!("{}", reqwest::get(&download.url).await?.text().await?);
 ```

@@ -157,7 +157,7 @@ print(meta.status, meta.request_id)
 | `request_id` | Server request ID from `X-Request-Id`, when present |
 | `headers` | Read-only response headers with case-insensitive names. Values that contain a credential you sent read `[REDACTED]` |
 
-It works on every model a method returns, including pages and each Skill copy result. A model you construct yourself, or an event read from a stream, has no response, so `response_meta()` raises `ValueError`. Read a stream's `request_id` from the stream instead.
+It works on every model a method returns, including pages and a Skill copy's `SkillCopyResults`. A model you construct yourself, or an event read from a stream, has no response, so `response_meta()` raises `ValueError`. Read a stream's `request_id` from the stream instead.
 
 ## Errors [#errors]
 

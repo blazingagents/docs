@@ -15,7 +15,7 @@ In a route that serves a signed-in end user, call these methods on the [scoped c
 let user = client.for_user("user_0123456789abcdef")?;
 let page = user.artifacts().list().await?;
 for artifact in &page.data {
-    println!("{} {}", artifact.artifact_id, artifact.filename);
+    println!("{} {}", artifact.id, artifact.filename);
 }
 ```
 
@@ -32,7 +32,7 @@ for artifact in &page.data {
 
 ### `list()` [#list]
 
-Lists artifacts, newest first, with a fixed [page size](/api-reference/protocols/service-limits#other-cursored-resource-pages).
+Lists artifacts, newest first, 50 per page unless you set a `limit`.
 
 ```rust
 let user = client.for_user("user_0123456789abcdef")?;
@@ -40,6 +40,7 @@ let page = user
     .artifacts()
     .list()
     .agent_id("ag_0123456789abcdef")
+    .limit(100)
     .await?;
 ```
 
@@ -49,8 +50,9 @@ let page = user
 | --- | --- | --- |
 | `agent_id` | `impl Into<AgentId>` | Only artifacts published by this agent |
 | `session_id` | `impl Into<SessionId>` | Only artifacts published in this session |
+| `limit` | `u8` | Page size, 1 to 100. Defaults to 50 |
 
-Awaiting returns [`Page<Artifact>`](#artifact); `.items()` and `.pages()` walk every page lazily. Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
+Awaiting returns [`Page<Artifact>`](#artifact); `.items()` and `.pages()` walk every page lazily. Keep the same filters and `limit` when paging. Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `get()` [#get]
 
@@ -99,7 +101,7 @@ Fails with `validation_failed` or `not_found`.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `artifact_id` | `ArtifactId` | Artifact ID (`at_...`) |
+| `id` | `ArtifactId` | Artifact ID (`at_...`) |
 | `agent_id` | `AgentId` | The agent that published it |
 | `tenant_id` | `TenantId` | Your tenant ID |
 | `session_id` | `SessionId` | The session it was published in |

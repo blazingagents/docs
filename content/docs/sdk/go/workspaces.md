@@ -106,7 +106,7 @@ return nil
 
 **Signature:** `func (s *WorkspacesService) Get(ctx context.Context, workspaceID WorkspaceID, opts ...RequestOption) (*Workspace, error)`
 
-Returns [`*ba.Workspace`](#workspace). Fails with `validation_failed` or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found).
+Returns [`*ba.Workspace`](#workspace). Fails with `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `Update` [#update]
 
@@ -131,7 +131,7 @@ return nil
 | `Metadata` | `ba.Metadata` | Replaces the workspace's metadata completely |
 | `NetworkPolicy` | `ba.NetworkPolicy` | Replaces the network policy. Switching between `ba.NetworkPolicyUnrestricted{}` and a restricted policy stops a running workspace, which applies the new policy on next use |
 
-Returns [`*ba.Workspace`](#workspace). Fails with `validation_failed` or `workspace_not_found`.
+Returns [`*ba.Workspace`](#workspace). Fails with `validation_failed` or `not_found`.
 
 ### `Delete` [#delete]
 
@@ -151,7 +151,7 @@ Move attached agents to another workspace first. When the call returns, the work
 | Code | Meaning |
 | --- | --- |
 | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use) | Agents still use it; `APIError.Details` holds their IDs under `agentIds` |
-| `workspace_not_found` | No such workspace in your tenant, or on a scoped client, none that the user owns |
+| [`not_found`](/api-reference/protocols/errors#not_found) | No such workspace in your tenant, or on a scoped client, none that the user owns |
 
 ## Response models [#response-models]
 

@@ -63,7 +63,7 @@ let created = client
 
 | Setter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `idempotency_key` | `impl Into<String>` | none | A repeated request with the same key returns the task instead of creating another |
+| `idempotency_key` | `impl Into<String>` | none | Sent as the `Idempotency-Key` header. A repeated request with the same key returns the task instead of creating another |
 | `schedule` | `Schedule` | none | When the task runs by itself |
 | `enabled` | `bool` | `true` | Whether the schedule fires; a disabled task can still be started on demand |
 | `submit` | `bool` | `false` | Starts the first run at once; `run_id` is then set |
@@ -162,7 +162,7 @@ println!("{}", run.run_id);
 
 **Signature:** `submit(task_id: impl Into<TaskId>) -> Call<CreateTaskRun>`
 
-The `idempotency_key` setter makes retries safe: repeating the request with the same key returns the same run. Awaiting returns [`CreatedTaskRun`](#taskrun) with `run_id`. Fails with `validation_failed`, `not_found`, `task_active_run_exists` while another run is queued or running, `agent_disabled` when the task's agent is disabled, or [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) while your account is scheduled for deletion.
+The `idempotency_key` setter sends the `Idempotency-Key` header to make retries safe: repeating the request with the same key returns the same run. The request has no body. Awaiting returns [`CreatedTaskRun`](#taskrun) with `run_id`. Fails with `validation_failed`, `not_found`, `task_active_run_exists` while another run is queued or running, `agent_disabled` when the task's agent is disabled, or [`tenant_deleting`](/api-reference/protocols/errors#tenant_deleting) while your account is scheduled for deletion.
 
 ### `list_runs()` [#list-runs]
 

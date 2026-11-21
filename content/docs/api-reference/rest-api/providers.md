@@ -37,9 +37,10 @@ Response schema: `ProviderList`.
 
 ```json
 {
-  "providers": [
+  "data": [
     {
       "id": "prv_7Tn4Kd9QwE2sLx5R",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
       "name": "Production OpenRouter",
       "providerType": "openrouter",
       "createdAt": "2026-07-10T10:00:00.000Z",
@@ -96,6 +97,7 @@ Response schema: `Provider`.
 ```json
 {
   "id": "prv_7Tn4Kd9QwE2sLx5R",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "name": "Production OpenRouter",
   "providerType": "openrouter",
   "baseUrl": null,
@@ -129,7 +131,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/providers" \
   --data '{"name":"Production OpenRouter","providerType":"openrouter","baseUrl":null,"apiKey":"sk-or-v1-3b7e...9f2c"}'
 ```
 
-### GET /v1/providers/:id/models [#list-provider-models]
+### GET /v1/providers/:providerId/models [#list-provider-models]
 
 List a provider's models.
 
@@ -141,7 +143,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the provider. |
+| `providerId` | string | path | required | ID of the provider. |
 
 #### Response
 
@@ -151,7 +153,7 @@ Response schema: `ProviderModelList`.
 
 ```json
 {
-  "models": [
+  "data": [
     {
       "id": "openai/gpt-6-luna"
     }
@@ -167,7 +169,7 @@ Response schema: `ProviderModelList`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
-| `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `422` | [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported) | The request was understood but rejected |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
@@ -182,7 +184,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF/models" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### GET /v1/providers/:id/thinking-levels [#list-thinking-levels]
+### GET /v1/providers/:providerId/thinking-levels [#list-thinking-levels]
 
 List a model's thinking levels.
 
@@ -194,7 +196,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the provider. |
+| `providerId` | string | path | required | ID of the provider. |
 | `model` | string | query | required | The provider's own model ID. |
 
 #### Response
@@ -223,7 +225,7 @@ Response schema: `ProviderThinkingLevels`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
-| `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
@@ -237,7 +239,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF/thinking-levels
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### GET /v1/providers/:id [#get-provider]
+### GET /v1/providers/:providerId [#get-provider]
 
 Get a provider.
 
@@ -249,7 +251,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the provider. |
+| `providerId` | string | path | required | ID of the provider. |
 
 #### Response
 
@@ -260,6 +262,7 @@ Response schema: `Provider`.
 ```json
 {
   "id": "prv_7Tn4Kd9QwE2sLx5R",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "name": "Production OpenRouter",
   "providerType": "openrouter",
   "baseUrl": null,
@@ -277,7 +280,7 @@ Response schema: `Provider`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
-| `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
@@ -291,7 +294,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### PATCH /v1/providers/:id [#update-provider]
+### PATCH /v1/providers/:providerId [#update-provider]
 
 Rename a provider.
 
@@ -303,7 +306,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the provider. |
+| `providerId` | string | path | required | ID of the provider. |
 | `name` | string | body | required | New display name, unique within your tenant. 1–80 characters. |
 
 #### Response
@@ -315,6 +318,7 @@ Response schema: `Provider`.
 ```json
 {
   "id": "prv_7Tn4Kd9QwE2sLx5R",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "name": "Primary OpenRouter",
   "providerType": "openrouter",
   "baseUrl": null,
@@ -332,7 +336,7 @@ Response schema: `Provider`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`provider_name_conflict`](/api-reference/protocols/errors#provider_name_conflict) | The request conflicts with the resource's current state |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
@@ -349,7 +353,7 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/providers/prv_1234567890ABCDEF
   --data '{"name":"Primary OpenRouter"}'
 ```
 
-### DELETE /v1/providers/:id [#delete-provider]
+### DELETE /v1/providers/:providerId [#delete-provider]
 
 Delete a provider.
 
@@ -361,7 +365,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). Needs 
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the provider. |
+| `providerId` | string | path | required | ID of the provider. |
 | `confirmSnapshotInvalidation` | string | query |  | `true` confirms that sessions and queued or running task runs with a saved reference to this provider may stop working. It never overrides use by a current agent. One of `true`, `false`. Defaults to `false`. |
 
 #### Response
@@ -376,7 +380,7 @@ Returns `204 No Content`. The provider was deleted.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`provider_in_use`](/api-reference/protocols/errors#provider_in_use), [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) | The request conflicts with the resource's current state |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |

@@ -11,7 +11,7 @@ for new messages without re-reading old ones.
 
 ## Contract [#contract]
 
-A standard page is `{ data, nextCursor }`. Two lists name their array differently: customer bindings return `{ bindings, nextCursor }` and merchant usage events return `{ events, nextCursor }`. Pass a non-null `nextCursor` back as
+Every list returns its records in `data`. A list that pages also returns `nextCursor`. Pass a non-null `nextCursor` back as
 `cursor` to the same endpoint with the same filters. `null` means there are no
 more pages in that direction. Cursors are opaque: do not decode, edit, or reuse
 one on another list. A cursor the API cannot read returns `400
@@ -35,7 +35,7 @@ chronological order inside each page.
 | Latest Sessions | [`sessions.listLatest`](/sdk/typescript/sessions#list-latest) | [`list-latest-sessions`](/api-reference/rest-api/sessions#list-latest-sessions) | `nextCursor` | [cursored pages](/api-reference/protocols/service-limits#other-cursored-resource-pages) | `userId`, `byAgent` |
 | Session messages | [`sessions.messages`](/sdk/typescript/sessions#messages) | [`list-session-messages`](/api-reference/rest-api/sessions#list-session-messages) | `nextCursor`, `latestCursor` | [message page](/api-reference/protocols/service-limits#session-or-task-run-message-page) | `cursor` or `after` |
 | Session inputs | [`sessions.inputs`](/sdk/typescript/sessions#inputs) | [`list-session-inputs`](/api-reference/rest-api/sessions#list-session-inputs) | `nextCursor` | [session input page](/api-reference/protocols/service-limits#session-input-page) | `includeCompleted` |
-| Artifacts | [`artifacts.list`](/sdk/typescript/artifacts#list) | [`list-artifacts`](/api-reference/rest-api/artifacts#list-artifacts) | `nextCursor` | fixed; no public `limit` ([cursored pages](/api-reference/protocols/service-limits#other-cursored-resource-pages)) | `agentId`, `sessionId` |
+| Artifacts | [`artifacts.list`](/sdk/typescript/artifacts#list) | [`list-artifacts`](/api-reference/rest-api/artifacts#list-artifacts) | `nextCursor` | [cursored pages](/api-reference/protocols/service-limits#other-cursored-resource-pages) | `agentId`, `sessionId` |
 | Memories | [`memories.list`](/sdk/typescript/memories#list) | [`list-memories`](/api-reference/rest-api/memories#list-memories) | `nextCursor` | [memory page](/api-reference/protocols/service-limits#memory-page) | `userId`, `search` |
 | Tasks | [`tasks.list`](/sdk/typescript/tasks#list) | [`list-tasks`](/api-reference/rest-api/tasks#list-tasks) | `nextCursor` | [cursored pages](/api-reference/protocols/service-limits#other-cursored-resource-pages) | `agentId`, `userId` |
 | Task runs | [`tasks.listRuns`](/sdk/typescript/tasks#list-runs) | [`list-task-runs`](/api-reference/rest-api/task-runs#list-task-runs) | `nextCursor` | [cursored pages](/api-reference/protocols/service-limits#other-cursored-resource-pages) | owning Task path |

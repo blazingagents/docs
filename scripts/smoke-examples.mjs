@@ -376,7 +376,7 @@ try {
 
   const quickstart = await readFences("getting-started/quickstart.mdx");
   const providerName = "Quickstart OpenRouter";
-  const { providers: providersBefore } = await api("GET", "/v1/providers");
+  const { data: providersBefore } = await api("GET", "/v1/providers");
   const quickstartProviderExisted = providersBefore.some(({ name }) => name === providerName);
   const quickstartProviderIds = new Set();
   for (const lang of Object.keys(langs)) {
@@ -455,7 +455,7 @@ try {
         await serveEndpoint(lang, pointAtBaseUrl(lang, serverCode), agent.providerId);
       } finally {
         for (const { id } of await listAllAgents()) {
-          if (!before.has(id)) cleanups.push({ label: `agent ${id}`, path: `/v1/agents/${id}?includeArtifacts=true` });
+          if (!before.has(id)) cleanups.push({ label: `agent ${id}`, path: `/v1/agents/${id}?deleteArtifacts=true` });
         }
         await runCleanups();
       }
@@ -471,13 +471,13 @@ try {
     }
     await step(saveStep, async () => {
       const [code] = pick(home, lang, ({ section }) => section === "save-the-provider");
-      const before = new Set((await api("GET", "/v1/providers")).providers.map(({ id }) => id));
+      const before = new Set((await api("GET", "/v1/providers")).data.map(({ id }) => id));
       try {
         const { output } = await runExample(lang, "save-provider", code);
         expectLine(output, /^BLAZING_AGENTS_PROVIDER_ID=prv_[A-Za-z0-9]{16}$/m, "BLAZING_AGENTS_PROVIDER_ID=prv_...");
       } finally {
         /** The script may fail after creating the provider, so find what it left by name. */
-        for (const { id, name } of (await api("GET", "/v1/providers")).providers) {
+        for (const { id, name } of (await api("GET", "/v1/providers")).data) {
           if (name === "OpenRouter" && !before.has(id)) {
             cleanups.push({ label: `provider ${id}`, path: `/v1/providers/${id}` });
           }

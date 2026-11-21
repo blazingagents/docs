@@ -31,10 +31,10 @@ Every method takes the owning `agentId` and accepts an optional `abortSignal`.
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`create()`](#create) | Add a memory | `MemoryResponse` |
+| [`create()`](#create) | Add a memory | `Memory` |
 | [`list()`](#list) | List or search memories | `MemoriesListResponse` |
-| [`get()`](#get) | Read one memory | `MemoryResponse` |
-| [`update()`](#update) | Replace a memory's text | `MemoryResponse` |
+| [`get()`](#get) | Read one memory | `Memory` |
+| [`update()`](#update) | Replace a memory's text | `Memory` |
 | [`delete()`](#delete) | Delete a memory | `void` |
 
 ## Methods [#methods]
@@ -43,12 +43,12 @@ Every method takes the owning `agentId` and accepts an optional `abortSignal`.
 
 Adds a memory to an agent.
 
-**Signature:** `create(input: CreateMemoryBody & { agentId: string } & ResourceRequestOptions): Promise<MemoryResponse>`
+**Signature:** `create(input: CreateMemoryBody & { agentId: string } & ResourceRequestOptions): Promise<Memory>`
 
 To seed a shared memory that every user's unscoped turns can see, use the tenant client:
 
 ```typescript
-const { memory } = await client.memories.create({
+const memory = await client.memories.create({
   agentId,
   text: "Release notes go out every Friday.",
 });
@@ -60,7 +60,7 @@ const { memory } = await client.memories.create({
 | `text` | `string` | yes | none | The note, within the [memory text limit](/api-reference/protocols/service-limits#memory-text) |
 | `userId` | `string` | no | `""` | The end user it is about, or `""` for a shared memory. A scoped client fills in its own end user |
 
-Returns [`MemoryResponse`](#memoryresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found).
+Returns [`Memory`](#memory). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `list()` [#list]
 
@@ -86,29 +86,29 @@ Returns [`MemoriesListResponse`](#memorieslistresponse). Errors: `validation_fai
 
 Reads one memory.
 
-**Signature:** `get(input: { agentId: string; memoryId: string } & ResourceRequestOptions): Promise<MemoryResponse>`
+**Signature:** `get(input: { agentId: string; memoryId: string } & ResourceRequestOptions): Promise<Memory>`
 
 ```typescript
-const { memory } = await client.memories.get({ agentId, memoryId });
+const memory = await client.memories.get({ agentId, memoryId });
 ```
 
-Returns [`MemoryResponse`](#memoryresponse). Errors: `validation_failed`, `not_found`.
+Returns [`Memory`](#memory). Errors: `validation_failed`, `not_found`.
 
 ### `update()` [#update]
 
 Replaces a memory's text.
 
-**Signature:** `update(input: UpdateMemoryBody & { agentId: string; memoryId: string } & ResourceRequestOptions): Promise<MemoryResponse>`
+**Signature:** `update(input: UpdateMemoryBody & { agentId: string; memoryId: string } & ResourceRequestOptions): Promise<Memory>`
 
 ```typescript
-const { memory } = await client.memories.update({
+const memory = await client.memories.update({
   agentId,
   memoryId,
   text: "Prefers release notes under five lines.",
 });
 ```
 
-`text` is required and replaces the old text. The agent and `userId` stay the same. Returns [`MemoryResponse`](#memoryresponse). Errors: `validation_failed`, `not_found`.
+`text` is required and replaces the old text. The agent and `userId` stay the same. Returns [`Memory`](#memory). Errors: `validation_failed`, `not_found`.
 
 ### `delete()` [#delete]
 
@@ -124,11 +124,9 @@ Errors: `validation_failed`, `not_found`.
 
 ## Response types [#response-types]
 
-### `MemoryResponse` [#memoryresponse]
+### `Memory` [#memory]
 
-`MemoryResponse` is `{ memory: Memory }`.
-
-| `Memory` field | Type | Description |
+| Field | Type | Description |
 | --- | --- | --- |
 | `id` | `string` | Memory ID (`mem_…`) |
 | `tenantId` | `string` | Your tenant ID |

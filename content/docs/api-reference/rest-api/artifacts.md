@@ -17,7 +17,7 @@ fetch the bytes. Published files never change.
 
 List artifacts.
 
-Lists your tenant's artifacts newest first, 50 per page. Filter by the agent or session that published them, and pass `nextCursor` as `cursor` to get the next page.
+Lists your tenant's artifacts newest first, one page at a time. Filter by the agent or session that published them, and pass `nextCursor` as `cursor` to get the next page.
 
 #### Request
 
@@ -27,7 +27,8 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 | --- | --- | --- | --- | --- |
 | `agentId` | string | query |  | Return only artifacts published by this agent. |
 | `sessionId` | string | query |  | Return only artifacts published in this session. |
-| `cursor` | string \| null | query |  | `nextCursor` from the previous page. |
+| `cursor` | string | query |  | `nextCursor` from the previous page. Leave it out for the first page. |
+| `limit` | integer | query |  | Page size, from 1 to 100. Defaults to 50. 1–100. |
 
 #### Response
 
@@ -39,7 +40,7 @@ Response schema: `ArtifactList`.
 {
   "data": [
     {
-      "artifactId": "at_6Jm2Qx8RtW4nPz1K",
+      "id": "at_6Jm2Qx8RtW4nPz1K",
       "agentId": "ag_4kP9sT2vXq7LmN3a",
       "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
       "sessionId": "ss_9Fh3Lc7VbN2kDs5Y",
@@ -148,7 +149,7 @@ Response schema: `Artifact`.
 
 ```json
 {
-  "artifactId": "at_6Jm2Qx8RtW4nPz1K",
+  "id": "at_6Jm2Qx8RtW4nPz1K",
   "agentId": "ag_4kP9sT2vXq7LmN3a",
   "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "sessionId": "ss_9Fh3Lc7VbN2kDs5Y",

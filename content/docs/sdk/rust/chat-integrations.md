@@ -46,12 +46,12 @@ println!("{}", connection.webhook_url);
 Lists chat connections.
 
 ```rust
-let connections = client.chat_connections().list().await?.chat_connections;
+let connections = client.chat_connections().list().await?.data;
 ```
 
 **Signature:** `list() -> Call<ListChatConnections>`
 
-Awaiting returns [`ChatConnectionList`](#chatconnection) with `chat_connections: Vec<ChatConnection>`.
+Awaiting returns [`ChatConnectionList`](#chatconnection) with `data: Vec<ChatConnection>`.
 
 ### `get()` [#get]
 

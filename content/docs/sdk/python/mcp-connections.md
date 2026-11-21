@@ -73,12 +73,12 @@ Raises `APIStatusError` with `validation_failed`, [`mcp_connection_name_conflict
 Lists your connections.
 
 ```python
-connections = client.mcp_connections.list().mcp_connections
+connections = client.mcp_connections.list().data
 ```
 
 **Signature:** `list() -> McpConnections`
 
-Returns `McpConnections`, whose `mcp_connections` field is `list[McpConnection]`. The list is not paginated.
+Returns `McpConnections`, whose `data` field is `list[McpConnection]`. The list is not paginated.
 
 ### `get()` [#get]
 
@@ -160,6 +160,7 @@ Raises `validation_failed`, `not_found`, a [live check error](#errors-and-secret
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `str` | Connection ID (`mcp_...`) |
+| `tenant_id` | `str` | Your tenant ID |
 | `name` | `str` | Display name |
 | `url` | `AnyUrl` | Server endpoint |
 | `auth_type` | `str` | Authentication type |

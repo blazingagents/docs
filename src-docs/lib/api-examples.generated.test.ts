@@ -141,7 +141,7 @@ describe("generated REST API examples", () => {
 
   test("generates query, multipart, file, download, and stream semantics", () => {
     expect(operation("delete-agent").examples[0]?.code).toContain(
-      "?includeArtifacts="
+      "?deleteArtifacts="
     );
     expect(operation("upload-agent-avatar").examples[0]?.code).toContain(
       '--form "file=@./file"'
@@ -166,7 +166,7 @@ describe("generated REST API examples", () => {
       `"name":"Support Agent"`
     );
     expect(operation("delete-agent").examples[0]?.code).toContain(
-      "?includeArtifacts=false"
+      "?deleteArtifacts=false"
     );
     expect(operation("set-merchant-binding").examples[0]?.code).toContain(
       "/bindings/$USER_ID"
@@ -196,6 +196,7 @@ describe("generated REST API examples", () => {
       "402",
       "403",
       "404",
+      "422",
       "429",
       "500",
       "502",

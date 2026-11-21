@@ -194,11 +194,11 @@ Summaries use the provider and model saved for the session and count toward the 
 Deleting an agent is permanent. You choose whether its [artifacts](/agents/artifacts) go with it:
 
 ```typescript tab="TypeScript" tab-group="sdk-language"
-await client.agents.delete({ agentId: agent.id, includeArtifacts: false });
+await client.agents.delete({ agentId: agent.id, deleteArtifacts: false });
 ```
 
 ```python tab="Python"
-client.agents.delete(agent.id, include_artifacts=False)
+client.agents.delete(agent.id, delete_artifacts=False)
 ```
 
 ```rust tab="Rust"
@@ -206,7 +206,7 @@ client.agents().delete(agent_id, false).await?;
 ```
 
 ```go tab="Go"
-return client.Agents.Delete(ctx, agentID, ba.DeleteAgentParams{IncludeArtifacts: false})
+return client.Agents.Delete(ctx, agentID, ba.DeleteAgentParams{DeleteArtifacts: false})
 ```
 
 This removes the agent's sessions, tasks, memories, skills, linked prompts, avatar, and [Slack and Telegram connections](/platform/chat-integrations). Its workspace, provider, and MCP connections stay, so you can attach them to another agent. Artifacts you keep and past usage records still show the deleted agent's ID.

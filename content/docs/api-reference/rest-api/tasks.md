@@ -9,7 +9,7 @@ description: Run agent work in the background, on demand or on a schedule.
 
 A task is a saved prompt for an agent that runs in the background, on demand or on a schedule. Each run gets its own record and transcript, so you can check on it later. Use tasks for reports, syncs, and other work nobody waits on.
 
-Pass `idempotencyKey` when creating a task that your backend may retry. Repeating the same request with the same key returns the current task definition and original initial run ID. A different request, or a retry after deleting the task, returns `idempotency_conflict`.
+Send an `Idempotency-Key` header when creating a task that your backend may retry. Repeating the same request with the same key returns the current task definition and original initial run ID. A different request, or a retry after deleting the task, returns `idempotency_conflict`.
 
 ## Tool approval policy [#tool-approval-policy]
 
@@ -108,7 +108,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tasks" \
 
 Create a task.
 
-Creates a task: a saved prompt your agent runs in the background. With a `schedule`, the task runs by itself; without one, it runs only when you start it. Send `submit: true` to start a run right away, which returns `202 Accepted` with the run's ID in `runId`; otherwise you get `201 Created` and `runId` is `null`. Send an `idempotencyKey` to retry safely. Matching retries return the current task definition and the original initial run ID. Changed requests or a deleted task return 409. Keys are separate for tenant-wide access and each scoped user. Without a key, each request creates another task. The platform-managed agent cannot run tasks.
+Creates a task: a saved prompt your agent runs in the background. With a `schedule`, the task runs by itself; without one, it runs only when you start it. Send `submit: true` to start a run right away, which returns `202 Accepted` with the run's ID in `runId`; otherwise you get `201 Created` and `runId` is `null`. Send an `Idempotency-Key` header to retry safely. Matching retries return the current task definition and the original initial run ID. Changed requests or a deleted task return 409. Keys are separate for tenant-wide access and each scoped user, and are remembered for as long as the task exists. Without a key, each request creates another task. The platform-managed agent cannot run tasks.
 
 #### Request
 
@@ -116,7 +116,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `idempotencyKey` | string | body |  | Retry the same creation with this key to return the current task and its original initial run. Changed requests or deleted tasks return a conflict. |
+| `idempotency-key` | string | header |  | Unique key for this creation. Retry with the same key to get the current task and its original initial run back. 1–200 characters. |
 | `agentId` | string | body | required | ID of the agent that runs the task. It cannot change later. |
 | `name` | string | body | required | Display name, 1 to 80 characters. |
 | `prompt` | string | body | required | The prompt the agent receives on every run, 1 to 6,000 characters. |
@@ -207,7 +207,7 @@ Response schema: `CreatedTask`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
 | `409` | [`agent_disabled`](/api-reference/protocols/errors#agent_disabled), [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed), [`idempotency_conflict`](/api-reference/protocols/errors#idempotency_conflict) | The request conflicts with the resource's current state |
 | `429` | [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |

@@ -26,7 +26,7 @@ const provider = await client.providers.create({
 });
 console.log(`Provider: ${provider.id}, key ending ${provider.keyFragment}`);
 
-const { models } = await client.providers.listModels({
+const { data: models } = await client.providers.listModels({
   providerId: provider.id,
 });
 if (!models.some(({ id }) => id === "openai/gpt-6-luna")) {
@@ -54,7 +54,7 @@ provider = client.providers.create(
 )
 print(f"Provider: {provider.id}, key ending {provider.key_fragment}")
 
-models = client.providers.list_models(provider.id).models
+models = client.providers.list_models(provider.id).data
 if not any(m.id == "openai/gpt-6-luna" for m in models):
     raise RuntimeError("openai/gpt-6-luna is not available on this provider")
 
@@ -86,7 +86,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         provider.id, provider.key_fragment
     );
 
-    let models = client.providers().list_models(&provider.id).await?.models;
+    let models = client.providers().list_models(&provider.id).await?.data;
     if !models.iter().any(|model| model.id == "openai/gpt-6-luna") {
         return Err("openai/gpt-6-luna is not available on this provider".into());
     }

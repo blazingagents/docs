@@ -40,7 +40,7 @@ print(skill.id, skill.name)
 | [`read_file()`](#read-file) | Read one file's bytes | `bytes` |
 | [`replace_file()`](#replace-file) | Create or replace one file | `SkillDetail` |
 | [`delete_file()`](#delete-file) | Delete one supporting file | `SkillDetail` |
-| [`copy()`](#copy) | Copy a skill to other agents | `list[SkillCopyResult]` |
+| [`copy()`](#copy) | Copy a skill to other agents | `SkillCopyResults` |
 
 ## Methods [#methods]
 
@@ -117,7 +117,7 @@ for file in skill.files:
 
 **Signature:** `get(*, skill_id: str) -> SkillDetail`
 
-Returns [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed`, `not_found`, or [`skill_not_found`](/api-reference/protocols/errors#skill_not_found).
+Returns [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed` or `not_found`.
 
 ### `delete()` [#delete]
 
@@ -129,7 +129,7 @@ client.agent(agent.id).skills.delete(skill_id=skill.id)
 
 **Signature:** `delete(*, skill_id: str) -> None`
 
-Raises `validation_failed`, `not_found`, or `skill_not_found`.
+Raises `validation_failed` or `not_found`.
 
 ### `read_file()` [#read-file]
 
@@ -144,7 +144,7 @@ script = client.agent(agent.id).skills.read_file(
 
 **Signature:** `read_file(*, skill_id: str, path: str) -> bytes`
 
-`path` is a relative path inside the skill, such as `"SKILL.md"` or `"scripts/deploy.sh"`. Raises `validation_failed`, `not_found`, or `skill_not_found`.
+`path` is a relative path inside the skill, such as `"SKILL.md"` or `"scripts/deploy.sh"`. Raises `validation_failed` or `not_found`.
 
 ### `replace_file()` [#replace-file]
 
@@ -162,7 +162,7 @@ skill = client.agent(agent.id).skills.replace_file(
 
 Replacing `SKILL.md` re-reads its frontmatter and updates the skill's name and description; the skill ID stays the same.
 
-Returns the updated [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed`, `not_found`, `skill_not_found`, `skill_invalid_markdown`, `skill_name_conflict`, `skill_too_many_files`, or `skill_uncompressed_too_large`.
+Returns the updated [`SkillDetail`](#skill-and-skilldetail). Raises `validation_failed`, `not_found`, `skill_invalid_markdown`, `skill_name_conflict`, `skill_too_many_files`, or `skill_uncompressed_too_large`.
 
 ### `delete_file()` [#delete-file]
 
@@ -177,7 +177,7 @@ skill = client.agent(agent.id).skills.delete_file(
 
 **Signature:** `delete_file(*, skill_id: str, path: str) -> SkillDetail`
 
-Deleting a file that does not exist succeeds. You cannot delete `SKILL.md`. Returns the updated [`SkillDetail`](#skill-and-skilldetail). Raises [`invalid_request`](/api-reference/protocols/errors#invalid_request), `validation_failed`, `not_found`, or `skill_not_found`.
+Deleting a file that does not exist succeeds. You cannot delete `SKILL.md`. Returns the updated [`SkillDetail`](#skill-and-skilldetail). Raises [`invalid_request`](/api-reference/protocols/errors#invalid_request), `validation_failed`, or `not_found`.
 
 ### `copy()` [#copy]
 
@@ -188,16 +188,16 @@ results = client.agent(agent.id).skills.copy(
     skill_id=skill.id,
     destination_agent_ids=["ag_0123456789abcdef"],
 )
-for result in results:
+for result in results.data:
     if result.status == "created":
         print(result.agent_id, result.skill.id)
     else:
         print(result.agent_id, result.error.code)
 ```
 
-**Signature:** `copy(*, skill_id: str, destination_agent_ids: Sequence[str], idempotency_key: str | None = None) -> list[SkillCopyResult]`
+**Signature:** `copy(*, skill_id: str, destination_agent_ids: Sequence[str], idempotency_key: str | None = None) -> SkillCopyResults`
 
-Pass unique agent IDs, within the [copy destination limit](/api-reference/protocols/service-limits#skill-copy). Results come back in the same order. A failed destination does not undo the others; it appears as a `"failed"` result instead of raising. With an `idempotency_key`, a retry returns each destination's existing copy as `"created"`. The whole call raises only `validation_failed`, `not_found`, or `skill_not_found`.
+Pass unique agent IDs, within the [copy destination limit](/api-reference/protocols/service-limits#skill-copy). Returns `SkillCopyResults`, whose `data` field is a `list[SkillCopyResult]` in the same order. A failed destination does not undo the others; it appears as a `"failed"` result instead of raising. With an `idempotency_key`, a retry returns each destination's existing copy as `"created"`. The whole call raises only `validation_failed` or `not_found`.
 
 ## Response types [#response-types]
 
@@ -214,13 +214,13 @@ Pass unique agent IDs, within the [copy destination limit](/api-reference/protoc
 | `created_at`, `updated_at` | `datetime` | Timestamps |
 | `files` | `list[SkillFile]` | `SkillDetail` only: each file's `path` and `size_bytes` |
 
-A copy result is either `SkillCopyCreated` (`status == "created"`, with `agent_id` and `skill`) or `SkillCopyFailed` (`status == "failed"`, with `agent_id` and an `error` holding `code`, `message`, and optional `details`).
+Each copy result in `data` is either `SkillCopyCreated` (`status == "created"`, with `agent_id` and `skill`) or `SkillCopyFailed` (`status == "failed"`, with `agent_id` and an `error` holding `code`, `message`, and optional `details`).
 
 ## Errors [#errors]
 
 | Code | Meaning |
 | --- | --- |
-| `skill_not_found` | The skill does not belong to this agent |
+| `not_found` | The agent or the skill does not exist, or the skill belongs to another agent |
 | `skill_invalid_markdown` | `SKILL.md` frontmatter is missing or invalid |
 | `skill_invalid_archive` | The archive is invalid or contains unsafe paths |
 | `skill_name_conflict` | The agent already has a skill with that name |

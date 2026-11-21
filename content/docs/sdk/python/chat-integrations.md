@@ -45,12 +45,12 @@ print([(check.code, check.status) for check in connection.health.checks])
 Lists your chat connections.
 
 ```python
-connections = client.chat_connections.list().chat_connections
+connections = client.chat_connections.list().data
 ```
 
 **Signature:** `list() -> ChatConnections`
 
-Returns `ChatConnections`, whose `chat_connections` field is `list[ChatConnection]`.
+Returns `ChatConnections`, whose `data` field is `list[ChatConnection]`.
 
 ### `get()` [#get]
 

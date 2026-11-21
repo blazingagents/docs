@@ -114,7 +114,7 @@ Reads a skill with its current file list.
 const skill = await client.agent({ agentId }).skills.get({ skillId });
 ```
 
-Returns [`SkillDetail`](#skilldetail). Errors: `validation_failed`, `not_found`, [`skill_not_found`](/api-reference/protocols/errors#skill_not_found).
+Returns [`SkillDetail`](#skilldetail). Errors: `validation_failed`, `not_found`.
 
 ### `getFile()` [#get-file]
 
@@ -130,7 +130,7 @@ const bytes = await client.agent({ agentId }).skills.getFile({
 console.log(new TextDecoder().decode(bytes));
 ```
 
-Returns a `Uint8Array`. Decode text files yourself. Errors: `validation_failed`, `not_found`, `skill_not_found`.
+Returns a `Uint8Array`. Decode text files yourself. Errors: `validation_failed`, `not_found`.
 
 ### `putFile()` [#put-file]
 
@@ -146,7 +146,7 @@ const skill = await client.agent({ agentId }).skills.putFile({
 });
 ```
 
-Replacing `SKILL.md` also updates the skill's name and description from the new frontmatter. Returns the updated [`SkillDetail`](#skilldetail). Errors: `validation_failed`, `not_found`, `skill_not_found`, `skill_invalid_markdown`, `skill_name_conflict`, `skill_too_many_files`, `skill_uncompressed_too_large`.
+Replacing `SKILL.md` also updates the skill's name and description from the new frontmatter. Returns the updated [`SkillDetail`](#skilldetail). Errors: `validation_failed`, `not_found`, `skill_invalid_markdown`, `skill_name_conflict`, `skill_too_many_files`, `skill_uncompressed_too_large`.
 
 ### `deleteFile()` [#delete-file]
 
@@ -161,7 +161,7 @@ const skill = await client.agent({ agentId }).skills.deleteFile({
 });
 ```
 
-You cannot delete `SKILL.md`; that fails with [`invalid_request`](/api-reference/protocols/errors#invalid_request). Delete the whole skill instead. Returns the updated [`SkillDetail`](#skilldetail). Errors: `invalid_request`, `validation_failed`, `not_found`, `skill_not_found`.
+You cannot delete `SKILL.md`; that fails with [`invalid_request`](/api-reference/protocols/errors#invalid_request). Delete the whole skill instead. Returns the updated [`SkillDetail`](#skilldetail). Errors: `invalid_request`, `validation_failed`, `not_found`.
 
 ### `copy()` [#copy]
 
@@ -170,7 +170,7 @@ Copies a skill to other agents. Each copy is independent of the original.
 **Signature:** `copy(input: { idempotencyKey?: string; skillId: string; to: { agentIds: string[] } } & ResourceRequestOptions): Promise<SkillCopyResults>`
 
 ```typescript
-const results = await client.agent({ agentId }).skills.copy({
+const { data: results } = await client.agent({ agentId }).skills.copy({
   skillId,
   to: { agentIds: [otherAgentId] },
 });
@@ -179,7 +179,7 @@ for (const result of results) {
 }
 ```
 
-`to.agentIds` lists different agents, up to the [copy destination limit](/api-reference/protocols/service-limits#skill-copy). One failed destination does not stop the others, so check each result. Results come back in the order you listed the agents. With an `idempotencyKey`, a retry returns each destination's existing copy as `created`; see [retry a create safely](/agents/skills#retry-a-create). Returns [`SkillCopyResults`](#skillcopyresults). Errors for the whole call: `validation_failed`, `not_found`, `skill_not_found`.
+`to.agentIds` lists different agents, up to the [copy destination limit](/api-reference/protocols/service-limits#skill-copy). One failed destination does not stop the others, so check each result. Results come back in the order you listed the agents. With an `idempotencyKey`, a retry returns each destination's existing copy as `created`; see [retry a create safely](/agents/skills#retry-a-create). Returns [`SkillCopyResults`](#skillcopyresults). Errors for the whole call: `validation_failed`, `not_found`.
 
 ### `delete()` [#delete]
 
@@ -191,7 +191,7 @@ Deletes a skill and all its files.
 await client.agent({ agentId }).skills.delete({ skillId });
 ```
 
-Errors: `validation_failed`, `not_found`, `skill_not_found`.
+Errors: `validation_failed`, `not_found`.
 
 ## Response types [#response-types]
 
@@ -231,7 +231,9 @@ type SkillCopyResult =
       error: { code: string; message: string; details?: unknown };
     };
 
-type SkillCopyResults = SkillCopyResult[];
+interface SkillCopyResults {
+  data: SkillCopyResult[];
+}
 ```
 
 ## Errors [#errors]
@@ -240,7 +242,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The skill-
 
 | Code | Meaning |
 | --- | --- |
-| `skill_not_found` | This agent has no such skill |
+| `not_found` | This agent has no such skill, or the agent does not exist |
 | `skill_invalid_markdown` | `SKILL.md` frontmatter is missing or invalid |
 | `skill_invalid_archive` | The archive format or contents are invalid or unsafe |
 | `skill_name_conflict` | The agent already has a skill with this name |

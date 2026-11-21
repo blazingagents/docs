@@ -92,7 +92,7 @@ let workspace = client.workspaces().get("ws_0123456789abcdef").await?;
 
 **Signature:** `get(workspace_id: impl Into<WorkspaceId>) -> Call<GetWorkspace>`
 
-Awaiting returns [`Workspace`](#workspace). Fails with `validation_failed` or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found).
+Awaiting returns [`Workspace`](#workspace). Fails with `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `update()` [#update]
 
@@ -115,7 +115,7 @@ let workspace = client
 | `metadata(metadata)` | Replaces the workspace's metadata completely |
 | `network_policy(network_policy)` | Replaces the network policy. Switching between `NetworkPolicy::Unrestricted` and a restricted policy stops a running workspace, which applies the new policy on next use |
 
-Awaiting returns [`Workspace`](#workspace). Fails with `validation_failed`, `workspace_not_found`, or [`workspace_busy`](/api-reference/protocols/errors#workspace_busy) when another change to the workspace is still in progress; retry once it finishes.
+Awaiting returns [`Workspace`](#workspace). Fails with `validation_failed`, `not_found`, or [`workspace_busy`](/api-reference/protocols/errors#workspace_busy) when another change to the workspace is still in progress; retry once it finishes.
 
 ### `delete()` [#delete]
 
@@ -132,7 +132,7 @@ Move attached agents to another workspace first. Awaiting returns `()`, and by t
 | Code | Meaning |
 | --- | --- |
 | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use) | Agents still use it; `ApiError::details()` holds their IDs under `agentIds` |
-| `workspace_not_found` | No such workspace in your tenant, or, on a `UserClient`, none that belongs to its user |
+| [`not_found`](/api-reference/protocols/errors#not_found) | No such workspace in your tenant, or, on a `UserClient`, none that belongs to its user |
 
 ## Response models [#response-models]
 

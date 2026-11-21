@@ -39,7 +39,7 @@ return nil
 
 ### `List` [#list]
 
-Lists artifacts, newest first, with a fixed [page size](/api-reference/protocols/service-limits#other-cursored-resource-pages).
+Lists artifacts, newest first.
 
 ```go
 page, err := client.Artifacts.List(ctx, ba.ListArtifactsParams{AgentID: &agentID})
@@ -57,6 +57,7 @@ return nil
 | `AgentID` | `*ba.AgentID` | Only artifacts published by this agent |
 | `SessionID` | `*ba.SessionID` | Only artifacts published in this session |
 | `Cursor` | `*string` | The `NextCursor` of the previous page |
+| `Limit` | `*int` | Page size, from 1 to 100. Defaults to 50 |
 
 Returns [`*ba.Page[Artifact]`](#artifact); `All` walks every page lazily. Fails with `*ba.APIError` whose `Code` is [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 

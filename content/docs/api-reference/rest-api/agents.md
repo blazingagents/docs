@@ -343,11 +343,12 @@ Response schema: `Agent`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `404` | [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found), [`mcp_connection_not_found`](/api-reference/protocols/errors#mcp_connection_not_found) | The resource was not found |
+| `422` | [`model_not_found`](/api-reference/protocols/errors#model_not_found) | The request was understood but rejected |
 | `429` | [`rate_limited`](/api-reference/protocols/errors#rate_limited) | Too many requests |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
@@ -386,7 +387,7 @@ Response schema: `McpAttachmentList`.
 
 ```json
 {
-  "mcpAttachments": [
+  "data": [
     {
       "mcpConnectionId": "mcp_2Rk7Wm4XsQ9dHv1B",
       "forwardUserId": true,
@@ -563,7 +564,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### PUT /v1/agents/:agentId [#update-agent]
+### PATCH /v1/agents/:agentId [#update-agent]
 
 Update an agent.
 
@@ -658,12 +659,13 @@ Response schema: `Agent`.
 
 | Status | Codes | Description |
 | --- | --- | --- |
-| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | The request is invalid |
+| `400` | [`invalid_request`](/api-reference/protocols/errors#invalid_request), [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed) | The request is invalid |
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found), [`mcp_connection_not_found`](/api-reference/protocols/errors#mcp_connection_not_found) | The resource was not found |
 | `409` | [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) | The request conflicts with the resource's current state |
+| `422` | [`model_not_found`](/api-reference/protocols/errors#model_not_found) | The request was understood but rejected |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable) | The service is temporarily unavailable |
@@ -673,7 +675,7 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 #### cURL
 
 ```bash
-curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
+curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
   --header "Content-Type: application/json" \
   --data '{"instructions":"Answer billing and refund questions clearly and briefly.","tools":["read","grep","glob","web_search"]}'
@@ -683,7 +685,7 @@ curl --request PUT "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
 
 Delete an agent.
 
-Permanently deletes an agent. Its workspace is kept. Set `includeArtifacts` to choose whether its artifacts are deleted too. The platform-managed agent cannot be deleted. An agent cannot be deleted while it has a running turn or a queued or running task run: the call returns `409 agent_busy`, so stop that work or wait for it to finish, then delete again. While a delete that includes artifacts runs, new turns and task runs for the agent fail with `409 agent_deleting`. If that delete fails, they keep failing until you send the delete again, which finishes it.
+Permanently deletes an agent. Its workspace is kept. Set `deleteArtifacts` to choose whether its artifacts are deleted too. The platform-managed agent cannot be deleted. An agent cannot be deleted while it has a running turn or a queued or running task run: the call returns `409 agent_busy`, so stop that work or wait for it to finish, then delete again. While a delete that includes artifacts runs, new turns and task runs for the agent fail with `409 agent_deleting`. If that delete fails, they keep failing until you send the delete again, which finishes it.
 
 #### Request
 
@@ -692,7 +694,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). Needs 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `agentId` | string | path | required | ID of the agent. |
-| `includeArtifacts` | string | query | required | `true` also deletes the agent's artifacts; `false` keeps them. One of `true`, `false`. |
+| `deleteArtifacts` | string | query | required | `true` also deletes the agent's artifacts; `false` keeps them. One of `true`, `false`. |
 
 #### Response
 
@@ -717,7 +719,7 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 #### cURL
 
 ```bash
-curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF?includeArtifacts=false" \
+curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF?deleteArtifacts=false" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 

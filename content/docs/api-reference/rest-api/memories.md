@@ -99,16 +99,14 @@ Response schema: `Memory`.
 
 ```json
 {
-  "memory": {
-    "id": "mem_6Jd2Pq8LzR4wYk1C",
-    "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
-    "agentId": "ag_4kP9sT2vXq7LmN3a",
-    "userId": "user_42",
-    "text": "Prefers concise answers.",
-    "createdAt": "2026-07-10T10:00:00.000Z",
-    "updatedAt": "2026-07-10T10:00:00.000Z",
-    "lastAccessedAt": "2026-07-10T10:00:00.000Z"
-  }
+  "id": "mem_6Jd2Pq8LzR4wYk1C",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "userId": "user_42",
+  "text": "Prefers concise answers.",
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z",
+  "lastAccessedAt": "2026-07-10T10:00:00.000Z"
 }
 ```
 
@@ -159,16 +157,14 @@ Response schema: `Memory`.
 
 ```json
 {
-  "memory": {
-    "id": "mem_6Jd2Pq8LzR4wYk1C",
-    "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
-    "agentId": "ag_4kP9sT2vXq7LmN3a",
-    "userId": "user_42",
-    "text": "Prefers concise answers.",
-    "createdAt": "2026-07-10T10:00:00.000Z",
-    "updatedAt": "2026-07-10T10:00:00.000Z",
-    "lastAccessedAt": "2026-07-10T10:00:00.000Z"
-  }
+  "id": "mem_6Jd2Pq8LzR4wYk1C",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "userId": "user_42",
+  "text": "Prefers concise answers.",
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z",
+  "lastAccessedAt": "2026-07-10T10:00:00.000Z"
 }
 ```
 
@@ -218,16 +214,14 @@ Response schema: `Memory`.
 
 ```json
 {
-  "memory": {
-    "id": "mem_6Jd2Pq8LzR4wYk1C",
-    "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
-    "agentId": "ag_4kP9sT2vXq7LmN3a",
-    "userId": "user_42",
-    "text": "Prefers answers under five lines.",
-    "createdAt": "2026-07-10T10:00:00.000Z",
-    "updatedAt": "2026-07-10T10:15:00.000Z",
-    "lastAccessedAt": "2026-07-10T10:15:00.000Z"
-  }
+  "id": "mem_6Jd2Pq8LzR4wYk1C",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "userId": "user_42",
+  "text": "Prefers answers under five lines.",
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:15:00.000Z",
+  "lastAccessedAt": "2026-07-10T10:15:00.000Z"
 }
 ```
 

@@ -92,7 +92,7 @@ To build a tool picker, import `AGENT_TOOLS` from `blazing_agents`. Each `AgentT
 
 An approval policy is a dictionary with a required `default` decision and an optional list of per-tool `overrides`. Decisions are `"full"`, `"deny"`, `"manual"`, or `"auto"`. See [tool approvals](/agents/tools/tool-approvals) for what each decision does.
 
-Returns [`Agent`](#agent). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), or [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed).
+Returns [`Agent`](#agent). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found), [`mcp_connection_not_found`](/api-reference/protocols/errors#mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), or [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed).
 
 ### `list()` [#list]
 
@@ -143,26 +143,26 @@ agent = client.agents.update(
 
 **Signature:** `update(agent_id: str, *, name=..., model=..., provider_id=..., thinking_level=..., workspace_id=..., tools=..., instructions=..., memory_injection_enabled=..., auto_compaction=..., compaction_reserve_tokens=..., approval_in_chat=..., approval_in_tasks=..., metadata=..., mcp_connection_ids=...) -> Agent`
 
-Accepts every [`create()`](#create) parameter except `user_id`, which never changes. Omitted parameters keep their current value. Supplied values replace the old ones completely: `tools`, `mcp_connection_ids`, `metadata`, and each approval policy are full replacements, not patches.
+Accepts every [`create()`](#create) parameter except `user_id`, which never changes. Omitted parameters keep their current value. Supplied values replace the old ones completely: `tools`, `mcp_connection_ids`, `metadata`, and each approval policy are replaced as a whole, not merged.
 
 - To change the model on the current provider, pass `model` alone. To switch providers, pass `provider_id` and `model` together; `provider_id` alone raises `validation_failed`.
 - To unconfigure the agent, pass `provider_id=None` and `model=None`. Clearing only one raises `validation_failed`.
 - `thinking_level=None` resets to the provider default.
 - `workspace_id` moves the agent to another workspace. It cannot be cleared.
 
-Calling `update()` with no parameters raises `validation_failed`. Returns [`Agent`](#agent). Also raises `not_found`, `provider_not_found`, `model_not_found`, `model_validation_unavailable`, `workspace_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, `mcp_connection_discovery_failed`, or [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
+Calling `update()` with no parameters raises `validation_failed`. Returns [`Agent`](#agent). Also raises `not_found`, `provider_not_found`, `model_not_found`, `model_validation_unavailable`, `workspace_not_found`, `mcp_connection_not_found`, `agent_mcp_connections_invalid`, `mcp_connection_discovery_failed`, or [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
 
 ### `delete()` [#delete]
 
 Permanently deletes an agent with its sessions, tasks, and memories. Its workspace, providers, and MCP connections are kept.
 
 ```python
-client.agents.delete(agent.id, include_artifacts=False)
+client.agents.delete(agent.id, delete_artifacts=False)
 ```
 
-**Signature:** `delete(agent_id: str, *, include_artifacts: bool) -> None`
+**Signature:** `delete(agent_id: str, *, delete_artifacts: bool) -> None`
 
-`include_artifacts` is required: `True` also deletes the agent's published artifacts, and `False` keeps them. Raises [`agent_busy`](/api-reference/protocols/errors#agent_busy) (HTTP `409`) while the agent has a running turn or a queued or running task run. Also raises `validation_failed`, `not_found`, or `admin_agent_managed`.
+`delete_artifacts` is required: `True` also deletes the agent's published artifacts, and `False` keeps them. Raises [`agent_busy`](/api-reference/protocols/errors#agent_busy) (HTTP `409`) while the agent has a running turn or a queued or running task run. Also raises `validation_failed`, `not_found`, or `admin_agent_managed`.
 
 ### `disable()` [#disable]
 
@@ -221,12 +221,12 @@ Returns [`Agent`](#agent) with `avatar_url is None`. Raises `validation_failed`,
 Lists how the agent forwards end-user details to each of its MCP connections.
 
 ```python
-attachments = client.agents.list_mcp_attachments(agent.id).mcp_attachments
+attachments = client.agents.list_mcp_attachments(agent.id).data
 ```
 
 **Signature:** `list_mcp_attachments(agent_id: str) -> McpAttachments`
 
-Returns `McpAttachments`, whose `mcp_attachments` field is `list[McpAttachment]`, one per connection in the agent's `mcp_connection_ids`. Raises `validation_failed` or `not_found`.
+Returns `McpAttachments`, whose `data` field is `list[McpAttachment]`, one per connection in the agent's `mcp_connection_ids`. Raises `validation_failed` or `not_found`.
 
 ### `update_mcp_attachment()` [#update-mcp-attachment]
 

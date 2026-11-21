@@ -23,9 +23,9 @@ Each code links to its own entry. You can link straight to one, for example
 | [Requests and validation](#requests-and-validation) | [`invalid_request`](#invalid_request), [`idempotency_conflict`](#idempotency_conflict), [`validation_failed`](#validation_failed), [`not_found`](#not_found), [`invalid_cursor`](#invalid_cursor) |
 | [Agents and providers](#agents-and-providers) | [`agent_disabled`](#agent_disabled), [`admin_agent_managed`](#admin_agent_managed), [`agent_busy`](#agent_busy), [`agent_deleting`](#agent_deleting), [`provider_required`](#provider_required), [`provider_in_use`](#provider_in_use), [`provider_historical_use`](#provider_historical_use), [`provider_limit_reached`](#provider_limit_reached), [`provider_name_conflict`](#provider_name_conflict), [`provider_not_found`](#provider_not_found), [`model_discovery_unsupported`](#model_discovery_unsupported), [`model_not_found`](#model_not_found), [`model_validation_unavailable`](#model_validation_unavailable), [`prompt_variable_missing`](#prompt_variable_missing), [`prompt_variable_unknown`](#prompt_variable_unknown) |
 | [Sessions and turns](#sessions-and-turns) | [`session_busy`](#session_busy), [`session_turn_unresponsive`](#session_turn_unresponsive), [`function_call_conflict`](#function_call_conflict), [`session_version_mismatch`](#session_version_mismatch), [`input_idempotency_conflict`](#input_idempotency_conflict), [`steer_not_available`](#steer_not_available), [`message_id_conflict`](#message_id_conflict), [`message_not_found`](#message_not_found), [`tool_approval_continuation_settled`](#tool_approval_continuation_settled), [`tool_approval_decision_conflict`](#tool_approval_decision_conflict), [`tool_approval_outdated`](#tool_approval_outdated), [`session_fork_unavailable`](#session_fork_unavailable), [`session_fork_deleted`](#session_fork_deleted) |
-| [Tools and MCP](#tools-and-mcp) | [`agent_mcp_connection_not_found`](#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`mcp_connection_needs_auth`](#mcp_connection_needs_auth), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_not_found`](#skill_not_found), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
+| [Tools and MCP](#tools-and-mcp) | [`mcp_connection_not_found`](#mcp_connection_not_found), [`agent_mcp_connections_invalid`](#agent_mcp_connections_invalid), [`mcp_connection_limit_reached`](#mcp_connection_limit_reached), [`mcp_connection_name_conflict`](#mcp_connection_name_conflict), [`mcp_connection_stale_credential_version`](#mcp_connection_stale_credential_version), [`mcp_connection_invalid`](#mcp_connection_invalid), [`mcp_connection_authentication_failed`](#mcp_connection_authentication_failed), [`mcp_connection_in_use`](#mcp_connection_in_use), [`mcp_connection_unreachable`](#mcp_connection_unreachable), [`mcp_connection_discovery_failed`](#mcp_connection_discovery_failed), [`mcp_connection_needs_auth`](#mcp_connection_needs_auth), [`skill_invalid_archive`](#skill_invalid_archive), [`skill_invalid_markdown`](#skill_invalid_markdown), [`skill_limit_reached`](#skill_limit_reached), [`skill_name_conflict`](#skill_name_conflict), [`skill_too_many_files`](#skill_too_many_files), [`skill_uncompressed_too_large`](#skill_uncompressed_too_large), [`chat_webhook_conflict`](#chat_webhook_conflict), [`chat_webhook_registration_failed`](#chat_webhook_registration_failed) |
 | [Tasks](#tasks) | [`task_active_run_exists`](#task_active_run_exists) |
-| [Plan and billing](#plan-and-billing) | [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`subscription_already_paid`](#subscription_already_paid), [`subscription_not_cancelled`](#subscription_not_cancelled), [`merchant_connection_not_found`](#merchant_connection_not_found), [`merchant_connection_in_use`](#merchant_connection_in_use), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_binding_not_found`](#merchant_binding_not_found), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_not_found`](#merchant_event_not_found), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable), [`model_spending_limit_exceeded`](#model_spending_limit_exceeded) |
+| [Plan and billing](#plan-and-billing) | [`rate_limited`](#rate_limited), [`subscription_required`](#subscription_required), [`usage_credit_required`](#usage_credit_required), [`subscription_already_paid`](#subscription_already_paid), [`subscription_not_cancelled`](#subscription_not_cancelled), [`merchant_connection_in_use`](#merchant_connection_in_use), [`merchant_credential_invalid`](#merchant_credential_invalid), [`merchant_provider_unavailable`](#merchant_provider_unavailable), [`merchant_customer_not_found`](#merchant_customer_not_found), [`merchant_account_mismatch`](#merchant_account_mismatch), [`merchant_event_state_conflict`](#merchant_event_state_conflict), [`merchant_customer_unmapped`](#merchant_customer_unmapped), [`merchant_subscription_required`](#merchant_subscription_required), [`merchant_balance_required`](#merchant_balance_required), [`merchant_eligibility_unavailable`](#merchant_eligibility_unavailable), [`model_spending_limit_exceeded`](#model_spending_limit_exceeded) |
 | [Workspaces and artifacts](#workspaces-and-artifacts) | [`workspace_not_found`](#workspace_not_found), [`workspace_in_use`](#workspace_in_use), [`workspace_busy`](#workspace_busy), [`artifact_session_cap_reached`](#artifact_session_cap_reached) |
 | [Service](#service) | [`internal`](#internal), [`service_unavailable`](#service_unavailable) |
 
@@ -448,7 +448,7 @@ To fix it:
 
 **The resource does not exist in your tenant.**
 
-The ID is wrong, the resource was deleted, or it belongs to another tenant or user scope. You get the same answer in each case, so a missing resource does not reveal who owns it. An unknown URL path also returns this code.
+The ID is wrong, the resource was deleted, or it belongs to another tenant or user scope. You get the same answer in each case, so a missing resource does not reveal who owns it. This is the code for any missing record the request names: the one in the URL path, or, when the path names none, the one in the body or query. A record the request reaches through another one answers its own code, such as `provider_not_found`, `workspace_not_found`, `mcp_connection_not_found`, or `message_not_found`. An unknown URL path also returns this code.
 
 HTTP `404`. Retrying the same request fails the same way until you fix the cause.
 
@@ -618,7 +618,7 @@ To fix it:
 
 Blazing Agents checks the model ID against the provider when you create an agent with a model or change its model. The ID is not in the provider's current list.
 
-HTTP `400`. Retrying the same request fails the same way until you fix the cause.
+HTTP `422`. Retrying the same request fails the same way until you fix the cause.
 
 To fix it:
 
@@ -837,13 +837,13 @@ To fix it:
 
 MCP connections, skills, and chat integrations.
 
-### `agent_mcp_connection_not_found` [#agent_mcp_connection_not_found]
+### `mcp_connection_not_found` [#mcp_connection_not_found]
 
 **The agent references an MCP connection that does not exist.**
 
 An ID in `mcpConnectionIds` is wrong, deleted, or belongs to another tenant. The agent was not changed.
 
-HTTP `400`. Retrying the same request fails the same way until you fix the cause.
+HTTP `404`. Retrying the same request fails the same way until you fix the cause.
 
 To fix it:
 
@@ -1027,18 +1027,6 @@ To fix it:
 - Rename the skill, or update the existing skill instead.
 - If you are retrying a create that timed out or failed with a `5xx`, the first request may have created the skill. Send an `Idempotency-Key` header with each create so a retry returns that skill. See [retry a create safely](/agents/skills#retry-a-create).
 
-### `skill_not_found` [#skill_not_found]
-
-**The skill does not exist on this agent.**
-
-The skill ID is wrong, the skill was deleted, or it belongs to a different agent.
-
-HTTP `404`. Retrying the same request fails the same way until you fix the cause.
-
-To fix it:
-
-- List the agent's skills and use an existing ID.
-
 ### `skill_too_many_files` [#skill_too_many_files]
 
 **The skill has too many files.**
@@ -1171,18 +1159,6 @@ To fix it:
 
 - Cancel the subscription in **Settings → Subscription** in the [dashboard](https://www.blazingagents.com/app). Your plan stays active until your next billing date, and the current period is not refunded. Then request the deletion again.
 
-### `merchant_connection_not_found` [#merchant_connection_not_found]
-
-**You have not connected a billing account.**
-
-Monetization calls need a connection to your Polar or Dodo account, and none exists.
-
-HTTP `404`. Retrying the same request fails the same way until you fix the cause.
-
-To fix it:
-
-- Create the connection first. See [set up monetization](/platform/monetization#set-up-monetization).
-
 ### `merchant_connection_in_use` [#merchant_connection_in_use]
 
 **Your billing connection still has running requests or pending usage.**
@@ -1233,18 +1209,6 @@ To fix it:
 - Create the customer in your provider first, then link the user with its ID.
 - Check that the connection's environment matches where the customer lives.
 
-### `merchant_binding_not_found` [#merchant_binding_not_found]
-
-**This user is not linked to a customer.**
-
-You read or removed the customer link for a `userId` that has none.
-
-HTTP `404`. Retrying the same request fails the same way until you fix the cause.
-
-To fix it:
-
-- Check the `userId`, or link the user to a customer.
-
 ### `merchant_account_mismatch` [#merchant_account_mismatch]
 
 **The new credential belongs to a different billing account.**
@@ -1257,18 +1221,6 @@ To fix it:
 
 - Use a credential from the account you first connected.
 - To move to another account, remove the connection and create a new one.
-
-### `merchant_event_not_found` [#merchant_event_not_found]
-
-**The usage event does not exist.**
-
-The `mev_` event ID is wrong, or the event belongs to another tenant.
-
-HTTP `404`. Retrying the same request fails the same way until you fix the cause.
-
-To fix it:
-
-- List usage events and use an existing ID.
 
 ### `merchant_event_state_conflict` [#merchant_event_state_conflict]
 

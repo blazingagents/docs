@@ -49,9 +49,9 @@ if page.next_cursor is not None:
 
 **Signature:** `list(*, agent_id: str, user_id=..., cursor=..., limit=...) -> SessionsPage`
 
-A scoped client returns only its user's sessions. On the tenant client, for an administration view, `user_id` keeps only one end user's sessions, and `""` keeps tenant-level ones; omit it to include all. `limit` follows the [session page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages). An unknown agent returns an empty page.
+A scoped client returns only its user's sessions. On the tenant client, for an administration view, `user_id` keeps only one end user's sessions, and `""` keeps tenant-level ones; omit it to include all. `limit` follows the [session page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages).
 
-Returns `SessionsPage` with `data: list[Session]` and `next_cursor: str | None`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
+Returns `SessionsPage` with `data: list[Session]` and `next_cursor: str | None`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or [`not_found`](/api-reference/protocols/errors#not_found) for an agent that does not exist.
 
 ### `iter()` [#iter]
 
@@ -164,7 +164,7 @@ result = client.sessions.submit_input(
         "parts": [{"type": "text", "text": "Please also compare costs."}],
     },
 )
-print(result.data.state, result.activity.state)
+print(result.input.state, result.activity.state)
 ```
 
 **Signature:** `submit_input(*, agent_id: str, session_id: str, request_id: str, message: Mapping[str, object]) -> SessionInputResponse`
@@ -249,6 +249,7 @@ Errors: `validation_failed` (`400`) for a malformed ID or body, `idempotency_con
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `str` | Session ID (`ss_...`) |
+| `tenant_id` | `str` | Your tenant ID |
 | `message_count` | `int` | Number of stored messages |
 | `last_message_preview` | `str \| None` | Short preview of the last message |
 | `user_id` | `str` | End user, or `""` for tenant level |
@@ -275,7 +276,7 @@ A `SessionMessage` has `id`, `role` (`"system"`, `"user"`, or `"assistant"`), `p
 
 ### `SessionInput` [#sessioninput]
 
-`SessionInputResponse` has `data: SessionInput` and `activity: SessionActivity`. `SessionInputsPage` has `data: list[SessionInput]`, `next_cursor`, and `activity`. `SessionStopResponse` has `stopped_turn_id` and `activity`.
+`SessionInputResponse` has `input: SessionInput` and `activity: SessionActivity`. `SessionInputsPage` has `data: list[SessionInput]`, `next_cursor`, and `activity`. `SessionStopResponse` has `stopped_turn_id` and `activity`.
 
 | `SessionInput` field | Type | Description |
 | --- | --- | --- |
