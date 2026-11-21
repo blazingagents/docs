@@ -114,7 +114,7 @@ See [SDK Workspaces](/sdk/typescript/workspaces),
 
 ### AgentConfig [#agentconfig]
 
-`agentConfigSchema` / `AgentConfig` contains the saved name, provider and model IDs, thinking level, instructions, built-in tools, MCP connection IDs, approval policies, compaction settings, memory injection setting, and metadata. It excludes identity, timestamps, status, avatar, workspace attachment, credentials, and executable callback handlers. A chat-created session saves it at its first turn; a fork inherits the source snapshot at creation; a task run saves it when queued.
+`agentConfigSchema` / `AgentConfig` contains the saved name, provider and model IDs, thinking level, instructions, built-in tools, MCP connection IDs, approval policies, compaction settings, and memory injection setting. It excludes identity, timestamps, status, avatar, metadata, workspace attachment, credentials, and executable callback handlers. A chat-created session saves it at its first turn; a fork inherits the source snapshot at creation; a task run saves it when queued.
 
 See [Configuration snapshots and lifecycle](/agents/configuration-snapshots).
 
