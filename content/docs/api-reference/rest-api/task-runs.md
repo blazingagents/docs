@@ -74,6 +74,9 @@ Response schema: `TaskRunList`.
           "write_todos"
         ],
         "instructions": "Answer billing questions clearly and briefly.",
+        "metadata": {
+          "team": "support"
+        },
         "mcpConnectionIds": []
       },
       "sessionId": "ss_5Ty8Lr2GhW4nZc7F",
@@ -222,6 +225,9 @@ Response schema: `TaskRun`.
       "write_todos"
     ],
     "instructions": "Answer billing questions clearly and briefly.",
+    "metadata": {
+      "team": "support"
+    },
     "mcpConnectionIds": []
   },
   "sessionId": "ss_5Ty8Lr2GhW4nZc7F",

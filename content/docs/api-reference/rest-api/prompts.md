@@ -99,7 +99,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `template` | string | body | required | Message template, up to 10,240 characters. Mark each variable as `{{name}}`; names match `[A-Za-z_][A-Za-z0-9_]*`, and a template can use up to 10 of them. |
 | `agentId` | string \| null | body |  | ID of an agent in your tenant to link the prompt to, or `null` for no link. Deleting the agent also deletes its linked prompts. |
 | `userId` | string | body |  | Your end user's ID, used for attribution. An empty string means a tenant-level prompt. It cannot change after creation. Defaults to `""`. |
-| `metadata` | object | body |  | Your own key-value data, returned unchanged. At most 128 KiB as JSON. Defaults to `{}`. |
+| `metadata` | object | body |  | Your own key-value data, returned unchanged. Defaults to `{}`. |
 
 #### Response
 
@@ -229,7 +229,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `agentId` | string \| null | body |  | ID of an agent in your tenant to link the prompt to, or `null` for no link. Deleting the agent also deletes its linked prompts. |
 | `name` | string | body |  | Display name, 1 to 80 characters. |
 | `template` | string | body |  | Message template, up to 10,240 characters. Mark each variable as `{{name}}`; names match `[A-Za-z_][A-Za-z0-9_]*`, and a template can use up to 10 of them. |
-| `metadata` | object | body |  | Your own key-value data, returned unchanged. At most 128 KiB as JSON. Replaces the current value. |
+| `metadata` | object | body |  | Your own key-value data, returned unchanged. Replaces the current value. |
 
 #### Response
 
