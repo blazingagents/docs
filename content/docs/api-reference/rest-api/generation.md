@@ -38,7 +38,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `output.type` | string | body | required |  |
 | `output.schema` | object | body | required | Only when `output.type` is `object`. |
 | `userId` | string | body |  | Your end user's ID, used for usage attribution. Defaults to `""`. |
-| `metadata` | object | body |  | Your own key-value data, recorded with the usage. At most 128 KiB as JSON. Defaults to `{}`. |
+| `metadata` | object | body |  | Your own key-value data, recorded with the usage. Defaults to `{}`. |
 
 #### Response
 
