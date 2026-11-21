@@ -26,15 +26,15 @@ wheels = [
 
 [[package]]
 name = "blazing-agents"
-version = "0.36.0"
+version = "0.37.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/62/4c/63c9a516fa0989c6c8098c443d124948c086a15a846afcfbb65a0fa78156/blazing_agents-0.36.0.tar.gz", hash = "sha256:3d2794f4a83ddfb72b5458fd33bbd1cd93f8e266882bcb14bd93c38bf0d56384", size = 74543, upload-time = "2026-11-19T00:02:16.247Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f2/3d/e07d8212ba56e9ae7b171f0103220c1b6d04e4d820f0d6633851ccba7b20/blazing_agents-0.37.0.tar.gz", hash = "sha256:956bf26b995f124f340d7b8d0a9182d5d796a83f44b825f6ed2d897ec997ff48", size = 74548, upload-time = "2026-11-21T13:56:52.083Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/26/7a/1841d714c68c88cdf0aa993bf70b4c45a0a81799dd10d2d18c91f957bd23/blazing_agents-0.36.0-py3-none-any.whl", hash = "sha256:45d1131d755c0eecc9e0c24dc6dbee30dbb4bd1868f3e881cf17313e884f0a2f", size = 122165, upload-time = "2026-11-19T00:02:14.778Z" },
+    { url = "https://files.pythonhosted.org/packages/b4/38/cb3b3e470523baa5b13097ae950e0525bb35440936655e2706fb47f20e0f/blazing_agents-0.37.0-py3-none-any.whl", hash = "sha256:6831226e05b20a316932f39eb3c64c29ff716ac85e5311875b71cd366197a9b9", size = 122167, upload-time = "2026-11-21T13:56:50.822Z" },
 ]
 
 [[package]]
@@ -57,7 +57,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "blazing-agents", specifier = "==0.36.0" },
+    { name = "blazing-agents", specifier = "==0.37.0" },
     { name = "pyright", specifier = "==1.1.414" },
 ]
 
