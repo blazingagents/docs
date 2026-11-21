@@ -53,7 +53,7 @@ Response schema: `ChatConnectionList`.
 
 ```json
 {
-  "chatConnections": [
+  "data": [
     {
       "id": "cc_6Wd3Hs8KqP1vRt5N",
       "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
@@ -225,7 +225,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections" \
   --data '{"name":"Support bot","agentId":"ag_4kP9sT2vXq7LmN3a","platform":"telegram","credentials":{"botToken":"7123456789:AAFexampleTokenReplaceMe_x9Qa"}}'
 ```
 
-### GET /v1/chat-connections/:id [#get-chat-connection]
+### GET /v1/chat-connections/:chatConnectionId [#get-chat-connection]
 
 Get a chat connection.
 
@@ -237,7 +237,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the chat connection. |
+| `chatConnectionId` | string | path | required | ID of the chat connection. |
 
 #### Response
 
@@ -313,7 +313,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### PATCH /v1/chat-connections/:id [#rename-chat-connection]
+### PATCH /v1/chat-connections/:chatConnectionId [#rename-chat-connection]
 
 Update a chat connection.
 
@@ -325,7 +325,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the chat connection. |
+| `chatConnectionId` | string | path | required | ID of the chat connection. |
 | `name` | string | body |  | New display name. 1–80 characters. |
 | `configuration` | object | body |  | Fields to change. Slack connections accept `channelIds`; Telegram connections accept `chatIds` and `businessMode`. Fields you leave out keep their values. |
 | `configuration.businessMode` | boolean | body |  |  |
@@ -409,7 +409,7 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890
   --data '{"name":"Customer support bot"}'
 ```
 
-### DELETE /v1/chat-connections/:id [#delete-chat-connection]
+### DELETE /v1/chat-connections/:chatConnectionId [#delete-chat-connection]
 
 Delete a chat connection.
 
@@ -421,7 +421,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). Needs 
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the chat connection. |
+| `chatConnectionId` | string | path | required | ID of the chat connection. |
 
 #### Response
 
@@ -449,7 +449,7 @@ curl --request DELETE "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_123456789
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### POST /v1/chat-connections/:id/credentials [#rotate-chat-credentials]
+### POST /v1/chat-connections/:chatConnectionId/credentials [#rotate-chat-credentials]
 
 Rotate chat connection credentials.
 
@@ -461,7 +461,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the chat connection. |
+| `chatConnectionId` | string | path | required | ID of the chat connection. |
 | `platform` | string | body | required | Must match the connection's platform. |
 | `botToken` | string | body | required | Only when `platform` is `slack`. The new Slack bot token. 8–8192 characters. |
 | `botToken` | string | body | required | Only when `platform` is `telegram`. The new Telegram bot token. |
@@ -544,7 +544,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
   --data '{"platform":"telegram","botToken":"7123456789:AAFrotatedTokenReplaceMe_b7Kw"}'
 ```
 
-### POST /v1/chat-connections/:id/health [#check-chat-health]
+### POST /v1/chat-connections/:chatConnectionId/health [#check-chat-health]
 
 Check chat connection health.
 
@@ -556,7 +556,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). Needs 
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the chat connection. |
+| `chatConnectionId` | string | path | required | ID of the chat connection. |
 
 #### Response
 
@@ -632,7 +632,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### POST /v1/chat-connections/:id/disable [#disable-chat-connection]
+### POST /v1/chat-connections/:chatConnectionId/disable [#disable-chat-connection]
 
 Disable a chat connection.
 
@@ -644,7 +644,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). Needs 
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the chat connection. |
+| `chatConnectionId` | string | path | required | ID of the chat connection. |
 
 #### Response
 
@@ -720,7 +720,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/chat-connections/cc_1234567890A
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### POST /v1/chat-connections/:id/enable [#enable-chat-connection]
+### POST /v1/chat-connections/:chatConnectionId/enable [#enable-chat-connection]
 
 Enable a chat connection.
 
@@ -732,7 +732,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). Needs 
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the chat connection. |
+| `chatConnectionId` | string | path | required | ID of the chat connection. |
 
 #### Response
 

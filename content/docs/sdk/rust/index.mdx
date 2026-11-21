@@ -26,7 +26,7 @@ cargo add schemars@1
 
 ```toml
 [dependencies]
-blazing-agents = "0.12.0"
+blazing-agents = "0.13.0"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 futures-util = "0.3"
 serde = { version = "1", features = ["derive"] }
@@ -78,7 +78,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - Required inputs are positional arguments; optional inputs are setters on the `Call`, such as `client.agents().list().user_id("user_123").limit(50)`. A setter you do not call sends nothing, so the server keeps its default or current value.
 - Nullable fields pair an `x(value)` setter with a `clear_x()` setter that sends `null`.
 - Every call also takes the transport options `with_timeout`, `without_timeout`, `with_header`, and `with_client_request_id`, and `send_with_meta()` returns the decoded value with the response status, headers, and server request ID.
-- A list call awaits to a `Page` with `data` and `next_cursor` fields. Its `pages()` and `items()` adapters walk every page lazily, and `cursor()` resumes from a saved cursor.
+- A list call returns its records in `data`. A paged list awaits to a `Page` with `data` and `next_cursor` fields. Its `pages()` and `items()` adapters walk every page lazily, and `cursor()` resumes from a saved cursor.
 - IDs are typed (`AgentId`, `SessionId`, and so on) and accept `&str` or `String` values, so literals stay short while an ID from one resource cannot be passed where another kind belongs.
 - Response models are `#[non_exhaustive]` structs with snake_case fields. Unknown server fields are ignored, and open enums such as `AgentStatus` hold values this version does not know in their `Unrecognized` variant, so a newer API does not break your code.
 - `Timestamp` is an RFC 3339 instant, and `Metadata` is a JSON object of your own data the API returns unchanged.

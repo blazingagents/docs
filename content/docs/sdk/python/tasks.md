@@ -67,7 +67,7 @@ created = client.tasks.create(
 task = created.task
 ```
 
-**Signature:** `create(*, agent_id: str, name: str, prompt: str, schedule=..., enabled=..., submit=..., idempotency_key=..., user_id=..., metadata=...) -> TaskCreateResponse`
+**Signature:** `create(*, agent_id: str, name: str, prompt: str, schedule=..., enabled=..., submit=..., idempotency_key: str | None = None, user_id=..., metadata=...) -> TaskCreateResponse`
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -77,7 +77,7 @@ task = created.task
 | `schedule` | `TaskScheduleInput \| None` | `None` | When to run; `None` means on demand only |
 | `enabled` | `bool` | `True` | Whether the schedule fires |
 | `submit` | `bool` | `False` | Also start the first run now |
-| `idempotency_key` | `str` | none | Reuse the same task and initial run when a create request is retried |
+| `idempotency_key` | `str \| None` | `None` | Reuse the same task and initial run when a create request is retried |
 | `user_id` | `str` | `""` | End user; fixed after creation and copied to every run. A scoped client fills it in |
 | `metadata` | `dict[str, object]` | `{}` | Your own data, copied to every run |
 
@@ -91,9 +91,9 @@ A schedule is one of:
 
 The API checks the schedule and raises `validation_failed` for a malformed one.
 
-To retry `create()` safely, pass an `idempotency_key`. Without a key, each call creates another task, with or without `submit=True`. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID, and starts no second run. Reusing a key with different task fields, or after deleting the task, raises `idempotency_conflict`. The key must not be blank.
+To retry `create()` safely, pass an `idempotency_key`. Without a key, each call creates another task, with or without `submit=True`. With a key, retrying the same request returns the same task ID, its current definition, and the original initial run ID, and starts no second run. Reusing a key with different task fields, or after deleting the task, raises `idempotency_conflict`. The key is 1 to 200 characters. It goes in the `Idempotency-Key` header and replaces any in `extra_headers`.
 
-Returns `TaskCreateResponse` with `task` and `run_id`, which is set only when `submit=True`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found) for an unknown agent, `idempotency_conflict`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) for the admin agent, or [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit=True` and the agent is disabled.
+Returns `TaskCreateResponse` with `task` and `run_id`, which is set only when `submit=True`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`not_found`](/api-reference/protocols/errors#not_found) for an unknown agent, [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) when a scoped client's agent is attached to a workspace of another user, `idempotency_conflict`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) for the admin agent, or [`agent_disabled`](/api-reference/protocols/errors#agent_disabled) when `submit=True` and the agent is disabled.
 
 ### `list()` [#list]
 
@@ -168,9 +168,9 @@ submission = client.tasks.submit(task.id, idempotency_key="daily-summary:2026-10
 run_id = submission.run_id
 ```
 
-**Signature:** `submit(task_id: str, *, idempotency_key=...) -> TaskRunSubmission`
+**Signature:** `submit(task_id: str, *, idempotency_key: str | None = None) -> TaskRunSubmission`
 
-With an `idempotency_key`, retrying with the same key returns the same `run_id` instead of starting another run. The key must not be blank. Without a key, or with a different one, a submit while another run is active raises `task_active_run_exists`.
+With an `idempotency_key`, retrying with the same key returns the same `run_id` instead of starting another run. The key is 1 to 200 characters. It goes in the `Idempotency-Key` header and replaces any in `extra_headers`. Without a key, or with a different one, a submit while another run is active raises `task_active_run_exists`.
 
 Returns `TaskRunSubmission` with `run_id`. Also raises `validation_failed`, `not_found`, or `agent_disabled`.
 

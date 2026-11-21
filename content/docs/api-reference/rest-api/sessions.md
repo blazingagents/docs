@@ -53,7 +53,7 @@ client that sent the message can stop it without polling. Other clients read
 
 List an agent's sessions.
 
-Lists an agent's sessions, most recently updated first, one page at a time. Each session shows its message count and a preview of its last message. An agent that does not exist in your tenant returns an empty page.
+Lists an agent's sessions, most recently updated first, one page at a time. Each session shows its message count and a preview of its last message. An agent that does not exist in your tenant returns `404 not_found`.
 
 #### Request
 
@@ -77,6 +77,7 @@ Response schema: `SessionList`.
   "data": [
     {
       "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
       "messageCount": 4,
       "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
       "userId": "user_42",
@@ -99,6 +100,7 @@ Response schema: `SessionList`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
@@ -192,6 +194,7 @@ Response schema: `LatestSessionList`.
   "data": [
     {
       "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
       "messageCount": 4,
       "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
       "userId": "user_42",
@@ -255,6 +258,7 @@ Response schema: `Session`.
 ```json
 {
   "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "messageCount": 4,
   "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
   "userId": "user_42",
@@ -437,6 +441,7 @@ Response schema: `Session`.
 ```json
 {
   "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "messageCount": 4,
   "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
   "userId": "user_42",
@@ -485,6 +490,7 @@ Response schema: `Session`.
 ```json
 {
   "id": "ss_6Rt2Mw8KqZ4Nc1Hp",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "messageCount": 4,
   "lastMessagePreview": "Open Settings, choose Security, and select Reset password.",
   "userId": "user_42",
@@ -956,7 +962,7 @@ Returns `202 Accepted` as `application/json`. The steer receipt and the session'
 
 ```json
 {
-  "data": {
+  "input": {
     "requestId": "request_1",
     "sequence": 1,
     "message": {

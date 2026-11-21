@@ -17,7 +17,7 @@ provider = client.providers.create(
     provider_type="openrouter",
     api_key=os.environ["OPENROUTER_API_KEY"],
 )
-models = client.providers.list_models(provider.id).models
+models = client.providers.list_models(provider.id).data
 print([model.id for model in models][:5])
 ```
 
@@ -66,12 +66,12 @@ Returns [`Provider`](#provider). Raises `APIStatusError` with [`validation_faile
 Lists your providers.
 
 ```python
-providers = client.providers.list().providers
+providers = client.providers.list().data
 ```
 
 **Signature:** `list() -> Providers`
 
-Returns `Providers`, whose `providers` field is a list of `ProviderListItem` with `id`, `name`, `provider_type`, `created_at`, and `updated_at`. Use [`get()`](#get) for the base URL and key fragment.
+Returns `Providers`, whose `data` field is a list of `ProviderListItem` with `id`, `tenant_id`, `name`, `provider_type`, `created_at`, and `updated_at`. Use [`get()`](#get) for the base URL and key fragment.
 
 ### `get()` [#get]
 
@@ -84,21 +84,21 @@ print(provider.key_fragment)
 
 **Signature:** `get(provider_id: str) -> Provider`
 
-Returns [`Provider`](#provider). Raises `validation_failed` or [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
+Returns [`Provider`](#provider). Raises `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `list_models()` [#list-models]
 
 Lists the model IDs the provider offers. This never runs a model and costs nothing.
 
 ```python
-ids = [model.id for model in client.providers.list_models(provider.id).models]
+ids = [model.id for model in client.providers.list_models(provider.id).data]
 ```
 
 **Signature:** `list_models(provider_id: str) -> ProviderModels`
 
-Returns `ProviderModels`, whose `models` field lists `ProviderModel` items with an `id`, sorted and without duplicates. Use an `id` as the agent's `model`.
+Returns `ProviderModels`, whose `data` field lists `ProviderModel` items with an `id`, sorted and without duplicates. Use an `id` as the agent's `model`.
 
-A listed model is not a guarantee that your key can use it: credits, account policy, or routing can still reject a request. `"custom"` providers raise [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported); type their model IDs yourself. A temporarily unavailable catalog raises [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable). Raises `validation_failed`, `provider_not_found`, `model_discovery_unsupported`, or `model_validation_unavailable`.
+A listed model is not a guarantee that your key can use it: credits, account policy, or routing can still reject a request. `"custom"` providers raise [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported); type their model IDs yourself. A temporarily unavailable catalog raises [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable). Raises `validation_failed`, `not_found`, `model_discovery_unsupported`, or `model_validation_unavailable`.
 
 ### `get_thinking_levels()` [#get-thinking-levels]
 
@@ -112,7 +112,7 @@ if levels.known and "high" in levels.levels:
 
 **Signature:** `get_thinking_levels(provider_id: str, *, model: str) -> ThinkingLevels`
 
-Returns `ThinkingLevels` with `known: bool` and `levels: list[str]`. When `known` is `True`, only the listed levels are accepted, and an empty list means the model supports only the provider default (`thinking_level=None`). When `known` is `False`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time, except on a `google` or `vercel_ai_gateway` provider. There the model takes only `off`, `minimal`, `low`, `medium` and `high`, and saving any other string fails with `invalid_request`. Raises `validation_failed` or `provider_not_found`.
+Returns `ThinkingLevels` with `known: bool` and `levels: list[str]`. When `known` is `True`, only the listed levels are accepted, and an empty list means the model supports only the provider default (`thinking_level=None`). When `known` is `False`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time, except on a `google` or `vercel_ai_gateway` provider. There the model takes only `off`, `minimal`, `low`, `medium` and `high`, and saving any other string fails with `invalid_request`. Raises `validation_failed` or `not_found`.
 
 ### `update()` [#update]
 
@@ -124,7 +124,7 @@ provider = client.providers.update(provider.id, name="OpenRouter production")
 
 **Signature:** `update(provider_id: str, *, name=...) -> Provider`
 
-Only the name can change. To change the type, key, or base URL, create a new provider and move your agents to it. Calling `update()` without `name` raises `validation_failed`. Returns [`Provider`](#provider). Also raises `provider_not_found`, or `provider_name_conflict`.
+Only the name can change. To change the type, key, or base URL, create a new provider and move your agents to it. Calling `update()` without `name` raises `validation_failed`. Returns [`Provider`](#provider). Also raises `not_found`, or `provider_name_conflict`.
 
 ### `delete()` [#delete]
 
@@ -136,7 +136,7 @@ client.providers.delete(provider.id, confirm_snapshot_invalidation=True)
 
 **Signature:** `delete(provider_id: str, *, confirm_snapshot_invalidation: bool = False) -> None`
 
-Raises `validation_failed`, `provider_not_found`, or one of these codes:
+Raises `validation_failed`, `not_found`, or one of these codes:
 
 | Code | Meaning |
 | --- | --- |
@@ -152,6 +152,7 @@ After a confirmed delete, session and task run history remains, but any later tu
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `str` | Provider ID (`prv_...`) |
+| `tenant_id` | `str` | Your tenant ID |
 | `name` | `str` | Display name |
 | `provider_type` | `str` | Provider type |
 | `base_url` | `str \| None` | Base URL, for custom providers |

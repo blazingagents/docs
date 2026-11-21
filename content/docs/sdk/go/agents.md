@@ -130,7 +130,7 @@ fmt.Println(agent.ID)
 return nil
 ```
 
-Fails with `*ba.APIError` whose `Code` is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), or [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid). On a scoped client, a `WorkspaceID` the user does not own fails with [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found), and a different `UserID` fails with [`invalid_request`](/api-reference/protocols/errors#invalid_request).
+Fails with `*ba.APIError` whose `Code` is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`mcp_connection_not_found`](/api-reference/protocols/errors#mcp_connection_not_found), or [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid). On a scoped client, a `WorkspaceID` the user does not own fails with [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found), and a different `UserID` fails with [`invalid_request`](/api-reference/protocols/errors#invalid_request).
 
 ### `List` [#list]
 
@@ -225,19 +225,19 @@ return nil
 - `ThinkingLevel: ba.Null[string]()` resets to the provider default.
 - `WorkspaceID` moves the agent to another workspace. It cannot be cleared.
 
-Every call sends a request, even with no fields set. Returns [`*ba.Agent`](#agent). Fails with `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, or `agent_mcp_connections_invalid`.
+Every call sends a request, even with no fields set. Returns [`*ba.Agent`](#agent). Fails with `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `mcp_connection_not_found`, or `agent_mcp_connections_invalid`.
 
 ### `Delete` [#delete]
 
 Permanently deletes an agent with its sessions, tasks, memories, [skills](/sdk/go/skills), and linked prompts. Its workspace, providers, and MCP connections are kept.
 
 ```go
-return client.Agents.Delete(ctx, agentID, ba.DeleteAgentParams{IncludeArtifacts: false})
+return client.Agents.Delete(ctx, agentID, ba.DeleteAgentParams{DeleteArtifacts: false})
 ```
 
 **Signature:** `func (s *AgentsService) Delete(ctx context.Context, agentID AgentID, params DeleteAgentParams, opts ...RequestOption) error`
 
-`IncludeArtifacts` is always sent: `true` also deletes the agent's published artifacts, and `false` keeps them. Fails with [`agent_busy`](/api-reference/protocols/errors#agent_busy) (409) while the agent has a running turn or a queued or running task run, and with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (409) for the admin agent. Also fails with `validation_failed` or `not_found`.
+`DeleteArtifacts` is always sent: `true` also deletes the agent's published artifacts, and `false` keeps them. Fails with [`agent_busy`](/api-reference/protocols/errors#agent_busy) (409) while the agent has a running turn or a queued or running task run, and with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (409) for the admin agent. Also fails with `validation_failed` or `not_found`.
 
 ### `Disable` [#disable]
 

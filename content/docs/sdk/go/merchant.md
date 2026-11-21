@@ -34,10 +34,10 @@ return nil
 | [`MerchantConnection.Create`](#create-connection) | Connect or replace your billing account | [`*MerchantConnection`](#merchantconnection) |
 | [`MerchantConnection.Update`](#update-connection) | Change the guard or rotate the credential | [`*MerchantConnection`](#merchantconnection) |
 | [`MerchantConnection.Retire`](#retire-connection) | Retire the connection | `error` |
-| [`MerchantBindings.List`](#list-bindings), `All` | List links between end users and customers | [`*MerchantBindingList`](#merchantbinding) |
+| [`MerchantBindings.List`](#list-bindings), `All` | List links between end users and customers | [`*Page[MerchantBinding]`](#merchantbinding) |
 | [`MerchantBindings.Set`](#set-binding) | Link an end user to a customer | [`*MerchantBinding`](#merchantbinding) |
 | [`MerchantBindings.Delete`](#delete-binding) | Remove an end user's link | `error` |
-| [`MerchantUsageEvents.List`](#list-events), `All` | List usage events | [`*MerchantUsageEventList`](#merchantusageevent) |
+| [`MerchantUsageEvents.List`](#list-events), `All` | List usage events | [`*Page[MerchantUsageEvent]`](#merchantusageevent) |
 | [`MerchantUsageEvents.Summary`](#event-summary) | Count events and total accepted usage | [`*MerchantUsageSummary`](#merchantusagesummary) |
 | [`MerchantUsageEvents.Get`](#get-event) | Get one usage event | [`*MerchantUsageEvent`](#merchantusageevent) |
 | [`MerchantUsageEvents.Retry`](#retry-event) | Send an event again | [`*MerchantUsageEvent`](#merchantusageevent) |
@@ -68,37 +68,37 @@ Your provider checks the credential first. A new connection replaces the current
 
 **Signature:** `func (s *MerchantConnectionService) Update(ctx context.Context, params UpdateMerchantConnectionParams, opts ...RequestOption) (*MerchantConnection, error)`
 
-`ba.UpdateMerchantConnectionParams` has `Credential` and `Guard`; a field you leave zero keeps its value. A new `Credential` must belong to the same merchant account; to switch accounts, create a new connection. `Guard` replaces the whole guard. Fails with [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found), [`merchant_account_mismatch`](/api-reference/protocols/errors#merchant_account_mismatch) (409), `merchant_credential_invalid`, `merchant_provider_unavailable`, or `validation_failed`.
+`ba.UpdateMerchantConnectionParams` has `Credential` and `Guard`; a field you leave zero keeps its value. A new `Credential` must belong to the same merchant account; to switch accounts, create a new connection. `Guard` replaces the whole guard. Fails with [`not_found`](/api-reference/protocols/errors#not_found) when you have no connection, [`merchant_account_mismatch`](/api-reference/protocols/errors#merchant_account_mismatch) (409), `merchant_credential_invalid`, `merchant_provider_unavailable`, or `validation_failed`.
 
 ### `MerchantConnection.Retire` [#retire-connection]
 
 **Signature:** `func (s *MerchantConnectionService) Retire(ctx context.Context, opts ...RequestOption) error`
 
-Retires the connection. Its `failed` events are discarded and its credential is deleted at once, so nothing more is delivered through it. Fails with `merchant_connection_in_use` while a turn or task run that started on the connection is still running or one of its events is `pending`. A `pending` event whose `NextAction` is `retry` blocks too. Blazing Agents retries it on its own after 5, 10, 20 and 40 minutes, and you can [retry](#retry-event) it sooner; after the fourth automatic retry it blocks until you retry it. Also fails with `merchant_connection_not_found`.
+Retires the connection. Its `failed` events are discarded and its credential is deleted at once, so nothing more is delivered through it. Fails with `merchant_connection_in_use` while a turn or task run that started on the connection is still running or one of its events is `pending`. A `pending` event whose `NextAction` is `retry` blocks too. Blazing Agents retries it on its own after 5, 10, 20 and 40 minutes, and you can [retry](#retry-event) it sooner; after the fourth automatic retry it blocks until you retry it. Also fails with `not_found` when you have no connection.
 
 ### `MerchantBindings.List` [#list-bindings]
 
-**Signature:** `func (s *MerchantBindingsService) List(ctx context.Context, params ListMerchantBindingsParams, opts ...RequestOption) (*MerchantBindingList, error)`
+**Signature:** `func (s *MerchantBindingsService) List(ctx context.Context, params ListMerchantBindingsParams, opts ...RequestOption) (*Page[MerchantBinding], error)`
 
-Lists the current connection's bindings, sorted by `UserID`. `ba.ListMerchantBindingsParams` has `UserID` to return only one end user's binding, `Cursor`, and `Limit`, within the [page size limit](/api-reference/protocols/service-limits#merchant-page). Returns a `*ba.MerchantBindingList` with `Bindings` and `NextCursor`, which is `""` on the last page; `All` walks every page lazily. Fails with `merchant_connection_not_found`, `validation_failed`, or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
+Lists the current connection's bindings, sorted by `UserID`. `ba.ListMerchantBindingsParams` has `UserID` to return only one end user's binding, `Cursor`, and `Limit`, within the [page size limit](/api-reference/protocols/service-limits#merchant-page). Returns a `*ba.Page[MerchantBinding]` with `Data` and `NextCursor`, which is `""` on the last page; `All` walks every page lazily. Fails with `not_found` when you have no connection, `validation_failed`, or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `MerchantBindings.Set` [#set-binding]
 
 **Signature:** `func (s *MerchantBindingsService) Set(ctx context.Context, userID string, params SetMerchantBindingParams, opts ...RequestOption) (*MerchantBinding, error)`
 
-Links the end user with this `userID` to the customer in `CustomerID`, or changes the customer an existing link points to. `userID` is the ID you send with that user's turns. Your provider checks that the customer exists first. Fails with [`merchant_customer_not_found`](/api-reference/protocols/errors#merchant_customer_not_found) (422), `merchant_connection_not_found`, `merchant_provider_unavailable`, or `validation_failed`.
+Links the end user with this `userID` to the customer in `CustomerID`, or changes the customer an existing link points to. `userID` is the ID you send with that user's turns. Your provider checks that the customer exists first. Fails with [`merchant_customer_not_found`](/api-reference/protocols/errors#merchant_customer_not_found) (422), `not_found` when you have no connection, `merchant_provider_unavailable`, or `validation_failed`.
 
 ### `MerchantBindings.Delete` [#delete-binding]
 
 **Signature:** `func (s *MerchantBindingsService) Delete(ctx context.Context, userID string, opts ...RequestOption) error`
 
-Removes the end user's link. Their usage is then recorded as `discarded` and never billed, even after you link them again. Fails with [`merchant_binding_not_found`](/api-reference/protocols/errors#merchant_binding_not_found), `merchant_connection_not_found`, or `validation_failed`.
+Removes the end user's link. Their usage is then recorded as `discarded` and never billed, even after you link them again. Fails with `not_found` when you have no connection or the end user has no link, or `validation_failed`.
 
 ### `MerchantUsageEvents.List` [#list-events]
 
-**Signature:** `func (s *MerchantUsageEventsService) List(ctx context.Context, params ListMerchantUsageEventsParams, opts ...RequestOption) (*MerchantUsageEventList, error)`
+**Signature:** `func (s *MerchantUsageEventsService) List(ctx context.Context, params ListMerchantUsageEventsParams, opts ...RequestOption) (*Page[MerchantUsageEvent], error)`
 
-Lists usage events, one per turn, newest first. `ba.ListMerchantUsageEventsParams` has `Status` to return only one `ba.MerchantUsageEventStatus`, `Cursor`, and `Limit`, within the [page size limit](/api-reference/protocols/service-limits#merchant-page). Returns a `*ba.MerchantUsageEventList` with `Events` and `NextCursor`; `All` walks every page lazily. Fails with `validation_failed` or `invalid_cursor`.
+Lists usage events, one per turn, newest first. `ba.ListMerchantUsageEventsParams` has `Status` to return only one `ba.MerchantUsageEventStatus`, `Cursor`, and `Limit`, within the [page size limit](/api-reference/protocols/service-limits#merchant-page). Returns a `*ba.Page[MerchantUsageEvent]` with `Data` and `NextCursor`; `All` walks every page lazily. Fails with `validation_failed` or `invalid_cursor`.
 
 ### `MerchantUsageEvents.Summary` [#event-summary]
 
@@ -110,19 +110,19 @@ Shows whether usage is reaching your provider. `Days` sets the UTC days in the d
 
 **Signature:** `func (s *MerchantUsageEventsService) Get(ctx context.Context, eventID MerchantUsageEventID, opts ...RequestOption) (*MerchantUsageEvent, error)`
 
-Returns one [`*ba.MerchantUsageEvent`](#merchantusageevent) with the exact `Payload` sent to your provider. Fails with [`merchant_event_not_found`](/api-reference/protocols/errors#merchant_event_not_found) or `validation_failed`.
+Returns one [`*ba.MerchantUsageEvent`](#merchantusageevent) with the exact `Payload` sent to your provider. Fails with `not_found` or `validation_failed`.
 
 ### `MerchantUsageEvents.Retry` [#retry-event]
 
 **Signature:** `func (s *MerchantUsageEventsService) Retry(ctx context.Context, eventID MerchantUsageEventID, opts ...RequestOption) (*MerchantUsageEvent, error)`
 
-Sends a `failed` event again, or a `pending` event whose `NextAction` is `retry` because its delivery stopped. Blazing Agents retries a stopped delivery on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner; after the fourth automatic retry the event stays `pending` until you retry it. The event goes back to `pending` with the same payload. Retrying is safe because your provider drops duplicates by event ID. Fix the cause of a `failed` event, such as a revoked credential, first. Fails with [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict) (409) for an event in another state, `merchant_event_not_found`, or `validation_failed`.
+Sends a `failed` event again, or a `pending` event whose `NextAction` is `retry` because its delivery stopped. Blazing Agents retries a stopped delivery on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner; after the fourth automatic retry the event stays `pending` until you retry it. The event goes back to `pending` with the same payload. Retrying is safe because your provider drops duplicates by event ID. Fix the cause of a `failed` event, such as a revoked credential, first. Fails with [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict) (409) for an event in another state, `not_found`, or `validation_failed`.
 
 ### `MerchantUsageEvents.Discard` [#discard-event]
 
 **Signature:** `func (s *MerchantUsageEventsService) Discard(ctx context.Context, eventID MerchantUsageEventID, opts ...RequestOption) (*MerchantUsageEvent, error)`
 
-Marks an `incomplete`, `failed`, or `expired` event as `discarded`, so Blazing Agents stops trying to deliver it. The event stays in the list. Correct an `expired` event in your provider directly. Fails with `merchant_event_state_conflict` for an event in another state, `merchant_event_not_found`, or `validation_failed`.
+Marks an `incomplete`, `failed`, or `expired` event as `discarded`, so Blazing Agents stops trying to deliver it. The event stays in the list. Correct an `expired` event in your provider directly. Fails with `merchant_event_state_conflict` for an event in another state, `not_found`, or `validation_failed`.
 
 ## Response models [#response-models]
 
@@ -131,6 +131,7 @@ Marks an `incomplete`, `failed`, or `expired` event as `discarded`, so Blazing A
 | Field | Type | Description |
 | --- | --- | --- |
 | `ID` | `ba.MerchantConnectionID` | Connection ID |
+| `TenantID` | `ba.TenantID` | Your tenant ID |
 | `Provider`, `Environment` | `ba.MerchantProvider`, `ba.MerchantEnvironment` | Your provider and its environment |
 | `MerchantAccountID` | `string` | Your account at the provider |
 | `KeyFragment` | `string` | Last characters of the credential, for display |
@@ -147,6 +148,7 @@ A `ba.MerchantBinding` has `UserID`, `CustomerID`, `CreatedAt`, and `UpdatedAt`.
 | Field | Type | Description |
 | --- | --- | --- |
 | `ID` | `ba.MerchantUsageEventID` | Event ID (`mev_...`) |
+| `TenantID` | `ba.TenantID` | Your tenant ID |
 | `TurnID`, `AgentID`, `SessionID` | `ba.TurnID`, `ba.AgentID`, `*ba.SessionID` | The turn the usage came from |
 | `ConnectionID`, `Provider` | `ba.MerchantConnectionID`, `ba.MerchantProvider` | The connection it is delivered through |
 | `UserID`, `CustomerID` | `string`, `*string` | The end user, and their customer; nil until the user is linked |

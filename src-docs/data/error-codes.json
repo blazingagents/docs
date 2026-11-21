@@ -182,7 +182,7 @@
       "group": "requests-and-validation",
       "statuses": [404],
       "title": "The resource does not exist in your tenant.",
-      "whatHappened": "The ID is wrong, the resource was deleted, or it belongs to another tenant or user scope. You get the same answer in each case, so a missing resource does not reveal who owns it. An unknown URL path also returns this code.",
+      "whatHappened": "The ID is wrong, the resource was deleted, or it belongs to another tenant or user scope. You get the same answer in each case, so a missing resource does not reveal who owns it. This is the code for any missing record the request names: the one in the URL path, or, when the path names none, the one in the body or query. A record the request reaches through another one answers its own code, such as `provider_not_found`, `workspace_not_found`, `mcp_connection_not_found`, or `message_not_found`. An unknown URL path also returns this code.",
       "howToFix": [
         "Check the ID and its prefix, such as `ag_` or `ss_`.",
         "Check that you use the API key and user scope that own the resource.",
@@ -331,7 +331,7 @@
     {
       "code": "model_not_found",
       "group": "agents-and-providers",
-      "statuses": [400],
+      "statuses": [422],
       "title": "The provider does not offer this model.",
       "whatHappened": "Blazing Agents checks the model ID against the provider when you create an agent with a model or change its model. The ID is not in the provider's current list.",
       "howToFix": [
@@ -507,9 +507,9 @@
       "retryable": false
     },
     {
-      "code": "agent_mcp_connection_not_found",
+      "code": "mcp_connection_not_found",
       "group": "tools-and-mcp",
-      "statuses": [400],
+      "statuses": [404],
       "title": "The agent references an MCP connection that does not exist.",
       "whatHappened": "An ID in `mcpConnectionIds` is wrong, deleted, or belongs to another tenant. The agent was not changed.",
       "howToFix": [
@@ -682,17 +682,6 @@
       "retryable": false
     },
     {
-      "code": "skill_not_found",
-      "group": "tools-and-mcp",
-      "statuses": [404],
-      "title": "The skill does not exist on this agent.",
-      "whatHappened": "The skill ID is wrong, the skill was deleted, or it belongs to a different agent.",
-      "howToFix": [
-        "List the agent's skills and use an existing ID."
-      ],
-      "retryable": false
-    },
-    {
       "code": "skill_too_many_files",
       "group": "tools-and-mcp",
       "statuses": [400],
@@ -807,17 +796,6 @@
       "retryable": false
     },
     {
-      "code": "merchant_connection_not_found",
-      "group": "plan-and-billing",
-      "statuses": [404],
-      "title": "You have not connected a billing account.",
-      "whatHappened": "Monetization calls need a connection to your Polar or Dodo account, and none exists.",
-      "howToFix": [
-        "Create the connection first. See [set up monetization](/platform/monetization#set-up-monetization)."
-      ],
-      "retryable": false
-    },
-    {
       "code": "merchant_connection_in_use",
       "group": "plan-and-billing",
       "statuses": [409],
@@ -864,17 +842,6 @@
       "retryable": false
     },
     {
-      "code": "merchant_binding_not_found",
-      "group": "plan-and-billing",
-      "statuses": [404],
-      "title": "This user is not linked to a customer.",
-      "whatHappened": "You read or removed the customer link for a `userId` that has none.",
-      "howToFix": [
-        "Check the `userId`, or link the user to a customer."
-      ],
-      "retryable": false
-    },
-    {
       "code": "merchant_account_mismatch",
       "group": "plan-and-billing",
       "statuses": [409],
@@ -883,17 +850,6 @@
       "howToFix": [
         "Use a credential from the account you first connected.",
         "To move to another account, remove the connection and create a new one."
-      ],
-      "retryable": false
-    },
-    {
-      "code": "merchant_event_not_found",
-      "group": "plan-and-billing",
-      "statuses": [404],
-      "title": "The usage event does not exist.",
-      "whatHappened": "The `mev_` event ID is wrong, or the event belongs to another tenant.",
-      "howToFix": [
-        "List usage events and use an existing ID."
       ],
       "retryable": false
     },

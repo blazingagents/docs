@@ -118,7 +118,7 @@ let agent = client
     .await?;
 ```
 
-Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) when `workspace_id` names a workspace you cannot see, such as another user's on a `UserClient`.
+Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`mcp_connection_not_found`](/api-reference/protocols/errors#mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found) when `workspace_id` names a workspace you cannot see, such as another user's on a `UserClient`.
 
 ### `list()` [#list]
 
@@ -195,7 +195,7 @@ Accepts every [`create()`](#create) setter except `user_id` (fixed after creatio
 - `clear_thinking_level()` resets to the provider default.
 - `workspace_id` moves the agent to another workspace. It cannot be cleared.
 
-Awaiting always sends a request, even with no setters. Awaiting returns [`Agent`](#agent). Fails with `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `agent_mcp_connection_not_found`, or `agent_mcp_connections_invalid`.
+Awaiting always sends a request, even with no setters. Awaiting returns [`Agent`](#agent). Fails with `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `mcp_connection_not_found`, or `agent_mcp_connections_invalid`.
 
 ### `delete()` [#delete]
 
@@ -205,9 +205,9 @@ Permanently deletes an agent with its sessions, tasks, memories, [skills](/sdk/r
 client.agents().delete("ag_0123456789abcdef", false).await?;
 ```
 
-**Signature:** `delete(agent_id: impl Into<AgentId>, include_artifacts: bool) -> Call<DeleteAgent>`
+**Signature:** `delete(agent_id: impl Into<AgentId>, delete_artifacts: bool) -> Call<DeleteAgent>`
 
-`include_artifacts` is required: `true` also deletes the agent's published artifacts, and `false` keeps them. Fails with [`agent_busy`](/api-reference/protocols/errors#agent_busy) (HTTP `409`) while the agent has a running turn or a queued or running task run; stop that work or wait for it, then delete again. Fails with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`) for the admin agent, and with `validation_failed` or `not_found`.
+`delete_artifacts` is required: `true` also deletes the agent's published artifacts, and `false` keeps them. Fails with [`agent_busy`](/api-reference/protocols/errors#agent_busy) (HTTP `409`) while the agent has a running turn or a queued or running task run; stop that work or wait for it, then delete again. Fails with [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed) (HTTP `409`) for the admin agent, and with `validation_failed` or `not_found`.
 
 ### `disable()` [#disable]
 
@@ -273,12 +273,12 @@ let attachments = client
     .agents()
     .list_mcp_attachments("ag_0123456789abcdef")
     .await?
-    .mcp_attachments;
+    .data;
 ```
 
 **Signature:** `list_mcp_attachments(agent_id: impl Into<AgentId>) -> Call<ListAgentMcpAttachments>`
 
-Awaiting returns `McpAttachmentList`, whose `mcp_attachments` field is a `Vec<McpAttachment>` with one entry per connection in the agent's `mcp_connection_ids`. Fails with `validation_failed` or `not_found`.
+Awaiting returns `McpAttachmentList`, whose `data` field is a `Vec<McpAttachment>` with one entry per connection in the agent's `mcp_connection_ids`. Fails with `validation_failed` or `not_found`.
 
 ### `update_mcp_attachment()` [#update-mcp-attachment]
 

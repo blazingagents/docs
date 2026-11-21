@@ -35,7 +35,7 @@ println!("{} {}", skill.id, skill.name);
 | [`read_file()`](#read-file) | Stream one file | `Download` |
 | [`replace_file()`](#replace-file) | Create or replace one file | [`SkillDetail`](#skill-and-skilldetail) |
 | [`delete_file()`](#delete-file) | Delete one file | [`SkillDetail`](#skill-and-skilldetail) |
-| [`copy()`](#copy) | Copy the skill to other agents | `Vec<SkillCopyResult>` |
+| [`copy()`](#copy) | Copy the skill to other agents | `SkillCopyResultList` |
 
 ## Methods [#methods]
 
@@ -115,7 +115,7 @@ let skill = client
 
 **Signature:** `get(skill_id: impl Into<SkillId>) -> Call<GetSkill>`
 
-Awaiting returns [`SkillDetail`](#skill-and-skilldetail). Fails with `validation_failed` or [`skill_not_found`](/api-reference/protocols/errors#skill_not_found).
+Awaiting returns [`SkillDetail`](#skill-and-skilldetail). Fails with `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `delete()` [#delete]
 
@@ -131,7 +131,7 @@ client
 
 **Signature:** `delete(skill_id: impl Into<SkillId>) -> Call<DeleteSkill>`
 
-Fails with `validation_failed` or `skill_not_found`.
+Fails with `validation_failed` or `not_found`.
 
 ### `read_file()` [#read-file]
 
@@ -148,7 +148,7 @@ let bytes = file.bytes().await?;
 
 **Signature:** `read_file(skill_id: impl Into<SkillId>, path: impl Into<String>) -> Call<GetSkillFile>`
 
-Awaiting returns a `Download`. Read it to memory with `bytes()`, or pull chunks off it as a `Stream` of `Result<Bytes>`; `content_type()`, `content_length()`, and `meta()` describe the response, and dropping it closes the connection. Fails with `validation_failed` or `skill_not_found`.
+Awaiting returns a `Download`. Read it to memory with `bytes()`, or pull chunks off it as a `Stream` of `Result<Bytes>`; `content_type()`, `content_length()`, and `meta()` describe the response, and dropping it closes the connection. Fails with `validation_failed` or `not_found`.
 
 ### `replace_file()` [#replace-file]
 
@@ -170,7 +170,7 @@ let skill = client
 
 **Signature:** `replace_file(skill_id: impl Into<SkillId>, path: impl Into<String>, content: Upload) -> Call<PutSkillFile>`
 
-Awaiting returns [`SkillDetail`](#skill-and-skilldetail). Fails with `validation_failed`, `skill_invalid_markdown`, `skill_name_conflict`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large), or `skill_not_found`.
+Awaiting returns [`SkillDetail`](#skill-and-skilldetail). Fails with `validation_failed`, `skill_invalid_markdown`, `skill_name_conflict`, [`skill_too_many_files`](/api-reference/protocols/errors#skill_too_many_files), [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large), or `not_found`.
 
 ### `delete_file()` [#delete-file]
 
@@ -186,7 +186,7 @@ let skill = client
 
 **Signature:** `delete_file(skill_id: impl Into<SkillId>, path: impl Into<String>) -> Call<DeleteSkillFile>`
 
-Awaiting returns [`SkillDetail`](#skill-and-skilldetail). Fails with [`invalid_request`](/api-reference/protocols/errors#invalid_request), `validation_failed`, or `skill_not_found`.
+Awaiting returns [`SkillDetail`](#skill-and-skilldetail). Fails with [`invalid_request`](/api-reference/protocols/errors#invalid_request), `validation_failed`, or `not_found`.
 
 ### `copy()` [#copy]
 
@@ -197,12 +197,13 @@ let results = client
     .agent("ag_0123456789abcdef")
     .skills()
     .copy("skill_0123456789abcdef", ["ag_abcdef0123456789"])
-    .await?;
+    .await?
+    .data;
 ```
 
 **Signature:** `copy(skill_id: impl Into<SkillId>, agent_ids: impl IntoIterator<Item = impl Into<AgentId>>) -> Call<CopySkill>`
 
-Awaiting returns `Vec<SkillCopyResult>` in request order. A `Created` result carries the destination `agent_id` and the new `SkillDetail`; a `Failed` result carries the `agent_id` and a `SkillCopyError` with `code`, `message`, and `details`, so one bad destination does not fail the call. The call itself fails only with `validation_failed` or `skill_not_found`.
+Awaiting returns a `SkillCopyResultList` whose `data` is a `Vec<SkillCopyResult>` in request order. A `Created` result carries the destination `agent_id` and the new `SkillDetail`; a `Failed` result carries the `agent_id` and a `SkillCopyError` with `code`, `message`, and `details`, so one bad destination does not fail the call. The call itself fails only with `validation_failed` or `not_found`.
 
 ## Response models [#response-models]
 
@@ -223,7 +224,7 @@ Awaiting returns `Vec<SkillCopyResult>` in request order. A `Created` result car
 
 | Code | Meaning |
 | --- | --- |
-| `skill_not_found` | The skill does not belong to this agent |
+| [`not_found`](/api-reference/protocols/errors#not_found) | The agent does not exist, or the skill does not belong to this agent |
 | `skill_invalid_markdown` | `SKILL.md` frontmatter is missing or invalid |
 | `skill_invalid_archive` | The archive is invalid or contains unsafe paths |
 | `skill_name_conflict` | The agent already has a skill with that name |

@@ -100,7 +100,7 @@ workspace = client.workspaces.get(workspace_id="ws_0123456789abcdef")
 
 **Signature:** `get(*, workspace_id: str) -> Workspace`
 
-Returns [`Workspace`](#workspace). Raises `validation_failed` or [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found).
+Returns [`Workspace`](#workspace). Raises `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `update()` [#update]
 
@@ -120,7 +120,7 @@ Omitted parameters keep their current value. `name=None` clears the name. `metad
 
 A `network_policy` that switches between `unrestricted` and a restricted mode (`offline` or `allowlist`) stops a running workspace. The workspace applies the new policy the next time an agent uses it. A Core workspace loses its files in that restart, and a Plus workspace keeps them. See [control network access](/agents/workspaces#control-network-access).
 
-Returns [`Workspace`](#workspace). Raises `validation_failed`, `workspace_not_found`, or [`workspace_busy`](/api-reference/protocols/errors#workspace_busy).
+Returns [`Workspace`](#workspace). Raises `validation_failed`, `not_found`, or [`workspace_busy`](/api-reference/protocols/errors#workspace_busy).
 
 ### `delete()` [#delete]
 
@@ -138,7 +138,7 @@ Move every agent to another workspace first. When the call returns, the workspac
 | --- | --- |
 | `validation_failed` | The ID is malformed |
 | [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use) | Agents still use it; their IDs are in `error.details["agentIds"]` |
-| `workspace_not_found` | No such workspace in your tenant |
+| `not_found` | No such workspace in your tenant |
 
 ## Response types [#response-types]
 

@@ -58,7 +58,7 @@ const next = page.nextCursor
 | `limit` | `number` | no | `50` | Page size; see the [page size limit](/api-reference/protocols/service-limits#other-cursored-resource-pages) |
 | `cursor` | `string` | no | none | `nextCursor` from the previous page |
 
-An agent ID that does not exist in your tenant returns an empty page. Returns [`SessionsListResponse`](#sessionslistresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
+Returns [`SessionsListResponse`](#sessionslistresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), and [`not_found`](/api-reference/protocols/errors#not_found) for an agent that does not exist in your tenant.
 
 ### `listLatest()` [#list-latest]
 
@@ -162,7 +162,7 @@ Steers one user message into the running turn. The agent reads it at its next st
 **Signature:** `submitInput(input: { agentId: string; sessionId: string; requestId: string; message: UIMessage } & ResourceRequestOptions): Promise<SessionInputResponse>`
 
 ```typescript
-const { data: input, activity } = await client.sessions.submitInput({
+const { input, activity } = await client.sessions.submitInput({
   agentId,
   sessionId,
   requestId,
@@ -255,6 +255,7 @@ interface SessionsListResponse {
 
 interface SessionListItem {
   id: string;
+  tenantId: string;
   messageCount: number;
   lastMessagePreview: string | null;
   userId: string;
@@ -332,7 +333,7 @@ type ToolApprovalContinuationState = "waiting" | "running" | "succeeded" | "fail
 
 ```typescript
 interface SessionInputResponse {
-  data: SessionInput;
+  input: SessionInput;
   activity: SessionActivity;
 }
 
@@ -391,7 +392,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | Code | Meaning |
 | --- | --- |
 | `invalid_cursor` | Start paging again without the cursor |
-| `not_found` | No such session or turn for this agent, or a scoped client asked for another end user's session |
+| `not_found` | No such agent, session, or turn, or a scoped client asked for another end user's session |
 | `steer_not_available` | No turn can take the message now; send it as an ordinary chat message once the turn ends |
 | `tool_approval_decision_conflict` | The call was already decided differently; reload the approvals |
 | `tool_approval_continuation_settled` | The approval round already finished; read the history |

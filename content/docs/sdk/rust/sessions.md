@@ -41,7 +41,7 @@ for session in &page.data {
 
 ### `list()` [#list]
 
-Lists an agent's sessions, most recently updated first. An unknown agent returns an empty page. This tenant-admin view filters by end user; a `UserClient` returns only its own user's sessions without the filter.
+Lists an agent's sessions, most recently updated first. An unknown agent fails with `not_found`. This tenant-admin view filters by end user; a `UserClient` returns only its own user's sessions without the filter.
 
 ```rust
 let page = client
@@ -59,7 +59,7 @@ let page = client
 | `user_id` | `impl Into<String>` | Only this end user's sessions; `""` selects sessions without an end user |
 | `limit` | `u8` | Page size, within the [session page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages) |
 
-Awaiting returns [`Page<Session>`](#session); `.items()` and `.pages()` walk every page lazily. Fails with `Error::Api` whose code is `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
+Awaiting returns [`Page<Session>`](#session); `.items()` and `.pages()` walk every page lazily. Fails with `Error::Api` whose code is `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
 
 ### `list_latest()` [#list-latest]
 
@@ -241,6 +241,7 @@ Reuse `idempotency_key` (within the [key length limit](/api-reference/protocols/
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `SessionId` | Session ID (`ss_...`) |
+| `tenant_id` | `TenantId` | Your tenant ID |
 | `message_count` | `u64` | Number of stored messages |
 | `last_message_preview` | `Option<String>` | Short preview of the last message |
 | `user_id` | `String` | End user, or `""` for tenant level |

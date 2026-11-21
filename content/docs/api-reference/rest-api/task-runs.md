@@ -123,16 +123,16 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs" \
 
 Start a task run.
 
-Queues a run of the task now, whether or not it has a schedule. The run starts as `queued`; poll it to follow its progress. A task runs one run at a time, so this returns `409` while another run is queued or running. Send an `idempotencyKey` to make retries safe: repeating the request with the same key returns the same run. Send `{}` when you do not need a key.
+Queues a run of the task now, whether or not it has a schedule. The run starts as `queued`; poll it to follow its progress. A task runs one run at a time, so this returns `409` while another run is queued or running. Send an `Idempotency-Key` header to make retries safe: repeating the request with the same key returns the same run. The key is remembered for as long as the task exists.
 
 #### Request
 
-Requires [bearer authentication](/api-reference/rest-api/authentication) and a JSON body. A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
+Requires [bearer authentication](/api-reference/rest-api/authentication). A read-only or full [API key](/api-reference/rest-api/authentication#access-levels) can call it. Accepts an [end-user scope](/api-reference/rest-api/authentication#end-user-scope), which limits the request to that end user's records.
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
 | `taskId` | string | path | required | ID of the task. |
-| `idempotencyKey` | string | body |  | Your own key for this run. Retrying with the same key returns the same run instead of starting another. |
+| `idempotency-key` | string | header |  | Unique key for this run. Retry with the same key to get the same run back instead of starting another. 1–200 characters. |
 
 #### Response
 
@@ -166,9 +166,7 @@ See [REST errors](/api-reference/protocols/errors) for the error envelope and sh
 
 ```bash
 curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/tasks/tk_1234567890ABCDEF/runs" \
-  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{"idempotencyKey":"daily-support-summary-2026-07-10"}'
+  --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
 ### GET /v1/tasks/:taskId/runs/:runId [#get-task-run]

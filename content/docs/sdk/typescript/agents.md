@@ -97,7 +97,7 @@ await client.agents.create({
 });
 ```
 
-Returns [`Agent`](#agent). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found), [`agent_mcp_connection_not_found`](/api-reference/protocols/errors#agent_mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed).
+Returns [`Agent`](#agent). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`provider_not_found`](/api-reference/protocols/errors#provider_not_found), [`model_not_found`](/api-reference/protocols/errors#model_not_found), [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable), [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found), [`mcp_connection_not_found`](/api-reference/protocols/errors#mcp_connection_not_found), [`agent_mcp_connections_invalid`](/api-reference/protocols/errors#agent_mcp_connections_invalid), [`mcp_connection_discovery_failed`](/api-reference/protocols/errors#mcp_connection_discovery_failed).
 
 ### `list()` [#list]
 
@@ -157,22 +157,22 @@ Takes `agentId` plus any [`create()`](#create) field except `userId` and `worksp
 - To switch providers, send `providerId` and `model` together. To unconfigure the agent, send both as `null`.
 - `workspaceId` moves the agent to another workspace. It cannot be cleared.
 
-Returns [`Agent`](#agent). Errors: `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `model_validation_unavailable`, `workspace_not_found`, `agent_mcp_connection_not_found`, `agent_mcp_connections_invalid`, `mcp_connection_discovery_failed`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
+Returns [`Agent`](#agent). Errors: `validation_failed`, `not_found`, `provider_not_found`, `model_not_found`, `model_validation_unavailable`, `workspace_not_found`, `mcp_connection_not_found`, `agent_mcp_connections_invalid`, `mcp_connection_discovery_failed`, [`admin_agent_managed`](/api-reference/protocols/errors#admin_agent_managed).
 
 ### `delete()` [#delete]
 
 Deletes an agent and its history for good. You choose whether its published artifacts go too.
 
-**Signature:** `delete(input: { agentId: string; includeArtifacts: boolean } & ResourceRequestOptions): Promise<void>`
+**Signature:** `delete(input: { agentId: string; deleteArtifacts: boolean } & ResourceRequestOptions): Promise<void>`
 
 ```typescript
-await client.agents.delete({ agentId, includeArtifacts: false });
+await client.agents.delete({ agentId, deleteArtifacts: false });
 ```
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `agentId` | `string` | yes | Agent ID (`ag_…`) |
-| `includeArtifacts` | `boolean` | yes | `true` deletes the agent's artifacts; `false` keeps them |
+| `deleteArtifacts` | `boolean` | yes | `true` deletes the agent's artifacts; `false` keeps them |
 
 The agent's workspace stays. Delete it with [`workspaces.delete()`](/sdk/typescript/workspaces#delete) if nothing else uses it. Errors: `validation_failed`, `not_found`, `admin_agent_managed`, [`agent_busy`](/api-reference/protocols/errors#agent_busy) (HTTP `409`) while the agent has a running turn or a queued or running task run.
 
@@ -236,10 +236,10 @@ Shows, for each MCP connection the agent uses, whether it receives the end user'
 **Signature:** `listMcpAttachments(input: { agentId: string } & ResourceRequestOptions): Promise<McpAttachmentsResponse>`
 
 ```typescript
-const { mcpAttachments } = await client.agents.listMcpAttachments({ agentId });
+const { data: attachments } = await client.agents.listMcpAttachments({ agentId });
 ```
 
-Returns `{ mcpAttachments: McpAttachmentResponse[] }`. Errors: `validation_failed`, `not_found`.
+Returns `{ data: McpAttachmentResponse[] }`. Errors: `validation_failed`, `not_found`.
 
 ### `updateMcpAttachment()` [#update-mcp-attachment]
 
@@ -345,7 +345,7 @@ Failures throw [`BlazingAgentsError`](/sdk/typescript/client#errors). The codes 
 | `model_not_found` | The provider does not offer this model |
 | `model_validation_unavailable` | The provider's model list could not be fetched; try again |
 | `workspace_not_found` | The workspace does not exist |
-| `agent_mcp_connection_not_found` | A listed MCP connection does not exist |
+| `mcp_connection_not_found` | A listed MCP connection does not exist |
 | `agent_mcp_connections_invalid` | The MCP connection list is invalid |
 | `mcp_connection_discovery_failed` | An attached MCP connection's tools or sign-in could not be discovered; nothing was saved |
 | `admin_agent_managed` | The [admin agent](/agents/agents#the-admin-agent) does not allow this change |

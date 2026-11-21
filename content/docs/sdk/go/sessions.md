@@ -45,7 +45,7 @@ return nil
 
 ### `List` [#list]
 
-Lists an agent's sessions, most recently updated first. An unknown agent returns an empty page.
+Lists an agent's sessions, most recently updated first.
 
 ```go
 user, err := client.ForUser("user_0123456789abcdef")
@@ -68,7 +68,7 @@ return nil
 | `Cursor` | `*string` | The `NextCursor` of the previous page |
 | `Limit` | `*int` | Page size, within the [session page limit](/api-reference/protocols/service-limits#other-cursored-resource-pages) |
 
-Returns [`*ba.Page[SessionSummary]`](#session); `All` walks every page lazily. Fails with `*ba.APIError` whose `Code` is `validation_failed` or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
+Returns [`*ba.Page[SessionSummary]`](#session); `All` walks every page lazily. Fails with `*ba.APIError` whose `Code` is `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or [`not_found`](/api-reference/protocols/errors#not_found) when the agent does not exist.
 
 ### `ListLatest` [#list-latest]
 
@@ -115,7 +115,7 @@ return nil
 
 **Signature:** `func (s *SessionsService) Get(ctx context.Context, agentID AgentID, sessionID SessionID, opts ...RequestOption) (*Session, error)`
 
-Returns [`*ba.Session`](#session): the `SessionSummary` fields plus `AgentConfig` and `ForkedFrom`. Fails with `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
+Returns [`*ba.Session`](#session): the `SessionSummary` fields plus `AgentConfig` and `ForkedFrom`. Fails with `validation_failed` or `not_found`.
 
 ### `ListMessages` [#messages]
 
@@ -272,6 +272,7 @@ Reuse `IdempotencyKey` (within the [key length limit](/api-reference/protocols/s
 | Field | Type | Description |
 | --- | --- | --- |
 | `ID` | `ba.SessionID` | Session ID (`ss_...`) |
+| `TenantID` | `ba.TenantID` | Your tenant ID |
 | `MessageCount` | `int64` | Number of stored messages |
 | `LastMessagePreview` | `*string` | Short preview of the last message |
 | `UserID` | `string` | End user, or `""` for tenant level |

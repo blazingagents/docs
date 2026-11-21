@@ -31,7 +31,7 @@ let failed = client
     .list()
     .status(MerchantUsageEventStatus::Failed)
     .await?;
-for event in &failed.events {
+for event in &failed.data {
     println!("{} {}", event.id, event.user_id);
 }
 ```
@@ -44,10 +44,10 @@ for event in &failed.events {
 | [`merchant_connection().create()`](#create-connection) | Connect a billing account | [`MerchantConnection`](#merchantconnection) |
 | [`merchant_connection().update()`](#update-connection) | Change the guard or rotate the credential | [`MerchantConnection`](#merchantconnection) |
 | [`merchant_connection().retire()`](#retire-connection) | Retire the merchant connection | `()` |
-| [`merchant_bindings().list()`](#list-bindings) | List links between end users and customers | [`BindingsPage`](#merchantbinding) |
+| [`merchant_bindings().list()`](#list-bindings) | List links between end users and customers | [`Page<MerchantBinding>`](#merchantbinding) |
 | [`merchant_bindings().put()`](#put-binding) | Link an end user to a customer | [`MerchantBinding`](#merchantbinding) |
 | [`merchant_bindings().delete()`](#delete-binding) | Remove an end user's link | `()` |
-| [`merchant_usage_events().list()`](#list-events) | List usage events | [`UsageEventsPage`](#merchantusageevent) |
+| [`merchant_usage_events().list()`](#list-events) | List usage events | [`Page<MerchantUsageEvent>`](#merchantusageevent) |
 | [`merchant_usage_events().get()`](#get-event) | Get one usage event | [`MerchantUsageEvent`](#merchantusageevent) |
 | [`merchant_usage_events().summary()`](#summary) | Summarize deliveries | [`MerchantUsageSummary`](#merchantusagesummary) |
 | [`merchant_usage_events().retry()`](#retry-event) | Send an event again | [`MerchantUsageEvent`](#merchantusageevent) |
@@ -80,7 +80,7 @@ Fails with `Error::Api` whose code is [`validation_failed`](/api-reference/proto
 | `credential(credential)` | A replacement credential for the same merchant account. It is checked with your provider |
 | `guard(guard)` | The complete guard, replacing the current one |
 
-Setters you do not call keep their values. Fails with `validation_failed`, [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found), [`merchant_account_mismatch`](/api-reference/protocols/errors#merchant_account_mismatch) when the credential belongs to another account (create a new connection to switch accounts), `merchant_credential_invalid`, or `merchant_provider_unavailable`.
+Setters you do not call keep their values. Fails with `validation_failed`, [`not_found`](/api-reference/protocols/errors#not_found) when you have no connection, [`merchant_account_mismatch`](/api-reference/protocols/errors#merchant_account_mismatch) when the credential belongs to another account (create a new connection to switch accounts), `merchant_credential_invalid`, or `merchant_provider_unavailable`.
 
 `MerchantGuard::new(enabled)` builds a guard, and `.product_ids([...])` and `.meter_id(...)` set what a user's plan must hold. See [guard rules](/platform/monetization#guard-rules).
 
@@ -88,7 +88,7 @@ Setters you do not call keep their values. Fails with `validation_failed`, [`mer
 
 **Signature:** `merchant_connection().retire() -> Call<RetireMerchantConnection>`
 
-Retires the connection. Its `Failed` events are discarded and its credential is deleted at once, so nothing more is delivered through it. Fails with `merchant_connection_not_found`, or with `merchant_connection_in_use` while a turn or task run that started on it is still running or one of its events is `Pending`. Try again once they finish. A `Pending` event whose `next_action` is `Retry` also blocks. Blazing Agents retries it on its own after 5, 10, 20 and 40 minutes, and you can [retry](#retry-event) it sooner; after the fourth automatic retry it blocks until you retry it.
+Retires the connection. Its `Failed` events are discarded and its credential is deleted at once, so nothing more is delivered through it. Fails with `not_found` when you have no connection, or with `merchant_connection_in_use` while a turn or task run that started on it is still running or one of its events is `Pending`. Try again once they finish. A `Pending` event whose `next_action` is `Retry` also blocks. Blazing Agents retries it on its own after 5, 10, 20 and 40 minutes, and you can [retry](#retry-event) it sooner; after the fourth automatic retry it blocks until you retry it.
 
 ## Bindings [#bindings]
 
@@ -96,19 +96,19 @@ Retires the connection. Its `Failed` events are discarded and its credential is 
 
 **Signature:** `merchant_bindings().list() -> Call<ListMerchantBindings>`
 
-Lists the current connection's links, sorted by `user_id`. The `user_id` setter returns only one end user's link, and `limit` sets the page size, within the [page size limit](/api-reference/protocols/service-limits#merchant-page). Awaiting returns a `BindingsPage` with `bindings` and `next_cursor`; `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `merchant_connection_not_found`.
+Lists the current connection's links, sorted by `user_id`. The `user_id` setter returns only one end user's link, and `limit` sets the page size, within the [page size limit](/api-reference/protocols/service-limits#merchant-page). Awaiting returns a `Page<MerchantBinding>` with `data` and `next_cursor`; `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed`, [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor), or `not_found` when you have no connection.
 
 ### `put()` [#put-binding]
 
 **Signature:** `merchant_bindings().put(user_id: impl AsRef<str>, customer_id: impl Into<String>) -> Call<SetMerchantBinding>`
 
-Links an end user to a customer at your provider, or changes the customer an existing link points to. Blazing Agents checks that the customer exists first. Link each user before their first turn: usage of an unlinked user is recorded as `Discarded` and never billed. Fails with `validation_failed`, `merchant_connection_not_found`, [`merchant_customer_not_found`](/api-reference/protocols/errors#merchant_customer_not_found), or `merchant_provider_unavailable`.
+Links an end user to a customer at your provider, or changes the customer an existing link points to. Blazing Agents checks that the customer exists first. Link each user before their first turn: usage of an unlinked user is recorded as `Discarded` and never billed. Fails with `validation_failed`, `not_found` when you have no connection, [`merchant_customer_not_found`](/api-reference/protocols/errors#merchant_customer_not_found), or `merchant_provider_unavailable`.
 
 ### `delete()` [#delete-binding]
 
 **Signature:** `merchant_bindings().delete(user_id: impl AsRef<str>) -> Call<DeleteMerchantBinding>`
 
-Removes an end user's link. Their usage is then recorded as `Discarded` and never billed, even after you link them again. Fails with `validation_failed`, `merchant_connection_not_found`, or [`merchant_binding_not_found`](/api-reference/protocols/errors#merchant_binding_not_found).
+Removes an end user's link. Their usage is then recorded as `Discarded` and never billed, even after you link them again. Fails with `validation_failed`, and with `not_found` when you have no connection or the user has no link.
 
 ## Usage events [#usage-events]
 
@@ -118,13 +118,13 @@ Blazing Agents records one usage event per turn of a linked end user and deliver
 
 **Signature:** `merchant_usage_events().list() -> Call<ListMerchantUsageEvents>`
 
-Lists events, newest first. The `status(MerchantUsageEventStatus)` setter keeps one delivery status, and `limit` sets the page size, within the [page size limit](/api-reference/protocols/service-limits#merchant-page). Awaiting returns a `UsageEventsPage` with `events` and `next_cursor`; `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed` or `invalid_cursor`.
+Lists events, newest first. The `status(MerchantUsageEventStatus)` setter keeps one delivery status, and `limit` sets the page size, within the [page size limit](/api-reference/protocols/service-limits#merchant-page). Awaiting returns a `Page<MerchantUsageEvent>` with `data` and `next_cursor`; `.items()` and `.pages()` walk every page lazily. Fails with `validation_failed` or `invalid_cursor`.
 
 ### `get()` [#get-event]
 
 **Signature:** `merchant_usage_events().get(event_id: impl Into<MerchantUsageEventId>) -> Call<GetMerchantUsageEvent>`
 
-Returns one event with the exact `payload` sent to your provider. `payload` is `None` for `Incomplete` events and can be `None` for `Discarded` ones. Fails with `validation_failed` or [`merchant_event_not_found`](/api-reference/protocols/errors#merchant_event_not_found).
+Returns one event with the exact `payload` sent to your provider. `payload` is `None` for `Incomplete` events and can be `None` for `Discarded` ones. Fails with `validation_failed` or `not_found`.
 
 ### `summary()` [#summary]
 
@@ -136,13 +136,13 @@ Shows whether usage is reaching your provider. The `days` setter sets how many U
 
 **Signature:** `merchant_usage_events().retry(event_id: impl Into<MerchantUsageEventId>) -> Call<RetryMerchantUsageEvent>`
 
-Sends a `Failed` event again, or a `Pending` event whose `next_action` is `Retry` because its delivery stopped. Blazing Agents retries a stopped delivery on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner; after the fourth automatic retry the event stays `Pending` until you retry it. The event goes back to `Pending` with the same payload. Retrying is safe, because your provider drops duplicates by event ID. Fix the cause of a `Failed` event, such as a revoked credential, first. Fails with `validation_failed`, `merchant_event_not_found`, or [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict) for any other status.
+Sends a `Failed` event again, or a `Pending` event whose `next_action` is `Retry` because its delivery stopped. Blazing Agents retries a stopped delivery on its own after 5, 10, 20 and 40 minutes, and you can retry it sooner; after the fourth automatic retry the event stays `Pending` until you retry it. The event goes back to `Pending` with the same payload. Retrying is safe, because your provider drops duplicates by event ID. Fix the cause of a `Failed` event, such as a revoked credential, first. Fails with `validation_failed`, `not_found`, or [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict) for any other status.
 
 ### `discard()` [#discard-event]
 
 **Signature:** `merchant_usage_events().discard(event_id: impl Into<MerchantUsageEventId>) -> Call<DiscardMerchantUsageEvent>`
 
-Marks an `Incomplete`, `Failed`, or `Expired` event as `Discarded`, so Blazing Agents stops trying to deliver it. The event stays in the list. Correct an `Expired` event in your provider directly. Fails with `validation_failed`, `merchant_event_not_found`, or `merchant_event_state_conflict`.
+Marks an `Incomplete`, `Failed`, or `Expired` event as `Discarded`, so Blazing Agents stops trying to deliver it. The event stays in the list. Correct an `Expired` event in your provider directly. Fails with `validation_failed`, `not_found`, or `merchant_event_state_conflict`.
 
 ## Response models [#response-models]
 
@@ -151,6 +151,7 @@ Marks an `Incomplete`, `Failed`, or `Expired` event as `Discarded`, so Blazing A
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `MerchantConnectionId` | Connection ID (`mch_...`) |
+| `tenant_id` | `TenantId` | Your tenant ID |
 | `provider` | `MerchantProvider` | `Polar` or `Dodo` |
 | `environment` | `MerchantEnvironment` | `Sandbox` or `Live` |
 | `merchant_account_id` | `String` | The account the credential belongs to at your provider |
@@ -172,6 +173,7 @@ Marks an `Incomplete`, `Failed`, or `Expired` event as `Discarded`, so Blazing A
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `MerchantUsageEventId` | Event ID (`mev_...`) |
+| `tenant_id` | `TenantId` | Your tenant ID |
 | `turn_id`, `agent_id`, `session_id` | `TurnId`, `AgentId`, `Option<SessionId>` | The turn the event bills, its agent, and its session when it has one |
 | `connection_id`, `provider` | `MerchantConnectionId`, `MerchantProvider` | The connection the event goes through |
 | `user_id`, `customer_id` | `String`, `Option<String>` | The end user and the linked customer |

@@ -51,7 +51,7 @@ Runs use the agent's `approvalInTasks` policy. Nobody is there to approve a call
 
 Creates a task that runs on demand or on a schedule.
 
-**Signature:** `create(input: CreateTaskBody & ResourceRequestOptions): Promise<CreateTaskResponse>`
+**Signature:** `create(input: CreateTaskBody & { idempotencyKey?: string } & ResourceRequestOptions): Promise<CreateTaskResponse>`
 
 ```typescript
 const { task } = await client.tasks.create({
@@ -141,7 +141,7 @@ Fails with [`task_active_run_exists`](/api-reference/protocols/errors#task_activ
 
 Starts a run now and returns its ID without waiting for it.
 
-**Signature:** `createRun(input: CreateTaskRunBody & { taskId: string } & ResourceRequestOptions): Promise<CreateTaskRunResponse>`
+**Signature:** `createRun(input: { idempotencyKey?: string; taskId: string } & ResourceRequestOptions): Promise<CreateTaskRunResponse>`
 
 ```typescript
 const { runId } = await client.tasks.createRun({

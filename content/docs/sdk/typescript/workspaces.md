@@ -16,7 +16,7 @@ const workspace = await client.workspaces.create({
 await client.agents.update({ agentId, workspaceId: workspace.id });
 ```
 
-Every turn of an agent runs in that agent's one workspace, so end users who share an agent also share its files. In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/typescript/client#for-user) from `client.forUser(verifiedUserId)`. It creates workspaces that belong to that end user, returns only theirs, and answers `workspace_not_found` for anyone else's. The tenant client sees every user's workspaces and is for your backend's administration.
+Every turn of an agent runs in that agent's one workspace, so end users who share an agent also share its files. In a route that serves a signed-in end user, call these methods on the [scoped client](/sdk/typescript/client#for-user) from `client.forUser(verifiedUserId)`. It creates workspaces that belong to that end user, returns only theirs, and answers `not_found` for anyone else's. The tenant client sees every user's workspaces and is for your backend's administration.
 
 Every method takes one input object and accepts an optional `abortSignal`. Reading or changing a workspace record does not touch its files.
 
@@ -88,7 +88,7 @@ Reads one workspace.
 const workspace = await client.workspaces.get({ workspaceId });
 ```
 
-Returns [`Workspace`](#workspace). Errors: `validation_failed`, [`workspace_not_found`](/api-reference/protocols/errors#workspace_not_found).
+Returns [`Workspace`](#workspace). Errors: `validation_failed`, [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `update()` [#update]
 
@@ -110,7 +110,7 @@ const workspace = await client.workspaces.update({
 | `metadata` | `Record<string, unknown>` | no | Replaces all metadata |
 | `networkPolicy` | `WorkspaceNetworkPolicy` | no | Replaces the network rules |
 
-Pass at least one field. Fields you leave out stay as they are, and `userId` cannot change. Returns [`Workspace`](#workspace). Errors: `validation_failed`, `workspace_not_found`, [`workspace_busy`](/api-reference/protocols/errors#workspace_busy).
+Pass at least one field. Fields you leave out stay as they are, and `userId` cannot change. Returns [`Workspace`](#workspace). Errors: `validation_failed`, `not_found`, [`workspace_busy`](/api-reference/protocols/errors#workspace_busy).
 
 ### `delete()` [#delete]
 
@@ -128,7 +128,7 @@ Errors:
 
 - `validation_failed`: the ID is malformed.
 - [`workspace_in_use`](/api-reference/protocols/errors#workspace_in_use): agents still use it. `details.agentIds` lists them.
-- `workspace_not_found`: no such workspace in your tenant.
+- [`not_found`](/api-reference/protocols/errors#not_found): no such workspace in your tenant.
 
 ## Response types [#response-types]
 

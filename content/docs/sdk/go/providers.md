@@ -81,7 +81,7 @@ return nil
 
 **Signature:** `func (s *ProvidersService) List(ctx context.Context, opts ...RequestOption) ([]ProviderSummary, error)`
 
-Returns every `ba.ProviderSummary` (`ID`, `Name`, `ProviderType`, timestamps) without endpoint or key details.
+Returns every `ba.ProviderSummary` (`ID`, `TenantID`, `Name`, `ProviderType`, timestamps) without endpoint or key details.
 
 ### `Get` [#get]
 
@@ -98,7 +98,7 @@ return nil
 
 **Signature:** `func (s *ProvidersService) Get(ctx context.Context, providerID ProviderID, opts ...RequestOption) (*Provider, error)`
 
-Returns [`*ba.Provider`](#provider). Fails with `validation_failed` or [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
+Returns [`*ba.Provider`](#provider). Fails with `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `ListModels` [#list-models]
 
@@ -117,7 +117,7 @@ return nil
 
 **Signature:** `func (s *ProvidersService) ListModels(ctx context.Context, providerID ProviderID, opts ...RequestOption) ([]ProviderModel, error)`
 
-Returns every `ba.ProviderModel`, each with its provider-native `ID`, sorted and without duplicates. A custom provider fails with [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported); a temporarily unavailable catalog fails with [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable). Also fails with `validation_failed` or `provider_not_found`.
+Returns every `ba.ProviderModel`, each with its provider-native `ID`, sorted and without duplicates. A custom provider fails with [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported); a temporarily unavailable catalog fails with [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable). Also fails with `validation_failed` or `not_found`.
 
 ### `ThinkingLevels` [#get-thinking-levels]
 
@@ -136,7 +136,7 @@ return nil
 
 **Signature:** `func (s *ProvidersService) ThinkingLevels(ctx context.Context, providerID ProviderID, model string, opts ...RequestOption) (*ProviderThinkingLevels, error)`
 
-Returns `*ba.ProviderThinkingLevels`: `Known` says whether the provider knows this model's levels, and `Levels` lists the supported ones. When `Known` is `false`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time, except on a `google` or `vercel_ai_gateway` provider. There the model takes only `off`, `minimal`, `low`, `medium` and `high`, and saving any other string fails with `invalid_request`. Fails with `validation_failed` or `provider_not_found`.
+Returns `*ba.ProviderThinkingLevels`: `Known` says whether the provider knows this model's levels, and `Levels` lists the supported ones. When `Known` is `false`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time, except on a `google` or `vercel_ai_gateway` provider. There the model takes only `off`, `minimal`, `low`, `medium` and `high`, and saving any other string fails with `invalid_request`. Fails with `validation_failed` or `not_found`.
 
 ### `Update` [#update]
 
@@ -155,7 +155,7 @@ return nil
 
 **Signature:** `func (s *ProvidersService) Update(ctx context.Context, providerID ProviderID, params UpdateProviderParams, opts ...RequestOption) (*Provider, error)`
 
-Only the name can change. To change the type, key, or base URL, create a new provider and move your agents to it. Returns [`*ba.Provider`](#provider). Fails with `validation_failed`, `provider_name_conflict`, or `provider_not_found`.
+Only the name can change. To change the type, key, or base URL, create a new provider and move your agents to it. Returns [`*ba.Provider`](#provider). Fails with `validation_failed`, `provider_name_conflict`, or `not_found`.
 
 ### `Delete` [#delete]
 
@@ -178,7 +178,7 @@ return client.Providers.Delete(ctx, "prv_0123456789abcdef", ba.DeleteProviderPar
 | [`provider_in_use`](/api-reference/protocols/errors#provider_in_use) | A current agent uses it. Move the agent first; confirmation does not override this |
 | [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) | Saved sessions or queued or running task runs use it. `APIError.Details` lists them under `sessionIds` and `taskRunIds`. Confirm to delete anyway |
 
-After a confirmed delete, session and task run history remains, but any later turn that needs the provider fails with `provider_not_found`. The delete itself also fails with `validation_failed`, or with `provider_not_found` when the provider does not exist.
+After a confirmed delete, session and task run history remains, but any later turn that needs the provider fails with [`provider_not_found`](/api-reference/protocols/errors#provider_not_found). The delete itself also fails with `validation_failed`, or with `not_found` when the provider does not exist.
 
 ## Response models [#response-models]
 
@@ -187,6 +187,7 @@ After a confirmed delete, session and task run history remains, but any later tu
 | Field | Type | Description |
 | --- | --- | --- |
 | `ID` | `ba.ProviderID` | Provider ID (`prv_...`) |
+| `TenantID` | `ba.TenantID` | Your tenant ID |
 | `Name` | `string` | Display name |
 | `ProviderType` | `ba.ProviderType` | The model vendor |
 | `BaseURL` | `*string` | Endpoint override, if any |

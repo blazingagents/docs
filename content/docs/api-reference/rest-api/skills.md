@@ -285,7 +285,7 @@ Response schema: `Skill`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`skill_not_found`](/api-reference/protocols/errors#skill_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
@@ -326,7 +326,7 @@ Returns `204 No Content`. The skill was deleted.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`skill_not_found`](/api-reference/protocols/errors#skill_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
@@ -368,7 +368,7 @@ Returns `200 OK` as `application/octet-stream`. The file's raw bytes.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`skill_not_found`](/api-reference/protocols/errors#skill_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
@@ -439,7 +439,7 @@ Response schema: `Skill`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`skill_not_found`](/api-reference/protocols/errors#skill_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`skill_name_conflict`](/api-reference/protocols/errors#skill_name_conflict) | The request conflicts with the resource's current state |
 | `413` | [`skill_uncompressed_too_large`](/api-reference/protocols/errors#skill_uncompressed_too_large) | The request body is too large |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
@@ -507,7 +507,7 @@ Response schema: `Skill`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`skill_not_found`](/api-reference/protocols/errors#skill_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
@@ -545,42 +545,44 @@ Returns `200 OK` as `application/json`. One result per destination agent.
 Response schema: `SkillCopyResultList`.
 
 ```json
-[
-  {
-    "agentId": "ag_9Xm3Fp7KdR2vHs5T",
-    "status": "created",
-    "skill": {
-      "id": "skill_1Nc5Gv9JwZ3hQe8M",
-      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+{
+  "data": [
+    {
       "agentId": "ag_9Xm3Fp7KdR2vHs5T",
-      "name": "refund-policy",
-      "description": "Answer refund questions using the current refund policy.",
-      "metadata": {
-        "owner": "support"
-      },
-      "createdAt": "2026-07-10T10:00:00.000Z",
-      "updatedAt": "2026-07-10T10:00:00.000Z",
-      "files": [
-        {
-          "path": "SKILL.md",
-          "sizeBytes": 168
+      "status": "created",
+      "skill": {
+        "id": "skill_1Nc5Gv9JwZ3hQe8M",
+        "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+        "agentId": "ag_9Xm3Fp7KdR2vHs5T",
+        "name": "refund-policy",
+        "description": "Answer refund questions using the current refund policy.",
+        "metadata": {
+          "owner": "support"
         },
-        {
-          "path": "policy.md",
-          "sizeBytes": 2048
-        }
-      ]
+        "createdAt": "2026-07-10T10:00:00.000Z",
+        "updatedAt": "2026-07-10T10:00:00.000Z",
+        "files": [
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 168
+          },
+          {
+            "path": "policy.md",
+            "sizeBytes": 2048
+          }
+        ]
+      }
+    },
+    {
+      "agentId": "ag_2Bt6Yh4MsW8kLc1V",
+      "status": "failed",
+      "error": {
+        "code": "skill_name_conflict",
+        "message": "Skill name already exists for this Agent"
+      }
     }
-  },
-  {
-    "agentId": "ag_2Bt6Yh4MsW8kLc1V",
-    "status": "failed",
-    "error": {
-      "code": "skill_name_conflict",
-      "message": "Skill name already exists for this Agent"
-    }
-  }
-]
+  ]
+}
 ```
 
 #### Errors
@@ -591,7 +593,7 @@ Response schema: `SkillCopyResultList`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`not_found`](/api-reference/protocols/errors#not_found), [`skill_not_found`](/api-reference/protocols/errors#skill_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |

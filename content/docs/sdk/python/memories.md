@@ -16,7 +16,7 @@ user = client.for_user(verified_user_id)
 memory = user.memories.create(
     agent_id=agent_id,
     text="Prefers release notes under five lines.",
-).memory
+)
 print(memory.id, memory.user_id)
 ```
 
@@ -32,11 +32,11 @@ An agent holds a [limited number of memories](/api-reference/protocols/service-l
 
 | Method | Description | Returns |
 | --- | --- | --- |
-| [`create()`](#create) | Create a memory | `MemoryResponse` |
+| [`create()`](#create) | Create a memory | `Memory` |
 | [`list()`](#list) | Get one page of memories | `MemoriesPage` |
 | [`iter()`](#iter) | Iterate every memory | `Iterator[Memory]` |
-| [`get()`](#get) | Get one memory | `MemoryResponse` |
-| [`update()`](#update) | Replace a memory's text | `MemoryResponse` |
+| [`get()`](#get) | Get one memory | `Memory` |
+| [`update()`](#update) | Replace a memory's text | `Memory` |
 | [`delete()`](#delete) | Delete a memory | `None` |
 
 ## Methods [#methods]
@@ -46,12 +46,12 @@ An agent holds a [limited number of memories](/api-reference/protocols/service-l
 Creates a memory for an agent.
 
 ```python
-memory = client.memories.create(agent_id=agent_id, text="Works in UTC.").memory
+memory = client.memories.create(agent_id=agent_id, text="Works in UTC.")
 ```
 
-**Signature:** `create(*, agent_id: str, text: str, user_id=...) -> MemoryResponse`
+**Signature:** `create(*, agent_id: str, text: str, user_id=...) -> Memory`
 
-`text` is non-empty and within the [memory text limit](/api-reference/protocols/service-limits#memory-text). `user_id` defaults to `""` on the tenant client and to the scoped user on a scoped client. Returns `MemoryResponse`, whose `memory` field is the new [`Memory`](#memory). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`not_found`](/api-reference/protocols/errors#not_found).
+`text` is non-empty and within the [memory text limit](/api-reference/protocols/service-limits#memory-text). `user_id` defaults to `""` on the tenant client and to the scoped user on a scoped client. Returns the new [`Memory`](#memory). Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `list()` [#list]
 
@@ -91,12 +91,12 @@ Takes the same parameters as [`list()`](#list). No request is sent until you sta
 Gets one memory.
 
 ```python
-memory = client.memories.get(agent_id=agent_id, memory_id=memory.id).memory
+memory = client.memories.get(agent_id=agent_id, memory_id=memory.id)
 ```
 
-**Signature:** `get(*, agent_id: str, memory_id: str) -> MemoryResponse`
+**Signature:** `get(*, agent_id: str, memory_id: str) -> Memory`
 
-Does not change `last_accessed_at`. Raises `validation_failed` or `not_found`.
+Returns the [`Memory`](#memory). Does not change `last_accessed_at`. Raises `validation_failed` or `not_found`.
 
 ### `update()` [#update]
 
@@ -107,12 +107,12 @@ memory = client.memories.update(
     agent_id=agent_id,
     memory_id=memory.id,
     text="Prefers release notes under three lines.",
-).memory
+)
 ```
 
-**Signature:** `update(*, agent_id: str, memory_id: str, text: str) -> MemoryResponse`
+**Signature:** `update(*, agent_id: str, memory_id: str, text: str) -> Memory`
 
-Updates `updated_at` and `last_accessed_at`. The agent and `user_id` stay the same. Raises `validation_failed` or `not_found`.
+Returns the updated [`Memory`](#memory). Updates `updated_at` and `last_accessed_at`. The agent and `user_id` stay the same. Raises `validation_failed` or `not_found`.
 
 ### `delete()` [#delete]
 

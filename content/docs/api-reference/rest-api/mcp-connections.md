@@ -31,9 +31,10 @@ Response schema: `McpConnectionList`.
 
 ```json
 {
-  "mcpConnections": [
+  "data": [
     {
       "id": "mcp_2Rk7Wm4XsQ9dHv1B",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
       "name": "Docs Search",
       "url": "https://mcp.example.com/mcp",
       "authType": "bearer",
@@ -100,6 +101,7 @@ Response schema: `McpConnection`.
 ```json
 {
   "id": "mcp_2Rk7Wm4XsQ9dHv1B",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "name": "Docs Search",
   "url": "https://mcp.example.com/mcp",
   "authType": "bearer",
@@ -138,7 +140,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections" \
   --data '{"name":"Docs Search","url":"https://mcp.example.com/mcp","authType":"bearer","bearerToken":"mcp_live_4f8Kq2Lz9Xw7x7Qa"}'
 ```
 
-### POST /v1/mcp-connections/:id/test [#test-mcp-connection]
+### POST /v1/mcp-connections/:mcpConnectionId/test [#test-mcp-connection]
 
 Test an MCP connection.
 
@@ -150,7 +152,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). Needs 
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the MCP connection. |
+| `mcpConnectionId` | string | path | required | ID of the MCP connection. |
 
 #### Response
 
@@ -196,7 +198,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890A
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### POST /v1/mcp-connections/:id/reconnect [#reconnect-mcp-connection]
+### POST /v1/mcp-connections/:mcpConnectionId/reconnect [#reconnect-mcp-connection]
 
 Reconnect an MCP connection.
 
@@ -208,7 +210,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the MCP connection. |
+| `mcpConnectionId` | string | path | required | ID of the MCP connection. |
 | `authType` | string | body | required | How Blazing Agents authenticates to the MCP server: `none`, `bearer`, or `oauth_authorization_code`. The other fields you send depend on it. |
 | `url` | string | body | required | Streamable HTTP URL of the MCP server. Use `https`, with no credentials, query, or fragment. Up to 2048 characters. |
 | `bearerToken` | string | body | required | Only when `authType` is `bearer`. Token sent as `Authorization: Bearer <token>` to the MCP server. Required when `authType` is `bearer`. Never returned. 8–8192 characters. |
@@ -227,6 +229,7 @@ Response schema: `McpConnectionReconnectResult`.
   "status": "connected",
   "connection": {
     "id": "mcp_2Rk7Wm4XsQ9dHv1B",
+    "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
     "name": "Docs Search",
     "url": "https://mcp.example.com/mcp",
     "authType": "bearer",
@@ -267,7 +270,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890A
   --data '{"authType":"bearer","url":"https://mcp.example.com/mcp","bearerToken":"mcp_live_9Tb3Vc6Nm1Pq8Rw2"}'
 ```
 
-### GET /v1/mcp-connections/:id [#get-mcp-connection]
+### GET /v1/mcp-connections/:mcpConnectionId [#get-mcp-connection]
 
 Get an MCP connection.
 
@@ -279,7 +282,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the MCP connection. |
+| `mcpConnectionId` | string | path | required | ID of the MCP connection. |
 
 #### Response
 
@@ -290,6 +293,7 @@ Response schema: `McpConnection`.
 ```json
 {
   "id": "mcp_2Rk7Wm4XsQ9dHv1B",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "name": "Docs Search",
   "url": "https://mcp.example.com/mcp",
   "authType": "bearer",
@@ -326,7 +330,7 @@ curl "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890ABCDEF" \
   --header "Authorization: Bearer $BLAZING_AGENTS_API_KEY"
 ```
 
-### PATCH /v1/mcp-connections/:id [#update-mcp-connection]
+### PATCH /v1/mcp-connections/:mcpConnectionId [#update-mcp-connection]
 
 Update an MCP connection.
 
@@ -338,7 +342,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the MCP connection. |
+| `mcpConnectionId` | string | path | required | ID of the MCP connection. |
 | `name` | string | body |  | Display name of the connection, unique within your tenant. 1–80 characters. |
 
 #### Response
@@ -350,6 +354,7 @@ Response schema: `McpConnection`.
 ```json
 {
   "id": "mcp_2Rk7Wm4XsQ9dHv1B",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
   "name": "Docs Search Production",
   "url": "https://mcp.example.com/mcp",
   "authType": "bearer",
@@ -389,7 +394,7 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/mcp-connections/mcp_1234567890
   --data '{"name":"Docs Search Production"}'
 ```
 
-### DELETE /v1/mcp-connections/:id [#delete-mcp-connection]
+### DELETE /v1/mcp-connections/:mcpConnectionId [#delete-mcp-connection]
 
 Delete an MCP connection.
 
@@ -401,7 +406,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). Needs 
 
 | Field | Type | Location | Required | Description |
 | --- | --- | --- | --- | --- |
-| `id` | string | path | required | ID of the MCP connection. |
+| `mcpConnectionId` | string | path | required | ID of the MCP connection. |
 
 #### Response
 

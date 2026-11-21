@@ -13,7 +13,7 @@ In a route that serves a signed-in end user, call these methods on the [scoped c
 const user = client.forUser(verifiedUserId);
 const { data } = await user.artifacts.list({ sessionId });
 for (const artifact of data) {
-  const { url } = await user.artifacts.createDownloadUrl({ artifactId: artifact.artifactId });
+  const { url } = await user.artifacts.createDownloadUrl({ artifactId: artifact.id });
   console.log(artifact.filename, url);
 }
 ```
@@ -33,7 +33,7 @@ Every method takes one input object and accepts an optional `abortSignal`. A pub
 
 ### `list()` [#list]
 
-Lists your artifacts, newest first, one [fixed-size page](/api-reference/protocols/service-limits#other-cursored-resource-pages) at a time.
+Lists your artifacts, newest first, one page at a time.
 
 **Signature:** `list(input?: ArtifactsListOptions): Promise<ArtifactsListResponse>`
 
@@ -46,6 +46,7 @@ const page = await client.forUser(verifiedUserId).artifacts.list({ agentId, sess
 | `agentId` | `string` | no | Only this agent's artifacts |
 | `sessionId` | `string` | no | Only artifacts from this session |
 | `cursor` | `string` | no | `nextCursor` from the previous page |
+| `limit` | `number` | no | Page size, from 1 to 100; defaults to 50 |
 
 Returns [`ArtifactsListResponse`](#artifactslistresponse). Errors: [`validation_failed`](/api-reference/protocols/errors#validation_failed), [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
@@ -94,7 +95,7 @@ Deleting it again fails with `not_found`. Errors: `validation_failed`, `not_foun
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `artifactId` | `string` | Artifact ID (`at_…`) |
+| `id` | `string` | Artifact ID (`at_…`) |
 | `agentId` | `string` | The agent that published it |
 | `sessionId` | `string` | The session it was published in |
 | `tenantId` | `string` | Your tenant ID |

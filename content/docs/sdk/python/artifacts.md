@@ -14,7 +14,7 @@ In a route that serves a signed-in end user, call these methods on [`client.for_
 ```python
 user = client.for_user(verified_user_id)
 for artifact in user.artifacts.iter(agent_id="ag_0123456789abcdef"):
-    download = user.artifacts.create_download_url(artifact_id=artifact.artifact_id)
+    download = user.artifacts.create_download_url(artifact_id=artifact.id)
     print(artifact.filename, download.url)
 ```
 
@@ -32,15 +32,15 @@ for artifact in user.artifacts.iter(agent_id="ag_0123456789abcdef"):
 
 ### `list()` [#list]
 
-Gets one [fixed-size page](/api-reference/protocols/service-limits#other-cursored-resource-pages) of artifacts, newest first.
+Gets one [page](/api-reference/protocols/service-limits#other-cursored-resource-pages) of artifacts, newest first.
 
 ```python
 page = client.artifacts.list(agent_id="ag_0123456789abcdef", session_id="ss_0123456789abcdef")
 ```
 
-**Signature:** `list(*, agent_id=..., session_id=..., cursor=...) -> ArtifactsPage`
+**Signature:** `list(*, agent_id=..., session_id=..., cursor=..., limit=...) -> ArtifactsPage`
 
-Filter by agent, session, or both. A scoped client returns only its user's artifacts. Pass the previous page's `next_cursor` as `cursor`. Returns `ArtifactsPage` with `data: list[Artifact]` and `next_cursor: str | None`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
+Filter by agent, session, or both. A scoped client returns only its user's artifacts. Pass the previous page's `next_cursor` as `cursor`. `limit` sets the page size, from 1 to 100, and defaults to 50. Returns `ArtifactsPage` with `data: list[Artifact]` and `next_cursor: str | None`. Raises `APIStatusError` with [`validation_failed`](/api-reference/protocols/errors#validation_failed) or [`invalid_cursor`](/api-reference/protocols/errors#invalid_cursor).
 
 ### `iter()` [#iter]
 
@@ -51,9 +51,9 @@ for artifact in client.artifacts.iter(session_id="ss_0123456789abcdef"):
     print(artifact.filename, artifact.size_bytes)
 ```
 
-**Signature:** `iter(*, agent_id=..., session_id=..., cursor=...) -> Iterator[Artifact]`
+**Signature:** `iter(*, agent_id=..., session_id=..., cursor=..., limit=...) -> Iterator[Artifact]`
 
-Takes the same parameters as [`list()`](#list). No request is sent until you start iterating. On the async client, use `async for` directly on `iter(...)`; do not await it.
+Takes the same parameters as [`list()`](#list), and `limit` sets the size of each page, not the total. No request is sent until you start iterating. On the async client, use `async for` directly on `iter(...)`; do not await it.
 
 ### `get()` [#get]
 
@@ -74,7 +74,7 @@ Creates a direct download link that expires after the [download URL lifetime](/a
 
 ```python
 user = client.for_user(verified_user_id)
-download = user.artifacts.create_download_url(artifact_id=artifact.artifact_id)
+download = user.artifacts.create_download_url(artifact_id=artifact.id)
 print(download.url, download.expires_at)
 ```
 
@@ -87,7 +87,7 @@ Anyone with the link can download the file until it expires, so keep it out of l
 Permanently deletes an artifact.
 
 ```python
-client.artifacts.delete(artifact_id=artifact.artifact_id)
+client.artifacts.delete(artifact_id=artifact.id)
 ```
 
 **Signature:** `delete(*, artifact_id: str) -> None`
@@ -100,7 +100,7 @@ The original file in the agent's workspace is not touched. Raises `validation_fa
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `artifact_id` | `str` | Artifact ID (`at_...`) |
+| `id` | `str` | Artifact ID (`at_...`) |
 | `tenant_id` | `str` | Your tenant ID |
 | `agent_id` | `str` | Agent that published it |
 | `session_id` | `str` | Session it was published in |

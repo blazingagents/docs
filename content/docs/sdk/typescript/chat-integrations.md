@@ -83,10 +83,10 @@ Lists your connections.
 **Signature:** `list(input?: ResourceRequestOptions): Promise<ChatConnectionsResponse>`
 
 ```typescript
-const { chatConnections } = await client.chatConnections.list();
+const { data: connections } = await client.chatConnections.list();
 ```
 
-Returns `{ chatConnections: ChatConnection[] }`.
+Returns `{ data: ChatConnection[] }`.
 
 ### `get()` [#get]
 

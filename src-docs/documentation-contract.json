@@ -3201,10 +3201,13 @@
           "events-summary",
           "events-retry",
           "events-discard",
+          "merchantconnection",
           "merchantconnectionresponse",
           "merchantbindingsresponse",
+          "merchantcustomerbinding",
           "merchantusageeventsresponse",
-          "merchantusagesummaryresponse"
+          "merchantusageevent",
+          "merchantusagesummary"
         ],
         "kind": "methods"
       },
@@ -3214,6 +3217,18 @@
       "fences": {
         "endpointCurls": false,
         "items": [
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
+          {
+            "language": "typescript",
+            "metadata": {}
+          },
           {
             "language": "typescript",
             "metadata": {}
@@ -5708,10 +5723,10 @@
           "events-summary",
           "events-retry",
           "events-discard",
-          "merchantconnectionresponse",
+          "merchantconnection",
           "merchantbindingspage",
           "merchantusageeventspage",
-          "merchantusagesummaryresponse"
+          "merchantusagesummary"
         ],
         "kind": "methods"
       },

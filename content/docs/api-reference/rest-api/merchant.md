@@ -37,6 +37,7 @@ Response schema: `MerchantConnectionResponse`.
 {
   "connection": {
     "id": "mch_6Wd3Lp8RtY2kVn5Q",
+    "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
     "provider": "polar",
     "environment": "sandbox",
     "merchantAccountId": "8f2c1d9e-4b7a-4f3e-9c21-5a6b7d8e9f01",
@@ -98,25 +99,24 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 Returns `201 Created` as `application/json`. The created merchant connection.
 
-Response schema: `MerchantConnectionResponse`.
+Response schema: `MerchantConnection`.
 
 ```json
 {
-  "connection": {
-    "id": "mch_6Wd3Lp8RtY2kVn5Q",
-    "provider": "polar",
-    "environment": "sandbox",
-    "merchantAccountId": "8f2c1d9e-4b7a-4f3e-9c21-5a6b7d8e9f01",
-    "keyFragment": "x7Qa",
-    "guard": {
-      "enabled": false,
-      "productIds": [],
-      "meterId": null
-    },
-    "configVersion": 1,
-    "createdAt": "2026-07-10T10:00:00.000Z",
-    "updatedAt": "2026-07-10T10:00:00.000Z"
-  }
+  "id": "mch_6Wd3Lp8RtY2kVn5Q",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "provider": "polar",
+  "environment": "sandbox",
+  "merchantAccountId": "8f2c1d9e-4b7a-4f3e-9c21-5a6b7d8e9f01",
+  "keyFragment": "x7Qa",
+  "guard": {
+    "enabled": false,
+    "productIds": [],
+    "meterId": null
+  },
+  "configVersion": 1,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:00:00.000Z"
 }
 ```
 
@@ -167,27 +167,26 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 Returns `200 OK` as `application/json`. The updated merchant connection.
 
-Response schema: `MerchantConnectionResponse`.
+Response schema: `MerchantConnection`.
 
 ```json
 {
-  "connection": {
-    "id": "mch_6Wd3Lp8RtY2kVn5Q",
-    "provider": "polar",
-    "environment": "sandbox",
-    "merchantAccountId": "8f2c1d9e-4b7a-4f3e-9c21-5a6b7d8e9f01",
-    "keyFragment": "x7Qa",
-    "guard": {
-      "enabled": true,
-      "productIds": [
-        "prod_4Tq8Wn2Lx6Rv"
-      ],
-      "meterId": null
-    },
-    "configVersion": 2,
-    "createdAt": "2026-07-10T10:00:00.000Z",
-    "updatedAt": "2026-07-10T10:20:00.000Z"
-  }
+  "id": "mch_6Wd3Lp8RtY2kVn5Q",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "provider": "polar",
+  "environment": "sandbox",
+  "merchantAccountId": "8f2c1d9e-4b7a-4f3e-9c21-5a6b7d8e9f01",
+  "keyFragment": "x7Qa",
+  "guard": {
+    "enabled": true,
+    "productIds": [
+      "prod_4Tq8Wn2Lx6Rv"
+    ],
+    "meterId": null
+  },
+  "configVersion": 2,
+  "createdAt": "2026-07-10T10:00:00.000Z",
+  "updatedAt": "2026-07-10T10:20:00.000Z"
 }
 ```
 
@@ -199,7 +198,7 @@ Response schema: `MerchantConnectionResponse`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`merchant_account_mismatch`](/api-reference/protocols/errors#merchant_account_mismatch) | The request conflicts with the resource's current state |
 | `422` | [`merchant_credential_invalid`](/api-reference/protocols/errors#merchant_credential_invalid) | The request was understood but rejected |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
@@ -241,7 +240,7 @@ Returns `204 No Content`. The connection was retired.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`merchant_connection_in_use`](/api-reference/protocols/errors#merchant_connection_in_use) | The request conflicts with the resource's current state |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
@@ -280,7 +279,7 @@ Response schema: `MerchantBindingList`.
 
 ```json
 {
-  "bindings": [
+  "data": [
     {
       "userId": "app:user-42",
       "customerId": "cus_9aB3dE5fG7hJ",
@@ -300,7 +299,7 @@ Response schema: `MerchantBindingList`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
-| `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
@@ -333,16 +332,14 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 
 Returns `200 OK` as `application/json`. The binding.
 
-Response schema: `MerchantBindingResponse`.
+Response schema: `MerchantBinding`.
 
 ```json
 {
-  "binding": {
-    "userId": "app:user-42",
-    "customerId": "cus_9aB3dE5fG7hJ",
-    "createdAt": "2026-07-10T10:05:00.000Z",
-    "updatedAt": "2026-07-10T10:05:00.000Z"
-  }
+  "userId": "app:user-42",
+  "customerId": "cus_9aB3dE5fG7hJ",
+  "createdAt": "2026-07-10T10:05:00.000Z",
+  "updatedAt": "2026-07-10T10:05:00.000Z"
 }
 ```
 
@@ -354,7 +351,7 @@ Response schema: `MerchantBindingResponse`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `422` | [`merchant_customer_not_found`](/api-reference/protocols/errors#merchant_customer_not_found) | The request was understood but rejected |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
@@ -397,7 +394,7 @@ Returns `204 No Content`. The binding was deleted.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`merchant_connection_not_found`](/api-reference/protocols/errors#merchant_connection_not_found), [`merchant_binding_not_found`](/api-reference/protocols/errors#merchant_binding_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
@@ -435,9 +432,10 @@ Response schema: `MerchantUsageEventList`.
 
 ```json
 {
-  "events": [
+  "data": [
     {
       "id": "mev_2Hs8Kq4ZpX6cWm1T",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
       "turnId": "turn_5Nf7Gb2VcL9xRk3P",
       "connectionId": "mch_6Wd3Lp8RtY2kVn5Q",
       "provider": "polar",
@@ -485,6 +483,7 @@ Response schema: `MerchantUsageEventList`.
     },
     {
       "id": "mev_2Hs8Kq4ZpX6cWm1T",
+      "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
       "turnId": "turn_5Nf7Gb2VcL9xRk3P",
       "connectionId": "mch_6Wd3Lp8RtY2kVn5Q",
       "provider": "polar",
@@ -557,32 +556,30 @@ Response schema: `MerchantUsageSummary`.
 
 ```json
 {
-  "summary": {
-    "counts": {
-      "pending": 2,
-      "accepted": 318,
-      "failed": 1,
-      "incomplete": 0,
-      "expired": 0,
-      "discarded": 4
+  "counts": {
+    "pending": 2,
+    "accepted": 318,
+    "failed": 1,
+    "incomplete": 0,
+    "expired": 0,
+    "discarded": 4
+  },
+  "lastAcceptedAt": "2026-07-10T10:12:10.000Z",
+  "oldestPendingOccurredAt": "2026-07-10T10:14:02.000Z",
+  "daily": [
+    {
+      "day": "2026-07-09",
+      "acceptedEvents": 41,
+      "acceptedTokens": 98430,
+      "pendingEvents": 0
     },
-    "lastAcceptedAt": "2026-07-10T10:12:10.000Z",
-    "oldestPendingOccurredAt": "2026-07-10T10:14:02.000Z",
-    "daily": [
-      {
-        "day": "2026-07-09",
-        "acceptedEvents": 41,
-        "acceptedTokens": 98430,
-        "pendingEvents": 0
-      },
-      {
-        "day": "2026-07-10",
-        "acceptedEvents": 27,
-        "acceptedTokens": 61205,
-        "pendingEvents": 2
-      }
-    ]
-  }
+    {
+      "day": "2026-07-10",
+      "acceptedEvents": 27,
+      "acceptedTokens": 61205,
+      "pendingEvents": 2
+    }
+  ]
 }
 ```
 
@@ -625,57 +622,56 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). A read
 
 Returns `200 OK` as `application/json`. The merchant usage event.
 
-Response schema: `MerchantUsageEventResponse`.
+Response schema: `MerchantUsageEvent`.
 
 ```json
 {
-  "event": {
-    "id": "mev_2Hs8Kq4ZpX6cWm1T",
-    "turnId": "turn_5Nf7Gb2VcL9xRk3P",
-    "connectionId": "mch_6Wd3Lp8RtY2kVn5Q",
-    "provider": "polar",
-    "userId": "app:user-42",
-    "customerId": "cus_9aB3dE5fG7hJ",
-    "agentId": "ag_4kP9sT2vXq7LmN3a",
-    "sessionId": "ss_7Yt2Mv5QbN8dKs4W",
-    "model": "openai/gpt-6-luna",
-    "modelProvider": "openrouter",
-    "inputTokens": 1840,
-    "outputTokens": 612,
-    "totalTokens": 2452,
-    "turnStatus": "succeeded",
-    "startedAt": "2026-07-10T10:12:00.000Z",
-    "occurredAt": "2026-07-10T10:12:09.000Z",
-    "status": "accepted",
-    "payload": {
-      "events": [
-        {
-          "customer_id": "cus_9aB3dE5fG7hJ",
-          "external_id": "mev_2Hs8Kq4ZpX6cWm1T",
-          "metadata": {
-            "agent_id": "ag_4kP9sT2vXq7LmN3a",
-            "ba_event_id": "mev_2Hs8Kq4ZpX6cWm1T",
-            "input_tokens": 1840,
-            "model": "openai/gpt-6-luna",
-            "model_provider": "openrouter",
-            "output_tokens": 612,
-            "session_id": "ss_7Yt2Mv5QbN8dKs4W",
-            "status": "succeeded",
-            "total_tokens": 2452,
-            "turn_id": "turn_5Nf7Gb2VcL9xRk3P"
-          },
-          "name": "ba.model_tokens.v1",
-          "timestamp": "2026-07-10T10:12:09.000Z"
-        }
-      ]
-    },
-    "attemptCount": 1,
-    "attemptGeneration": 0,
-    "lastAttemptAt": "2026-07-10T10:12:10.000Z",
-    "lastErrorCode": null,
-    "acceptedAt": "2026-07-10T10:12:10.000Z",
-    "nextAction": "none"
-  }
+  "id": "mev_2Hs8Kq4ZpX6cWm1T",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "turnId": "turn_5Nf7Gb2VcL9xRk3P",
+  "connectionId": "mch_6Wd3Lp8RtY2kVn5Q",
+  "provider": "polar",
+  "userId": "app:user-42",
+  "customerId": "cus_9aB3dE5fG7hJ",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "sessionId": "ss_7Yt2Mv5QbN8dKs4W",
+  "model": "openai/gpt-6-luna",
+  "modelProvider": "openrouter",
+  "inputTokens": 1840,
+  "outputTokens": 612,
+  "totalTokens": 2452,
+  "turnStatus": "succeeded",
+  "startedAt": "2026-07-10T10:12:00.000Z",
+  "occurredAt": "2026-07-10T10:12:09.000Z",
+  "status": "accepted",
+  "payload": {
+    "events": [
+      {
+        "customer_id": "cus_9aB3dE5fG7hJ",
+        "external_id": "mev_2Hs8Kq4ZpX6cWm1T",
+        "metadata": {
+          "agent_id": "ag_4kP9sT2vXq7LmN3a",
+          "ba_event_id": "mev_2Hs8Kq4ZpX6cWm1T",
+          "input_tokens": 1840,
+          "model": "openai/gpt-6-luna",
+          "model_provider": "openrouter",
+          "output_tokens": 612,
+          "session_id": "ss_7Yt2Mv5QbN8dKs4W",
+          "status": "succeeded",
+          "total_tokens": 2452,
+          "turn_id": "turn_5Nf7Gb2VcL9xRk3P"
+        },
+        "name": "ba.model_tokens.v1",
+        "timestamp": "2026-07-10T10:12:09.000Z"
+      }
+    ]
+  },
+  "attemptCount": 1,
+  "attemptGeneration": 0,
+  "lastAttemptAt": "2026-07-10T10:12:10.000Z",
+  "lastErrorCode": null,
+  "acceptedAt": "2026-07-10T10:12:10.000Z",
+  "nextAction": "none"
 }
 ```
 
@@ -687,7 +683,7 @@ Response schema: `MerchantUsageEventResponse`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden) | The caller is not allowed to make this request |
-| `404` | [`merchant_event_not_found`](/api-reference/protocols/errors#merchant_event_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
 | `503` | [`service_unavailable`](/api-reference/protocols/errors#service_unavailable), [`internal`](/api-reference/protocols/errors#internal) | The service is temporarily unavailable |
@@ -719,57 +715,56 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). Needs 
 
 Returns `200 OK` as `application/json`. The event, pending delivery again.
 
-Response schema: `MerchantUsageEventResponse`.
+Response schema: `MerchantUsageEvent`.
 
 ```json
 {
-  "event": {
-    "id": "mev_2Hs8Kq4ZpX6cWm1T",
-    "turnId": "turn_5Nf7Gb2VcL9xRk3P",
-    "connectionId": "mch_6Wd3Lp8RtY2kVn5Q",
-    "provider": "polar",
-    "userId": "app:user-42",
-    "customerId": "cus_9aB3dE5fG7hJ",
-    "agentId": "ag_4kP9sT2vXq7LmN3a",
-    "sessionId": "ss_7Yt2Mv5QbN8dKs4W",
-    "model": "openai/gpt-6-luna",
-    "modelProvider": "openrouter",
-    "inputTokens": 1840,
-    "outputTokens": 612,
-    "totalTokens": 2452,
-    "turnStatus": "succeeded",
-    "startedAt": "2026-07-10T10:12:00.000Z",
-    "occurredAt": "2026-07-10T10:12:09.000Z",
-    "status": "pending",
-    "payload": {
-      "events": [
-        {
-          "customer_id": "cus_9aB3dE5fG7hJ",
-          "external_id": "mev_2Hs8Kq4ZpX6cWm1T",
-          "metadata": {
-            "agent_id": "ag_4kP9sT2vXq7LmN3a",
-            "ba_event_id": "mev_2Hs8Kq4ZpX6cWm1T",
-            "input_tokens": 1840,
-            "model": "openai/gpt-6-luna",
-            "model_provider": "openrouter",
-            "output_tokens": 612,
-            "session_id": "ss_7Yt2Mv5QbN8dKs4W",
-            "status": "succeeded",
-            "total_tokens": 2452,
-            "turn_id": "turn_5Nf7Gb2VcL9xRk3P"
-          },
-          "name": "ba.model_tokens.v1",
-          "timestamp": "2026-07-10T10:12:09.000Z"
-        }
-      ]
-    },
-    "attemptCount": 1,
-    "attemptGeneration": 1,
-    "lastAttemptAt": "2026-07-10T10:12:10.000Z",
-    "lastErrorCode": null,
-    "acceptedAt": null,
-    "nextAction": "wait"
-  }
+  "id": "mev_2Hs8Kq4ZpX6cWm1T",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "turnId": "turn_5Nf7Gb2VcL9xRk3P",
+  "connectionId": "mch_6Wd3Lp8RtY2kVn5Q",
+  "provider": "polar",
+  "userId": "app:user-42",
+  "customerId": "cus_9aB3dE5fG7hJ",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "sessionId": "ss_7Yt2Mv5QbN8dKs4W",
+  "model": "openai/gpt-6-luna",
+  "modelProvider": "openrouter",
+  "inputTokens": 1840,
+  "outputTokens": 612,
+  "totalTokens": 2452,
+  "turnStatus": "succeeded",
+  "startedAt": "2026-07-10T10:12:00.000Z",
+  "occurredAt": "2026-07-10T10:12:09.000Z",
+  "status": "pending",
+  "payload": {
+    "events": [
+      {
+        "customer_id": "cus_9aB3dE5fG7hJ",
+        "external_id": "mev_2Hs8Kq4ZpX6cWm1T",
+        "metadata": {
+          "agent_id": "ag_4kP9sT2vXq7LmN3a",
+          "ba_event_id": "mev_2Hs8Kq4ZpX6cWm1T",
+          "input_tokens": 1840,
+          "model": "openai/gpt-6-luna",
+          "model_provider": "openrouter",
+          "output_tokens": 612,
+          "session_id": "ss_7Yt2Mv5QbN8dKs4W",
+          "status": "succeeded",
+          "total_tokens": 2452,
+          "turn_id": "turn_5Nf7Gb2VcL9xRk3P"
+        },
+        "name": "ba.model_tokens.v1",
+        "timestamp": "2026-07-10T10:12:09.000Z"
+      }
+    ]
+  },
+  "attemptCount": 1,
+  "attemptGeneration": 1,
+  "lastAttemptAt": "2026-07-10T10:12:10.000Z",
+  "lastErrorCode": null,
+  "acceptedAt": null,
+  "nextAction": "wait"
 }
 ```
 
@@ -781,7 +776,7 @@ Response schema: `MerchantUsageEventResponse`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`merchant_event_not_found`](/api-reference/protocols/errors#merchant_event_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict) | The request conflicts with the resource's current state |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |
@@ -814,57 +809,56 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). Needs 
 
 Returns `200 OK` as `application/json`. The discarded event.
 
-Response schema: `MerchantUsageEventResponse`.
+Response schema: `MerchantUsageEvent`.
 
 ```json
 {
-  "event": {
-    "id": "mev_2Hs8Kq4ZpX6cWm1T",
-    "turnId": "turn_5Nf7Gb2VcL9xRk3P",
-    "connectionId": "mch_6Wd3Lp8RtY2kVn5Q",
-    "provider": "polar",
-    "userId": "app:user-42",
-    "customerId": "cus_9aB3dE5fG7hJ",
-    "agentId": "ag_4kP9sT2vXq7LmN3a",
-    "sessionId": "ss_7Yt2Mv5QbN8dKs4W",
-    "model": "openai/gpt-6-luna",
-    "modelProvider": "openrouter",
-    "inputTokens": 1840,
-    "outputTokens": 612,
-    "totalTokens": 2452,
-    "turnStatus": "succeeded",
-    "startedAt": "2026-07-10T10:12:00.000Z",
-    "occurredAt": "2026-07-10T10:12:09.000Z",
-    "status": "discarded",
-    "payload": {
-      "events": [
-        {
-          "customer_id": "cus_9aB3dE5fG7hJ",
-          "external_id": "mev_2Hs8Kq4ZpX6cWm1T",
-          "metadata": {
-            "agent_id": "ag_4kP9sT2vXq7LmN3a",
-            "ba_event_id": "mev_2Hs8Kq4ZpX6cWm1T",
-            "input_tokens": 1840,
-            "model": "openai/gpt-6-luna",
-            "model_provider": "openrouter",
-            "output_tokens": 612,
-            "session_id": "ss_7Yt2Mv5QbN8dKs4W",
-            "status": "succeeded",
-            "total_tokens": 2452,
-            "turn_id": "turn_5Nf7Gb2VcL9xRk3P"
-          },
-          "name": "ba.model_tokens.v1",
-          "timestamp": "2026-07-10T10:12:09.000Z"
-        }
-      ]
-    },
-    "attemptCount": 1,
-    "attemptGeneration": 0,
-    "lastAttemptAt": "2026-07-10T10:12:10.000Z",
-    "lastErrorCode": "MERCHANT_CREDENTIAL_REJECTED",
-    "acceptedAt": null,
-    "nextAction": "none"
-  }
+  "id": "mev_2Hs8Kq4ZpX6cWm1T",
+  "tenantId": "ten_8Hq2Zr5WcY1bJt6D",
+  "turnId": "turn_5Nf7Gb2VcL9xRk3P",
+  "connectionId": "mch_6Wd3Lp8RtY2kVn5Q",
+  "provider": "polar",
+  "userId": "app:user-42",
+  "customerId": "cus_9aB3dE5fG7hJ",
+  "agentId": "ag_4kP9sT2vXq7LmN3a",
+  "sessionId": "ss_7Yt2Mv5QbN8dKs4W",
+  "model": "openai/gpt-6-luna",
+  "modelProvider": "openrouter",
+  "inputTokens": 1840,
+  "outputTokens": 612,
+  "totalTokens": 2452,
+  "turnStatus": "succeeded",
+  "startedAt": "2026-07-10T10:12:00.000Z",
+  "occurredAt": "2026-07-10T10:12:09.000Z",
+  "status": "discarded",
+  "payload": {
+    "events": [
+      {
+        "customer_id": "cus_9aB3dE5fG7hJ",
+        "external_id": "mev_2Hs8Kq4ZpX6cWm1T",
+        "metadata": {
+          "agent_id": "ag_4kP9sT2vXq7LmN3a",
+          "ba_event_id": "mev_2Hs8Kq4ZpX6cWm1T",
+          "input_tokens": 1840,
+          "model": "openai/gpt-6-luna",
+          "model_provider": "openrouter",
+          "output_tokens": 612,
+          "session_id": "ss_7Yt2Mv5QbN8dKs4W",
+          "status": "succeeded",
+          "total_tokens": 2452,
+          "turn_id": "turn_5Nf7Gb2VcL9xRk3P"
+        },
+        "name": "ba.model_tokens.v1",
+        "timestamp": "2026-07-10T10:12:09.000Z"
+      }
+    ]
+  },
+  "attemptCount": 1,
+  "attemptGeneration": 0,
+  "lastAttemptAt": "2026-07-10T10:12:10.000Z",
+  "lastErrorCode": "MERCHANT_CREDENTIAL_REJECTED",
+  "acceptedAt": null,
+  "nextAction": "none"
 }
 ```
 
@@ -876,7 +870,7 @@ Response schema: `MerchantUsageEventResponse`.
 | `401` | [`unauthorized`](/api-reference/protocols/errors#unauthorized) | The credential is missing or invalid |
 | `402` | [`subscription_required`](/api-reference/protocols/errors#subscription_required) | An active subscription or usage credit is required |
 | `403` | [`forbidden`](/api-reference/protocols/errors#forbidden), [`insufficient_scope`](/api-reference/protocols/errors#insufficient_scope) | The caller is not allowed to make this request |
-| `404` | [`merchant_event_not_found`](/api-reference/protocols/errors#merchant_event_not_found) | The resource was not found |
+| `404` | [`not_found`](/api-reference/protocols/errors#not_found) | The resource was not found |
 | `409` | [`merchant_event_state_conflict`](/api-reference/protocols/errors#merchant_event_state_conflict) | The request conflicts with the resource's current state |
 | `500` | [`internal`](/api-reference/protocols/errors#internal) | The request failed on our side |
 | `502` | [`internal`](/api-reference/protocols/errors#internal) | An upstream service failed |

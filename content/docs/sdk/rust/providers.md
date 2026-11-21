@@ -69,12 +69,12 @@ Awaiting returns [`Provider`](#provider). Fails with `Error::Api` whose code is 
 Lists providers.
 
 ```rust
-let providers = client.providers().list().await?.providers;
+let providers = client.providers().list().await?.data;
 ```
 
 **Signature:** `list() -> Call<ListProviders>`
 
-Awaiting returns `ProviderList` with `providers: Vec<ProviderSummary>` (`id`, `name`, `provider_type`, timestamps) without endpoint or key details.
+Awaiting returns `ProviderList` with `data: Vec<ProviderSummary>` (`id`, `tenant_id`, `name`, `provider_type`, timestamps) without endpoint or key details.
 
 ### `get()` [#get]
 
@@ -86,7 +86,7 @@ let provider = client.providers().get("prv_0123456789abcdef").await?;
 
 **Signature:** `get(provider_id: impl Into<ProviderId>) -> Call<GetProvider>`
 
-Awaiting returns [`Provider`](#provider). Fails with `validation_failed` or [`provider_not_found`](/api-reference/protocols/errors#provider_not_found).
+Awaiting returns [`Provider`](#provider). Fails with `validation_failed` or [`not_found`](/api-reference/protocols/errors#not_found).
 
 ### `list_models()` [#list-models]
 
@@ -97,14 +97,14 @@ let models = client
     .providers()
     .list_models("prv_0123456789abcdef")
     .await?;
-for model in &models.models {
+for model in &models.data {
     println!("{}", model.id);
 }
 ```
 
 **Signature:** `list_models(provider_id: impl Into<ProviderId>) -> Call<ListProviderModels>`
 
-Awaiting returns `ProviderModelList` with `models: Vec<ProviderModel>` (each with its provider-native `id`, sorted and without duplicates). A `Custom` provider fails with [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported); a temporarily unavailable catalog fails with [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable). Also fails with `validation_failed` or `provider_not_found`.
+Awaiting returns `ProviderModelList` with `data: Vec<ProviderModel>` (each with its provider-native `id`, sorted and without duplicates). A `Custom` provider fails with [`model_discovery_unsupported`](/api-reference/protocols/errors#model_discovery_unsupported); a temporarily unavailable catalog fails with [`model_validation_unavailable`](/api-reference/protocols/errors#model_validation_unavailable). Also fails with `validation_failed` or `not_found`.
 
 ### `get_thinking_levels()` [#get-thinking-levels]
 
@@ -122,7 +122,7 @@ if levels.known {
 
 **Signature:** `get_thinking_levels(provider_id: impl Into<ProviderId>, model: impl Into<String>) -> Call<ListThinkingLevels>`
 
-Awaiting returns `ProviderThinkingLevels`: `known` says whether the provider knows this model's levels, and `levels` lists the supported ones. When `known` is `false`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time, except on a `google` or `vercel_ai_gateway` provider. There the model takes only `off`, `minimal`, `low`, `medium` and `high`, and saving any other string fails with `invalid_request`. Fails with `validation_failed` or `provider_not_found`.
+Awaiting returns `ProviderThinkingLevels`: `known` says whether the provider knows this model's levels, and `levels` lists the supported ones. When `known` is `false`, Blazing Agents has no data for the model and accepts any string, which the provider can still reject at run time, except on a `google` or `vercel_ai_gateway` provider. There the model takes only `off`, `minimal`, `low`, `medium` and `high`, and saving any other string fails with `invalid_request`. Fails with `validation_failed` or `not_found`.
 
 ### `update()` [#update]
 
@@ -137,7 +137,7 @@ let provider = client
 
 **Signature:** `update(provider_id: impl Into<ProviderId>, name: impl Into<String>) -> Call<UpdateProvider>`
 
-Only the name can change. To change the type, key, or base URL, create a new provider and move your agents to it. Awaiting returns [`Provider`](#provider). Fails with `validation_failed`, `provider_name_conflict`, or `provider_not_found`.
+Only the name can change. To change the type, key, or base URL, create a new provider and move your agents to it. Awaiting returns [`Provider`](#provider). Fails with `validation_failed`, `provider_name_conflict`, or `not_found`.
 
 ### `delete()` [#delete]
 
@@ -162,7 +162,7 @@ client
 | [`provider_in_use`](/api-reference/protocols/errors#provider_in_use) | A current agent uses it. Move the agent first; confirmation does not override this |
 | [`provider_historical_use`](/api-reference/protocols/errors#provider_historical_use) | Saved sessions or queued or running task runs use it. `ApiError::details()` lists them under `sessionIds` and `taskRunIds`. Confirm to delete anyway |
 
-After a confirmed delete, session and task run history remains, but any later turn that needs the provider fails with `provider_not_found`. The delete itself also fails with `validation_failed`, or with `provider_not_found` when the provider does not exist.
+After a confirmed delete, session and task run history remains, but any later turn that needs the provider fails with `provider_not_found`. The delete itself also fails with `validation_failed`, or with `not_found` when the provider does not exist.
 
 ## Response models [#response-models]
 
@@ -171,6 +171,7 @@ After a confirmed delete, session and task run history remains, but any later tu
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `ProviderId` | Provider ID (`prv_...`) |
+| `tenant_id` | `TenantId` | Your tenant ID |
 | `name` | `String` | Display name |
 | `provider_type` | `ProviderType` | The model vendor |
 | `base_url` | `Option<String>` | Endpoint override, if any |

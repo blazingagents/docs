@@ -81,10 +81,10 @@ Lists your connections.
 **Signature:** `list(input?: ResourceRequestOptions): Promise<McpConnectionsResponse>`
 
 ```typescript
-const { mcpConnections } = await client.mcpConnections.list();
+const { data: connections } = await client.mcpConnections.list();
 ```
 
-Returns `{ mcpConnections: McpConnectionResponse[] }`.
+Returns `{ data: McpConnectionResponse[] }`.
 
 ### `get()` [#get]
 
@@ -167,6 +167,7 @@ Takes the [`create()`](#create) fields except `name`. Blazing Agents checks the 
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `string` | Connection ID (`mcp_…`) |
+| `tenantId` | `string` | Your tenant ID |
 | `name` | `string` | Connection name |
 | `url` | `string` | MCP endpoint |
 | `authType` | `McpConnectionAuthType` | Authentication type |
@@ -179,7 +180,7 @@ Takes the [`create()`](#create) fields except `name`. Blazing Agents checks the 
 | `createdAt` | `string` | ISO 8601 timestamp |
 | `updatedAt` | `string` | ISO 8601 timestamp |
 
-`McpConnectionsResponse` is `{ mcpConnections: McpConnectionResponse[] }`.
+`McpConnectionsResponse` is `{ data: McpConnectionResponse[] }`.
 
 ### `McpConnectionTestResponse` [#mcpconnectiontestresponse]
 

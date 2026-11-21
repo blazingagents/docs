@@ -74,7 +74,7 @@ return nil
 | `AgentID` | `ba.AgentID` | required | The agent that runs the task |
 | `Name` | `string` | required | Display name, within the [task field limits](/api-reference/protocols/service-limits#task-fields) |
 | `Prompt` | `string` | required | The prompt every run receives, within the [task field limits](/api-reference/protocols/service-limits#task-fields) |
-| `IdempotencyKey` | `*string` | none | A repeated request with the same key returns the task instead of creating another |
+| `IdempotencyKey` | `string` | `""` | A repeated request with the same key returns the task instead of creating another. Sent as the `Idempotency-Key` header, and not sent when empty |
 | `Schedule` | `ba.Nullable[ba.Schedule]` | none | When the task runs by itself |
 | `Enabled` | `*bool` | `true` | Whether the schedule fires; a disabled task can still be started on demand |
 | `Submit` | `*bool` | `false` | Starts the first run at once; `RunID` is then set |
@@ -175,7 +175,7 @@ Starts a run of the task now, whether or not it has a schedule. A task runs one 
 
 ```go
 run, err := client.Tasks.Submit(ctx, "tk_0123456789abcdef", ba.SubmitTaskParams{
-	IdempotencyKey: new("manual-1"),
+	IdempotencyKey: "manual-1",
 })
 if err != nil {
 	return err
@@ -186,7 +186,7 @@ return nil
 
 **Signature:** `func (s *TasksService) Submit(ctx context.Context, taskID TaskID, params SubmitTaskParams, opts ...RequestOption) (*CreatedTaskRun, error)`
 
-The `IdempotencyKey` field makes retries safe: repeating the request with the same key returns the same run. Returns [`*ba.CreatedTaskRun`](#taskrun) with `RunID`. Fails with `validation_failed`, `not_found`, or `task_active_run_exists` while another run is queued or running.
+The `IdempotencyKey` field makes retries safe: repeating the request with the same key returns the same run. It is sent as the `Idempotency-Key` header, and not sent when empty; the request has no body. Returns [`*ba.CreatedTaskRun`](#taskrun) with `RunID`. Fails with `validation_failed`, `not_found`, or `task_active_run_exists` while another run is queued or running.
 
 ### `ListRuns` [#list-runs]
 
