@@ -290,7 +290,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `tools` | string[] | body |  | Built-in tools the agent can use. Each tool is enabled individually and is off until listed. File tools such as `read` and `bash` run in the attached workspace. Defaults to `[]`. |
 | `instructions` | string | body |  | Instructions the agent follows on every turn. Up to 3000 characters. Defaults to `""`. |
 | `userId` | string | body |  | Your end user's ID, used for attribution. An empty string means a tenant-level agent. It cannot change after creation. Defaults to `""`. |
-| `metadata` | object | body |  | Your own key-value data, returned unchanged. Defaults to `{}`. |
+| `metadata` | object | body |  | Your own key-value data, returned unchanged. At most 128 KiB as JSON. Defaults to `{}`. |
 | `mcpConnectionIds` | string[] | body |  | IDs of the MCP connections attached to the agent. Up to 10 items. Defaults to `[]`. |
 
 #### Response
@@ -605,7 +605,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `memoryInjectionEnabled` | boolean | body |  | Add the agent's saved memories to every turn automatically. |
 | `tools` | string[] | body |  | Built-in tools the agent can use. Each tool is enabled individually and is off until listed. File tools such as `read` and `bash` run in the attached workspace. |
 | `instructions` | string | body |  | Instructions the agent follows on every turn. Up to 3000 characters. |
-| `metadata` | object | body |  | Your own key-value data, returned unchanged. |
+| `metadata` | object | body |  | Your own key-value data, returned unchanged. At most 128 KiB as JSON. |
 | `mcpConnectionIds` | string[] | body |  | IDs of the MCP connections attached to the agent. Up to 10 items. |
 
 #### Response
