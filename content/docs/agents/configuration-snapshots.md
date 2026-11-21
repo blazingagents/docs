@@ -152,7 +152,7 @@ A task edit changes future runs. A run keeps its saved configuration even if it 
 
 ## What a snapshot holds [#what-a-snapshot-holds]
 
-`agentConfig` includes the agent's name, provider and model IDs, thinking level, instructions, built-in tools, MCP connection IDs, approval policies, compaction settings, memory injection setting, and metadata. It does not include the agent's identity, status, avatar, workspace attachment, or credentials.
+`agentConfig` includes the agent's name, provider and model IDs, thinking level, instructions, built-in tools, MCP connection IDs, approval policies, compaction settings, and memory injection setting. It does not include the agent's identity, status, avatar, workspace attachment, credentials, or `metadata`. Read the agent for its metadata: you read a session by its agent's ID, and a task run carries `agentId`.
 
 The provider key, MCP attachments, MCP credentials and connection details, attached workspace, skills, and memories use their current state. A saved provider ID therefore cannot keep a deleted provider available.
 

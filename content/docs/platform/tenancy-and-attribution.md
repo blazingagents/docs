@@ -177,7 +177,7 @@ Labels flow to the work they produce:
 - A task run takes its task's label, and so do the run's session, usage, and artifacts.
 - An artifact saved during a chat takes the session's label.
 
-Once set, a `userId` never changes. Some resources let you update `metadata` later.
+Once set, a `userId` never changes. Some resources let you update `metadata` later. `metadata` is at most [128 KiB](/api-reference/protocols/service-limits#metadata) as JSON.
 
 ## Filter and report [#filter-and-report]
 
