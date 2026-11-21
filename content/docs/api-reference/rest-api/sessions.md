@@ -763,7 +763,7 @@ curl --no-buffer --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_123456789
 
 Claim a function call.
 
-Claims one caller-local function call announced by a `data-ba-function-call` event, before running its handler. Retrying with the same `claimRequestId` returns the same grant; a different `claimRequestId` never takes the call over. Returns `409 function_call_conflict` when another claimant holds the call, its Turn or continuation is no longer active, or its deadline has passed.
+Claims one caller-local function call announced by a `data-ba-function-call` event, before running its handler. Retrying with the same `claimRequestId` returns the same grant; a different `claimRequestId` never takes the call over. Returns `409 function_call_conflict` when another claimant holds the call, its Turn is no longer active, or its deadline has passed.
 
 #### Request
 
@@ -815,7 +815,7 @@ curl --request POST "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF/sess
 
 Submit a function call result.
 
-Submits the outcome of a claimed function call: its JSON output or a sanitized error. Use the `claimRequestId` that won the claim. Retrying an accepted outcome unchanged succeeds even after the Turn ends; a different outcome does not. Returns `409 function_call_conflict` when another claimant holds the call, its Turn or continuation is no longer active, or its deadline has passed.
+Submits the outcome of a claimed function call: its JSON output or a sanitized error. Use the `claimRequestId` that won the claim. Retrying an accepted outcome unchanged succeeds even after the Turn ends; a different outcome does not. Returns `409 function_call_conflict` when another claimant holds the call, its Turn is no longer active, or its deadline has passed.
 
 #### Request
 
