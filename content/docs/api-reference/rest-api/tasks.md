@@ -131,7 +131,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `enabled` | boolean | body |  | Whether the schedule fires. A disabled task can still be started on demand. Defaults to `true`. |
 | `submit` | boolean | body |  | Start a run as soon as the task is created. Defaults to `false`. |
 | `userId` | string | body |  | Your end user's ID, used for attribution. An empty string means a tenant-level task. It cannot change after creation. Defaults to `""`. |
-| `metadata` | object | body |  | Your own key-value data, returned unchanged and copied to each run. Defaults to `{}`. |
+| `metadata` | object | body |  | Your own key-value data, returned unchanged and copied to each run. At most 128 KiB as JSON. Defaults to `{}`. |
 
 #### Response
 
@@ -319,7 +319,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `schedule.config.staggerMs` | integer | body |  | Only when `schedule.kind` is `cron`. Minimum 0. |
 | `schedule.config.timezone` | string | body |  | Only when `schedule.kind` is `cron`. 1–64 characters. Defaults to `UTC`. |
 | `enabled` | boolean | body |  | Whether the schedule fires. A disabled task can still be started on demand. |
-| `metadata` | object | body |  | Your own key-value data. Replaces the current metadata. |
+| `metadata` | object | body |  | Your own key-value data. Replaces the current metadata. At most 128 KiB as JSON. |
 
 #### Response
 

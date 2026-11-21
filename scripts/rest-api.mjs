@@ -266,8 +266,15 @@ function fieldRows(schema, location, prefix = "") {
   });
 }
 
+/**
+ * A parameter or header the contract references from `components` is one every
+ * operation shares, such as `X-Client-Request-Id` and `X-Request-Id`; the REST
+ * API overview documents those once.
+ */
+const isShared = (declaration) => declaration.$ref !== undefined;
+
 function parameterRows(operation, body) {
-  const rows = (operation.parameters ?? []).map((parameter) => ({
+  const rows = (operation.parameters ?? []).filter((parameter) => !isShared(parameter)).map((parameter) => ({
     description: describeField(parameter.schema),
     location: parameter.in,
     name: parameter.name,
@@ -309,9 +316,9 @@ function successResponses(operation) {
         contentType,
         description: response.description,
         example: media?.example,
-        headers: Object.entries(response.headers ?? {}).map(
-          ([name, header]) => ({ description: header.description, name })
-        ),
+        headers: Object.entries(response.headers ?? {})
+          .filter(([, header]) => !isShared(header))
+          .map(([name, header]) => ({ description: header.description, name })),
         schema: json ? schemaName(media.schema) : undefined,
         status,
       };

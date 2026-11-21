@@ -99,7 +99,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | `tier` | string | body |  | Workspace tier, fixed at creation. Core loses its files when the workspace stops; Plus keeps them when it stops while idle. One of `core`, `plus`. Defaults to `core`. |
 | `name` | string | body |  | Display name, up to 80 characters. Leave it out for an unnamed workspace. |
 | `userId` | string | body |  | Your own ID for the end user who owns the workspace. `""` means a tenant-level workspace. It cannot be changed later. Defaults to `""`. |
-| `metadata` | object | body |  | Your own key-value data, returned as sent. Defaults to `{}`. |
+| `metadata` | object | body |  | Your own key-value data, returned as sent. At most 128 KiB as JSON. Defaults to `{}`. |
 | `networkPolicy` | object | body |  | Which hosts the workspace can reach: `unrestricted`, `allowlist` with `allowedHosts`, or `offline`. Defaults to `{"mode":"unrestricted"}`. |
 | `networkPolicy.mode` | string | body | required |  |
 | `networkPolicy.allowedHosts` | string[] | body | required | Only when `networkPolicy.mode` is `allowlist`. At least 1 items. |
@@ -232,7 +232,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication) and a J
 | --- | --- | --- | --- | --- |
 | `workspaceId` | string | path | required | ID of the workspace. |
 | `name` | string \| null | body |  | New display name, up to 80 characters, or `null` to clear it. |
-| `metadata` | object | body |  | Replaces the workspace's metadata. |
+| `metadata` | object | body |  | Replaces the workspace's metadata. At most 128 KiB as JSON. |
 | `networkPolicy` | object | body |  | Replaces the network policy. Which hosts the workspace can reach: `unrestricted`, `allowlist` with `allowedHosts`, or `offline`. |
 | `networkPolicy.mode` | string | body | required |  |
 | `networkPolicy.allowedHosts` | string[] | body | required | Only when `networkPolicy.mode` is `allowlist`. At least 1 items. |
