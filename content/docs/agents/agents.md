@@ -209,13 +209,13 @@ client.agents().delete(agent_id, false).await?;
 return client.Agents.Delete(ctx, agentID, ba.DeleteAgentParams{DeleteArtifacts: false})
 ```
 
-This removes the agent's sessions, tasks, memories, skills, linked prompts, avatar, and [Slack and Telegram connections](/platform/chat-integrations). Its workspace, provider, and MCP connections stay, so you can attach them to another agent. Artifacts you keep and past usage records still show the deleted agent's ID.
+This removes the agent's sessions, tasks, memories, skills, linked prompts, avatar, and [Slack and Telegram connections](/platform/chat-integrations). Its workspace, provider, and MCP connections stay, so you can attach them to another agent or delete them right away. Artifacts you keep and past usage records still show the deleted agent's ID.
 
 A chat connection cannot move to another agent. To keep a bot running, create a new connection for it on another agent after the delete. The Slack app and the Telegram bot themselves are not removed.
 
 An agent with work still running cannot be deleted. While a session of the agent has a turn running, or a task run is queued or running, deletion fails with [`agent_busy`](/api-reference/protocols/errors#agent_busy). Stop the turn or cancel the task run, or wait for it to finish, then delete again. A running `completion()` or `object()` call blocks deletion the same way.
 
-While a delete that also deletes artifacts runs, new turns and task runs for the agent fail with [`agent_deleting`](/api-reference/protocols/errors#agent_deleting). If that delete fails, they keep failing until you send the delete again, which finishes it.
+Once the delete returns, the agent is gone: getting, listing, or updating it answers `not_found`, and new turns and task runs for it fail with [`agent_deleting`](/api-reference/protocols/errors#agent_deleting). Its sessions and their history are removed in the background, within seconds for most agents and within minutes for one with thousands of sessions. Until then, a session can still be read by its ID. If the delete fails, new work keeps failing until you send the delete again, which finishes it.
 
 ## The admin agent [#the-admin-agent]
 
