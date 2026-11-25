@@ -516,7 +516,7 @@ To fix it:
 
 **The agent is being deleted.**
 
-A delete of this agent that also deletes its artifacts is running, or it failed before it finished. Until the delete finishes, the agent refuses new turns and task runs.
+This agent was deleted, or a delete of it failed before it finished. A deleted agent refuses new turns and task runs while its sessions are removed in the background.
 
 HTTP `409`. Retrying the same request fails the same way until you fix the cause.
 
