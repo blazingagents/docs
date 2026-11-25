@@ -685,7 +685,7 @@ curl --request PATCH "$BLAZING_AGENTS_BASE_URL/v1/agents/ag_1234567890ABCDEF" \
 
 Delete an agent.
 
-Permanently deletes an agent. Its workspace is kept. Set `deleteArtifacts` to choose whether its artifacts are deleted too. The platform-managed agent cannot be deleted. An agent cannot be deleted while it has a running turn or a queued or running task run: the call returns `409 agent_busy`, so stop that work or wait for it to finish, then delete again. While a delete that includes artifacts runs, new turns and task runs for the agent fail with `409 agent_deleting`. If that delete fails, they keep failing until you send the delete again, which finishes it.
+Permanently deletes an agent. Its workspace is kept. Set `deleteArtifacts` to choose whether its artifacts are deleted too. The platform-managed agent cannot be deleted. An agent cannot be deleted while it has a running turn or a queued or running task run: the call returns `409 agent_busy`, so stop that work or wait for it to finish, then delete again. Once the call returns, agent reads no longer find the agent, and new turns and task runs for it fail with `409 agent_deleting`. Its sessions and their history are deleted in the background: within seconds for most agents, and within minutes for an agent with thousands of sessions. If the call fails, new turns and task runs keep failing until you send it again, which finishes the deletion.
 
 #### Request
 
@@ -698,7 +698,7 @@ Requires [bearer authentication](/api-reference/rest-api/authentication). Needs 
 
 #### Response
 
-Returns `204 No Content`. The agent was deleted.
+Returns `204 No Content`. The agent was deleted; its sessions are deleted in the background.
 
 #### Errors
 
