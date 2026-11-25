@@ -241,7 +241,7 @@
       "group": "agents-and-providers",
       "statuses": [409],
       "title": "The agent is being deleted.",
-      "whatHappened": "A delete of this agent that also deletes its artifacts is running, or it failed before it finished. Until the delete finishes, the agent refuses new turns and task runs.",
+      "whatHappened": "This agent was deleted, or a delete of it failed before it finished. A deleted agent refuses new turns and task runs while its sessions are removed in the background.",
       "howToFix": [
         "Stop sending work to this agent.",
         "If the delete did not finish, send the same delete again. It finishes the deletion. See [delete an agent](/agents/agents#delete-an-agent)."
