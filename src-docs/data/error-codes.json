@@ -1000,6 +1000,17 @@
       "retryable": false
     },
     {
+      "code": "session_history_too_large",
+      "group": "sessions-and-turns",
+      "statuses": [409],
+      "title": "The session is too long to continue.",
+      "whatHappened": "The session has no saved history state, so the next turn would rebuild it from every message, and those messages pass 4 MiB outside image attachments, or 8 MiB in all.",
+      "howToFix": [
+        "Start a new session and carry over what the conversation needs. Retrying this session returns the same error."
+      ],
+      "retryable": false
+    },
+    {
       "code": "model_spending_limit_exceeded",
       "group": "plan-and-billing",
       "statuses": [429],
