@@ -54,7 +54,9 @@ Response schema: `Usage`.
       "inputTokens": 18240,
       "outputTokens": 6120,
       "requestCount": 14,
-      "durationMs": 41300
+      "durationMs": 41300,
+      "costUsd": 0.3125,
+      "unpricedTurnCount": 0
     },
     {
       "day": "2026-07-10",
@@ -66,14 +68,18 @@ Response schema: `Usage`.
       "inputTokens": 9600,
       "outputTokens": 3050,
       "requestCount": 8,
-      "durationMs": 22750
+      "durationMs": 22750,
+      "costUsd": 0.1875,
+      "unpricedTurnCount": 1
     }
   ],
   "totals": {
     "inputTokens": 27840,
     "outputTokens": 9170,
     "requestCount": 22,
-    "durationMs": 64050
+    "durationMs": 64050,
+    "costUsd": 0.5,
+    "unpricedTurnCount": 1
   }
 }
 ```
@@ -127,7 +133,9 @@ Response schema: `UsageOverview`.
     "inputTokens": 27840,
     "outputTokens": 9170,
     "requestCount": 22,
-    "durationMs": 64050
+    "durationMs": 64050,
+    "costUsd": 0.5,
+    "unpricedTurnCount": 1
   },
   "daily": [
     {
@@ -140,7 +148,9 @@ Response schema: `UsageOverview`.
       "inputTokens": 18240,
       "outputTokens": 6120,
       "requestCount": 14,
-      "durationMs": 41300
+      "durationMs": 41300,
+      "costUsd": 0.3125,
+      "unpricedTurnCount": 0
     },
     {
       "day": "2026-07-10",
@@ -152,7 +162,9 @@ Response schema: `UsageOverview`.
       "inputTokens": 9600,
       "outputTokens": 3050,
       "requestCount": 8,
-      "durationMs": 22750
+      "durationMs": 22750,
+      "costUsd": 0.1875,
+      "unpricedTurnCount": 1
     }
   ],
   "byAgent": [
@@ -166,7 +178,9 @@ Response schema: `UsageOverview`.
       "inputTokens": 27840,
       "outputTokens": 9170,
       "requestCount": 22,
-      "durationMs": 64050
+      "durationMs": 64050,
+      "costUsd": 0.5,
+      "unpricedTurnCount": 1
     }
   ],
   "byUser": [
@@ -180,7 +194,9 @@ Response schema: `UsageOverview`.
       "inputTokens": 20100,
       "outputTokens": 6800,
       "requestCount": 15,
-      "durationMs": 45200
+      "durationMs": 45200,
+      "costUsd": 0.3125,
+      "unpricedTurnCount": 0
     },
     {
       "day": null,
@@ -192,7 +208,9 @@ Response schema: `UsageOverview`.
       "inputTokens": 7740,
       "outputTokens": 2370,
       "requestCount": 7,
-      "durationMs": 18850
+      "durationMs": 18850,
+      "costUsd": 0.1875,
+      "unpricedTurnCount": 1
     }
   ],
   "byModel": [
@@ -206,7 +224,9 @@ Response schema: `UsageOverview`.
       "inputTokens": 27840,
       "outputTokens": 9170,
       "requestCount": 22,
-      "durationMs": 64050
+      "durationMs": 64050,
+      "costUsd": 0.5,
+      "unpricedTurnCount": 1
     }
   ],
   "activeAgentCount": 1
@@ -273,14 +293,18 @@ Response schema: `Usage`.
       "inputTokens": 27840,
       "outputTokens": 9170,
       "requestCount": 22,
-      "durationMs": 64050
+      "durationMs": 64050,
+      "costUsd": 0.5,
+      "unpricedTurnCount": 1
     }
   ],
   "totals": {
     "inputTokens": 27840,
     "outputTokens": 9170,
     "requestCount": 22,
-    "durationMs": 64050
+    "durationMs": 64050,
+    "costUsd": 0.5,
+    "unpricedTurnCount": 1
   }
 }
 ```
@@ -337,7 +361,9 @@ Response schema: `SessionUsage`.
         "inputTokens": 12,
         "outputTokens": 6,
         "requestCount": 1,
-        "durationMs": 450
+        "durationMs": 450,
+        "costUsd": 0.0004,
+        "unpricedTurnCount": 0
       }
     }
   ]
